@@ -49,8 +49,8 @@ export function DiaryDeleteButton({
       className={cn(
         "center size-8 cursor-pointer rounded-full disabled:cursor-wait",
         confirming
-          ? "bg-red-600 text-white"
-          : "text-white/40 hover:bg-white/10 hover:text-white",
+          ? "bg-red-600 text-ink"
+          : "text-ink-muted hover:bg-fill-hover hover:text-ink",
       )}
       disabled={busy}
       loading={busy}

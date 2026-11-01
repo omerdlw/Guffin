@@ -13,11 +13,7 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
-import {
-  AnimatePresence,
-  LayoutGroup,
-  motion,
-} from "motion/react";
+import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import {
   useControllableState,
   useEscapeKey,
@@ -27,7 +23,7 @@ import { cn } from "@omerdlw/base-framework/utils";
 import { Icon } from "./icon";
 import { primitivesTheme } from "./theme";
 import { SlidingHighlight } from "./sliding-highlight";
-import { EASE } from "@/motion/stage/tempo";
+import { EASE, size as tempo } from "@/motion/stage/tempo";
 
 interface SelectOption<T extends string = string> {
   description?: ReactNode;
@@ -260,7 +256,7 @@ export function Select<T extends string = string>({
           exit={{
             opacity: 0,
             scale: 0.97,
-            transition: { duration: 0.18, ease: EASE.glide },
+            transition: { duration: tempo(-2), ease: EASE.glide },
             y: rise * -6,
           }}
           id={listboxId}
@@ -296,7 +292,7 @@ export function Select<T extends string = string>({
                 : null),
             transformOrigin: floating && anchor.up ? "bottom" : "top",
           }}
-          transition={{ duration: 0.45, ease: EASE.expo }}
+          transition={{ duration: tempo(0), ease: EASE.expo }}
           className={cn(
             theme.slots.selectContent,
             compact && COMPACT.content,
@@ -318,8 +314,8 @@ export function Select<T extends string = string>({
                     key={option.value}
                     role="option"
                     transition={{
-                      delay: 0.05 + Math.min(index, 8) * 0.03,
-                      duration: 0.4,
+                      delay: tempo(-5) * (1 + Math.min(index, 5)),
+                      duration: tempo(-1),
                       ease: EASE.expo,
                     }}
                     aria-selected={isSelected}
@@ -338,7 +334,7 @@ export function Select<T extends string = string>({
                   >
                     {isHighlighted ? (
                       <SlidingHighlight
-                        className="rounded-full bg-white/10"
+                        className="rounded-full bg-fill-hover"
                         layoutId="select-option-highlight"
                       />
                     ) : null}

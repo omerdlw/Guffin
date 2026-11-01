@@ -17,7 +17,7 @@ function ListCard({ list }: { list: HomeList }): JSX.Element {
       >
         <PosterStack paths={list.previews} />
       </AccountLink>
-      <h3 className="min-w-0 truncate text-base font-semibold text-white">
+      <h3 className="min-w-0 truncate text-base font-semibold text-ink">
         <AccountLink
           className="underline decoration-transparent hover:decoration-current"
           href={href}
@@ -25,9 +25,9 @@ function ListCard({ list }: { list: HomeList }): JSX.Element {
           {list.title}
         </AccountLink>
       </h3>
-      <div className="flex min-w-0 items-center gap-x-4 text-[13px] text-white/50 tabular-nums">
+      <div className="flex min-w-0 items-center gap-x-4 text-[13px] text-ink-muted tabular-nums">
         <AccountLink
-          className="flex min-w-0 items-center gap-2 font-semibold text-white/80 hover:text-white"
+          className="flex min-w-0 items-center gap-2 font-semibold text-ink-body hover:text-ink"
           href={accountHref(list.owner.username)}
         >
           <Avatar

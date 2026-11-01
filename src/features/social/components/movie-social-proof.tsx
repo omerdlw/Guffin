@@ -55,7 +55,7 @@ export function MovieSocialProof({
   return (
     <div
       className={cn(
-        "grid transition-[grid-template-rows,opacity,margin] duration-slow ease-out-expo",
+        "grid transition-[grid-template-rows,opacity,margin] duration-reveal ease-out-expo",
         open
           ? "mt-0 grid-rows-[1fr] opacity-100"
           : "-mt-3 grid-rows-[0fr] opacity-0",
@@ -66,7 +66,7 @@ export function MovieSocialProof({
         {proof && summary ? (
           <Item exit={false} from="light">
             <button
-              className="cine-card cine-fade group relative flex h-14 w-full cursor-pointer items-center overflow-hidden rounded-full bg-white/[0.06] px-3.5 text-left ring-1 ring-white/[0.04] ring-inset hover:bg-white/10 hover:ring-white/[0.08]"
+              className="cine-card cine-fade group relative flex h-14 w-full cursor-pointer items-center overflow-hidden rounded-full bg-fill px-3.5 text-left ring-1 ring-edge ring-inset hover:bg-fill-hover hover:ring-edge-hover"
               onClick={() =>
                 void openSurface(
                   createSocialProofSurfaceEntry({ movieId, proof, title }),
@@ -82,17 +82,17 @@ export function MovieSocialProof({
               >
                 <AvatarStack people={proof.friends} round />
                 <span className="flex min-w-0 flex-1 flex-col">
-                  <span className="truncate text-xs leading-4 font-semibold text-white">
+                  <span className="truncate text-xs leading-4 font-semibold text-ink">
                     {summary.headline}
                   </span>
                   {summary.details ? (
-                    <span className="truncate text-[11px] leading-4 text-white/70">
+                    <span className="truncate text-[11px] leading-4 text-ink-body">
                       {summary.details}
                     </span>
                   ) : null}
                 </span>
                 <Icon
-                  className="shrink-0 text-white/40 transition-colors duration-fast group-hover:text-white"
+                  className="shrink-0 text-ink-muted transition-colors duration-light group-hover:text-ink"
                   icon="solar:alt-arrow-right-linear"
                   size={16}
                 />

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { personHref } from "@/config/routes";
 import { useArtworkPath } from "@/features/artwork";
-import { MediaCard, useDockLinkClick } from "@/ui";
+import { MediaCard, nested, TONE, useDockLinkClick } from "@/ui";
 import { SCENE } from "../lib/motion";
 import { Develop, Expose } from "@/motion/stage";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/images";
@@ -21,7 +21,8 @@ export function PersonCard({
   person: PersonEntry;
   radius?: number;
 }) {
-  const photoRadius = radius === undefined ? undefined : radius - 4;
+  // The photo sits one p-1 in from the card's edge.
+  const photoRadius = radius === undefined ? undefined : nested(radius, 4);
   const photoPath = useArtworkPath(
     "person",
     person.id,
@@ -39,7 +40,8 @@ export function PersonCard({
       onClick={handleClick}
       prefetch={false}
       className={cn(
-        "cine-card cine-fade relative flex items-center gap-3 overflow-hidden focus-visible:outline-[1.5px] focus-visible:outline-offset-2 focus-visible:outline-white/20 bg-white/[0.06] ring-1 ring-white/[0.04] ring-inset hover:bg-white/10 hover:ring-white/[0.08]",
+        "cine-card cine-fade relative flex items-center gap-3 overflow-hidden",
+        TONE.surface,
         compact ? "h-10 min-w-0 flex-1 p-1 pr-2" : "h-[84px] p-1 pr-4",
       )}
       style={radius === undefined ? undefined : { borderRadius: radius }}
@@ -60,7 +62,7 @@ export function PersonCard({
       {compact ? (
         <Expose
           as="div"
-          className="min-w-0 truncate text-xs leading-4 font-semibold text-white"
+          className="min-w-0 truncate text-xs leading-4 font-semibold text-ink"
           since={SCENE.card.name}
           truncate
         >
@@ -70,7 +72,7 @@ export function PersonCard({
         <div className="flex min-w-0 flex-col">
           <Expose
             as="div"
-            className="truncate text-sm leading-5 font-semibold text-white"
+            className="truncate text-sm leading-5 font-semibold text-ink"
             since={SCENE.card.name}
             truncate
           >
@@ -78,7 +80,7 @@ export function PersonCard({
           </Expose>
           <Expose
             as="div"
-            className="truncate text-[11px] leading-4 font-semibold tracking-[0.14em] text-white/50 uppercase"
+            className={`truncate ${TONE.label} text-ink-muted`}
             since={SCENE.card.role}
             truncate
           >

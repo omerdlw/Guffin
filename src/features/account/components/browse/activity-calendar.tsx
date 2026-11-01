@@ -9,8 +9,8 @@ const DAY = 86_400_000;
 const CELL = "size-[10px] rounded-[2px]";
 
 const LEVELS = [
-  "bg-white/[0.06]",
-  "bg-white/15",
+  "bg-fill",
+  "bg-fill-active",
   "bg-white/30",
   "bg-white/55",
   "bg-white/85",
@@ -98,7 +98,7 @@ export function ActivityCalendar({
       <div className="flex gap-2">
         <div
           aria-hidden="true"
-          className="grid shrink-0 grid-rows-[12px_repeat(7,10px)] gap-[3px] text-[9px] leading-[10px] text-white/35"
+          className="grid shrink-0 grid-rows-[12px_repeat(7,10px)] gap-[3px] text-[9px] leading-[10px] text-ink-faint"
         >
           <span />
           <span>Mon</span>
@@ -120,7 +120,7 @@ export function ActivityCalendar({
               <div className="flex shrink-0 flex-col gap-[3px]" key={index}>
                 <span className="relative h-3">
                   {week.month ? (
-                    <span className="absolute top-0 left-0 text-[9px] leading-3 whitespace-nowrap text-white/40">
+                    <span className="absolute top-0 left-0 text-[9px] leading-3 whitespace-nowrap text-ink-muted">
                       {week.month}
                     </span>
                   ) : null}
@@ -143,7 +143,7 @@ export function ActivityCalendar({
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-3 text-[11px] leading-4 text-white/40">
+      <div className="flex items-center justify-between gap-3 text-[11px] leading-4 text-ink-muted">
         <span className="tabular-nums">
           {total.toLocaleString("en-US")} in the last year
         </span>

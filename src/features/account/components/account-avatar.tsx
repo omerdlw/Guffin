@@ -2,7 +2,14 @@
 
 import type { ReactNode } from "react";
 import { motion } from "motion/react";
-import { EASE, blur, useLeaving, useReveal, useScore } from "@/motion/cinema";
+import {
+  EASE,
+  blur,
+  span,
+  useLeaving,
+  useReveal,
+  useScore,
+} from "@/motion/cinema";
 import { SCENE } from "../lib/motion";
 
 export function AvatarStage({
@@ -64,7 +71,7 @@ export function AvatarStage({
         initial={{ opacity: 0, x: "-140%" }}
         transition={{
           delay: delay + (shine - score.poster.delay),
-          duration: 1.9,
+          duration: span(2),
           ease: EASE.glide,
         }}
       />

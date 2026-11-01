@@ -24,7 +24,7 @@ import {
   type MotionValue,
 } from "motion/react";
 import { useHeldHeight } from "@/motion/flow";
-import { Icon } from "@/ui";
+import { Icon, TONE } from "@/ui";
 import { GRAMMAR } from "./grammar";
 import { EASE, itemsAt, type ItemKind } from "./tempo";
 import { ClockContext, ease, unit } from "./clock";
@@ -196,7 +196,7 @@ function Lamp({ icon }: { icon: string }) {
       ref={ref}
       style={{ filter, opacity }}
     >
-      <Icon className="text-[rgb(var(--grade)/0.85)]" icon={icon} size={18} />
+      <Icon className="text-grade/85" icon={icon} size={18} />
     </motion.span>
   );
 }
@@ -207,10 +207,7 @@ function Name({ children }: { children: string }) {
   const ref = useRef<HTMLHeadingElement>(null);
   const exposed = useReached(ref, (width) => width * EXPOSE_EDGE);
   return (
-    <h2
-      className="min-w-0 text-[11px] leading-4 font-semibold tracking-[0.14em] text-white/70 uppercase"
-      ref={ref}
-    >
+    <h2 className={`min-w-0 ${TONE.label} text-ink-body`} ref={ref}>
       <Expose sweep={exposed}>{children}</Expose>
     </h2>
   );
@@ -227,14 +224,14 @@ function Rule() {
     <div aria-hidden="true" className="relative h-2 min-w-6 flex-1" ref={ref}>
       <div className="absolute inset-x-0 top-1/2 h-px">
         <motion.div
-          className="absolute inset-0 origin-left bg-[rgb(var(--grade)/0.2)]"
+          className="absolute inset-0 origin-left bg-grade/20"
           style={{ scaleX: drawn }}
         />
         <motion.div
           className="pointer-events-none absolute inset-y-0 left-0 w-full"
           style={{ opacity: spark, x: tip }}
         >
-          <span className="absolute -top-px right-full h-[3px] w-16 bg-gradient-to-r from-transparent to-[rgb(var(--grade)/0.9)] blur-[1.5px]" />
+          <span className="absolute -top-px right-full h-[3px] w-16 bg-gradient-to-r from-transparent to-grade/90 blur-[1.5px]" />
         </motion.div>
       </div>
     </div>

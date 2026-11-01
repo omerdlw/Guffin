@@ -51,7 +51,7 @@ function SocialLine({ film }: { film: Feature }): JSX.Element | null {
   if (!film.social) return null;
   const { faces, rating, watchers } = film.social;
   return (
-    <div className="flex items-center gap-3 text-[13px] text-white/60 tabular-nums">
+    <div className="flex items-center gap-3 text-[13px] text-ink-body tabular-nums">
       {faces.length > 0 ? (
         <AvatarStack
           people={faces.map((face) => ({ ...face, id: face.username }))}
@@ -60,14 +60,14 @@ function SocialLine({ film }: { film: Feature }): JSX.Element | null {
         />
       ) : null}
       <span>
-        <span className="font-semibold text-white/85">
+        <span className="font-semibold text-ink-lead">
           {watchers.toLocaleString("en-US")}
         </span>{" "}
         {watchers === 1 ? "member" : "members"} this week
       </span>
       {rating ? (
         <span className="inline-flex items-center gap-1">
-          <Icon className="text-amber-400" icon="solar:star-bold" size={13} />
+          <Icon className="text-rated" icon="solar:star-bold" size={13} />
           {rating.toFixed(1)}
         </span>
       ) : null}
@@ -90,10 +90,10 @@ function Synopsis({ film }: { film: Feature }): JSX.Element {
         </Link>
       </h2>
       {facts ? (
-        <p className="mt-4 text-sm font-medium text-white/60">{facts}</p>
+        <p className="mt-4 text-sm font-medium text-ink-body">{facts}</p>
       ) : null}
       {film.logline ? (
-        <p className={cn(PROSE_CLASS, "mt-5 text-white/75")}>{film.logline}</p>
+        <p className={cn(PROSE_CLASS, "mt-5 text-ink-body")}>{film.logline}</p>
       ) : null}
       <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-4">
         <Link
@@ -140,8 +140,8 @@ function Reels({
                 className={cn(
                   "hidden text-[11px] font-semibold tracking-[0.14em] tabular-nums lg:inline",
                   on
-                    ? "text-white"
-                    : "text-white/35 group-hover/reel:text-white/70",
+                    ? "text-ink"
+                    : "text-ink-faint group-hover/reel:text-ink-body",
                 )}
               >
                 {String(index + 1).padStart(2, "0")}
@@ -150,15 +150,15 @@ function Reels({
                 className={cn(
                   "hidden min-w-0 truncate text-sm font-medium lg:block",
                   on
-                    ? "text-white"
-                    : "text-white/45 group-hover/reel:text-white/80",
+                    ? "text-ink"
+                    : "text-ink-muted group-hover/reel:text-ink-body",
                 )}
               >
                 {film.title}
               </span>
               <span
                 aria-hidden="true"
-                className="absolute inset-x-0 bottom-0 h-0.5 overflow-hidden bg-white/[0.12] lg:h-px lg:bg-white/[0.06]"
+                className="absolute inset-x-0 bottom-0 h-0.5 overflow-hidden bg-fill-active lg:h-px lg:bg-fill"
               >
                 {on ? (
                   <span

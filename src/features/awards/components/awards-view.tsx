@@ -18,13 +18,14 @@ import {
   SegmentedControl,
   Select,
   type SelectClassNames,
+  TONE,
   useDockLinkClick,
 } from "@/ui";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/images";
 import type { AwardRecipient, Awards } from "@/infrastructure/tmdb/types";
 import type { AwardGroup, AwardItem, AwardsGrouping } from "../lib/types";
 import { filterAwards, flattenAwards, groupAwards } from "../lib/utils";
-import { EASE } from "@/motion/stage";
+import { EASE, size } from "@/motion/stage";
 
 const GROUPING_LABELS: Record<AwardsGrouping, string> = {
   organizations: "By organization",
@@ -41,20 +42,37 @@ interface AwardsLook {
   segmented?: string;
   select?: SelectClassNames;
 }
+
+// How awards sit on a film or person page.
+export const STAGE_LOOK: AwardsLook = {
+  button: "rounded-full",
+  logo: "rounded-thumb",
+  poster: "rounded-thumb",
+  segmented: TONE.tabs,
+  select: TONE.select,
+};
 const LIST: Variants = {
-  exit: { opacity: 0, transition: { duration: 0.2, ease: EASE.expo }, y: -8 },
+  exit: {
+    opacity: 0,
+    transition: { duration: size(-2), ease: EASE.expo },
+    y: -8,
+  },
   hidden: {},
-  visible: { transition: { staggerChildren: 0.07 } },
+  visible: { transition: { staggerChildren: size(-4) } },
 };
 const GROUP: Variants = {
   hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, transition: { duration: 0.5, ease: EASE.expo }, y: 0 },
+  visible: {
+    opacity: 1,
+    transition: { duration: size(0), ease: EASE.expo },
+    y: 0,
+  },
 };
 const STILL: Variants = { exit: {}, hidden: {}, visible: {} };
 
 const ALL_ORGANIZATIONS = "all";
 
-const LABEL = "text-[11px] font-semibold tracking-[0.16em] uppercase";
+const LABEL = TONE.label;
 
 function plural(count: number, one: string, many: string): string {
   return `${count} ${count === 1 ? one : many}`;
@@ -65,7 +83,7 @@ function MovieLink({ id, name }: { id: number; name: string }) {
   const handleClick = useDockLinkClick(href);
   return (
     <Link
-      className="cine-fade underline-offset-2 hover:text-white hover:underline"
+      className="cine-fade underline-offset-2 hover:text-ink hover:underline"
       href={href}
       onClick={handleClick}
       prefetch={false}
@@ -81,7 +99,7 @@ function RecipientLink({ recipient }: { recipient: AwardRecipient }) {
 
   return (
     <Link
-      className="cine-fade underline-offset-2 hover:text-white hover:underline"
+      className="cine-fade underline-offset-2 hover:text-ink hover:underline"
       href={href}
       onClick={handleClick}
       prefetch={false}
@@ -118,11 +136,11 @@ function Stat({
 }) {
   return (
     <div className="flex min-w-0 flex-col-reverse items-center gap-2 px-2 text-center">
-      <dt className={cn(LABEL, "-mr-[0.16em] text-white/50")}>{label}</dt>
+      <dt className={cn(LABEL, "-mr-[0.14em] text-ink-muted")}>{label}</dt>
       <dd
         className={cn(
           "font-zuume text-5xl leading-none font-bold tabular-nums sm:text-6xl",
-          strong ? "text-white" : "text-white/40",
+          strong ? "text-ink" : "text-ink-muted",
         )}
       >
         {value}
@@ -136,8 +154,8 @@ function Status({ won }: { won: boolean }) {
     <span
       className={cn(
         LABEL,
-        "-mr-[0.16em] inline-flex shrink-0 items-center gap-1.5 pt-0.5",
-        won ? "text-white" : "text-white/50",
+        "-mr-[0.14em] inline-flex shrink-0 items-center gap-1.5 pt-0.5",
+        won ? "text-ink" : "text-ink-muted",
       )}
     >
       {won ? <Icon icon="solar:cup-bold" size={13} /> : null}
@@ -203,13 +221,13 @@ function AwardRow({
         <span
           className={cn(
             "text-sm leading-snug font-semibold",
-            item.won ? "text-white" : "text-white/70",
+            item.won ? "text-ink" : "text-ink-body",
           )}
         >
           {item.category}
         </span>
         {parts.length > 0 ? (
-          <span className="text-xs leading-snug text-white/50">
+          <span className="text-xs leading-snug text-ink-muted">
             {parts.map((part, index) => (
               <Fragment key={index}>
                 {index > 0 ? " · " : null}
@@ -243,7 +261,7 @@ function AwardGroupBlock({
 
   return (
     <section className="flex flex-col">
-      <header className="flex items-center gap-3 border-b border-white/[0.06] pb-3">
+      <header className="flex items-center gap-3 border-b border-rule pb-3">
         {grouping === "projects" && group.poster?.path ? (
           <PosterThumb
             className={cn("w-9", look.poster)}
@@ -259,10 +277,10 @@ function AwardGroupBlock({
             alt=""
             className="object-contain p-0.5"
             src={logo}
-            wrapperClassName={cn("size-7 shrink-0 bg-white/10", look.logo)}
+            wrapperClassName={cn("size-7 shrink-0 bg-fill-hover", look.logo)}
           />
         ) : null}
-        <h3 className="min-w-0 flex-1 truncate text-sm font-bold text-white">
+        <h3 className="min-w-0 flex-1 truncate text-sm font-bold text-ink">
           {grouping === "projects" && group.poster ? (
             <ProjectName
               id={group.poster.id}
@@ -273,7 +291,7 @@ function AwardGroupBlock({
             group.title
           )}
         </h3>
-        <span className="shrink-0 text-xs text-white/50 tabular-nums">
+        <span className="shrink-0 text-xs text-ink-muted tabular-nums">
           {[
             group.wins > 0 ? plural(group.wins, "win", "wins") : null,
             group.nominations > 0
@@ -284,7 +302,7 @@ function AwardGroupBlock({
             .join(" · ")}
         </span>
       </header>
-      <ul className="flex flex-col divide-y divide-white/[0.06]">
+      <ul className="flex flex-col divide-y divide-rule">
         {group.items.map((item) => (
           <AwardRow
             item={item}
@@ -336,14 +354,14 @@ export function AwardsView({
 
   if (!awards) {
     return (
-      <p className="py-6 text-sm text-white/50">
+      <p className="py-6 text-sm text-ink-muted">
         Awards are unavailable right now. Please try again in a moment
       </p>
     );
   }
   if (items.length === 0) {
     return (
-      <p className="py-6 text-sm text-white/50">
+      <p className="py-6 text-sm text-ink-muted">
         No awards or nominations on record
       </p>
     );
@@ -377,7 +395,7 @@ export function AwardsView({
   return (
     <div className="flex flex-col gap-8">
       <dl
-        className="grid divide-x divide-white/[0.06]"
+        className="grid divide-x divide-rule"
         style={{
           gridTemplateColumns: `repeat(${stats.length}, minmax(0, 1fr))`,
         }}
@@ -426,9 +444,7 @@ export function AwardsView({
               className={cn(
                 "cine-fade inline-flex h-8 cursor-pointer items-center gap-1.5 px-3 text-xs font-semibold ring-1 ring-inset",
                 look.button,
-                winsOnly
-                  ? "bg-[rgb(var(--grade,252_252_251)/0.16)] text-[rgb(var(--grade,252_252_251))] ring-[rgb(var(--grade,252_252_251)/0.24)] hover:bg-[rgb(var(--grade,252_252_251)/0.22)] hover:ring-[rgb(var(--grade,252_252_251)/0.32)]"
-                  : "bg-white/[0.06] text-white/70 ring-white/[0.04] hover:bg-white/10 hover:text-white hover:ring-white/[0.08]",
+                winsOnly ? TONE.chosen : TONE.surface,
               )}
               onClick={() => setWinsOnly((value) => !value)}
               type="button"
@@ -450,7 +466,7 @@ export function AwardsView({
           variants={reduced ? STILL : LIST}
         >
           {groups.length === 0 ? (
-            <p className="py-6 text-sm text-white/50">
+            <p className="py-6 text-sm text-ink-muted">
               Nothing matches these filters
             </p>
           ) : (

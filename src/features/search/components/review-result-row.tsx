@@ -1,7 +1,7 @@
 "use client";
 
 import { RatingStars } from "@/features/reviews";
-import { Highlight, MediaCard, ResultRow } from "@/ui";
+import { Highlight, MediaCard, RADIUS, ResultRow } from "@/ui";
 import { tmdbImageSrcSet, tmdbImageUrl } from "@/infrastructure/tmdb/images";
 import type { ReviewSearchHit } from "../lib/types";
 import { reviewHref } from "@/config/routes";
@@ -55,14 +55,14 @@ export function ReviewResultRow({
               tmdbImageSrcSet("poster", review.posterPath, POSTER_WIDTHS) ??
               undefined,
           }}
-          radius={8}
+          radius={RADIUS.thumb}
         />
       }
       title={
         <>
           <Highlight query={query} text={review.title} />
           {review.year ? (
-            <span className="font-normal text-white/50"> {review.year}</span>
+            <span className="font-normal text-ink-muted"> {review.year}</span>
           ) : null}
         </>
       }

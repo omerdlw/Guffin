@@ -103,7 +103,7 @@ export function Picture({
       <motion.div
         {...target}
         className={cn(
-          "relative w-full overflow-hidden rounded-[24px]",
+          "relative w-full overflow-hidden rounded-sheet",
           frameClassName,
         )}
         data-carry-slot=""

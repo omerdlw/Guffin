@@ -7,6 +7,7 @@ import {
   CAROUSEL_ITEM,
   CAROUSEL_WIDE_ITEM,
   MediaCard,
+  RADIUS,
   SegmentedControl,
   TONE,
 } from "@/ui";
@@ -163,13 +164,13 @@ export function MovieGallery({
         >
           <Carousel
             arrowClassName={TONE.arrows}
-            className="rounded-[16px]"
+            className="rounded-card"
             itemClassName={
               key === "backdrops" && total === 1 ? "w-full" : view.item
             }
             label={view.label}
             onNearEnd={more}
-            radius={16}
+            radius={RADIUS.card}
           >
             {images.map((image, index) => {
               const label = `View ${view.noun} ${index + 1} of ${title}`;
@@ -191,7 +192,7 @@ export function MovieGallery({
                   }}
                   label={label}
                   onClick={() => open(image.filePath, index)}
-                  radius={16}
+                  radius={RADIUS.card}
                 />
               );
             })}

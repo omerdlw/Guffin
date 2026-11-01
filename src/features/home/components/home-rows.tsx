@@ -3,7 +3,7 @@ import { MoviePosterLink } from "@/features/movie";
 import { RatingStars } from "@/features/reviews";
 import { AvatarStack } from "@/features/social";
 import { Carousel, Header, Section } from "@/motion/stage";
-import { Avatar, CAROUSEL_ITEM, Icon, TONE } from "@/ui";
+import { Avatar, CAROUSEL_ITEM, Icon, RADIUS, TONE } from "@/ui";
 import { compact } from "../lib/format";
 import type {
   FriendLog,
@@ -17,7 +17,7 @@ import type {
 const ROW_ITEM =
   "w-[calc((100%-1.5rem)/3)] md:w-[calc((100%-2.25rem)/4)] lg:w-[calc((100%-3rem)/5)]";
 const CAPTION =
-  "flex min-h-5 min-w-0 items-center gap-1.5 text-xs font-medium text-white/45 tabular-nums";
+  "flex min-h-5 min-w-0 items-center gap-1.5 text-xs font-medium text-ink-muted tabular-nums";
 
 const faces = (members: Member[]) =>
   members.map((member) => ({ ...member, id: member.username }));
@@ -44,17 +44,17 @@ export function FilmRow({
       <Header actions={actions} icon={icon} title={title} />
       <Carousel
         arrowClassName={TONE.arrows}
-        className="rounded-[16px]"
+        className="rounded-card"
         itemClassName={wide ? ROW_ITEM : CAROUSEL_ITEM}
         label={title}
-        radius={16}
+        radius={RADIUS.card}
       >
         {films.map((film, index) => (
           <MoviePosterLink
             caption={caption?.(film, index)}
             key={film.id}
             movie={film}
-            radius={16}
+            radius={RADIUS.card}
             sizes="(min-width: 1024px) 18vw, (min-width: 768px) 22vw, 30vw"
           />
         ))}
@@ -104,10 +104,10 @@ export function FriendsRow({
       <Header icon="solar:users-group-rounded-bold" title="New from friends" />
       <Carousel
         arrowClassName={TONE.arrows}
-        className="rounded-[16px]"
+        className="rounded-card"
         itemClassName={ROW_ITEM}
         label="New from friends"
-        radius={16}
+        radius={RADIUS.card}
       >
         {logs.map((log) => (
           <MoviePosterLink
@@ -129,7 +129,7 @@ export function FriendsRow({
                 ) : null}
                 {log.liked ? (
                   <Icon
-                    className="shrink-0 text-[#ff9010]"
+                    className="shrink-0 text-liked"
                     icon="solar:heart-bold"
                     size={12}
                   />
@@ -153,7 +153,7 @@ export function FriendsRow({
             detail={`logged by ${log.author.displayName}`}
             key={log.id}
             movie={log.film}
-            radius={16}
+            radius={RADIUS.card}
             sizes="(min-width: 1024px) 18vw, (min-width: 768px) 22vw, 30vw"
           />
         ))}
@@ -198,8 +198,8 @@ export function RatedRow({
         const rated = byId.get(film.id)!;
         return (
           <span className={CAPTION}>
-            <Icon className="text-amber-400" icon="solar:star-bold" size={12} />
-            <span className="text-white/70">{rated.rating.toFixed(2)}</span>
+            <Icon className="text-rated" icon="solar:star-bold" size={12} />
+            <span className="text-ink-body">{rated.rating.toFixed(2)}</span>
             <span className="hidden truncate sm:inline">
               · {compact(rated.ratings)} ratings
             </span>

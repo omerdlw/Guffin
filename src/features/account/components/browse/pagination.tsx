@@ -67,7 +67,7 @@ export function Pagination({
     >
       {activeTarget === target ? (
         <SlidingHighlight
-          className="rounded-full bg-white/[0.06]"
+          className="rounded-full bg-fill"
           layoutId="pagination-highlight"
         />
       ) : null}
@@ -95,13 +95,13 @@ export function Pagination({
               "previous",
               hrefFor(page - 1),
               <Icon icon="solar:alt-arrow-left-linear" size={14} />,
-              cn(step, "text-white/70 ring-white/5 hover:text-white"),
+              cn(step, "text-ink-body ring-edge hover:text-ink"),
               "Previous page",
             )
           : null}
         {windowOf(page, pageCount).map((entry, index) =>
           entry === "gap" ? (
-            <span className="px-1 text-white/30" key={`gap-${index}`}>
+            <span className="px-1 text-ink-faint" key={`gap-${index}`}>
               …
             </span>
           ) : (
@@ -112,8 +112,8 @@ export function Pagination({
               cn(
                 step,
                 entry === page
-                  ? "text-white ring-white/[0.12]"
-                  : "text-white/70 ring-white/5 hover:text-white",
+                  ? "text-ink ring-edge-focus"
+                  : "text-ink-body ring-edge hover:text-ink",
               ),
               undefined,
               entry === page ? "page" : undefined,
@@ -126,7 +126,7 @@ export function Pagination({
               "next",
               hrefFor(page + 1),
               <Icon icon="solar:alt-arrow-right-linear" size={14} />,
-              cn(step, "text-white/70 ring-white/5 hover:text-white"),
+              cn(step, "text-ink-body ring-edge hover:text-ink"),
               "Next page",
             )
           : null}

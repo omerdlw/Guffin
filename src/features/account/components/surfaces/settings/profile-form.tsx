@@ -111,12 +111,12 @@ export function ProfileForm({ onSaved }: { onSaved: () => void }) {
       />
       <Button
         aria-checked={isPrivate}
-        className="flex h-10 w-full items-center justify-between rounded-[16px] bg-white/[0.06] pr-2 pl-4 ring-1 ring-inset ring-white/[0.04] hover:bg-white/10 hover:ring-white/[0.08]"
+        className="flex h-10 w-full items-center justify-between rounded-card bg-fill pr-2 pl-4 ring-1 ring-inset ring-edge hover:bg-fill-hover hover:ring-edge-hover"
         disabled={pending}
         onClick={() => setIsPrivate(!isPrivate)}
         role="switch"
       >
-        <span className="text-sm font-medium text-white">
+        <span className="text-sm font-medium text-ink">
           {isPrivate ? "Private profile" : "Public profile"}
         </span>
         <span
@@ -124,8 +124,8 @@ export function ProfileForm({ onSaved }: { onSaved: () => void }) {
           className={cn(
             "flex h-6 w-11 shrink-0 rounded-full p-0.5 ring-1 ring-inset",
             isPrivate
-              ? "bg-white/15 ring-white/15"
-              : "bg-black/60 ring-white/10",
+              ? "bg-fill-active ring-edge-focus"
+              : "bg-black/60 ring-edge-hover",
           )}
         >
           <span

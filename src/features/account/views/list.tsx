@@ -57,7 +57,7 @@ export async function AccountListView({
       />
       <header className="flex flex-col gap-5">
         <AccountLink
-          className="inline-flex w-fit items-center gap-1.5 text-[11px] font-semibold tracking-[0.14em] text-white/40 uppercase hover:text-white"
+          className="inline-flex w-fit items-center gap-1.5 text-[11px] font-semibold tracking-[0.14em] text-ink-muted uppercase hover:text-ink"
           href={lists}
         >
           <Icon icon="solar:alt-arrow-left-linear" size={13} />
@@ -66,23 +66,23 @@ export async function AccountListView({
 
         <div className="flex min-w-0 flex-col gap-3">
           <div className="flex min-w-0 items-center gap-2.5">
-            <h1 className="text-2xl leading-8 font-semibold tracking-tight break-words text-white">
+            <h1 className="text-2xl leading-8 font-semibold tracking-tight break-words text-ink">
               {list.title}
             </h1>
             {list.isPrivate ? (
               <Icon
                 aria-label="Private list"
-                className="shrink-0 text-white/40"
+                className="shrink-0 text-ink-muted"
                 icon="solar:lock-bold"
                 size={16}
               />
             ) : null}
           </div>
-          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-white/50">
+          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-ink-muted">
             <span>
               By{" "}
               <AccountLink
-                className="font-medium text-white/80 hover:text-white underline decoration-transparent hover:decoration-current"
+                className="font-medium text-ink-body hover:text-ink underline decoration-transparent hover:decoration-current"
                 href={accountHref(list.owner.username)}
               >
                 {list.owner.displayName}
@@ -99,7 +99,7 @@ export async function AccountListView({
                   className="inline-flex items-center gap-x-2 whitespace-nowrap"
                   key={part}
                 >
-                  <span aria-hidden="true" className="text-white/20">
+                  <span aria-hidden="true" className="text-ink-faint">
                     ·
                   </span>
                   {part}
@@ -107,7 +107,7 @@ export async function AccountListView({
               ))}
           </p>
           {list.description ? (
-            <p className="max-w-2xl text-sm leading-6 whitespace-pre-line text-white/70">
+            <p className="max-w-2xl text-sm leading-6 whitespace-pre-line text-ink-body">
               {list.description}
             </p>
           ) : null}

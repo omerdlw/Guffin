@@ -15,6 +15,7 @@ import {
   CAROUSEL_ITEM,
   CAROUSEL_WIDE_ITEM,
   MediaCard,
+  RADIUS,
   SegmentedControl,
   TONE,
 } from "@/ui";
@@ -108,10 +109,10 @@ export function PersonGallery({
       <Swap id={key}>
         <Carousel
           arrowClassName={TONE.arrows}
-          className="rounded-[16px]"
+          className="rounded-card"
           itemClassName={!portrait && paths.length === 1 ? "w-full" : view.item}
           label={view.label}
-          radius={16}
+          radius={RADIUS.card}
         >
           {paths.map((path, index) => {
             const full = portrait
@@ -124,7 +125,7 @@ export function PersonGallery({
                 aspect={view.aspect}
                 image={{ sizes: view.sizes, src: full }}
                 label={`View ${view.noun} ${index + 1} of ${name}`}
-                radius={16}
+                radius={RADIUS.card}
                 onClick={() => {
                   if (!full) return;
                   const data: ImageModalData = {

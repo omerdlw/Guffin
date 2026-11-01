@@ -46,7 +46,7 @@ function ReviewsSection({
       <Header
         actions={
           <AccountLink
-            className={`${TONE.label} text-white/40 ui-fade hover:text-white`}
+            className={TONE.link}
             href={movieReviewsHref(movieId, {
               sort: sort === "newest" ? undefined : sort,
             })}

@@ -350,17 +350,17 @@ export function WallView({ films }: { films: CanonFilm[] }): JSX.Element {
             opened ? "opacity-100" : "pointer-events-none opacity-0",
           )}
         >
-          <p className="flex items-end gap-2.5 text-white">
+          <p className="flex items-end gap-2.5 text-ink">
             <span className="font-zuume text-[clamp(3rem,5vw,4.75rem)] leading-[0.8] font-bold tabular-nums">
               {seenCount}
             </span>
-            <span className="pb-1 text-[12px] leading-none text-white/45">
+            <span className="pb-1 text-[12px] leading-none text-ink-muted">
               of {films.length} seen
             </span>
           </p>
           <span
             aria-hidden="true"
-            className="relative block h-px w-36 bg-white/12"
+            className="relative block h-px w-36 bg-fill-active"
           >
             <span
               className="absolute inset-y-0 left-0 bg-white/75 [transition:width_1.2s_cubic-bezier(0.22,1,0.36,1)]"
@@ -378,8 +378,8 @@ export function WallView({ films }: { films: CanonFilm[] }): JSX.Element {
                 className={cn(
                   "py-1 [transition:color_0.3s]",
                   filter === option.value
-                    ? "text-white"
-                    : "text-white/35 hover:text-white/70",
+                    ? "text-ink"
+                    : "text-ink-faint hover:text-ink-body",
                 )}
                 key={option.value}
                 onClick={() => setFilter(option.value)}
@@ -402,10 +402,10 @@ export function WallView({ films }: { films: CanonFilm[] }): JSX.Element {
         ref={tip}
       >
         {pointed ? (
-          <div className="flex items-baseline gap-2 rounded-[15px] bg-black/72 px-3 py-1.5 text-[12px] font-medium text-white/90 ring-1 ring-white/[0.07] backdrop-blur-xl">
-            <span className="text-white/45 tabular-nums">{pointed.rank}</span>
+          <div className="flex items-baseline gap-2 rounded-card bg-black/70 px-3 py-1.5 text-[12px] font-medium text-ink-lead ring-1 ring-edge-hover backdrop-blur-xl">
+            <span className="text-ink-muted tabular-nums">{pointed.rank}</span>
             <span className="truncate">{pointed.title}</span>
-            <span className="text-white/45 tabular-nums">{pointed.year}</span>
+            <span className="text-ink-muted tabular-nums">{pointed.year}</span>
           </div>
         ) : null}
       </div>

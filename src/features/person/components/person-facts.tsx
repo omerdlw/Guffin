@@ -20,7 +20,7 @@ function Row({
 }) {
   return (
     <div className="group/row relative flex items-baseline justify-between gap-6 py-3 first:pt-0 last:pb-0">
-      <dt className={`shrink-0 ${TONE.label} text-white/50`}>
+      <dt className={`shrink-0 ${TONE.label} text-ink-muted`}>
         <Expose at={at} hover out={out}>
           {label}
         </Expose>
@@ -28,7 +28,7 @@ function Row({
       <Fade
         as="dd"
         at={at + SCENE.facts.lag}
-        className={`min-w-0 text-right ${FACT_ROW_TYPE} font-medium text-white tabular-nums`}
+        className={`min-w-0 text-right ${FACT_ROW_TYPE} font-medium text-ink tabular-nums`}
         out={out}
       >
         {children}
@@ -138,7 +138,7 @@ export function PersonFacts({
             ))}
             {hidden.length > 0 ? (
               <Tooltip position="top" text={hidden.join(", ")}>
-                <span className="ml-1.5 cursor-help text-xs font-bold text-white/70">
+                <span className="ml-1.5 cursor-help text-xs font-bold text-ink-body">
                   +{hidden.length}
                 </span>
               </Tooltip>

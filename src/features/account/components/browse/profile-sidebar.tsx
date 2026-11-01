@@ -31,11 +31,11 @@ export function DiaryDigest({
         const date = new Date(`${month.key}-01T00:00:00Z`);
         return (
           <div className="flex gap-3" key={month.key}>
-            <span className="flex w-9 shrink-0 flex-col items-center self-start overflow-hidden rounded-[8px] ring-1 ring-white/15 ring-inset">
-              <span className="w-full bg-white/10 py-0.5 text-center text-[9px] leading-3 font-semibold tracking-[0.1em] text-white/70 uppercase">
+            <span className="flex w-9 shrink-0 flex-col items-center self-start overflow-hidden rounded-thumb ring-1 ring-edge-focus ring-inset">
+              <span className="w-full bg-fill-hover py-0.5 text-center text-[9px] leading-3 font-semibold tracking-[0.1em] text-ink-body uppercase">
                 {MONTH.format(date)}
               </span>
-              <span className="py-1 text-[10px] leading-3 text-white/45 tabular-nums">
+              <span className="py-1 text-[10px] leading-3 text-ink-muted tabular-nums">
                 {date.getUTCFullYear()}
               </span>
             </span>
@@ -45,11 +45,11 @@ export function DiaryDigest({
                   className="flex min-w-0 items-baseline gap-2.5 text-[13px] leading-5"
                   key={entry.id}
                 >
-                  <span className="w-5 shrink-0 text-right text-white/35 tabular-nums">
+                  <span className="w-5 shrink-0 text-right text-ink-faint tabular-nums">
                     {Number(entry.watchedOn.slice(8, 10))}
                   </span>
                   <AccountLink
-                    className="truncate text-white/75 hover:text-white"
+                    className="truncate text-ink-body hover:text-ink"
                     href={movieHref(entry.tmdbId)}
                   >
                     {entry.title}
@@ -81,18 +81,18 @@ export function RatingsChart({
   return (
     <div className="flex flex-col gap-5">
       <div className="flex items-baseline gap-3">
-        <span className="text-4xl leading-none font-semibold text-white tabular-nums">
+        <span className="text-4xl leading-none font-semibold text-ink tabular-nums">
           {average.toFixed(1)}
         </span>
         <span className="flex flex-col gap-1.5">
           <RatingStars rating={Math.round(average * 2) / 2} size={12} />
-          <span className="text-[11px] leading-3 text-white/40">
+          <span className="text-[11px] leading-3 text-ink-muted">
             average rating
           </span>
         </span>
       </div>
       <div className="flex flex-col gap-1.5">
-        <div className="flex h-24 items-end gap-1 border-b border-white/10">
+        <div className="flex h-24 items-end gap-1 border-b border-line">
           {spread.map((count, index) => (
             <Tooltip
               key={index}
@@ -103,7 +103,7 @@ export function RatingsChart({
                   <span
                     className={cn(
                       "w-full rounded-t-[3px] group-hover/bar:bg-white/60",
-                      count === peak ? "bg-white/40" : "bg-white/15",
+                      count === peak ? "bg-white/40" : "bg-fill-active",
                     )}
                     style={{ height: `max(4px, ${(count / peak) * 100}%)` }}
                   />
@@ -141,7 +141,7 @@ export function PeopleGrid({
           <Tooltip text={person.displayName}>
             <AccountLink
               aria-label={person.displayName}
-              className="block aspect-square overflow-hidden rounded-full ring-1 ring-white/10 ui-fade hover:opacity-75"
+              className="block aspect-square overflow-hidden rounded-full ring-1 ring-edge-hover ui-fade hover:opacity-75"
               href={accountHref(person.username)}
             >
               <Avatar

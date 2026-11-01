@@ -1,10 +1,6 @@
 import type { JSX } from "react";
-import { Spinner } from "@/ui";
+import { AccountSectionSkeleton } from "@/features/account";
 
-export default function AccountSectionLoading(): JSX.Element {
-  return (
-    <div className="center min-h-[40vh] w-full">
-      <Spinner size={30} />
-    </div>
-  );
+export default function AccountOverviewLoading(): JSX.Element {
+  return <AccountSectionSkeleton section="overview" />;
 }

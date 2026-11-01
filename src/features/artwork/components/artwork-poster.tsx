@@ -43,7 +43,7 @@ export function ArtworkPoster({
         alt={alt}
         className="object-cover"
         fallback={
-          <div className="center h-full w-full text-white/50 ring-1 ring-white/5 ring-inset">
+          <div className="center h-full w-full text-ink-faint ring-1 ring-edge ring-inset">
             <Icon icon={fallbackIcon} size={40} />
           </div>
         }

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { MoviePosterLink } from "@/features/movie";
-import { Button, SegmentedControl, Select, TONE } from "@/ui";
+import { Button, RADIUS, SegmentedControl, Select, TONE } from "@/ui";
 import {
   PERSON_DEFAULT_SORT,
   PERSON_FILMOGRAPHY_PREVIEW,
@@ -51,12 +51,7 @@ export function PersonFilmography({
           <Select
             ariaLabel="Sort filmography"
             className="w-44"
-            classNames={{
-              content: "rounded-[18px]",
-              option: "rounded-[14px]",
-              trigger:
-                "rounded-full bg-white/[0.06] ring-white/[0.04] hover:bg-white/10 hover:ring-white/[0.08]",
-            }}
+            classNames={TONE.select}
             onChange={(value) => isFilmographySort(value) && setSort(value)}
             options={SORT_OPTIONS}
             size="sm"
@@ -72,8 +67,8 @@ export function PersonFilmography({
       />
 
       {several ? (
-        <Beat>
-          <div className="mb-8 flex w-full items-center">
+        <Beat from="light">
+          <div className="mb-6 flex w-full items-center">
             <SegmentedControl
               ariaLabel="Kind of work"
               className={TONE.tabs}
@@ -98,7 +93,7 @@ export function PersonFilmography({
             <Item as="li" className="min-w-0" from="light" key={credit.key}>
               <MoviePosterLink
                 detail={credit.role}
-                radius={16}
+                radius={RADIUS.card}
                 carried
                 movie={{
                   id: credit.id,
@@ -112,9 +107,9 @@ export function PersonFilmography({
           ))}
         </ul>
         {credits.length > visible.length ? (
-          <Item>
+          <Item from="light">
             <Button
-              className={`cine-press mt-3 h-10 w-full cursor-pointer rounded-full text-[13px] font-medium ${TONE.surface}`}
+              className={`mt-3 ${TONE.more}`}
               onClick={() => setExpanded(new Set(expanded).add(group.key))}
               type="button"
             >

@@ -2,11 +2,7 @@
 
 import { useEffect, useId, useRef, useState, type RefObject } from "react";
 import Link from "next/link";
-import {
-  LayoutGroup,
-  motion,
-  useTransform,
-} from "motion/react";
+import { LayoutGroup, motion, useTransform } from "motion/react";
 import { movieHref } from "@/config/routes";
 import { PosterThumb } from "@/features/artwork";
 import { layoutTop } from "@/motion/flow";
@@ -32,7 +28,7 @@ function TimelineRow({
 
   return (
     <Link
-      className="group relative isolate flex items-center gap-4 rounded-[12px] p-0.5 pr-3"
+      className="group relative isolate flex items-center gap-4 rounded-tile p-1 pr-3"
       href={href}
       onClick={handleClick}
       onFocus={onFocus}
@@ -41,22 +37,22 @@ function TimelineRow({
     >
       {highlighted ? (
         <SlidingHighlight
-          className="rounded-[12px] bg-white/[0.08] ring-1 ring-white/[0.08] ring-inset"
+          className="rounded-tile bg-fill-hover ring-1 ring-edge-hover ring-inset"
           layoutId="timeline-row-highlight"
         />
       ) : null}
       <PosterThumb
-        className="pointer-events-none relative z-10 w-14 rounded-[10px] sm:w-16"
+        className="pointer-events-none relative z-10 w-14 rounded-thumb sm:w-16"
         movieId={credit.id}
         original
         posterPath={credit.posterPath}
       />
       <span className="pointer-events-none relative z-10 flex min-w-0 flex-1 flex-col gap-1">
-        <span className="truncate text-sm leading-tight font-semibold text-white sm:text-base">
+        <span className="truncate text-sm leading-tight font-semibold text-ink sm:text-base">
           {credit.title}
         </span>
         {credit.detail ? (
-          <span className="truncate text-xs text-white/50 sm:text-sm">
+          <span className="truncate text-xs text-ink-muted sm:text-sm">
             {credit.detail}
           </span>
         ) : null}
@@ -131,7 +127,7 @@ export function PersonTimeline({ years }: { years: TimelineYear[] }) {
         >
           <Trace
             axis="y"
-            className={`absolute top-2 bottom-0 w-px origin-top bg-white/10 ${SPINE}`}
+            className={`absolute top-2 bottom-0 w-px origin-top bg-line ${SPINE}`}
           />
           <motion.span
             aria-hidden="true"
@@ -149,12 +145,12 @@ export function PersonTimeline({ years }: { years: TimelineYear[] }) {
                   className="w-14 shrink-0 pt-1 pr-3 text-right sm:w-20 sm:pr-4"
                   from="light"
                 >
-                  <h3 className="text-xs font-bold text-white/50 tabular-nums sm:text-sm">
+                  <h3 className="text-xs font-bold text-ink-muted tabular-nums sm:text-sm">
                     {year ?? "—"}
                   </h3>
                 </Item>
                 <Item
-                  className={`absolute top-1.5 z-10 size-3 -translate-x-1/2 rounded-full bg-white ${SPINE}`}
+                  className={`absolute top-1.5 z-10 size-3 -translate-x-1/2 rounded-full bg-ink ${SPINE}`}
                   from="dot"
                 >
                   <span aria-hidden="true" />

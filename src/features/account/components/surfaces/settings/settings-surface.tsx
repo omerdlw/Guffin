@@ -40,24 +40,24 @@ function Overview() {
     <div className="grid gap-2.5">
       {(Object.keys(SECTIONS) as Section[]).map((key) => (
         <Button
-          className="group/item flex h-[52px] w-full cursor-pointer items-center gap-3 rounded-[16px] bg-white/[0.06] py-1.5 pr-4 pl-1.5 text-left ring-1 ring-inset ring-white/[0.04] hover:bg-white/10 hover:ring-white/[0.08]"
+          className="group/item flex h-[52px] w-full cursor-pointer items-center gap-3 rounded-card bg-fill py-1.5 pr-4 pl-1.5 text-left ring-1 ring-inset ring-edge hover:bg-fill-hover hover:ring-edge-hover"
           key={key}
           onClick={() =>
             void openSurface(createAccountSettingsSurfaceEntry(key))
           }
         >
-          <span className="center size-10 shrink-0 rounded-[10px] bg-white/[0.06] text-white/70 group-hover/item:bg-white/10 group-hover/item:text-white">
+          <span className="center size-10 shrink-0 rounded-inset bg-fill text-ink-body group-hover/item:bg-fill-hover group-hover/item:text-ink">
             <Icon
               className="ui-glyph center"
               icon={SECTIONS[key].icon}
               size={20}
             />
           </span>
-          <span className="min-w-0 flex-1 text-sm leading-snug font-medium text-white">
+          <span className="min-w-0 flex-1 text-sm leading-snug font-medium text-ink">
             {SECTIONS[key].title}
           </span>
           <Icon
-            className="center shrink-0 text-white/50 group-hover/item:translate-x-0.5 group-hover/item:text-white"
+            className="center shrink-0 text-ink-muted group-hover/item:translate-x-0.5 group-hover/item:text-ink"
             icon="solar:alt-arrow-right-linear"
             size={16}
           />

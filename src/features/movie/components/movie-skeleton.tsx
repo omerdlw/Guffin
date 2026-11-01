@@ -48,7 +48,7 @@ function Sidebar(): JSX.Element {
       <div className="flex min-w-0 flex-col gap-3">
         <div className="w-full shrink-0">
           <div className="@container">
-            <SkeletonBlock className="h-[round(150cqw,1px)] w-full rounded-[24px]" />
+            <SkeletonBlock className="h-[round(150cqw,1px)] w-full rounded-sheet" />
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3">
@@ -93,13 +93,13 @@ function Sidebar(): JSX.Element {
 
 function PersonCardSkeleton({ compact = false }: { compact?: boolean }) {
   return compact ? (
-    <div className="skeleton-block flex h-10 min-w-0 items-center gap-3 rounded-[20px] p-1 pr-2">
+    <div className="skeleton-block flex h-10 min-w-0 items-center gap-3 rounded-panel p-1 pr-2">
       <SkeletonBlock className="size-8 shrink-0 rounded-full" />
       <SkeletonLines className="text-xs leading-4" widths={["4.5rem"]} />
     </div>
   ) : (
-    <div className="skeleton-block flex h-[84px] items-center gap-3 rounded-[18px] p-1 pr-4">
-      <SkeletonBlock className="h-[76px] w-14 shrink-0 rounded-[14px]" />
+    <div className="skeleton-block flex h-[84px] items-center gap-3 rounded-panel p-1 pr-4">
+      <SkeletonBlock className="h-[76px] w-14 shrink-0 rounded-card" />
       <div className="flex min-w-0 flex-col">
         <SkeletonLines className="text-sm leading-5" widths={["7.5rem"]} />
         <SkeletonLines className="text-[11px] leading-4" widths={["5rem"]} />
@@ -160,7 +160,7 @@ function Stills({
       />
       <CarouselSkeleton
         aspect="aspect-video"
-        blockClassName="rounded-[16px]"
+        blockClassName="rounded-card"
         count={3}
         itemClassName={CAROUSEL_WIDE_ITEM}
       />
@@ -235,7 +235,7 @@ export function MovieSkeleton(): JSX.Element {
             <header className={HEADER_CLASS}>
               <div className={`${HEADLINE_BOX} ${HEADLINE_TYPE}`}>
                 <div className="h-[1lh] pt-[0.14em]">
-                  <SkeletonBlock className="h-[0.7em] w-[58%] rounded-[16px]" />
+                  <SkeletonBlock className="h-[0.7em] w-[58%] rounded-card" />
                 </div>
               </div>
               <SkeletonBlock className={`${RULE_GAP} h-px w-full`} />
@@ -258,7 +258,7 @@ export function MovieSkeleton(): JSX.Element {
                 <SectionHeaderSkeleton title="6.5rem" />
                 <CarouselSkeleton
                   aspect="aspect-[2/3]"
-                  blockClassName="rounded-[16px]"
+                  blockClassName="rounded-card"
                   count={5}
                   itemClassName={CAROUSEL_ITEM}
                 />

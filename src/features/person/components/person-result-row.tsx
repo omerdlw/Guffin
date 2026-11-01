@@ -1,7 +1,7 @@
 "use client";
 
 import { useArtworkPath } from "@/features/artwork";
-import { Highlight, MediaCard, ResultRow } from "@/ui";
+import { Highlight, MediaCard, RADIUS, ResultRow } from "@/ui";
 import { tmdbImageSrcSet, tmdbImageUrl } from "@/infrastructure/tmdb/images";
 import { personHref } from "@/config/routes";
 import { departmentRole } from "../lib/profile";
@@ -61,7 +61,7 @@ export function PersonResultRow({
               tmdbImageSrcSet("profile", photoPath, PROFILE_WIDTHS) ??
               undefined,
           }}
-          radius={8}
+          radius={RADIUS.thumb}
         />
       }
       title={<Highlight query={query} text={person.name} />}

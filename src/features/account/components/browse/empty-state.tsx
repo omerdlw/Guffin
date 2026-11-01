@@ -9,11 +9,11 @@ export function EmptyState({
   icon?: string;
 }): JSX.Element {
   return (
-    <div className="flex min-h-[12rem] flex-col items-center justify-center gap-3 rounded-[24px] bg-white/5 p-8 text-center ring-1 ring-white/5 ring-inset">
-      <div className="center size-12 rounded-full bg-white/5 text-white/50 ring-1 ring-white/10 ring-inset">
+    <div className="flex min-h-[12rem] flex-col items-center justify-center gap-3 rounded-sheet bg-fill p-8 text-center ring-1 ring-edge ring-inset">
+      <div className="center size-12 rounded-full bg-fill text-ink-muted ring-1 ring-edge-hover ring-inset">
         <Icon icon={icon} size={24} />
       </div>
-      <p className="max-w-xs text-xs text-white/50 sm:text-sm">{children}</p>
+      <p className="max-w-xs text-xs text-ink-muted sm:text-sm">{children}</p>
     </div>
   );
 }

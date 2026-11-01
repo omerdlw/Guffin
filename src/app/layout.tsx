@@ -25,7 +25,7 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geist.variable} ${geist.className} ${zuume.variable} bg-black text-white antialiased`}
+        className={`${geist.variable} ${geist.className} ${zuume.variable} bg-black text-ink antialiased`}
         suppressHydrationWarning
       >
         <Providers>{children}</Providers>

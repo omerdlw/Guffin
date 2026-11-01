@@ -26,16 +26,16 @@ function Stats({
   stats: { average: number | null; rated: number; total: number };
 }): JSX.Element {
   return (
-    <div className="flex items-center gap-3 text-xs font-semibold text-white/50">
+    <div className="flex items-center gap-3 text-xs font-semibold text-ink-muted">
       {stats.average !== null ? (
         <span className="inline-flex items-center gap-1">
-          <Icon className="text-amber-400" icon="solar:star-bold" size={12} />
-          <strong className="text-white">{stats.average}/5</strong>
+          <Icon className="text-rated" icon="solar:star-bold" size={12} />
+          <strong className="text-ink">{stats.average}/5</strong>
           <span className="hidden sm:inline">({stats.rated} rated)</span>
         </span>
       ) : null}
       <span>
-        <strong className="text-white">{stats.total}</strong>{" "}
+        <strong className="text-ink">{stats.total}</strong>{" "}
         {stats.total === 1 ? "review" : "reviews"}
       </span>
     </div>
@@ -57,12 +57,6 @@ const SORTS = MOVIE_REVIEW_SORTS.map((sort) => ({
 }));
 
 const CHOICE = "min-w-0 flex-1 sm:w-44 sm:flex-none";
-const CHOICE_CORNERS = {
-  content: "rounded-[18px]",
-  option: "rounded-[14px]",
-  trigger:
-    "rounded-full bg-white/[0.06] ring-white/[0.04] hover:bg-white/10 hover:ring-white/[0.08]",
-};
 
 function Account({
   name,
@@ -81,7 +75,7 @@ function Account({
     >
       <span className="truncate">@{name}</span>
       <Icon
-        className="ui-fade shrink-0 opacity-60 group-hover:opacity-100"
+        className="ui-fade shrink-0 opacity-70 group-hover:opacity-100"
         icon="material-symbols:close-rounded"
         size={14}
       />
@@ -215,7 +209,7 @@ export function MovieReviews({
         <Select
           ariaLabel="Filter reviews"
           className={CHOICE}
-          classNames={CHOICE_CORNERS}
+          classNames={TONE.select}
           onChange={(value) =>
             isMovieReviewFilter(value) && change({ filter: value })
           }
@@ -226,7 +220,7 @@ export function MovieReviews({
         <Select
           ariaLabel="Sort reviews"
           className={CHOICE}
-          classNames={CHOICE_CORNERS}
+          classNames={TONE.select}
           onChange={(value) =>
             isMovieReviewSort(value) && change({ sort: value })
           }
@@ -257,7 +251,7 @@ export function MovieReviews({
           ) : (
             <Item
               as="li"
-              className="py-10 text-center text-sm text-white/50"
+              className="py-10 text-center text-sm text-ink-muted"
               from="light"
             >
               {filter !== "all"
@@ -271,9 +265,9 @@ export function MovieReviews({
       ) : null}
 
       {page && page.reviews.length < page.total ? (
-        <Item className="mt-8" from="light">
+        <Item className="mt-6" from="light">
           <Button
-            className={`inline-flex h-10 w-full cursor-pointer items-center justify-center gap-2 rounded-full text-[13px] font-medium ${TONE.surface} disabled:cursor-default disabled:opacity-60`}
+            className={TONE.more}
             disabled={loadingMore}
             onClick={loadMore}
             type="button"

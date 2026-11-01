@@ -31,7 +31,7 @@ function Light() {
     <motion.span
       animate={shown ? { opacity: 1 } : undefined}
       aria-hidden="true"
-      className="absolute inset-0 rounded-t-[3px] bg-[rgb(var(--grade))] shadow-[0_0_28px_rgb(var(--grade)/0.5)]"
+      className="absolute inset-0 rounded-t-[3px] bg-grade shadow-[0_0_28px_rgb(var(--grade)/0.5)]"
       initial={{ opacity: 0 }}
       transition={{
         delay,
@@ -93,13 +93,13 @@ export function Career({
   return (
     <div onPointerLeave={() => setActive(peak)}>
       <Cascade className="flex flex-col gap-5" gap={gap}>
-        <Item className="flex min-h-14 items-end gap-6">
+        <Item className="flex min-h-14 items-end gap-6" from="light">
           <div className="flex min-w-0 items-end gap-5">
-            <span className="font-zuume text-5xl leading-[0.8] font-bold text-white tabular-nums sm:text-6xl">
+            <span className="font-zuume text-5xl leading-[0.8] font-bold text-ink tabular-nums sm:text-6xl">
               <Roll year={current.year} />
             </span>
             <span className="flex min-w-0 flex-col gap-1 pb-0.5">
-              <span className={`${TONE.label} text-white/50`}>
+              <span className={`${TONE.label} text-ink-muted`}>
                 {current.year === peak ? "Peak · " : ""}
                 {current.count === 0
                   ? "No films"
@@ -107,10 +107,10 @@ export function Career({
                     ? "1 film"
                     : `${current.count} films`}
               </span>
-              <span className="truncate text-sm leading-5 font-medium text-white/70">
+              <span className="truncate text-sm leading-5 font-medium text-ink-body">
                 {current.films.slice(0, MAX_TITLES).join(" · ") || " "}
                 {hidden > 0 ? (
-                  <span className="text-white/50"> · +{hidden}</span>
+                  <span className="text-ink-muted"> · +{hidden}</span>
                 ) : null}
               </span>
             </span>
@@ -124,7 +124,7 @@ export function Career({
         >
           <Trace
             axis="x"
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-px origin-left bg-white/10"
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-px origin-left bg-line"
           />
           {years.map((item) => (
             <Item
@@ -145,8 +145,8 @@ export function Career({
                 >
                   <span
                     className={cn(
-                      "cine-fade relative block w-full rounded-t-[3px] group-focus-visible:bg-white",
-                      item.year === active ? "bg-white" : "bg-white/25",
+                      "cine-fade relative block w-full rounded-t-[3px] group-focus-visible:bg-ink",
+                      item.year === active ? "bg-ink" : "bg-white/25",
                     )}
                     style={{ height: `${Math.max(item.weight, 0.05) * 100}%` }}
                   >
@@ -156,7 +156,7 @@ export function Career({
               ) : (
                 <span
                   aria-hidden="true"
-                  className="block h-0.5 w-full rounded-full bg-white/10"
+                  className="block h-0.5 w-full rounded-full bg-line"
                 />
               )}
             </Item>
@@ -169,7 +169,7 @@ export function Career({
               {item.year % step === 0 ? (
                 <span
                   className={cn(
-                    "absolute top-0 text-[11px] font-semibold tracking-[0.14em] whitespace-nowrap text-white/50 tabular-nums",
+                    `absolute top-0 ${TONE.label} whitespace-nowrap text-ink-muted tabular-nums`,
                     (item.year / step) % 2 === 1 && "max-sm:hidden",
                     index < EDGE_SLOTS
                       ? "left-0"

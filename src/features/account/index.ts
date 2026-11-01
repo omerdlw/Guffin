@@ -1,5 +1,11 @@
 export { AccountGuard } from "./components/account-guard";
 export { AccountLink } from "./components/browse/account-link";
+export {
+  AccountSectionSkeleton,
+  AccountSkeleton,
+  PosterStackSkeleton,
+  type AccountSkeletonSection,
+} from "./components/account-skeleton";
 export { PosterStack } from "./components/browse/poster-stack";
 export { createAccountSetupSurfaceEntry } from "./components/surfaces/account-setup-surface";
 export { DEFAULT_ACCOUNT_ICON } from "./lib/constants";

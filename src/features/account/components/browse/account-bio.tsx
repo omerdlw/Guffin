@@ -43,7 +43,7 @@ export function AccountBio({
     <div className="relative text-[13px] leading-5">
       <p
         className={cn(
-          "line-clamp-3 [overflow-wrap:anywhere] whitespace-pre-line text-white/65",
+          "line-clamp-3 [overflow-wrap:anywhere] whitespace-pre-line text-ink-body",
           cut && CLAMPED,
         )}
         ref={text}
@@ -52,7 +52,7 @@ export function AccountBio({
       </p>
       {cut ? (
         <button
-          className="absolute right-0 bottom-0 cursor-pointer font-medium text-white underline underline-offset-2 hover:text-white/75"
+          className="absolute right-0 bottom-0 cursor-pointer font-medium text-ink underline underline-offset-2 hover:text-ink-body"
           onClick={open}
           type="button"
         >

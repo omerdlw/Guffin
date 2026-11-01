@@ -1,12 +1,13 @@
 import { Z_INDEX } from "@omerdlw/base-framework/tokens";
 import { defineTheme } from "@omerdlw/base-framework/theme";
 import { modalTheme } from "@omerdlw/base-framework/modules/modal";
+import { BACKDROP, FILL, SHELL } from "./chrome";
 import { modalMotion } from "./motion/modal";
 
 export const modalThemeConfig = defineTheme(modalTheme, {
   slots: {
-    backdrop: "fixed inset-0 cursor-pointer bg-black/60 backdrop-blur-md",
-    dim: "pointer-events-auto absolute inset-0 cursor-pointer bg-black/30 backdrop-blur-[2px]",
+    backdrop: `fixed inset-0 cursor-pointer ${BACKDROP}`,
+    dim: "pointer-events-auto absolute inset-0 cursor-pointer bg-black/30 backdrop-blur-xs",
 
     layer: [
       "pointer-events-none fixed inset-0 flex flex-col data-[inset=true]:px-3",
@@ -29,14 +30,14 @@ export const modalThemeConfig = defineTheme(modalTheme, {
     panelBare:
       "overflow-visible bg-transparent ring-1 ring-transparent ring-inset",
     panelChrome: [
-      "overflow-hidden bg-black/70 ring-1 ring-inset ring-white/[0.08] inset-shadow-[0_1px_0_rgb(255_255_255/0.07)] shadow-[0_40px_100px_-30px_rgb(0_0_0/0.9),0_12px_32px_-16px_rgb(0_0_0/0.7)] backdrop-blur-xl backdrop-saturate-150",
-      "data-[layout=center]:rounded-[26px]",
-      "data-[layout=top]:rounded-b-[26px] data-[layout=top]:border-t-0",
-      "data-[layout=bottom]:rounded-t-[26px] data-[layout=bottom]:border-b-0",
-      "data-[layout=top-mobile]:w-full data-[layout=top-mobile]:rounded-b-[26px] data-[layout=top-mobile]:border-x-0 data-[layout=top-mobile]:border-t-0",
-      "data-[layout=bottom-mobile]:w-full data-[layout=bottom-mobile]:rounded-t-[26px] data-[layout=bottom-mobile]:border-x-0 data-[layout=bottom-mobile]:border-b-0",
-      "data-[layout=left]:h-screen data-[layout=left]:max-h-screen data-[layout=left]:w-full data-[layout=left]:rounded-r-[26px] data-[layout=left]:border-l-0",
-      "data-[layout=right]:h-screen data-[layout=right]:max-h-screen data-[layout=right]:w-full data-[layout=right]:rounded-l-[26px] data-[layout=right]:border-r-0",
+      `overflow-hidden backdrop-blur-xl ${SHELL}`,
+      "data-[layout=center]:rounded-shell",
+      "data-[layout=top]:rounded-b-shell data-[layout=top]:border-t-0",
+      "data-[layout=bottom]:rounded-t-shell data-[layout=bottom]:border-b-0",
+      "data-[layout=top-mobile]:w-full data-[layout=top-mobile]:rounded-b-shell data-[layout=top-mobile]:border-x-0 data-[layout=top-mobile]:border-t-0",
+      "data-[layout=bottom-mobile]:w-full data-[layout=bottom-mobile]:rounded-t-shell data-[layout=bottom-mobile]:border-x-0 data-[layout=bottom-mobile]:border-b-0",
+      "data-[layout=left]:h-screen data-[layout=left]:max-h-screen data-[layout=left]:w-full data-[layout=left]:rounded-r-shell data-[layout=left]:border-l-0",
+      "data-[layout=right]:h-screen data-[layout=right]:max-h-screen data-[layout=right]:w-full data-[layout=right]:rounded-l-shell data-[layout=right]:border-r-0",
       "data-[layout=side-mobile]:h-screen data-[layout=side-mobile]:max-h-screen data-[layout=side-mobile]:w-full data-[layout=side-mobile]:self-stretch data-[layout=side-mobile]:rounded-none data-[layout=side-mobile]:border-0",
     ].join(" "),
 
@@ -48,17 +49,14 @@ export const modalThemeConfig = defineTheme(modalTheme, {
     rowCenter: "flex items-center justify-center",
     rowEnd: "flex min-w-0 items-center justify-end gap-2.5",
     rowStart: "min-w-0",
-    title: "truncate text-[15px] font-semibold tracking-[-0.01em] text-white",
-    closeButton:
-      "ui-iris center relative inline-flex size-8 cursor-pointer rounded-full bg-white/[0.06] text-white/70 ring-1 ring-white/[0.04] ring-inset hover:text-white hover:ring-white/[0.08]",
+    title: "truncate text-[15px] font-semibold tracking-[-0.01em] text-ink",
+    closeButton: `ui-iris center relative inline-flex size-8 cursor-pointer rounded-full text-ink-body hover:text-ink ${FILL}`,
 
-    switcher:
-      "center shrink-0 gap-2 border-t border-white/[0.06] bg-white/[0.03] p-2.5",
-    switcherButton:
-      "flex h-8 cursor-pointer items-center gap-1.5 rounded-full bg-white/[0.06] px-3.5 text-xs font-medium text-white/70 ring-1 ring-white/[0.04] ring-inset *:shrink-0 hover:bg-white/10 hover:text-white hover:ring-white/[0.08]",
+    switcher: "center shrink-0 gap-2 border-t border-rule bg-fill p-2.5",
+    switcherButton: `flex h-8 cursor-pointer items-center gap-1.5 rounded-full px-3.5 text-xs font-medium text-ink-body *:shrink-0 hover:text-ink ${FILL}`,
     switcherCurrent:
-      "flex h-8 items-center rounded-full bg-white/[0.12] px-3.5 text-xs font-medium ring-1 ring-white/[0.08] ring-inset",
-    switcherDivider: "text-xs text-white/15",
+      "flex h-8 items-center rounded-full bg-fill-active px-3.5 text-xs font-medium ring-1 ring-edge-hover ring-inset",
+    switcherDivider: "text-xs text-ink-faint",
   },
   styles: {
     backdrop: { zIndex: Z_INDEX.MODAL_BACKDROP },

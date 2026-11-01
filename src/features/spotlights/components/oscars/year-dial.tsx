@@ -14,7 +14,7 @@ import {
   useReducedMotion,
 } from "motion/react";
 import { cn } from "@omerdlw/base-framework/utils";
-import { EASE } from "@/motion/stage";
+import { EASE, size } from "@/motion/stage";
 import type { Laureate } from "../../lib/types";
 
 const STEP = 14;
@@ -65,7 +65,10 @@ export function YearDial({
       x.set(at(index));
       return;
     }
-    const controls = animate(x, at(index), { duration: 0.9, ease: EASE.dolly });
+    const controls = animate(x, at(index), {
+      duration: size(1),
+      ease: EASE.dolly,
+    });
     return () => controls.stop();
   }, [index, reduced, width]);
 
@@ -105,7 +108,7 @@ export function YearDial({
         }}
         onPointerCancel={() => {
           drag.current = null;
-          animate(x, at(index), { duration: 0.6, ease: EASE.dolly });
+          animate(x, at(index), { duration: size(1), ease: EASE.dolly });
         }}
         onPointerDown={(event) => {
           event.currentTarget.setPointerCapture(event.pointerId);
@@ -133,7 +136,7 @@ export function YearDial({
             next = nearest(x.get() - (event.clientX - box.left - width / 2));
           }
           onPick(next);
-          animate(x, at(next), { duration: 0.7, ease: EASE.dolly });
+          animate(x, at(next), { duration: size(1), ease: EASE.dolly });
         }}
         ref={root}
         role="slider"
@@ -162,7 +165,7 @@ export function YearDial({
                 }
               >
                 {decade ? (
-                  <span className="oscars-decade mb-2 text-[10px] font-semibold tracking-[0.14em] text-white/35 tabular-nums">
+                  <span className="oscars-decade mb-2 text-[10px] font-semibold tracking-[0.14em] text-ink-faint tabular-nums">
                     {Math.floor(laureate.ceremonyYear / 10) * 10}
                   </span>
                 ) : null}

@@ -165,14 +165,14 @@ export function Intermission({
           />
           <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-6 p-8 sm:p-12">
             <div className="flex min-w-0 flex-col gap-3">
-              <span className="text-[10px] font-semibold tracking-[0.32em] text-white/50 uppercase">
+              <span className="text-[10px] font-semibold tracking-[0.32em] text-ink-muted uppercase">
                 {label}
               </span>
-              <span className="font-zuume text-6xl leading-none font-bold text-white uppercase sm:text-8xl">
+              <span className="font-zuume text-6xl leading-none font-bold text-ink uppercase sm:text-8xl">
                 {title}
               </span>
             </div>
-            <span className="hidden shrink-0 text-[10px] font-semibold tracking-[0.32em] text-white/40 uppercase sm:block">
+            <span className="hidden shrink-0 text-[10px] font-semibold tracking-[0.32em] text-ink-muted uppercase sm:block">
               Move to resume
             </span>
           </div>

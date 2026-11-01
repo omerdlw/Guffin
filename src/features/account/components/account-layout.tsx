@@ -40,7 +40,7 @@ const JOIN_DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
 });
 
 const AVATAR_CLASSES =
-  "relative flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-black/60 text-3xl font-semibold text-white shadow-2xl ring-2 ring-white/10 select-none sm:size-24 sm:text-4xl";
+  "relative flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-black/60 text-3xl font-semibold text-ink shadow-2xl ring-2 ring-edge-hover select-none sm:size-24 sm:text-4xl";
 
 const CONTAINER = "mx-auto flex w-full max-w-6xl flex-col px-4 sm:px-6 lg:px-8";
 
@@ -125,15 +125,15 @@ function AccountBackdropHero({ image }: AccountBackdropHeroProps) {
 
 function PrivateLockedView() {
   return (
-    <div className="flex min-h-56 w-full flex-col items-center justify-center gap-3 px-6 py-12 text-center rounded-[24px] ring-1 ring-white/10 ring-inset">
-      <span className="center size-11 rounded-full bg-white/[0.06] text-white/60">
+    <div className="flex min-h-56 w-full flex-col items-center justify-center gap-3 px-6 py-12 text-center rounded-sheet ring-1 ring-edge-hover ring-inset">
+      <span className="center size-11 rounded-full bg-fill text-ink-body">
         <Icon icon="solar:lock-bold" size={20} />
       </span>
       <div className="flex max-w-sm flex-col gap-1">
-        <h2 className="text-sm font-semibold text-white">
+        <h2 className="text-sm font-semibold text-ink">
           This account is private
         </h2>
-        <p className="text-sm text-white/50">
+        <p className="text-sm text-ink-muted">
           Follow this account to see their films, reviews and lists.
         </p>
       </div>
@@ -232,12 +232,12 @@ function AccountHero({
             <div className="flex min-w-0 flex-1 flex-col">
               <CinemaTitle
                 drift={false}
-                className="font-zuume max-w-full text-4xl leading-none font-bold text-white uppercase [overflow-wrap:anywhere] sm:text-5xl lg:text-6xl"
+                className="font-zuume max-w-full text-4xl leading-none font-bold text-ink uppercase [overflow-wrap:anywhere] sm:text-5xl lg:text-6xl"
               >
                 {displayName}
               </CinemaTitle>
 
-              <div className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[13px] text-white/50 sm:text-sm">
+              <div className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[13px] text-ink-muted sm:text-sm">
                 {meta.map((item, index) => (
                   <RowItem
                     as="div"
@@ -249,7 +249,7 @@ function AccountHero({
                     total={SCENE.stats.spread}
                   >
                     {index > 0 ? (
-                      <span className="text-white/30">•</span>
+                      <span className="text-ink-faint">•</span>
                     ) : null}
                     {item.node}
                   </RowItem>

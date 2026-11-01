@@ -30,12 +30,11 @@ const ERROR_RESET_DELAY_MS = 700;
 const AUTO_FOCUS_DELAY_MS = 150;
 
 const BOX_STYLES = {
-  BASE: "center h-11 @[280px]:h-14 rounded-[16px] text-base @[280px]:text-lg font-semibold text-white/70 ring-1 ring-inset ring-white/5 hover:text-white",
+  BASE: "center h-11 @[280px]:h-14 rounded-card text-base @[280px]:text-lg font-semibold text-ink-body ring-1 ring-inset ring-edge hover:text-ink",
   ERROR:
-    "bg-white/10 text-white ring-white/[0.16] hover:bg-white/15 hover:ring-white/[0.16]",
-  ACTIVE: "bg-white/5 text-white ring-white/10 hover:bg-white/10",
-  SUCCESS:
-    "bg-white/15 text-white ring-white/20 hover:bg-white/20 hover:ring-white/20",
+    "bg-fill-hover text-ink ring-edge-focus hover:bg-fill-active hover:ring-edge-focus",
+  ACTIVE: "bg-fill text-ink ring-edge-hover hover:bg-fill-hover",
+  SUCCESS: "bg-fill-active text-ink ring-white/20 hover:bg-white/20",
 };
 
 interface VerificationData {
@@ -326,7 +325,7 @@ function VerificationSurface({ close, data }: VerificationSurfaceProps) {
 
   if (!auth.isConfigured) {
     return (
-      <p className="rounded-[16px] bg-white/[0.06] px-4 py-3 text-sm text-white/70 ring-1 ring-inset ring-white/[0.04]">
+      <p className="rounded-card bg-fill px-4 py-3 text-sm text-ink-body ring-1 ring-inset ring-edge">
         Configure the Supabase variables in .env.local first
       </p>
     );

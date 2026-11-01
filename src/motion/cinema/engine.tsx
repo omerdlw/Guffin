@@ -290,7 +290,7 @@ export function CinemaTitle({
                   : { filter: blur(0), opacity: 1, rotate: 0, y: "0%" }
               }
               className={cn(
-                "inline-block text-white",
+                "inline-block text-ink",
                 centered ? "origin-bottom" : "origin-bottom-left",
               )}
               initial={{ filter: blur(18), opacity: 0, rotate: 5, y: "118%" }}

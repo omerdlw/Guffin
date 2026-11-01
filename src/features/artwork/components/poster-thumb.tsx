@@ -19,13 +19,13 @@ export function PosterThumb({
 
   return (
     <div
-      className={`relative aspect-[2/3] shrink-0 overflow-hidden bg-white/5 ring-1 ring-white/5 ring-inset ${className}`}
+      className={`relative aspect-[2/3] shrink-0 overflow-hidden bg-fill ring-1 ring-edge ring-inset ${className}`}
     >
       <AdaptiveImage
         alt=""
         className="object-cover"
         fallback={
-          <div className="center h-full w-full text-white/30">
+          <div className="center h-full w-full text-ink-faint">
             <Icon icon="solar:clapperboard-play-bold" size={16} />
           </div>
         }

@@ -1,6 +1,6 @@
 import type { JSX } from "react";
 import { movieHref, reviewHref } from "@/config/routes";
-import { Icon, MediaCard } from "@/ui";
+import { Icon, MediaCard, RADIUS } from "@/ui";
 import { RatingStars } from "@/features/reviews";
 import type { DiaryRow } from "../../lib/browse-data";
 import { AccountLink } from "./account-link";
@@ -21,22 +21,22 @@ function dayOf(value: string) {
   };
 }
 
-const COLUMNS =
+export const DIARY_COLUMNS =
   "grid grid-cols-[2.75rem_minmax(0,1fr)_auto] items-center gap-x-3 sm:grid-cols-[3.5rem_minmax(0,1fr)_7rem_4.5rem_4.5rem_2.5rem] sm:gap-x-4";
 
 const HEAD =
-  "text-[10px] leading-4 font-semibold tracking-[0.14em] text-white/40 uppercase";
+  "text-[10px] leading-4 font-semibold tracking-[0.14em] text-ink-muted uppercase";
 
 function Mark({ on, label }: { on: boolean; label: string }) {
   return on ? (
     <Icon
       aria-label={label}
-      className="text-white/70"
+      className="text-ink-body"
       icon="solar:check-circle-bold"
       size={16}
     />
   ) : (
-    <span aria-hidden="true" className="text-white/20">
+    <span aria-hidden="true" className="text-ink-faint">
       —
     </span>
   );
@@ -54,7 +54,7 @@ export function DiaryLedger({
   return (
     <div className="w-full">
       <div
-        className={`${COLUMNS} hidden border-b border-white/10 pb-2 sm:grid`}
+        className={`${DIARY_COLUMNS} hidden border-b border-line pb-2 sm:grid`}
       >
         <span className={HEAD}>Day</span>
         <span className={HEAD}>Film</span>
@@ -63,20 +63,20 @@ export function DiaryLedger({
         <span className={`${HEAD} text-center`}>Review</span>
         <span />
       </div>
-      <ul className="divide-y divide-white/[0.07]">
+      <ul className="divide-y divide-rule">
         {rows.map((row, index) => {
           const same = rows[index - 1]?.watchedOn === row.watchedOn;
           const { day, weekday } = dayOf(row.watchedOn);
           const href = movieHref(row.tmdbId);
           return (
-            <li className={`${COLUMNS} py-3`} key={row.id}>
+            <li className={`${DIARY_COLUMNS} py-3`} key={row.id}>
               <time className="flex flex-col" dateTime={row.watchedOn}>
                 {same ? null : (
                   <>
-                    <span className="text-lg leading-6 font-semibold text-white tabular-nums">
+                    <span className="text-lg leading-6 font-semibold text-ink tabular-nums">
                       {day}
                     </span>
-                    <span className="text-[11px] leading-4 text-white/40">
+                    <span className="text-[11px] leading-4 text-ink-muted">
                       {weekday}
                     </span>
                   </>
@@ -93,16 +93,16 @@ export function DiaryLedger({
                   href={href}
                   image={posterImage(row.posterPath, "36px")}
                   label={row.title}
-                  radius={8}
+                  radius={RADIUS.thumb}
                 />
                 <div className="flex min-w-0 flex-col">
                   <AccountLink
-                    className="truncate text-sm font-medium text-white underline decoration-transparent hover:decoration-current"
+                    className="truncate text-sm font-medium text-ink underline decoration-transparent hover:decoration-current"
                     href={href}
                   >
                     {row.title}
                   </AccountLink>
-                  <span className="flex items-center gap-2 text-xs text-white/40 tabular-nums">
+                  <span className="flex items-center gap-2 text-xs text-ink-muted tabular-nums">
                     {row.year ?? ""}
                     <span className="inline-flex items-center gap-2 sm:hidden">
                       <RatingStars rating={row.rating} size={11} />
@@ -124,7 +124,7 @@ export function DiaryLedger({
                 {row.hasReview ? (
                   <AccountLink
                     aria-label="Read the review"
-                    className="text-white/70 hover:text-white"
+                    className="text-ink-body hover:text-ink"
                     href={reviewHref(row.tmdbId, username)}
                   >
                     <Icon icon="solar:document-text-bold" size={16} />

@@ -3,7 +3,7 @@ import { motion, tween } from "./tokens";
 
 const { durations: time, easings: ease, springs } = motion;
 
-const leave = tween(time.touch, ease.fade);
+const leave = tween(time.leave, ease.fade);
 const ORIGIN = "top left";
 
 const rowDelay = (index: unknown) =>
@@ -22,7 +22,7 @@ export const contextMenuMotion: ContextMenuMotion = {
       transformOrigin: ORIGIN,
       transition: {
         transform: tween(time.reveal, ease.pour),
-        opacity: tween(time.leave, ease.fade),
+        opacity: tween(time.light, ease.fade),
       },
     },
     exit: {

@@ -10,6 +10,7 @@ import { ActivityFeed } from "../components/browse/activity-row";
 import { EmptyState } from "../components/browse/empty-state";
 import { ListTeaser } from "../components/browse/list-row";
 import { PosterGrid, PosterTile } from "../components/browse/poster-grid";
+import { PROFILE_ROW } from "../components/browse/poster";
 import {
   DiaryDigest,
   PeopleGrid,
@@ -26,9 +27,6 @@ const DIARY = 10;
 const LISTS = 3;
 const FOLLOWING = 18;
 const ACTIVITY = 5;
-
-const ROW =
-  "grid-cols-5 gap-2 sm:grid-cols-5 sm:gap-3 md:grid-cols-5 lg:grid-cols-5";
 
 export async function AccountOverviewView({
   username,
@@ -92,7 +90,7 @@ export async function AccountOverviewView({
             }
             title="Favorite films"
           >
-            <ul className={`grid ${ROW}`}>
+            <ul className={`grid ${PROFILE_ROW}`}>
               {favorites.map((film) => (
                 <PosterTile item={film} key={film.tmdbId} />
               ))}
@@ -103,7 +101,7 @@ export async function AccountOverviewView({
                       <li key={`slot-${index}`}>
                         <AccountLink
                           aria-label="Pin a favorite from your likes"
-                          className="center aspect-[2/3] rounded-[16px] border border-dashed border-white/15 text-white/25 hover:border-white/35 hover:text-white/60"
+                          className="center aspect-[2/3] rounded-card border border-dashed border-white/15 text-ink-faint hover:border-white/35 hover:text-ink-body"
                           href={`${base}/likes`}
                         >
                           <Icon icon="solar:add-circle-linear" size={20} />
@@ -125,7 +123,7 @@ export async function AccountOverviewView({
             }
             title="Recently watched"
           >
-            <PosterGrid className={ROW} items={watched} />
+            <PosterGrid className={PROFILE_ROW} items={watched} />
           </Section>
         ) : null}
 
@@ -136,7 +134,7 @@ export async function AccountOverviewView({
             }
             title="Watchlist"
           >
-            <PosterGrid className={ROW} items={watchlist} />
+            <PosterGrid className={PROFILE_ROW} items={watchlist} />
           </Section>
         ) : null}
 

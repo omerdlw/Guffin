@@ -71,7 +71,7 @@ export function TileActions({
   };
 
   const button =
-    "center size-8 cursor-pointer rounded-[8px] bg-black/70 text-white/80 ring-1 ring-white/10 backdrop-blur-sm ring-inset hover:bg-black hover:text-white disabled:cursor-wait";
+    "center size-8 cursor-pointer rounded-thumb bg-black/70 text-ink-body ring-1 ring-edge-hover backdrop-blur-sm ring-inset hover:bg-black hover:text-ink disabled:cursor-wait";
 
   return (
     <div
@@ -86,7 +86,7 @@ export function TileActions({
         <Button
           aria-label={pinned ? `Unpin ${title}` : `Pin ${title} to favorites`}
           aria-pressed={pinned}
-          className={cn(button, pinned && "text-amber-400")}
+          className={cn(button, pinned && "text-rated")}
           disabled={busy}
           loading={busy && !confirming}
           onClick={() => run(() => setFavoriteAction(tmdbId, !pinned))}
@@ -103,10 +103,7 @@ export function TileActions({
             ? `Confirm removing ${title}`
             : `Remove ${title} from ${LABEL[source.kind]}`
         }
-        className={cn(
-          button,
-          confirming && "bg-red-600 text-white ring-red-400",
-        )}
+        className={cn(button, confirming && "bg-red-600 text-ink ring-red-400")}
         disabled={busy}
         loading={busy && confirming}
         onClick={remove}

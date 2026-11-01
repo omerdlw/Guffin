@@ -4,8 +4,7 @@ import { WallView, getCanon } from "@/features/spotlights";
 import { shareMetadata } from "@/config/project";
 
 export const metadata: Metadata = shareMetadata({
-  description:
-    "The IMDb Top 100, hung on one wall in the dark.",
+  description: "The IMDb Top 100, hung on one wall in the dark.",
   image: null,
   title: "IMDb Top 100",
 });

@@ -57,7 +57,7 @@ function Signal({
   if (!active) return null;
   return (
     <span
-      className="text-white/55 group-hover/friend:text-white/80"
+      className="text-ink-muted group-hover/friend:text-ink-body"
       title={label}
     >
       <Icon aria-label={label} icon={icon} size={15} />
@@ -88,7 +88,7 @@ function FriendRow({
     >
       {highlighted ? (
         <SlidingHighlight
-          className="rounded-[16px] bg-white/[0.04] ring-1 ring-white/[0.08] ring-inset"
+          className="rounded-card bg-fill ring-1 ring-edge-hover ring-inset"
           layoutId="social-proof-friend-highlight"
         />
       ) : null}
@@ -106,7 +106,7 @@ function FriendRow({
         />
         <span className={SURFACE_TEXT}>
           <span className={SURFACE_TITLE}>{friend.displayName}</span>
-          <span className={`${SURFACE_META} group-hover/friend:text-white/70`}>
+          <span className={`${SURFACE_META} group-hover/friend:text-ink-body`}>
             @{friend.username}
           </span>
         </span>
@@ -126,7 +126,7 @@ function FriendRow({
         {friend.reviewed ? (
           <Link
             aria-label={`Read ${friend.displayName}'s review`}
-            className="center -m-1.5 size-7 rounded-full text-white/55 group-hover/friend:text-white/80 hover:bg-white/[0.08] hover:text-white"
+            className="center -m-1.5 size-7 rounded-full text-ink-muted group-hover/friend:text-ink-body hover:bg-fill-hover hover:text-ink"
             href={reviewHref(movieId, friend.username)}
             onClick={close}
             prefetch={false}
@@ -218,7 +218,7 @@ function SocialProofSurface({
       </LayoutGroup>
 
       {data.proof.total > friends.length ? (
-        <p className="text-center text-xs text-white/50">
+        <p className="text-center text-xs text-ink-muted">
           Showing the {friends.length} most recent of {data.proof.total}.
         </p>
       ) : null}

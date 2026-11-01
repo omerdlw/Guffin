@@ -14,17 +14,17 @@ function SessionsSkeleton() {
     <div className="flex flex-col gap-2.5">
       {[0, 1].map((index) => (
         <div
-          className="flex h-[52px] w-full items-center justify-between gap-3 rounded-[16px] bg-white/[0.06] p-1.5 pl-4"
+          className="flex h-[52px] w-full items-center justify-between gap-3 rounded-card bg-fill p-1.5 pl-4"
           key={index}
         >
           <div className="flex min-w-0 items-center gap-3">
-            <div className="size-5 shrink-0 rounded-full bg-white/10" />
+            <div className="size-5 shrink-0 rounded-full bg-fill-hover" />
             <div className="flex flex-col gap-1.5">
-              <div className="h-3.5 w-32 rounded-full bg-white/10" />
-              <div className="h-2.5 w-44 rounded-full bg-white/[0.07]" />
+              <div className="h-3.5 w-32 rounded-full bg-fill-hover" />
+              <div className="h-2.5 w-44 rounded-full bg-fill-hover" />
             </div>
           </div>
-          <div className="h-10 w-20 shrink-0 rounded-[10px] bg-white/[0.07]" />
+          <div className="h-10 w-20 shrink-0 rounded-inset bg-fill-hover" />
         </div>
       ))}
     </div>
@@ -69,9 +69,13 @@ export function SessionsPanel({
   return (
     <div className="flex flex-col gap-2.5">
       {sessions.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-2 rounded-[16px] bg-white/[0.06] p-6 text-center">
-          <Icon className="text-white/50" icon="solar:devices-bold" size={22} />
-          <span className="text-xs font-medium text-white/50">
+        <div className="flex flex-col items-center justify-center gap-2 rounded-card bg-fill p-6 text-center">
+          <Icon
+            className="text-ink-muted"
+            icon="solar:devices-bold"
+            size={22}
+          />
+          <span className="text-xs font-medium text-ink-muted">
             No active sessions found
           </span>
         </div>
@@ -81,10 +85,10 @@ export function SessionsPanel({
           return (
             <div
               className={cn(
-                "flex min-h-[52px] w-full items-center justify-between gap-3 rounded-[16px] p-1.5 pl-4 ring-1 ring-inset",
+                "flex min-h-[52px] w-full items-center justify-between gap-3 rounded-card p-1.5 pl-4 ring-1 ring-inset",
                 session.is_current
                   ? "bg-primary/10 ring-primary/15"
-                  : "bg-white/[0.06] ring-white/[0.04] hover:bg-white/10",
+                  : "bg-fill ring-edge hover:bg-fill-hover",
               )}
               key={session.session_id}
               title={session.user_agent ?? undefined}
@@ -93,16 +97,16 @@ export function SessionsPanel({
                 <Icon
                   className={cn(
                     "shrink-0",
-                    session.is_current ? "text-primary" : "text-white/70",
+                    session.is_current ? "text-primary" : "text-ink-body",
                   )}
                   icon={device.icon}
                   size={20}
                 />
                 <div className="flex min-w-0 flex-col justify-center gap-0.5">
-                  <span className="truncate text-sm leading-snug font-semibold text-white">
+                  <span className="truncate text-sm leading-snug font-semibold text-ink">
                     {device.title}
                   </span>
-                  <span className="truncate text-xs leading-snug text-white/50">
+                  <span className="truncate text-xs leading-snug text-ink-muted">
                     {describeSession(session)}
                   </span>
                 </div>
@@ -110,7 +114,7 @@ export function SessionsPanel({
               {session.is_current ? (
                 <span
                   className={cn(
-                    "center h-10 shrink-0 rounded-[10px] px-4 text-xs font-medium",
+                    "center h-10 shrink-0 rounded-inset px-4 text-xs font-medium",
                     ACTION_TONE_CLASS,
                   )}
                 >
@@ -119,7 +123,7 @@ export function SessionsPanel({
               ) : (
                 <Button
                   className={cn(
-                    "center h-10 shrink-0 cursor-pointer rounded-[10px] px-4 text-xs font-medium",
+                    "center h-10 shrink-0 cursor-pointer rounded-inset px-4 text-xs font-medium",
                     ACTION_TONE_CLASS,
                   )}
                   disabled={busyId === session.session_id}

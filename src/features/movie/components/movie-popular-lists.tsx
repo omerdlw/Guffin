@@ -27,7 +27,7 @@ function ListRow({ list }: { list: PopularList }): JSX.Element {
       </AccountLink>
 
       <div className="flex min-w-0 flex-1 flex-col gap-2">
-        <h3 className="min-w-0 truncate text-lg leading-7 font-semibold text-white">
+        <h3 className="min-w-0 truncate text-lg leading-7 font-semibold text-ink">
           <AccountLink
             className="underline decoration-transparent hover:decoration-current"
             href={href}
@@ -35,9 +35,9 @@ function ListRow({ list }: { list: PopularList }): JSX.Element {
             {list.title}
           </AccountLink>
         </h3>
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[13px] text-white/50 tabular-nums">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[13px] text-ink-muted tabular-nums">
           <AccountLink
-            className="flex min-w-0 items-center gap-2 font-semibold text-white/80 hover:text-white"
+            className="flex min-w-0 items-center gap-2 font-semibold text-ink-body hover:text-ink"
             href={accountHref(list.owner.username)}
           >
             <Avatar
@@ -62,7 +62,7 @@ function ListRow({ list }: { list: PopularList }): JSX.Element {
           </span>
         </div>
         {list.description ? (
-          <p className="mt-1 line-clamp-3 max-w-2xl text-[15px] leading-7 text-white/60">
+          <p className="mt-1 line-clamp-3 max-w-2xl text-[15px] leading-7 text-ink-body">
             {list.description}
           </p>
         ) : null}

@@ -43,14 +43,14 @@ function Row({
       from="still"
     >
       <div className="flex w-full items-baseline justify-between gap-6">
-        <dt className={`shrink-0 ${TONE.label} text-white/50`}>
+        <dt className={`shrink-0 ${TONE.label} text-ink-muted`}>
           <Expose hover out={out} since={0}>
             {label}
           </Expose>
         </dt>
         <Fade
           as="dd"
-          className={`min-w-0 text-right ${FACT_ROW_TYPE} font-medium text-white tabular-nums`}
+          className={`min-w-0 text-right ${FACT_ROW_TYPE} font-medium text-ink tabular-nums`}
           out={out}
           run={SCENE.facts.expose}
           since={value}
@@ -116,7 +116,7 @@ function Names({
         >
           <Fade
             as="span"
-            className="ml-1.5 cursor-help text-xs font-bold text-white/70"
+            className="ml-1.5 cursor-help text-xs font-bold text-ink-body"
             out={when.out}
             since={when.since}
           >

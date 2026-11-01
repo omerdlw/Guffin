@@ -31,10 +31,7 @@ export function Hairline({
   return (
     <motion.div
       aria-hidden="true"
-      className={cn(
-        "h-px w-full origin-left bg-[rgb(var(--grade)/0.4)]",
-        className,
-      )}
+      className={cn("h-px w-full origin-left bg-grade/40", className)}
       style={{ opacity: scaleX, scaleX }}
     />
   );
@@ -48,7 +45,7 @@ interface LineProps {
   since?: number;
 }
 
-const RULE = "block h-px origin-left bg-white/10";
+const RULE = "block h-px origin-left bg-line";
 
 export function Line(props: LineProps) {
   return props.since === undefined ? (

@@ -10,7 +10,15 @@ import {
   type SurfaceEntry,
 } from "@omerdlw/base-framework/modules/dock";
 import { useToast } from "@omerdlw/base-framework/modules/notification";
-import { Button, Icon, Input, Spinner } from "@/ui";
+import {
+  Button,
+  Icon,
+  Input,
+  Spinner,
+  SURFACE_FIELD,
+  SURFACE_PRIMARY,
+  surfaceButton,
+} from "@/ui";
 import {
   isSeedEmail,
   requestEmailAuth,
@@ -48,17 +56,14 @@ const METHODS: Record<SignInMethod, { icon: string; label: string }> = {
   x: { icon: "simple-icons:x", label: "X" },
 };
 
-export const AUTH_INPUT_CLASS =
-  "h-10 w-full rounded-[16px] bg-white/[0.06] px-4 text-sm text-white ring-1 ring-inset ring-white/[0.04] placeholder:text-white/40 hover:bg-white/10 focus:bg-white/10 focus:ring-white/[0.12] focus:outline-none";
+export const AUTH_INPUT_CLASS = `${SURFACE_FIELD} h-10 w-full px-4 text-sm`;
 
-const PRIMARY_CLASS =
-  "ui-sheen center h-10 w-full cursor-pointer gap-2 rounded-[16px] bg-white px-4 text-[13px] font-medium text-black hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-50 [--sheen-ink:0_0_0] [--sheen:0.08]";
+const PRIMARY_CLASS = `${SURFACE_PRIMARY} w-full disabled:cursor-not-allowed`;
 
-const SECONDARY_CLASS =
-  "center h-10 w-full cursor-pointer gap-2 rounded-[16px] bg-white/[0.06] px-3 text-[13px] font-medium text-white/75 ring-1 ring-inset ring-white/[0.04] hover:bg-white/10 hover:text-white hover:ring-white/[0.08] disabled:cursor-not-allowed disabled:opacity-50";
+const SECONDARY_CLASS = `${surfaceButton(false)} w-full px-3`;
 
 const LEGAL_LINK_CLASS =
-  "underline decoration-white/25 underline-offset-2 hover:text-white hover:decoration-white/70";
+  "underline decoration-white/25 underline-offset-2 hover:text-ink hover:decoration-white/70";
 
 function showSigningIn(description: string) {
   globalEvents.emit(DOCK_EVENTS.STATUS_SET, {
@@ -185,7 +190,7 @@ function SignInSurface({ close, data = {} }: SignInSurfaceProps) {
 
   if (!auth.isConfigured) {
     return (
-      <p className="rounded-[16px] bg-white/[0.06] px-4 py-3 text-sm text-white/70 ring-1 ring-inset ring-white/[0.04]">
+      <p className="rounded-card bg-fill px-4 py-3 text-sm text-ink-body ring-1 ring-inset ring-edge">
         Configure the Supabase variables in .env.local first
       </p>
     );
@@ -211,7 +216,7 @@ function SignInSurface({ close, data = {} }: SignInSurfaceProps) {
           />
         ))}
       </div>
-      <p className="px-4 pt-0.5 text-center text-[11px] leading-4 text-balance text-white/40">
+      <p className="px-4 pt-0.5 text-center text-[11px] leading-4 text-balance text-ink-muted">
         By continuing you agree to the{" "}
         <Link
           className={LEGAL_LINK_CLASS}

@@ -48,14 +48,14 @@ export const modalMotion: ModalMotion = {
       variants: {
         hidden: {
           opacity: 0,
-          transform: "translate3d(0px, 0px, 0) scale(0.985)",
+          transform: "translate3d(0px, 0px, 0) scale(0.98)",
         },
         visible: {
           opacity: 1,
           transform: REST,
           transition: {
             transform: tween(time.move, ease.pour),
-            opacity: tween(time.reveal, ease.fade),
+            opacity: tween(time.light, ease.fade),
           },
         },
         exit: { opacity: 0, transform: REST, transition: leave },

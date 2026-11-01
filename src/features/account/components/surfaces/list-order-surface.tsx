@@ -18,6 +18,7 @@ import {
   SURFACE_META,
   SURFACE_PANEL,
   SURFACE_POSTER,
+  SURFACE_PRIMARY,
   SURFACE_SCROLL,
   SURFACE_STACK,
   SURFACE_TEXT,
@@ -87,10 +88,10 @@ const OrderRow = memo(function OrderRow({
       as="li"
       className={cn(
         SURFACE_TILE,
-        "relative pr-1.5 transition-[background-color,box-shadow] duration-slow",
+        "relative pr-1.5 transition-[background-color,box-shadow] duration-reveal",
         dragging
-          ? "z-10 bg-white/[0.12] shadow-[0_18px_40px_-16px_rgb(0_0_0/0.9)] ring-white/[0.1]"
-          : "hover:bg-white/10 hover:ring-white/[0.08]",
+          ? "z-10 bg-fill-active shadow-[0_18px_40px_-16px_rgb(0_0_0/0.9)] ring-edge-hover"
+          : "hover:bg-fill-hover hover:ring-edge-hover",
       )}
       dragControls={controls}
       dragListener={false}
@@ -98,13 +99,13 @@ const OrderRow = memo(function OrderRow({
       onDragStart={() => setDragging(true)}
       value={item}
     >
-      <span className="w-7 shrink-0 text-center text-xs font-medium text-white/40 tabular-nums">
+      <span className="w-7 shrink-0 text-center text-xs font-medium text-ink-muted tabular-nums">
         {index + 1}
       </span>
       <div
         className={cn(
           SURFACE_POSTER,
-          "bg-white/5 ring-1 ring-white/[0.06] ring-inset",
+          "bg-fill ring-1 ring-edge ring-inset",
           SURFACE_TILE_INNER,
         )}
       >
@@ -119,7 +120,7 @@ const OrderRow = memo(function OrderRow({
             wrapperClassName="size-full"
           />
         ) : (
-          <div className="center size-full text-white/40">
+          <div className="center size-full text-ink-muted">
             <Icon icon="solar:filmstrip-bold" size={14} />
           </div>
         )}
@@ -133,7 +134,7 @@ const OrderRow = memo(function OrderRow({
       <button
         aria-label={`Move ${item.title}, place ${index + 1} of ${total}`}
         className={cn(
-          "center size-10 shrink-0 cursor-grab touch-none text-white/40 outline-none hover:bg-white/[0.06] hover:text-white/80 focus-visible:bg-white/[0.08] focus-visible:text-white active:cursor-grabbing",
+          "center size-10 shrink-0 cursor-grab touch-none text-ink-muted outline-none hover:bg-fill hover:text-ink-body focus-visible:bg-fill-hover focus-visible:text-ink active:cursor-grabbing",
           SURFACE_TILE_INNER,
         )}
         onKeyDown={onKeyDown}
@@ -219,7 +220,7 @@ function ListOrderSurface({ data }: { data: ListOrderData }): JSX.Element {
     return (
       <div className={cn(SURFACE_PANEL, "center min-h-40 flex-col gap-2 p-4")}>
         {failed ? (
-          <p className="text-sm text-white/60">This list could not be loaded</p>
+          <p className="text-sm text-ink-body">This list could not be loaded</p>
         ) : (
           <Loader />
         )}
@@ -265,7 +266,7 @@ function ListOrderSurface({ data }: { data: ListOrderData }): JSX.Element {
             Undo changes
           </Button>
           <Button
-            className="ui-sheen center h-10 min-w-0 flex-1 cursor-pointer gap-2 rounded-[16px] bg-white px-4 text-[13px] font-medium text-black [--sheen-ink:0_0_0] [--sheen:0.08] hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-50"
+            className={`${SURFACE_PRIMARY} min-w-0 flex-1 disabled:cursor-not-allowed`}
             disabled={!changed || saving}
             loading={saving}
             onClick={() => void save()}

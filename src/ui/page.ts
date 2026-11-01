@@ -62,15 +62,45 @@ export const CAROUSEL_ITEM =
   "w-[calc((100%-1.5rem)/3)] md:w-[calc((100%-2.25rem)/4)]";
 export const CAROUSEL_WIDE_ITEM = "w-full sm:w-[calc((100%-0.75rem)/2)]";
 
+// Corner radii in px, the same steps as --radius-* in globals.css. Props
+// that take a number (Carousel, MediaCard, Tile, Develop) read these.
+export const RADIUS = {
+  thumb: 8,
+  tile: 12,
+  card: 16,
+  panel: 20,
+  sheet: 24,
+} as const;
+
+// A frame inside another keeps the curves parallel: the outer radius less
+// the padding between them.
+export const nested = (outer: number, padding: number) =>
+  Math.max(0, outer - padding);
+
+const GLASS =
+  "rounded-full bg-black/60 text-ink shadow-float ring-1 ring-edge-hover ring-inset backdrop-blur-md backdrop-saturate-150 inset-shadow-[0_1px_0_var(--color-edge)]";
+
+const SURFACE =
+  "bg-fill ring-1 ring-edge ring-inset hover:bg-fill-hover hover:ring-edge-hover";
+
 export const TONE = {
-  arrows:
-    "rounded-full bg-black/60 text-white ring-white/[0.08] shadow-[0_14px_32px_-16px_rgb(0_0_0/0.85)] backdrop-blur-md backdrop-saturate-150 inset-shadow-[0_1px_0_rgb(255_255_255/0.07)] hover:bg-black/75",
+  arrows: `${GLASS} hover:bg-black/75`,
   chosen:
-    "bg-[rgb(var(--grade)/0.16)] text-[rgb(var(--grade))] ring-1 ring-[rgb(var(--grade)/0.24)] ring-inset hover:bg-[rgb(var(--grade)/0.22)] hover:ring-[rgb(var(--grade)/0.32)]",
+    "bg-grade/15 text-grade ring-1 ring-grade/25 ring-inset hover:bg-grade/20 hover:ring-grade/30",
+  // Floating chrome over a picture.
+  glass: GLASS,
   label: "text-[11px] leading-4 font-semibold tracking-[0.14em] uppercase",
-  rule: "bg-white/[0.06]",
-  rules: "divide-white/[0.06]",
-  surface:
-    "bg-white/[0.06] text-white/70 ring-1 ring-white/[0.04] ring-inset hover:bg-white/10 hover:text-white hover:ring-white/[0.08]",
+  // A label-sized text action: a section's "More", "Read more".
+  link: "cine-fade text-[11px] leading-4 font-semibold tracking-[0.14em] uppercase text-ink-muted hover:text-ink focus-visible:text-ink",
+  // The full-width button under a list that shows the rest of it.
+  more: `cine-press center h-10 w-full cursor-pointer gap-2 rounded-full text-[13px] leading-4 font-medium text-ink-body hover:text-ink ${SURFACE}`,
+  rule: "bg-rule",
+  rules: "divide-rule",
+  select: {
+    content: "rounded-panel",
+    option: "rounded-card",
+    trigger: `rounded-full ${SURFACE}`,
+  },
+  surface: `text-ink-body hover:text-ink ${SURFACE}`,
   tabs: "rounded-full [&_[data-pill]]:rounded-full [&_[role=tab]]:rounded-full",
 } as const;

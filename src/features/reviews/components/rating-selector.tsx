@@ -58,7 +58,7 @@ export function RatingSelector({
             </defs>
             <path className="fill-white/10" d={STAR_PATH} />
             <path
-              className="fill-amber-400"
+              className="fill-rated"
               clipPath={`url(#rating-star-${star})`}
               d={STAR_PATH}
             />

@@ -30,10 +30,5 @@ export const SCENE = {
     length: OVERVIEW_LANDED - TITLE + size(1),
   },
   stars: { at: size(0), gap: size(-2), run: size(1) },
-  layers: {
-    overview: { opacity: [1, 0.2], range: [60, 640] },
-    rule: { opacity: [1, 0.15], range: [20, 520] },
-    tagline: { opacity: [1, 0.25], range: [0, 520] },
-    title: { opacity: [1, 0.15], range: [0, 560] },
-  },
+  layers: { ...GRAMMAR.layers, overview: GRAMMAR.layers.prose },
 } as const;

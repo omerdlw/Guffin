@@ -64,13 +64,13 @@ export function WinnersIndex({
                 <p className={cn(TONE.label, "text-[#e9c46a]/80")}>
                   Best Picture
                 </p>
-                <p className="mt-1.5 text-sm text-white/50">
+                <p className="mt-1.5 text-sm text-ink-muted">
                   {laureates.length} winners, by ceremony
                 </p>
               </div>
               <button
                 aria-label="Close"
-                className="inline-flex size-10 items-center justify-center rounded-full bg-white/[0.06] text-white/75 ring-1 ring-white/[0.04] ring-inset hover:bg-white/10 hover:text-white"
+                className="inline-flex size-10 items-center justify-center rounded-full bg-fill text-ink-body ring-1 ring-edge ring-inset hover:bg-fill-hover hover:text-ink"
                 onClick={onClose}
                 type="button"
               >
@@ -101,7 +101,7 @@ export function WinnersIndex({
                             "group/winner flex w-full items-center gap-3 py-1.5 text-left",
                             index === current
                               ? "text-[#f3d98f]"
-                              : "text-white/60 hover:text-white",
+                              : "text-ink-body hover:text-ink",
                           )}
                           onClick={() => onPick(index)}
                           type="button"

@@ -1,9 +1,8 @@
 import type { JSX } from "react";
-import { AwardsView } from "@/features/awards";
+import { AwardsView, STAGE_LOOK } from "@/features/awards";
 import { Beat, Header, Section } from "@/motion/stage";
 import type { Awards } from "@/infrastructure/tmdb/types";
 import { AwardsAction } from "./movie-collection-actions";
-import { TONE } from "@/ui";
 
 type AwardsRequest = Promise<Awards | null>;
 
@@ -25,18 +24,7 @@ export async function MovieAwards({
         <AwardsView
           awards={resolved}
           groupings={["organizations", "timeline"]}
-          look={{
-            button: "rounded-full",
-            logo: "rounded-[8px]",
-            poster: "rounded-[6px]",
-            segmented: TONE.tabs,
-            select: {
-              content: "rounded-[18px]",
-              option: "rounded-[14px]",
-              trigger:
-                "rounded-full bg-white/[0.06] ring-white/[0.04] hover:bg-white/10 hover:ring-white/[0.08]",
-            },
-          }}
+          look={STAGE_LOOK}
           showRecipients
         />
       </Beat>

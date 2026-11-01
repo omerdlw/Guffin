@@ -110,8 +110,8 @@ const ListPreviewStack = memo(function ListPreviewStack({
               "absolute overflow-hidden ring-1 ring-inset",
               SURFACE_TILE_INNER,
               hasCard
-                ? "bg-black shadow-[0_4px_12px_rgba(0,0,0,0.6)] ring-white/10"
-                : "bg-white/5 ring-white/5",
+                ? "bg-black shadow-[0_4px_12px_rgba(0,0,0,0.6)] ring-edge-hover"
+                : "bg-fill ring-edge",
             )}
             style={{
               ...stackCard(index),
@@ -126,15 +126,15 @@ const ListPreviewStack = memo(function ListPreviewStack({
                   decoding="async"
                   loading="lazy"
                   src={imageSrc}
-                  wrapperClassName="size-full bg-white/5"
+                  wrapperClassName="size-full bg-fill"
                 />
               ) : (
-                <div className="center size-full bg-white/5 text-white/40">
+                <div className="center size-full bg-fill text-ink-faint">
                   <Icon icon="solar:filmstrip-bold" size={14} />
                 </div>
               )
             ) : index === 0 && previews.length === 0 ? (
-              <div className="center size-full text-white/40">
+              <div className="center size-full text-ink-faint">
                 <Icon icon="solar:folder-bold" size={18} />
               </div>
             ) : null}
@@ -175,7 +175,7 @@ const ListRow = memo(function ListRow({
     >
       {highlighted ? (
         <SlidingHighlight
-          className="rounded-[16px] bg-white/[0.04] ring-1 ring-white/[0.08] ring-inset"
+          className="rounded-card bg-fill ring-1 ring-edge-hover ring-inset"
           layoutId="list-picker-highlight"
         />
       ) : null}
@@ -184,7 +184,7 @@ const ListRow = memo(function ListRow({
       <div className={cn(SURFACE_TEXT, "relative z-10")}>
         <p className={SURFACE_TITLE}>{list.title}</p>
         {list.description ? (
-          <p className={cn(SURFACE_META, "text-white/70")}>
+          <p className={cn(SURFACE_META, "text-ink-body")}>
             {list.description}
           </p>
         ) : null}
@@ -205,7 +205,7 @@ const ListRow = memo(function ListRow({
           "center relative z-10 size-6 shrink-0 rounded-full ring-1 ring-inset",
           inList
             ? SURFACE_CHECK_ON
-            : "text-transparent ring-white/10 group-hover:text-white/30 group-hover:ring-white/20",
+            : "text-transparent ring-edge-hover group-hover:text-ink-faint group-hover:ring-white/20",
         )}
       >
         {pending ? (
@@ -245,7 +245,7 @@ function LoadingListSkeleton(): JSX.Element {
               <div
                 key={stackIndex}
                 className={cn(
-                  "absolute overflow-hidden bg-white/10 ring-1 ring-white/5 ring-inset",
+                  "absolute overflow-hidden bg-fill-hover ring-1 ring-edge ring-inset",
                   SURFACE_TILE_INNER,
                 )}
                 style={{
@@ -259,7 +259,7 @@ function LoadingListSkeleton(): JSX.Element {
             <div className="skeleton-block h-3.5 w-3/5 rounded-full" />
             <div className="skeleton-block-soft h-2.5 w-2/5 rounded-full" />
           </div>
-          <div className="skeleton-block-soft size-6 shrink-0 rounded-full ring-1 ring-white/5 ring-inset" />
+          <div className="skeleton-block-soft size-6 shrink-0 rounded-full ring-1 ring-edge ring-inset" />
         </div>
       ))}
     </div>
@@ -431,23 +431,23 @@ function ListPickerSurface({ data }: { data: ListPickerData }): JSX.Element {
             <LoadingListSkeleton />
           ) : status === "error" ? (
             <div className="center min-h-40 flex-col gap-1.5 text-center">
-              <div className="center size-10 rounded-full bg-white/[0.06] text-white/50">
+              <div className="center size-10 rounded-full bg-fill text-ink-muted">
                 <Icon icon="solar:danger-circle-bold" size={20} />
               </div>
-              <p className="text-sm text-white/70">
+              <p className="text-sm text-ink-body">
                 Your lists could not be loaded
               </p>
             </div>
           ) : lists.length === 0 ? (
             <div className="center min-h-40 flex-col gap-2 py-6 text-center">
-              <div className="center size-12 rounded-full bg-white/[0.06] text-white/40 ring-1 ring-white/[0.08] ring-inset">
+              <div className="center size-12 rounded-full bg-fill text-ink-faint ring-1 ring-edge-hover ring-inset">
                 <Icon icon="solar:folder-open-bold" size={22} />
               </div>
               <div className="flex flex-col gap-0.5">
-                <p className="text-sm font-medium text-white/80">
+                <p className="text-sm font-medium text-ink-body">
                   No lists yet
                 </p>
-                <p className="text-xs text-white/50">
+                <p className="text-xs text-ink-muted">
                   Name one above to start it with this movie
                 </p>
               </div>

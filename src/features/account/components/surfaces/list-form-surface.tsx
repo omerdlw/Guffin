@@ -15,6 +15,7 @@ import {
   Input,
   SURFACE_FIELD,
   SURFACE_META,
+  SURFACE_PRIMARY,
   SURFACE_STACK,
   SURFACE_TEXT,
   SURFACE_TILE,
@@ -60,7 +61,7 @@ function TileMark({ icon }: { icon: string }): JSX.Element {
   return (
     <span
       className={cn(
-        "center relative z-10 size-10 shrink-0 bg-white/[0.06] text-white/60 group-hover:bg-white/10 group-hover:text-white/85",
+        "center relative z-10 size-10 shrink-0 bg-fill text-ink-body group-hover:bg-fill-hover group-hover:text-ink-lead",
         SURFACE_TILE_INNER,
       )}
     >
@@ -120,7 +121,7 @@ function Toggle({
     >
       {highlighted ? (
         <SlidingHighlight
-          className="rounded-[16px] bg-white/[0.04] ring-1 ring-white/[0.08] ring-inset"
+          className="rounded-card bg-fill ring-1 ring-edge-hover ring-inset"
           layoutId="list-form-control-highlight"
         />
       ) : null}
@@ -276,7 +277,7 @@ function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
                   className={cn(
                     SURFACE_TILE,
                     SURFACE_TILE_END,
-                    "group relative isolate w-full cursor-pointer outline-none focus-visible:ring-white/[0.16] disabled:cursor-wait",
+                    "group relative isolate w-full cursor-pointer outline-none focus-visible:ring-edge-focus disabled:cursor-wait",
                   )}
                   disabled={busy !== null}
                   onBlur={() => setFocusedControl(null)}
@@ -294,7 +295,7 @@ function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
                 >
                   {(hoveredControl ?? focusedControl) === "film-order" ? (
                     <SlidingHighlight
-                      className="rounded-[16px] bg-white/[0.04] ring-1 ring-white/[0.08] ring-inset"
+                      className="rounded-card bg-fill ring-1 ring-edge-hover ring-inset"
                       layoutId="list-form-control-highlight"
                     />
                   ) : null}
@@ -304,7 +305,7 @@ function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
                     label="Film order"
                   />
                   <Icon
-                    className="center relative z-10 shrink-0 text-white/40 group-hover:translate-x-0.5 group-hover:text-white/70"
+                    className="center relative z-10 shrink-0 text-ink-muted group-hover:translate-x-0.5 group-hover:text-ink-body"
                     icon="solar:alt-arrow-right-linear"
                     size={16}
                   />
@@ -319,7 +320,7 @@ function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
                     surfaceButton(false),
                     "min-w-0 flex-1 px-4 disabled:cursor-wait",
                     confirmingDelete &&
-                      "bg-red-500/[0.16] text-red-200 ring-red-400/[0.24] hover:bg-red-500/[0.24] hover:text-red-100 hover:ring-red-400/[0.32]",
+                      "bg-red-500/15 text-red-200 ring-red-400/25 hover:bg-red-500/20 hover:text-red-100 hover:ring-red-400/30",
                   )}
                   disabled={busy !== null}
                   loading={busy === "delete"}
@@ -331,7 +332,7 @@ function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
                 </Button>
               ) : null}
               <Button
-                className="ui-sheen center h-10 min-w-0 flex-1 cursor-pointer gap-2 rounded-[16px] bg-white px-4 text-[13px] font-medium text-black [--sheen-ink:0_0_0] [--sheen:0.08] hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-50"
+                className={`${SURFACE_PRIMARY} min-w-0 flex-1 disabled:cursor-not-allowed`}
                 disabled={!title.trim() || busy !== null}
                 loading={busy === "save"}
                 onPointerEnter={() => setHoveredControl(null)}

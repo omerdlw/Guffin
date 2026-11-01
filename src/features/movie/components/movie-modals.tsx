@@ -6,7 +6,7 @@ import {
   ModalContainer,
   type ModalContainerProps,
 } from "@omerdlw/base-framework/modules/modal";
-import { SegmentedControl } from "@/ui";
+import { RADIUS, SegmentedControl } from "@/ui";
 import { Tube, useShowing } from "@/motion/film";
 import type { PersonEntry } from "../lib/types";
 import { PersonCard } from "./person-card";
@@ -47,7 +47,7 @@ function PeopleModalView({ close, data, header }: ModalProps<PeopleModalData>) {
               <PersonCard
                 onNavigated={() => close()}
                 person={person}
-                radius={16}
+                radius={RADIUS.card}
               />
             </li>
           ))}
@@ -71,7 +71,7 @@ export type VideoModalData = {
 function VideoModalView({ data }: ModalProps<VideoModalData>) {
   useShowing();
   return (
-    <Tube className="aspect-video w-[min(92vw,64rem)] overflow-hidden rounded-[26px] bg-black ring-1 ring-white/10 ring-inset">
+    <Tube className="aspect-video w-[min(92vw,64rem)] overflow-hidden rounded-sheet bg-black ring-1 ring-edge-hover ring-inset">
       <iframe
         allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
         className="size-full"
@@ -98,7 +98,7 @@ function ImageModalView({ data }: ModalProps<ImageModalData>) {
   return (
     <img
       alt={data.alt}
-      className="max-h-[85vh] max-w-[92vw] rounded-[26px] object-contain ring-1 ring-white/10"
+      className="max-h-[85vh] max-w-[92vw] rounded-sheet object-contain ring-1 ring-edge-hover"
       draggable={false}
       src={data.src}
     />

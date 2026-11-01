@@ -17,7 +17,7 @@ export function FactLink({
   return (
     <Link
       aria-label={label}
-      className="cine-fade border-b border-white/25 outline-none hover:border-white/45 focus-visible:border-white/45"
+      className="cine-fade border-b border-white/25 outline-none hover:border-white/50 focus-visible:border-white/50"
       href={href}
       onClick={handleClick}
       prefetch={false}

@@ -70,13 +70,13 @@ export function AccountSectionTabs({
       ref={navRef}
     >
       <ul
-        className="relative mx-auto flex h-10 w-max shrink-0 items-stretch gap-0.5 rounded-full bg-black/50 p-1 shadow-[0_14px_32px_-16px_rgb(0_0_0/0.85)] ring-1 ring-white/[0.08] in-data-backdrop:backdrop-blur-xl in-data-backdrop:backdrop-saturate-150 ring-inset inset-shadow-[0_1px_0_rgb(255_255_255/0.07)] select-none"
+        className="relative mx-auto flex h-10 w-max shrink-0 items-stretch gap-0.5 rounded-full bg-black/50 p-1 shadow-float ring-1 ring-edge-hover in-data-backdrop:backdrop-blur-xl in-data-backdrop:backdrop-saturate-150 ring-inset inset-shadow-[0_1px_0_var(--color-edge)] select-none"
         ref={listRef}
       >
         {pill ? (
           <SlidingPill
             box={pill}
-            className="inset-y-1 rounded-full bg-white/[0.12]"
+            className="inset-y-1 rounded-full bg-fill-active"
           />
         ) : null}
         {SECTIONS.map((section) => {
@@ -92,8 +92,8 @@ export function AccountSectionTabs({
                 aria-current={section.key === active ? "page" : undefined}
                 className={cn(
                   "relative inline-flex items-center rounded-full px-4 text-[13px] font-medium whitespace-nowrap",
-                  isChosen ? "text-white" : "text-white/60 hover:text-white",
-                  isChosen && !pill && "bg-white/[0.12]",
+                  isChosen ? "text-ink" : "text-ink-body hover:text-ink",
+                  isChosen && !pill && "bg-fill-active",
                 )}
                 href={section.key ? `${base}/${section.key}` : base}
               >

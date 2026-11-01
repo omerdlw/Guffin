@@ -66,9 +66,9 @@ const ICONS: Record<string, string> = {
 };
 
 const ICON_BUTTON =
-  "center size-10 shrink-0 cursor-pointer rounded-[10px] select-none";
+  "center size-10 shrink-0 cursor-pointer rounded-inset select-none";
 const TOOLBAR_BUTTON =
-  "flex h-full shrink-0 cursor-pointer items-center rounded-full bg-transparent px-3.5 text-xs font-medium text-white/70 select-none hover:bg-white/[0.07] hover:text-white";
+  "flex h-full shrink-0 cursor-pointer items-center rounded-full bg-transparent px-3.5 text-xs font-medium text-ink-body select-none hover:bg-fill-hover hover:text-ink";
 const BANNER_FADE =
   "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.15) 30%, rgba(0,0,0,0.65) 70%, black 100%)";
 
@@ -128,7 +128,7 @@ function StatusTile({
   return (
     <div className={`${SURFACE_TILE} w-full`}>
       <div
-        className={`center size-10 shrink-0 bg-white/[0.06] text-white/50 ${SURFACE_TILE_INNER}`}
+        className={`center size-10 shrink-0 bg-fill text-ink-muted ${SURFACE_TILE_INNER}`}
       >
         <Icon icon={icon} size={20} />
       </div>
@@ -184,7 +184,7 @@ const NotificationRow = memo(function NotificationRow({
   const content: ReactNode = (
     <>
       <div
-        className={`relative size-10 shrink-0 overflow-hidden bg-white/[0.06] ${SURFACE_TILE_INNER}`}
+        className={`relative size-10 shrink-0 overflow-hidden bg-fill ${SURFACE_TILE_INNER}`}
       >
         {actor ? (
           <AdaptiveImage
@@ -197,7 +197,7 @@ const NotificationRow = memo(function NotificationRow({
             wrapperClassName="size-full rounded-[inherit]"
           />
         ) : (
-          <div className="center size-full text-white/70">
+          <div className="center size-full text-ink-body">
             <Icon
               icon={ICONS[notification.type] ?? NOTIFICATIONS_ICON}
               size={20}
@@ -262,7 +262,7 @@ const NotificationRow = memo(function NotificationRow({
         )}
         <Button
           aria-label="Delete notification"
-          className={`${ICON_BUTTON} bg-white/[0.06] text-white/70 hover:bg-white/10 hover:text-white`}
+          className={`${ICON_BUTTON} bg-fill text-ink-body hover:bg-fill-hover hover:text-ink`}
           onClick={(event) => onDelete(notification.id, event)}
           title="Delete notification"
         >

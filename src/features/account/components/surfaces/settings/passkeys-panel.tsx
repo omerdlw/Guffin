@@ -23,11 +23,11 @@ function PasskeysSkeleton() {
     <div className="flex flex-col gap-2.5">
       {[0, 1].map((index) => (
         <div
-          className="flex h-10 w-full items-center justify-between rounded-[16px] bg-white/[0.06] p-1 pl-4 ring-1 ring-inset ring-white/[0.04]"
+          className="flex h-10 w-full items-center justify-between rounded-card bg-fill p-1 pl-4 ring-1 ring-inset ring-edge"
           key={index}
         >
-          <div className="h-3.5 w-28 rounded-full bg-white/10" />
-          <div className="h-8 w-20 rounded-[12px] bg-white/[0.07]" />
+          <div className="h-3.5 w-28 rounded-full bg-fill-hover" />
+          <div className="h-8 w-20 rounded-tile bg-fill-hover" />
         </div>
       ))}
     </div>
@@ -56,8 +56,8 @@ export function PasskeysPanel({
   return (
     <div className="flex flex-col gap-2.5">
       {passkeys.length === 0 ? (
-        <div className="flex min-h-24 w-full items-center justify-center rounded-[16px] bg-white/[0.06] p-4 text-center">
-          <span className="text-xs text-white/50">No passkeys registered</span>
+        <div className="flex min-h-24 w-full items-center justify-center rounded-card bg-fill p-4 text-center">
+          <span className="text-xs text-ink-muted">No passkeys registered</span>
         </div>
       ) : (
         passkeys.map((passkey) => {
@@ -99,7 +99,7 @@ export function PasskeysPanel({
                     Save
                   </Button>
                   <Button
-                    className="center size-10 shrink-0 cursor-pointer rounded-[16px] bg-white/[0.06] text-xs text-white/70 ring-1 ring-inset ring-white/[0.04] hover:bg-white/10 hover:text-white"
+                    className="center size-10 shrink-0 cursor-pointer rounded-card bg-fill text-xs text-ink-body ring-1 ring-inset ring-edge hover:bg-fill-hover hover:text-ink"
                     disabled={pending}
                     onClick={() => setEditing(null)}
                   >
@@ -111,7 +111,7 @@ export function PasskeysPanel({
           }
           return (
             <div
-              className="flex h-10 w-full items-center justify-between rounded-[16px] bg-white/[0.06] p-1 pl-4 text-white ring-1 ring-inset ring-white/[0.04]"
+              className="flex h-10 w-full items-center justify-between rounded-card bg-fill p-1 pl-4 text-ink ring-1 ring-inset ring-edge"
               key={passkey.id}
             >
               <span className="truncate text-sm font-medium">{name}</span>
@@ -119,7 +119,7 @@ export function PasskeysPanel({
                 <Button
                   className={cn(
                     ROW_BUTTON_CLASS,
-                    "text-white/70 hover:bg-white/10 hover:text-white disabled:opacity-50",
+                    "text-ink-body hover:bg-fill-hover hover:text-ink disabled:opacity-50",
                   )}
                   disabled={pending}
                   onClick={() => setEditing({ id: passkey.id, name })}
@@ -129,7 +129,7 @@ export function PasskeysPanel({
                 <Button
                   className={cn(
                     ROW_BUTTON_CLASS,
-                    "text-white/70 hover:bg-white/10 disabled:opacity-50",
+                    "text-ink-body hover:bg-fill-hover disabled:opacity-50",
                     ACTION_TONE_CLASS,
                   )}
                   disabled={pending || !client}

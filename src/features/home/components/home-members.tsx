@@ -87,19 +87,19 @@ function MemberCard({ member }: { member: HomeMember }): JSX.Element {
       </AccountLink>
       <div className="flex w-full min-w-0 flex-col gap-0.5">
         <AccountLink
-          className="truncate text-[15px] font-semibold text-white underline decoration-transparent hover:decoration-current"
+          className="truncate text-[15px] font-semibold text-ink underline decoration-transparent hover:decoration-current"
           href={href}
         >
           {member.displayName}
         </AccountLink>
-        <span className="truncate text-xs text-white/40">
+        <span className="truncate text-xs text-ink-muted">
           @{member.username}
         </span>
       </div>
-      <p className="line-clamp-2 min-h-8 text-xs leading-4 text-white/55">
+      <p className="line-clamp-2 min-h-8 text-xs leading-4 text-ink-muted">
         {member.reason}
       </p>
-      <p className="text-xs text-white/40 tabular-nums">
+      <p className="text-xs text-ink-muted tabular-nums">
         {compact(member.watched)} films · {compact(member.reviews)} reviews
       </p>
       <div className="mt-auto w-full max-w-36">

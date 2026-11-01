@@ -2,7 +2,7 @@
 
 import { useState, type CSSProperties } from "react";
 import { useModal } from "@omerdlw/base-framework/modules/modal";
-import { Button, Icon, SegmentedControl, TONE } from "@/ui";
+import { Button, Icon, RADIUS, SegmentedControl, TONE } from "@/ui";
 import { MOVIE_COMPACT_PEOPLE, MOVIE_FEATURED_PEOPLE } from "../lib/constants";
 import { Header, Item, Section, Swap } from "@/motion/stage";
 import type { PersonEntry } from "../lib/types";
@@ -72,7 +72,7 @@ export function MoviePeople({ cast, crew }: MoviePeopleProps) {
               from="light"
               key={person.key}
             >
-              <PersonCard person={person} radius={18} />
+              <PersonCard person={person} radius={RADIUS.panel} />
             </Item>
           ))}
         </ul>
@@ -89,13 +89,13 @@ export function MoviePeople({ cast, crew }: MoviePeopleProps) {
                 from="light"
                 key={person.key}
               >
-                <PersonCard compact person={person} radius={20} />
+                <PersonCard compact person={person} radius={RADIUS.panel} />
               </Item>
             ))}
             <Item className="min-w-0" exit={false} from="light">
               <Button
                 aria-label="Show full cast and crew"
-                className={`cine-press center h-10 w-full cursor-pointer rounded-full ${TONE.surface}`}
+                className={TONE.more}
                 onClick={openAll}
               >
                 <Icon icon="solar:alt-arrow-right-linear" size={16} />

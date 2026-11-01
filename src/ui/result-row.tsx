@@ -24,7 +24,7 @@ export function ResultRow({
   return (
     <Link
       aria-label={label}
-      className="cine-fade group relative z-10 flex h-16 items-center gap-3 rounded-[16px] p-2 pr-4 outline-none focus-visible:bg-white/[0.07]"
+      className="cine-fade group relative z-10 flex h-16 items-center gap-3 rounded-card p-2 pr-4 outline-none focus-visible:bg-fill-hover"
       href={href}
       onClick={handleClick}
       prefetch={false}
@@ -33,10 +33,10 @@ export function ResultRow({
         {thumb}
       </span>
       <span className="flex min-w-0 flex-1 flex-col gap-1">
-        <span className="truncate text-sm leading-tight font-semibold text-white">
+        <span className="truncate text-sm leading-tight font-semibold text-ink">
           {title}
         </span>
-        <span className="flex min-w-0 items-center gap-1.5 text-xs leading-tight text-white/50 group-hover:text-white/70 group-focus-visible:text-white/70 in-data-active:text-white/70">
+        <span className="flex min-w-0 items-center gap-1.5 text-xs leading-tight text-ink-muted group-hover:text-ink-body group-focus-visible:text-ink-body in-data-active:text-ink-body">
           {meta}
         </span>
       </span>

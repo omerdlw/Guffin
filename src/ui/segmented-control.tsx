@@ -113,7 +113,7 @@ export function SegmentedControl<K extends string>({
     <div
       aria-label={ariaLabel}
       className={cn(
-        "relative h-8 max-w-full items-stretch gap-0.5 overflow-x-auto bg-white/[0.06] p-0.5 ring-1 ring-white/[0.04] ring-inset select-none scrollbar-none",
+        "relative h-8 max-w-full items-stretch gap-0.5 overflow-x-auto bg-fill p-0.5 ring-1 ring-edge ring-inset select-none scrollbar-none",
         fill ? "flex w-full" : "inline-flex w-fit",
         round && "rounded-full",
         className,
@@ -134,7 +134,7 @@ export function SegmentedControl<K extends string>({
         <SlidingPill
           box={pill}
           className={cn(
-            "inset-y-0.5 bg-white/[0.12] shadow-sm",
+            "inset-y-0.5 bg-fill-active shadow-sm",
             round && "rounded-full",
           )}
         />
@@ -146,13 +146,13 @@ export function SegmentedControl<K extends string>({
             aria-selected={active}
             data-pill-target={item.key === pillKey ? "" : undefined}
             className={cn(
-              "relative inline-flex min-w-fit cursor-pointer items-center justify-center gap-1.5 px-3.5 text-xs font-medium whitespace-nowrap cine-fade outline-none focus-visible:ring-1 focus-visible:ring-white/[0.16] focus-visible:ring-inset",
+              "relative inline-flex min-w-fit cursor-pointer items-center justify-center gap-1.5 px-3.5 text-xs font-medium whitespace-nowrap cine-fade outline-none focus-visible:ring-1 focus-visible:ring-edge-focus focus-visible:ring-inset",
               fill && "flex-1",
               round && "rounded-full",
               active
-                ? "text-white"
-                : "text-white/70 hover:text-white focus-visible:text-white",
-              active && !pill && "bg-white/[0.12]",
+                ? "text-ink"
+                : "text-ink-body hover:text-ink focus-visible:text-ink",
+              active && !pill && "bg-fill-active",
             )}
             key={item.key}
             onClick={() => onChange(item.key)}

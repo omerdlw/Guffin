@@ -1,7 +1,6 @@
 import type { JSX } from "react";
 import {
   FILMOGRAPHY_GRID_CLASS,
-  LABEL_TYPE,
   LINKS_CLASS,
   SIDEBAR_FACTS_CLASS,
 } from "../lib/layout";
@@ -27,6 +26,7 @@ import {
   SkeletonBlock,
   SkeletonLines,
   TabsSkeleton,
+  TONE,
 } from "@/ui";
 
 const FACT_WIDTHS = [
@@ -42,7 +42,7 @@ function Sidebar(): JSX.Element {
     <div className={SIDEBAR_CLASS}>
       <div className="flex min-w-0 flex-col gap-3">
         <div className="w-full shrink-0">
-          <SkeletonBlock className="aspect-[2/3] w-full rounded-[24px]" />
+          <SkeletonBlock className="aspect-[2/3] w-full rounded-sheet" />
         </div>
         <div className="flex gap-3">
           <SkeletonBlock className="h-12 min-w-0 flex-1 rounded-full" />
@@ -94,7 +94,7 @@ function Career(): JSX.Element {
       <div className="flex flex-col gap-5">
         <div className="flex min-h-14 items-end gap-5">
           <div className="font-zuume text-5xl leading-[0.8] sm:text-6xl">
-            <SkeletonBlock className="h-[1lh] w-[1.35em] rounded-[8px]" />
+            <SkeletonBlock className="h-[1lh] w-[1.35em] rounded-thumb" />
           </div>
           <div className="flex flex-col gap-1 pb-0.5">
             <SkeletonLines
@@ -145,7 +145,7 @@ function Filmography(): JSX.Element {
         <div className={FILMOGRAPHY_GRID_CLASS}>
           {Array.from({ length: PERSON_FILMOGRAPHY_PREVIEW }, (_, index) => (
             <div className="min-w-0" key={index}>
-              <SkeletonBlock className="aspect-[2/3] w-full rounded-[16px]" />
+              <SkeletonBlock className="aspect-[2/3] w-full rounded-card" />
             </div>
           ))}
         </div>
@@ -169,7 +169,7 @@ function Gallery(): JSX.Element {
       />
       <CarouselSkeleton
         aspect="aspect-[2/3]"
-        blockClassName="rounded-[16px]"
+        blockClassName="rounded-card"
         count={5}
         itemClassName={CAROUSEL_ITEM}
       />
@@ -193,12 +193,12 @@ export function PersonSkeleton(): JSX.Element {
           <header className={HEADER_CLASS}>
             <div className={`${HEADLINE_BOX} ${HEADLINE_TYPE}`}>
               <div className="h-[1lh] pt-[0.14em]">
-                <SkeletonBlock className="h-[0.7em] w-[58%] rounded-[16px]" />
+                <SkeletonBlock className="h-[0.7em] w-[58%] rounded-card" />
               </div>
             </div>
             <div className={`${RULE_GAP} flex items-center gap-4`}>
               <SkeletonLines
-                className={`shrink-0 ${LABEL_TYPE}`}
+                className={`shrink-0 ${TONE.label}`}
                 widths={["4.5rem"]}
               />
               <SkeletonBlock className="h-px min-w-6 flex-1" />

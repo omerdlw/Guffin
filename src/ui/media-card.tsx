@@ -76,7 +76,7 @@ export function MediaCard({
         className={cn(
           "cine-fade relative isolate overflow-hidden",
           ASPECT[aspect],
-          framed && "bg-white/5",
+          framed && "bg-fill",
           frameClassName,
         )}
         data-cursor-frame=""
@@ -87,7 +87,7 @@ export function MediaCard({
           className="cine-zoom object-cover"
           crossOrigin={image.crossOrigin}
           fallback={
-            <div className="center h-full w-full text-white/40">
+            <div className="center h-full w-full text-ink-faint">
               <Icon icon={fallbackIcon} size={fallbackIconSize} />
             </div>
           }
@@ -103,7 +103,7 @@ export function MediaCard({
             <span aria-hidden="true" className="cine-afterglow" />
             <span
               aria-hidden="true"
-              className="cine-fade pointer-events-none absolute inset-0 rounded-[inherit] ring-1 ring-white/5 ring-inset group-focus-visible/media:ring-white/[0.16] in-data-active:ring-white/[0.16]"
+              className="cine-fade pointer-events-none absolute inset-0 rounded-[inherit] ring-1 ring-edge ring-inset group-focus-visible/media:ring-edge-focus in-data-active:ring-edge-focus"
             />
           </>
         ) : null}

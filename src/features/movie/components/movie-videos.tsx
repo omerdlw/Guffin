@@ -6,6 +6,7 @@ import {
   CAROUSEL_WIDE_ITEM,
   Icon,
   MediaCard,
+  RADIUS,
   SegmentedControl,
   TONE,
 } from "@/ui";
@@ -47,10 +48,10 @@ export function MovieVideos({
       <Swap id={type}>
         <Carousel
           arrowClassName={TONE.arrows}
-          className="rounded-[16px]"
+          className="rounded-card"
           itemClassName={visible.length === 1 ? "w-full" : CAROUSEL_WIDE_ITEM}
           label="Videos"
-          radius={16}
+          radius={RADIUS.card}
         >
           {visible.map((video) => (
             <MediaCard
@@ -63,7 +64,7 @@ export function MovieVideos({
                 src: `https://img.youtube.com/vi/${encodeURIComponent(video.key)}/hqdefault.jpg`,
               }}
               label={`Play ${video.name}`}
-              radius={16}
+              radius={RADIUS.card}
               onClick={() => {
                 const data: VideoModalData = {
                   key: video.key,
@@ -73,11 +74,11 @@ export function MovieVideos({
               }}
               overlay={
                 <>
-                  <div className="cine-play center pointer-events-none absolute inset-0 text-white">
+                  <div className="cine-play center pointer-events-none absolute inset-0 text-ink">
                     <Icon icon="solar:play-circle-bold" size={48} />
                   </div>
                   <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/60 to-transparent p-3 text-left">
-                    <h3 className="truncate text-sm font-semibold text-white">
+                    <h3 className="truncate text-sm font-semibold text-ink">
                       {video.name}
                     </h3>
                   </div>

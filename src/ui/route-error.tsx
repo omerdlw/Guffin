@@ -22,18 +22,18 @@ export function RouteError({
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-6 text-center">
-      <h2 className="text-xl font-semibold text-white">{title}</h2>
-      <p className="mt-2 text-sm text-white/50">{message}</p>
+      <h2 className="text-xl font-semibold text-ink">{title}</h2>
+      <p className="mt-2 text-sm text-ink-muted">{message}</p>
       <div className="mt-6 flex items-center gap-3">
         <Button
-          className="bg-white/10 px-4 py-2 text-sm font-medium text-white hover:bg-white/15"
+          className="bg-fill-hover px-4 py-2 text-sm font-medium text-ink hover:bg-fill-active"
           onClick={reset}
           type="button"
         >
           Try again
         </Button>
         <Link
-          className="bg-white/5 px-4 py-2 text-sm font-medium text-white/70 ring-1 ring-white/10 hover:bg-white/10"
+          className="bg-fill px-4 py-2 text-sm font-medium text-ink-body ring-1 ring-edge-hover hover:bg-fill-hover"
           href="/"
         >
           Home

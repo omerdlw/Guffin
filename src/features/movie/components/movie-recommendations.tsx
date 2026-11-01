@@ -3,7 +3,7 @@ import type { MovieDetails } from "@/infrastructure/tmdb/types";
 import { getRecommendations } from "../lib/utils";
 import { MoviePosterLink } from "./movie-poster-link";
 import { Carousel, Header, Section } from "@/motion/stage";
-import { CAROUSEL_ITEM, TONE } from "@/ui";
+import { CAROUSEL_ITEM, RADIUS, TONE } from "@/ui";
 
 export function MovieRecommendations({
   movie,
@@ -18,10 +18,10 @@ export function MovieRecommendations({
       <Header icon="solar:stars-minimalistic-bold" title="More like this" />
       <Carousel
         arrowClassName={TONE.arrows}
-        className="rounded-[16px]"
+        className="rounded-card"
         itemClassName={CAROUSEL_ITEM}
         label="More like this"
-        radius={16}
+        radius={RADIUS.card}
       >
         {recommendations.map((item) => (
           <MoviePosterLink
@@ -33,7 +33,7 @@ export function MovieRecommendations({
               title: item.title,
               year: item.releaseYear,
             }}
-            radius={16}
+            radius={RADIUS.card}
             sizes="(min-width: 768px) 22vw, 30vw"
           />
         ))}

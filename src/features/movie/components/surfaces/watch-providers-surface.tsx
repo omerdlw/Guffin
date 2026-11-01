@@ -125,7 +125,7 @@ function pickRegion(codes: readonly string[]): string {
   return codes.includes(FALLBACK_REGION) ? FALLBACK_REGION : (codes[0] ?? "");
 }
 
-const TILE = `${SURFACE_TILE} group/tile ${SURFACE_TILE_END} relative isolate text-white/60 hover:text-white`;
+const TILE = `${SURFACE_TILE} group/tile ${SURFACE_TILE_END} relative isolate text-ink-body hover:text-ink`;
 
 function ProviderTile({
   categoryBadge,
@@ -160,7 +160,7 @@ function ProviderTile({
       <div className={`${SURFACE_TEXT} relative z-10`}>
         <span className={SURFACE_TITLE}>{provider.name}</span>
         {categoryBadge ? (
-          <span className={`${SURFACE_META} group-hover/tile:text-white/70`}>
+          <span className={`${SURFACE_META} group-hover/tile:text-ink-body`}>
             {categoryBadge}
           </span>
         ) : null}
@@ -179,7 +179,7 @@ function ProviderTile({
     >
       {highlighted ? (
         <SlidingHighlight
-          className="rounded-[16px] bg-white/[0.04] ring-1 ring-white/[0.08] ring-inset"
+          className="rounded-card bg-fill ring-1 ring-edge-hover ring-inset"
           layoutId="watch-provider-highlight"
         />
       ) : null}
@@ -194,7 +194,7 @@ function ProviderTile({
     <div className={TILE} onPointerEnter={onPointerEnter}>
       {highlighted ? (
         <SlidingHighlight
-          className="rounded-[16px] bg-white/[0.04] ring-1 ring-white/[0.08] ring-inset"
+          className="rounded-card bg-fill ring-1 ring-edge-hover ring-inset"
           layoutId="watch-provider-highlight"
         />
       ) : null}
@@ -217,8 +217,12 @@ function WatchProvidersSurface({
   const [selectedRegion, setSelectedRegion] = useState("");
   const [activeCategory, setActiveCategory] =
     useState<ProviderCategory>("stream");
-  const [hoveredProviderId, setHoveredProviderId] = useState<number | null>(null);
-  const [focusedProviderId, setFocusedProviderId] = useState<number | null>(null);
+  const [hoveredProviderId, setHoveredProviderId] = useState<number | null>(
+    null,
+  );
+  const [focusedProviderId, setFocusedProviderId] = useState<number | null>(
+    null,
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -306,7 +310,7 @@ function WatchProvidersSurface({
       <Cascade className={SURFACE_STACK} key={status} lead={SURFACE_LEAD}>
         {status === "error" ? (
           <Item className="center min-h-40" from="scale">
-            <p className="text-sm text-white/70">{error}</p>
+            <p className="text-sm text-ink-body">{error}</p>
           </Item>
         ) : status === "loading" ? (
           <Item className="center min-h-40" from="scale">
@@ -317,8 +321,8 @@ function WatchProvidersSurface({
             className="center min-h-40 flex-col gap-1.5 text-center"
             from="scale"
           >
-            <p className="text-sm font-medium text-white/80">Not available</p>
-            <p className="text-sm text-white/70">
+            <p className="text-sm font-medium text-ink-body">Not available</p>
+            <p className="text-sm text-ink-body">
               No service lists this movie right now
             </p>
           </Item>
@@ -329,10 +333,10 @@ function WatchProvidersSurface({
                 ariaLabel="Region"
                 placement="inline"
                 classNames={{
-                  content: "static mt-0 max-h-52 rounded-[16px] p-1.5",
-                  option: "rounded-[10px]",
+                  content: "static mt-0 max-h-52 rounded-card p-1.5",
+                  option: "rounded-inset",
                   trigger:
-                    "h-10 rounded-[16px] px-4 py-0 ring-white/[0.04] hover:ring-white/[0.08]",
+                    "h-10 rounded-card px-4 py-0 ring-edge hover:ring-edge-hover",
                 }}
                 onChange={setSelectedRegion}
                 options={codes.map((code) => ({
@@ -387,7 +391,7 @@ function WatchProvidersSurface({
                     </Cascade>
                   </LayoutGroup>
                 ) : (
-                  <p className="py-6 text-center text-xs text-white/50">
+                  <p className="py-6 text-center text-xs text-ink-muted">
                     No {activeCategory} options available in this region
                   </p>
                 )}

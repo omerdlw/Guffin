@@ -3,7 +3,7 @@
 import { useState, type JSX } from "react";
 import { cn } from "@omerdlw/base-framework/utils";
 import { movieHref, reviewHref } from "@/config/routes";
-import { Button, MediaCard } from "@/ui";
+import { Button, MediaCard, RADIUS } from "@/ui";
 import { RatingStars } from "@/features/reviews";
 import { ReviewActions } from "@/features/reviews";
 import type { ReviewCardData } from "../../lib/browse-data";
@@ -18,10 +18,10 @@ function Body({ review }: { review: Review }) {
   if (!review.content.trim()) return null;
   if (review.isSpoiler && !revealed) {
     return (
-      <p className="text-sm leading-6 text-white/50 italic">
+      <p className="text-sm leading-6 text-ink-muted italic">
         This review may contain spoilers.{" "}
         <Button
-          className="cursor-pointer font-medium text-white/80 not-italic underline-offset-2 hover:text-white underline decoration-transparent hover:decoration-current"
+          className="cursor-pointer font-medium text-ink-body not-italic underline-offset-2 hover:text-ink underline decoration-transparent hover:decoration-current"
           onClick={() => setRevealed(true)}
           type="button"
         >
@@ -31,7 +31,7 @@ function Body({ review }: { review: Review }) {
     );
   }
   return (
-    <p className="line-clamp-6 text-sm leading-6 whitespace-pre-line text-pretty text-white/70">
+    <p className="line-clamp-6 text-sm leading-6 whitespace-pre-line text-pretty text-ink-body">
       {review.content}
     </p>
   );
@@ -60,29 +60,29 @@ function ReviewRow({
         href={href}
         image={posterImage(review.posterPath, "72px")}
         label={review.year ? `${review.title} (${review.year})` : review.title}
-        radius={12}
+        radius={RADIUS.tile}
       />
       <article className="flex min-w-0 flex-1 flex-col">
         <h3 className="flex min-w-0 flex-wrap items-baseline gap-x-2">
           <AccountLink
-            className="text-base leading-6 font-semibold text-white underline decoration-transparent hover:decoration-current sm:text-lg sm:leading-7"
+            className="text-base leading-6 font-semibold text-ink underline decoration-transparent hover:decoration-current sm:text-lg sm:leading-7"
             href={href}
           >
             {review.title}
           </AccountLink>
           {review.year ? (
-            <span className="text-sm text-white/40 tabular-nums">
+            <span className="text-sm text-ink-muted tabular-nums">
               {review.year}
             </span>
           ) : null}
         </h3>
-        <p className="mt-1 flex items-center gap-3 text-xs text-white/40">
+        <p className="mt-1 flex items-center gap-3 text-xs text-ink-muted">
           {review.rating ? (
             <RatingStars rating={review.rating} size={12} />
           ) : null}
           <AccountLink
             aria-label={`Read this review of ${review.title} on its page`}
-            className="hover:text-white underline decoration-transparent hover:decoration-current"
+            className="hover:text-ink underline decoration-transparent hover:decoration-current"
             href={reviewHref(review.tmdbId, username)}
           >
             <time dateTime={review.updatedAt}>
@@ -123,7 +123,7 @@ export function ReviewList({
   username: string;
 }): JSX.Element {
   return (
-    <ul className={cn("flex flex-col divide-y divide-white/[0.07]", className)}>
+    <ul className={cn("flex flex-col divide-y divide-rule", className)}>
       {reviews.map((review) => (
         <ReviewRow
           isOwner={isOwner}

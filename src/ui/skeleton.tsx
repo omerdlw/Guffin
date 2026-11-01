@@ -20,12 +20,32 @@ export function SkeletonBlock({
 export function SkeletonLines({
   className,
   height = "0.62em",
+  phone,
   widths,
 }: {
   className?: string;
   height?: string;
+  /** The lines below the sm breakpoint, where copy wraps differently. */
+  phone?: readonly string[];
   widths: readonly string[];
 }): JSX.Element {
+  if (phone) {
+    return (
+      <>
+        <SkeletonLines
+          className={cn(className, "sm:hidden")}
+          height={height}
+          widths={phone}
+        />
+        <SkeletonLines
+          className={cn(className, "hidden sm:block")}
+          height={height}
+          widths={widths}
+        />
+      </>
+    );
+  }
+
   return (
     <div aria-hidden="true" className={className}>
       {widths.map((width, index) => (

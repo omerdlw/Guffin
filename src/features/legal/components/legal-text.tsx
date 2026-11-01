@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useDockLinkClick } from "@/ui";
 
 const LINK_CLASS =
-  "underline decoration-white/20 underline-offset-4 hover:text-white hover:decoration-white/50";
+  "underline decoration-white/20 underline-offset-4 hover:text-ink hover:decoration-white/50";
 
 function AppLink({
   children,
@@ -31,7 +31,7 @@ export function LegalText({ text }: { text: string }): JSX.Element {
       {text.split(TOKEN).map((part, index) => {
         if (part.startsWith("**") && part.endsWith("**")) {
           return (
-            <strong className="font-semibold text-white" key={index}>
+            <strong className="font-semibold text-ink" key={index}>
               {part.slice(2, -2)}
             </strong>
           );

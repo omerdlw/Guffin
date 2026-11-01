@@ -15,20 +15,20 @@ const members = (count: number) =>
 
 const STATS = [
   {
-    color: "text-[#00e054]",
+    color: "text-watched",
     icon: "solar:eye-bold",
     label: (stats: FilmStats) => `Watched by ${members(stats.watched)}`,
     value: (stats: FilmStats) => stats.watched,
   },
   {
-    color: "text-[#40bcf4]",
+    color: "text-listed",
     icon: "solar:widget-bold",
     label: (stats: FilmStats) =>
       `Appears in ${exact.format(stats.listed)} ${stats.listed === 1 ? "list" : "lists"}`,
     value: (stats: FilmStats) => stats.listed,
   },
   {
-    color: "text-[#ff9010]",
+    color: "text-liked",
     icon: "solar:heart-bold",
     label: (stats: FilmStats) => `Liked by ${members(stats.liked)}`,
     value: (stats: FilmStats) => stats.liked,
@@ -51,7 +51,7 @@ export function MovieStats({
       >
         {STATS.map((stat) => (
           <Tooltip key={stat.icon} position="top" text={stat.label(stats)}>
-            <span className="flex cursor-help items-center gap-1.5 text-[13px] leading-5 font-medium text-white/60 tabular-nums">
+            <span className="flex cursor-help items-center gap-1.5 text-[13px] leading-5 font-medium text-ink-body tabular-nums">
               <Icon className={stat.color} icon={stat.icon} size={16} />
               {compact.format(stat.value(stats))}
             </span>

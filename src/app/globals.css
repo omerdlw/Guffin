@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @source "../../node_modules/@omerdlw/base-framework";
 
+/* The design tokens. Every visual value on a page comes from here (or its
+   TypeScript mirror: RADIUS in src/ui/page.ts, size() in
+   src/motion/stage/tempo.ts). The rules they encode live in DESIGN.md. */
 @theme {
   --color-black: var(--black);
   --color-white: var(--white);
@@ -9,6 +12,39 @@
   --font-*: initial;
   --font-zuume: var(--font-zuume);
 
+  /* Corners on the 4px grid. A frame inside another takes the outer
+     radius minus the padding between them. */
+  --radius-thumb: 8px;
+  --radius-tile: 12px;
+  --radius-card: 16px;
+  --radius-panel: 20px;
+  --radius-sheet: 24px;
+  /* Derived, not chosen: a card's 16 less the 6px tile padding, and a card's
+     16 plus the 10px gutter of the dock and modal shells. */
+  --radius-inset: 10px;
+  --radius-shell: 26px;
+
+  /* float: one control or note over the page; lift: a layer that holds
+     content (dock card, modal, menu). */
+  --shadow-float: 0 14px 32px -16px rgb(0 0 0 / 0.85);
+  --shadow-lift:
+    0 30px 70px -30px rgb(0 0 0 / 0.9), 0 10px 24px -14px rgb(0 0 0 / 0.7);
+
+  /* What a member did with a film: the only colours besides the grade. */
+  --color-watched: #00e054;
+  --color-listed: #40bcf4;
+  --color-liked: #ff9010;
+  --color-rated: var(--color-amber-400);
+
+  /* Each curve has one job; the JS name in EASE (tempo.ts) is in brackets.
+     cream: a hover or focus arriving [cream]
+     phosphor: light decaying after the pointer leaves
+     expo: chrome and readouts snapping in [expo]
+     quint: names and lines settling [silk]
+     fade: plain opacity [fade]
+     in-out-cubic: symmetric loops and sweeps [glide]
+     in-cubic: leaving
+     quart: the browser default for anything unnamed */
   --ease-*: initial;
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
@@ -17,43 +53,76 @@
   --ease-in-cubic: cubic-bezier(0.5, 0, 1, 1);
   --ease-out-cream: cubic-bezier(0.3, 0.85, 0.3, 1);
   --ease-phosphor: cubic-bezier(0.06, 0.62, 0.2, 1);
+  --ease-fade: cubic-bezier(0.4, 0, 0.2, 1);
 
-  --duration-instant: 80ms;
-  --duration-micro: 180ms;
-  --duration-fast: 280ms;
-  --duration-base: 360ms;
-  --duration-moderate: 440ms;
-  --duration-slow: 580ms;
-  --duration-cinematic: 860ms;
+  /* The tempo: size(n) = 0.5s * phi^n from tempo.ts, rounded to 5ms, named
+     like the motion tokens. */
+  --duration-ripple: 30ms; /* size(-6): a stagger across many marks */
+  --duration-flick: 75ms; /* size(-4): a stagger between siblings */
+  --duration-touch: 120ms; /* size(-3): a press going down */
+  --duration-leave: 190ms; /* size(-2): something closing */
+  --duration-light: 310ms; /* size(-1): a small light coming up */
+  --duration-reveal: 500ms; /* size(0): a hover arriving */
+  --duration-move: 810ms; /* size(1): a press coming back, a turn */
+  --duration-settle: 1310ms; /* size(2): a hover fading out */
+  --duration-linger: 2120ms; /* size(3): long glows and image settles */
 
-  --default-transition-duration: var(--duration-micro);
+  --default-transition-duration: var(--duration-leave);
   --default-transition-timing-function: var(--ease-out-quart);
 }
 
+/* Colours by role, in steps of 5%. Inline, so `grade` resolves on the
+   element that sets --grade rather than on :root.
+   ink: titles and values · ink-lead: a tagline · ink-body: prose, secondary
+   text, idle controls · ink-muted: labels and meta · ink-faint: placeholder
+   glyphs. fill: a surface at rest, -hover, -active. edge: its inset ring,
+   -hover, -focus. rule: dividers between rows · line: tracks and axes. */
 @theme inline {
   --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+
+  --color-ink: var(--white);
+  --color-ink-lead: rgb(var(--white-rgb) / 0.9);
+  --color-ink-body: rgb(var(--white-rgb) / 0.7);
+  --color-ink-muted: rgb(var(--white-rgb) / 0.5);
+  --color-ink-faint: rgb(var(--white-rgb) / 0.3);
+
+  --color-fill: rgb(var(--white-rgb) / 0.05);
+  --color-fill-hover: rgb(var(--white-rgb) / 0.1);
+  --color-fill-active: rgb(var(--white-rgb) / 0.15);
+
+  --color-edge: rgb(var(--white-rgb) / 0.05);
+  --color-edge-hover: rgb(var(--white-rgb) / 0.1);
+  --color-edge-focus: rgb(var(--white-rgb) / 0.15);
+
+  --color-rule: rgb(var(--white-rgb) / 0.05);
+  --color-line: rgb(var(--white-rgb) / 0.1);
+
+  --color-grade: rgb(var(--grade, var(--white-rgb)));
 }
 
-@utility duration-instant {
-  transition-duration: var(--duration-instant);
+@utility duration-flick {
+  transition-duration: var(--duration-flick);
 }
-@utility duration-micro {
-  transition-duration: var(--duration-micro);
+@utility duration-touch {
+  transition-duration: var(--duration-touch);
 }
-@utility duration-fast {
-  transition-duration: var(--duration-fast);
+@utility duration-leave {
+  transition-duration: var(--duration-leave);
 }
-@utility duration-base {
-  transition-duration: var(--duration-base);
+@utility duration-light {
+  transition-duration: var(--duration-light);
 }
-@utility duration-moderate {
-  transition-duration: var(--duration-moderate);
+@utility duration-reveal {
+  transition-duration: var(--duration-reveal);
 }
-@utility duration-slow {
-  transition-duration: var(--duration-slow);
+@utility duration-move {
+  transition-duration: var(--duration-move);
 }
-@utility duration-cinematic {
-  transition-duration: var(--duration-cinematic);
+@utility duration-settle {
+  transition-duration: var(--duration-settle);
+}
+@utility duration-linger {
+  transition-duration: var(--duration-linger);
 }
 
 @utility rating-stars {
@@ -168,15 +237,18 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
   }
 
   .skeleton-block {
-    position: relative;
     overflow: hidden;
-    background-color: rgb(var(--white-rgb) / 0.07);
+    background-color: var(--color-fill-hover);
   }
 
   .skeleton-block-soft {
-    position: relative;
     overflow: hidden;
-    background-color: rgb(var(--white-rgb) / 0.04);
+    background-color: var(--color-fill);
+  }
+
+  /* Relative only by default, so an `absolute` block keeps its place. */
+  :where(.skeleton-block, .skeleton-block-soft) {
+    position: relative;
   }
 
   .film-beam {
@@ -185,8 +257,8 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
     background-image: radial-gradient(
       22rem circle at calc(var(--bx, -9999px) - var(--ox, 0px))
         calc(var(--by, -9999px) - var(--oy, 0px)),
-      color-mix(in srgb, rgb(var(--grade, var(--white-rgb))) 72%, var(--white)),
-      var(--white) 72%
+      color-mix(in srgb, rgb(var(--grade, var(--white-rgb))) 70%, var(--white)),
+      var(--white) 70%
     );
     color: transparent;
   }
@@ -203,15 +275,16 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
 }
 
 .animate-skeleton-pulse {
-  animation: skeleton-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation: skeleton-pulse var(--duration-linger) var(--ease-in-out-cubic)
+    infinite;
 }
 
 @layer components {
   [data-cinematic] img[data-state] {
     transition:
-      opacity 1.4s cubic-bezier(0.4, 0, 0.2, 1),
-      transform 2.4s var(--ease-out-cream),
-      scale 1.8s var(--ease-out-cream);
+      opacity var(--duration-settle) var(--ease-fade),
+      transform var(--duration-linger) var(--ease-out-cream),
+      scale var(--duration-linger) var(--ease-out-cream);
   }
   [data-cinematic] img[data-state="loading"] {
     transform: scale(1.08);
@@ -225,7 +298,7 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
     scale: 1.04;
   }
   .ui-motion .cine-card img.cine-zoom {
-    transition: scale 1.8s var(--ease-out-cream);
+    transition: scale var(--duration-linger) var(--ease-out-cream);
   }
 
   @keyframes cine-exit {
@@ -251,10 +324,10 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
   }
 
   .home-ticker-in {
-    animation: home-ticker-in var(--duration-slow) var(--ease-out-quint) both;
+    animation: home-ticker-in var(--duration-reveal) var(--ease-out-quint) both;
   }
   .home-ticker-out {
-    animation: home-ticker-out var(--duration-base) var(--ease-in-cubic) both;
+    animation: home-ticker-out var(--duration-light) var(--ease-in-cubic) both;
   }
   @keyframes home-ticker-in {
     from {
@@ -308,19 +381,20 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
 
   [data-cinematic] .cine-fade {
     transition:
-      background-color 1.6s var(--ease-phosphor),
-      color 1.6s var(--ease-phosphor),
-      box-shadow 1.6s var(--ease-phosphor),
-      opacity 1.6s var(--ease-phosphor),
-      text-decoration-color 1.6s var(--ease-phosphor),
-      outline-color 1.6s var(--ease-phosphor),
-      outline-offset 1.6s var(--ease-out-cream),
+      background-color var(--touch-out) var(--ease-phosphor),
+      color var(--touch-out) var(--ease-phosphor),
+      box-shadow var(--touch-out) var(--ease-phosphor),
+      opacity var(--touch-out) var(--ease-phosphor),
+      text-decoration-color var(--touch-out) var(--ease-phosphor),
+      outline-color var(--touch-out) var(--ease-phosphor),
+      outline-offset var(--touch-out) var(--ease-out-cream),
       scale var(--press-t) var(--ease-out-cream);
   }
   [data-cinematic] .cine-fade:is(:hover, :focus-visible),
   [data-cinematic] .cine-card:is(:hover, :focus-visible) .cine-fade {
     transition-duration:
-      0.55s, 0.55s, 0.55s, 0.55s, 0.55s, 0.55s, 0.55s, var(--press-t);
+      var(--touch-in), var(--touch-in), var(--touch-in), var(--touch-in),
+      var(--touch-in), var(--touch-in), var(--touch-in), var(--press-t);
     transition-timing-function: var(--ease-out-cream);
   }
   :is([data-cinematic], .ui-motion, .ui-scene) .cine-afterglow {
@@ -332,51 +406,53 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
         color-mix(
           in oklab,
           color-mix(in oklab, rgb(var(--grade, var(--white-rgb))) 55%, #ffb070)
-            42%,
+            40%,
           transparent
         );
     inset: 0;
     opacity: 0;
     pointer-events: none;
     position: absolute;
-    transition: opacity 2.4s var(--ease-phosphor);
+    transition: opacity var(--duration-linger) var(--ease-phosphor);
   }
   :is([data-cinematic], .ui-motion, .ui-scene)
     :is(.cine-card:is(:hover, :focus-visible), [data-active] .cine-card)
     .cine-afterglow {
     opacity: 0.55;
-    transition-duration: 0.7s;
+    transition-duration: var(--duration-move);
     transition-timing-function: var(--ease-out-cream);
   }
   [data-cinematic] [data-pill] {
-    background-color: rgb(var(--grade) / 0.16);
-    box-shadow: inset 0 0 0 1px rgb(var(--grade) / 0.24);
+    background-color: rgb(var(--grade) / 0.15);
+    box-shadow: inset 0 0 0 1px rgb(var(--grade) / 0.25);
   }
   [data-cinematic] .cine-press {
     transition:
-      background-color 1.5s var(--ease-phosphor),
-      color 1.5s var(--ease-phosphor),
-      box-shadow 1.5s var(--ease-phosphor),
-      transform 0.95s var(--ease-out-cream),
-      outline-color 1.5s var(--ease-phosphor),
-      outline-offset 1.5s var(--ease-out-cream);
+      background-color var(--touch-out) var(--ease-phosphor),
+      color var(--touch-out) var(--ease-phosphor),
+      box-shadow var(--touch-out) var(--ease-phosphor),
+      transform var(--press-out) var(--ease-out-cream),
+      outline-color var(--touch-out) var(--ease-phosphor),
+      outline-offset var(--touch-out) var(--ease-out-cream);
   }
   [data-cinematic] .cine-press:is(:hover, :focus-visible) {
     transform: translateY(-2px);
-    transition-duration: 0.5s, 0.5s, 0.5s, 0.95s, 0.5s, 0.5s;
+    transition-duration:
+      var(--touch-in), var(--touch-in), var(--touch-in), var(--press-out),
+      var(--touch-in), var(--touch-in);
     transition-timing-function: var(--ease-out-cream);
   }
   [data-cinematic] .cine-press:active {
-    transform: scale(0.97);
-    transition-duration: 0.18s;
+    transform: scale(var(--press));
+    transition-duration: var(--press-in);
   }
   [data-cinematic] .cine-turn {
     transition:
-      color 0.95s var(--ease-out-cream),
-      transform 1.1s var(--ease-out-cream);
+      color var(--duration-move) var(--ease-out-cream),
+      transform var(--duration-move) var(--ease-out-cream);
   }
   [data-cinematic] .cine-play {
-    transition: transform 1.5s var(--ease-out-cream);
+    transition: transform var(--touch-out) var(--ease-out-cream);
   }
   [data-cinematic] .cine-card:is(:hover, :focus-visible) .cine-play {
     transform: scale(1.14);
@@ -391,12 +467,12 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
     }
   }
   .film-drift {
-    animation: film-drift 32s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
+    animation: film-drift 32s var(--ease-in-out-cubic) infinite alternate;
     will-change: transform;
   }
 
   [data-cinematic] ::selection {
-    background: rgb(var(--grade, var(--white-rgb)) / 0.32);
+    background: rgb(var(--grade, var(--white-rgb)) / 0.3);
   }
 
   @keyframes cine-shimmer {
@@ -408,7 +484,7 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
     background: linear-gradient(
       90deg,
       transparent,
-      rgb(var(--white-rgb) / 0.07),
+      var(--color-fill),
       transparent
     );
     content: "";
@@ -419,7 +495,8 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
   }
   @media (prefers-reduced-motion: no-preference) {
     .skeleton-block::after {
-      animation: cine-shimmer 2.6s var(--ease-in-out-cubic) infinite;
+      animation: cine-shimmer var(--duration-linger) var(--ease-in-out-cubic)
+        infinite;
     }
   }
 
@@ -434,21 +511,19 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
 }
 
 @layer components {
+  /* Every control answers in the same two beats: a hover or focus comes up
+     in reveal on cream, and fades out over settle on phosphor. A press goes
+     down in touch and comes back in move. */
   :root {
-    --touch-in: 0.5s;
-    --touch-out: 1.3s;
-    --press-in: 0.14s;
-    --press-out: 0.7s;
+    --touch-in: var(--duration-reveal);
+    --touch-out: var(--duration-settle);
+    --press-in: var(--duration-touch);
+    --press-out: var(--duration-move);
     --touch-t: var(--touch-out);
     --touch-e: var(--ease-phosphor);
     --press-t: var(--press-out);
     --press: 0.96;
   }
-  .ui-scene {
-    --touch-in: 0.55s;
-    --touch-out: 1.6s;
-  }
-
   :where(.ui-motion, .ui-scene)
     :where(
       button,
@@ -561,7 +636,7 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
     --press: 0.98;
   }
   :where(.ui-motion, .ui-scene) :where(.w-full, .flex-1) {
-    --press: 0.985;
+    --press: 0.98;
   }
 
   .ui-fade {
@@ -644,7 +719,7 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
     isolation: isolate;
   }
   .ui-iris::before {
-    background: var(--iris, rgb(var(--white-rgb) / 0.08));
+    background: var(--iris, var(--color-fill-hover));
     border-radius: inherit;
     content: "";
     inset: 0;
@@ -671,7 +746,7 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
   .ui-iris:active::before {
     opacity: 1;
     scale: 1;
-    --iris: rgb(var(--white-rgb) / 0.12);
+    --iris: var(--color-fill-active);
   }
 
   @keyframes ui-develop {
@@ -681,7 +756,7 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
     }
   }
   .ui-develop {
-    animation: ui-develop 0.5s var(--ease-out-cream) both;
+    animation: ui-develop var(--duration-reveal) var(--ease-out-cream) both;
   }
   /* The directors page (timings come from the page). Opening: posters
      sweep in on a diagonal at full light, give their colour up to the
@@ -706,11 +781,12 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
   }
   .directors-frame {
     opacity: 0.3;
-    transition: opacity 1.2s var(--ease-phosphor);
+    transition: opacity var(--duration-settle) var(--ease-phosphor);
   }
   .directors-print .cine-card:is(:hover, :focus-visible) .directors-frame {
     opacity: 1;
-    transition-duration: 0.4s;
+    transition-duration: var(--duration-reveal);
+    transition-timing-function: var(--ease-out-cream);
   }
   @media (prefers-reduced-motion: no-preference) {
     :is([data-act="wait"], [data-act="arrive"]) .directors-print {
@@ -720,7 +796,7 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
        front instead of popping: neighbours overlap and the sweep reads as
        one continuous move. */
     :is([data-act="print"], [data-act="pour"]) .directors-print {
-      animation: directors-print var(--print) cubic-bezier(0.4, 0, 0.2, 1) both;
+      animation: directors-print var(--print) var(--ease-fade) both;
       animation-delay: calc(var(--at, 0) * var(--sweep));
     }
     [data-act="enter"] .directors-print {
@@ -737,10 +813,10 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
     }
     .directors-name {
       transition:
-        opacity 1.6s cubic-bezier(0.4, 0, 0.2, 1),
-        translate 2s cubic-bezier(0.22, 1, 0.36, 1),
-        filter 1.6s cubic-bezier(0.22, 1, 0.36, 1);
-      transition-delay: calc(var(--i, 0) * 120ms);
+        opacity var(--duration-settle) var(--ease-fade),
+        translate var(--duration-linger) var(--ease-out-quint),
+        filter var(--duration-settle) var(--ease-out-quint);
+      transition-delay: calc(var(--i, 0) * var(--duration-touch));
     }
     nav:not([data-named]) .directors-name {
       filter: blur(6px);
@@ -770,15 +846,19 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
       opacity: 0;
     }
     .oscars-dial[data-shown] .oscars-needle {
-      animation: oscars-rise 1s cubic-bezier(0.22, 1, 0.36, 1) both;
+      animation: oscars-rise var(--duration-move) var(--ease-out-quint) both;
     }
     .oscars-dial[data-shown] .oscars-tick {
-      animation: oscars-rise 1.1s cubic-bezier(0.22, 1, 0.36, 1) both;
-      animation-delay: calc(0.35s + var(--d, 0) * 22ms);
+      animation: oscars-rise var(--duration-move) var(--ease-out-quint) both;
+      animation-delay: calc(
+        var(--duration-light) + var(--d, 0) * var(--duration-ripple)
+      );
     }
     .oscars-dial[data-shown] .oscars-decade {
-      animation: oscars-fade 0.9s var(--ease-phosphor) both;
-      animation-delay: calc(0.9s + var(--d, 0) * 22ms);
+      animation: oscars-fade var(--duration-move) var(--ease-phosphor) both;
+      animation-delay: calc(
+        var(--duration-move) + var(--d, 0) * var(--duration-ripple)
+      );
     }
   }
   @keyframes ui-caret {
@@ -790,7 +870,8 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
     }
   }
   .ui-caret {
-    animation: ui-caret 0.9s var(--ease-in-out-cubic) infinite alternate;
+    animation: ui-caret var(--duration-move) var(--ease-in-out-cubic) infinite
+      alternate;
   }
 
   .ui-sheen {
@@ -802,7 +883,7 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
     background: linear-gradient(
       105deg,
       transparent 32%,
-      rgb(var(--sheen-ink, var(--white-rgb)) / var(--sheen, 0.07)) 50%,
+      rgb(var(--sheen-ink, var(--white-rgb)) / var(--sheen, 0.05)) 50%,
       transparent 68%
     );
     content: "";
@@ -827,7 +908,7 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
   }
   @media (hover: hover) {
     .ui-sheen:not(:disabled):hover::after {
-      animation: ui-sheen 1.4s var(--ease-in-out-cubic) both;
+      animation: ui-sheen var(--duration-settle) var(--ease-in-out-cubic) both;
     }
   }
 
@@ -861,20 +942,20 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
     position: relative;
     max-width: min(16rem, calc(100vw - 1.5rem));
     padding: 6px 12px 7px;
-    border-radius: 15px;
-    background: rgb(0 0 0 / 0.72);
+    border-radius: var(--radius-card);
+    background: rgb(0 0 0 / 0.7);
     box-shadow:
-      inset 0 0 0 1px rgb(var(--white-rgb) / 0.07),
-      inset 0 1px 0 0 rgb(var(--white-rgb) / 0.06),
-      0 14px 32px -16px rgb(0 0 0 / 0.85);
-    color: rgb(var(--white-rgb) / 0.9);
+      inset 0 0 0 1px var(--color-edge),
+      inset 0 1px 0 0 var(--color-edge),
+      var(--shadow-float);
+    color: var(--color-ink-lead);
     font-size: 12px;
     font-weight: 500;
     letter-spacing: -0.003em;
     line-height: 1.4;
     text-wrap: balance;
-    -webkit-backdrop-filter: blur(20px) saturate(1.5);
-    backdrop-filter: blur(20px) saturate(1.5);
+    -webkit-backdrop-filter: blur(24px) saturate(1.5);
+    backdrop-filter: blur(24px) saturate(1.5);
   }
   .tooltip-ink {
     display: block;
@@ -885,20 +966,20 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
   }
   .tooltip-meta {
     margin-left: 6px;
-    color: rgb(var(--white-rgb) / 0.45);
+    color: var(--color-ink-muted);
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }
   .tooltip-content[data-state="delayed-open"],
   .tooltip-content[data-state="instant-open"] {
-    animation: tooltip-in 0.28s var(--ease-out-cream) both;
+    animation: tooltip-in var(--duration-light) var(--ease-out-cream) both;
   }
   .tooltip-content:is([data-state="delayed-open"], [data-state="instant-open"])
     .tooltip-ink {
-    animation: tooltip-light 0.5s var(--ease-out-cream) 0.04s both;
+    animation: tooltip-light var(--duration-reveal) var(--ease-out-cream) both;
   }
   .tooltip-content[data-state="closed"] {
-    animation: tooltip-out 0.14s var(--ease-in-cubic) both;
+    animation: tooltip-out var(--duration-touch) var(--ease-in-cubic) both;
   }
   .dock-tooltip {
     z-index: 200;

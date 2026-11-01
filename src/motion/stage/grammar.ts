@@ -50,6 +50,14 @@ export const GRAMMAR = {
   frame: {
     light: size(4),
   },
+  // The header recedes as the page scrolls: each layer dims to the same
+  // depth, one after another down the column.
+  layers: {
+    prose: { opacity: [1, 0.2], range: [60, 640] },
+    rule: { opacity: [1, 0.2], range: [20, 520] },
+    tagline: { opacity: [1, 0.2], range: [0, 520] },
+    title: { opacity: [1, 0.2], range: [0, 560] },
+  },
   film: {
     arrive: { pace: Math.sqrt(PHI) },
     carry: { reveal: size(2), run: size(2) },

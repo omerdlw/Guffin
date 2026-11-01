@@ -14,7 +14,7 @@ import {
   Tooltip,
 } from "@/ui";
 import { SlidingHighlight } from "@/ui/sliding-highlight";
-import { LABEL_TYPE, LINKS_CLASS, nameClass } from "../lib/layout";
+import { LINKS_CLASS, nameClass } from "../lib/layout";
 import { SCENE, linksGap } from "../lib/motion";
 import {
   Expose,
@@ -44,7 +44,7 @@ function Rule({
       {...SCENE.layers.rule}
     >
       {role ? (
-        <span className={cn(LABEL_TYPE, "shrink-0 text-white/70")}>
+        <span className={cn(TONE.label, "shrink-0 text-ink-body")}>
           <Expose at={SCENE.label.at} out={0} run={SCENE.label.run}>
             {role}
           </Expose>
@@ -89,7 +89,7 @@ function Bio({
           <Fade at={SCENE.opening.end - size(1)} out={0} run={size(0)}>
             <Button
               aria-label={`Read the full biography of ${name}`}
-              className={`cine-fade cursor-pointer ${TONE.label} text-white/70 hover:text-white`}
+              className={`cursor-pointer ${TONE.link}`}
               onClick={openFull}
               type="button"
             >
@@ -132,7 +132,7 @@ function Links({
           <li className="relative isolate" key={link.key}>
             {(hoveredLink ?? focusedLink) === link.key ? (
               <SlidingHighlight
-                className="rounded-full bg-white/10"
+                className="rounded-full bg-fill-hover"
                 layoutId="person-links-highlight"
               />
             ) : null}
@@ -140,7 +140,7 @@ function Links({
               <Tooltip position="top" text={link.label}>
                 <a
                   aria-label={`${name} on ${link.label}`}
-                  className="cine-fade center relative z-10 size-9 rounded-full text-white/70 hover:text-white"
+                  className="cine-fade center relative z-10 size-9 rounded-full text-ink-body hover:text-ink"
                   href={link.url}
                   onFocus={() => setFocusedLink(link.key)}
                   onPointerEnter={() => setHoveredLink(link.key)}

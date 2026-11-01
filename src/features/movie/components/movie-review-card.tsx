@@ -47,7 +47,7 @@ function LitFilmLike({ author, index }: { author: string; index: number }) {
     <motion.span className="inline-flex shrink-0" style={style}>
       <Icon
         aria-label={`${author} liked this film`}
-        className="text-[#ff9010]"
+        className="text-liked"
         icon="solar:heart-bold"
         size={14}
       />
@@ -107,13 +107,13 @@ export function ReviewCard({
         <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
           <div className="min-w-0">
             <AccountLink
-              className="block truncate text-base font-semibold text-white hover:underline"
+              className="block truncate text-base font-semibold text-ink hover:underline"
               href={profile}
             >
               {review.author.displayName}
             </AccountLink>
             <time
-              className="text-xs font-semibold text-white/50"
+              className="text-xs font-semibold text-ink-muted"
               dateTime={review.updatedAt}
             >
               {DATE.format(new Date(review.updatedAt))}
@@ -157,7 +157,7 @@ export function ReviewCard({
         </div>
 
         {review.content ? (
-          <div className="col-start-2 min-w-0 [&_p]:text-[15px] [&_p]:leading-7 [&_p]:text-white/70">
+          <div className="col-start-2 min-w-0 [&_p]:text-[15px] [&_p]:leading-7 [&_p]:text-ink-body">
             <ReviewBody
               content={review.content}
               isSpoiler={review.isSpoiler}

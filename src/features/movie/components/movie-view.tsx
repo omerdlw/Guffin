@@ -137,7 +137,7 @@ export function MovieView({
                     <Words
                       {...SCENE.tagline}
                       className={TAGLINE_CLASS}
-                      alpha={0.92}
+                      alpha={0.9}
                     >
                       {movie.tagline}
                     </Words>

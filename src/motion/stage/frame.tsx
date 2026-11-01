@@ -53,9 +53,9 @@ export function Grade({ source }: { source: string | null }) {
 const SHEEN =
   "radial-gradient(60% 45% at 16% 0%, rgb(255 255 255 / 0.018), transparent 70%)";
 const GLASS = [
-  "radial-gradient(ellipse 125% 105% at 50% 45%, transparent 58%, rgb(0 0 0 / 0.42))",
+  "radial-gradient(ellipse 125% 105% at 50% 45%, transparent 58%, rgb(0 0 0 / 0.4))",
   "linear-gradient(to right, rgb(0 0 0 / 0.1), transparent 6%, transparent 94%, rgb(0 0 0 / 0.1))",
-  "linear-gradient(to bottom, rgb(0 0 0 / 0.09), transparent 8%, transparent 92%, rgb(0 0 0 / 0.09))",
+  "linear-gradient(to bottom, rgb(0 0 0 / 0.1), transparent 8%, transparent 92%, rgb(0 0 0 / 0.1))",
 ].join(", ");
 
 function HouseLights() {
@@ -84,7 +84,7 @@ export function Frame({ black, wash }: { black: boolean; wash: boolean }) {
         initial={{ opacity: 0 }}
         style={{
           background:
-            "radial-gradient(70% 55% at 22% 38%, rgb(var(--grade) / 0.1), transparent 70%), radial-gradient(60% 50% at 88% 92%, rgb(var(--grade) / 0.06), transparent 70%)",
+            "radial-gradient(70% 55% at 22% 38%, rgb(var(--grade) / 0.1), transparent 70%), radial-gradient(60% 50% at 88% 92%, rgb(var(--grade) / 0.05), transparent 70%)",
         }}
         transition={{ duration: GRAMMAR.frame.light, ease: EASE.silk }}
       />

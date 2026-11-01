@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 import { Z_INDEX } from "@omerdlw/base-framework/tokens";
 import { defineTheme } from "@omerdlw/base-framework/theme";
 import { dockTheme } from "@omerdlw/base-framework/modules/dock";
+import { BACKDROP, FILL, FLOAT, GLASS, PRIMARY, SHELL, TIP } from "./chrome";
 import { dockMotion } from "./motion/dock";
 
 const toLeft = (gradient: string) =>
@@ -15,35 +16,23 @@ const BANNER_SHARP_MASK =
 const BANNER_SCRIM =
   "linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 45%), linear-gradient(to right, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.4) 28%, rgba(0,0,0,0.1) 52%, transparent 66%, rgba(0,0,0,0.12) 76%, rgba(0,0,0,0.38) 100%)";
 
-const SHELL = "rounded-[26px]";
-const INNER = "rounded-[16px]";
+const INNER = "rounded-card";
 
-const GLASS =
-  "bg-black/70 ring-1 ring-inset ring-white/[0.08] inset-shadow-[0_1px_0_rgb(255_255_255/0.07)] shadow-[0_30px_70px_-30px_rgb(0_0_0/0.9),0_10px_24px_-14px_rgb(0_0_0/0.7)]";
+const CONTROL_BUTTON = `ui-iris center relative size-9 shrink-0 cursor-pointer text-ink-body hover:text-ink ${FLOAT}`;
 
-const FLOAT =
-  "bg-black/70 ring-1 ring-inset ring-white/[0.08] inset-shadow-[0_1px_0_rgb(255_255_255/0.06)] shadow-[0_14px_32px_-16px_rgb(0_0_0/0.85)] backdrop-blur-lg";
+const MEDIA_ICON_BUTTON = `ui-iris center relative size-8 cursor-pointer rounded-full text-ink-body hover:text-ink ${FILL}`;
 
-const CONTROL_BUTTON = `ui-iris center relative size-9 shrink-0 cursor-pointer text-white/70 hover:text-white ${FLOAT}`;
-
-const FILL =
-  "bg-white/[0.06] ring-1 ring-inset ring-white/[0.04] hover:bg-white/10 hover:ring-white/[0.08]";
-
-const MEDIA_ICON_BUTTON = `ui-iris center relative size-8 cursor-pointer rounded-full text-white/70 hover:text-white ${FILL}`;
-
-const TONE_MUTED = `text-white/75 hover:text-white ${FILL}`;
-const TONE_ACTIVE =
-  "bg-white text-black ring-1 ring-inset ring-white hover:bg-white/90 [--sheen-ink:0_0_0] [--sheen:0.08]";
-const SURFACE = "bg-black/70 ring-1 ring-inset ring-white/[0.08]";
+const TONE_MUTED = `text-ink-body hover:text-ink ${FILL}`;
+const TIP_SHAPE = "rounded-full px-3 py-1.5 text-xs font-medium";
 
 export const dockThemeConfig = defineTheme(dockTheme, {
   slots: {
     stack:
       "dock-root ui-motion @container fixed inset-x-0 bottom-1 mx-auto touch-manipulation select-none",
-    backdrop: "fixed inset-0 cursor-pointer bg-black/60 backdrop-blur-sm",
+    backdrop: `fixed inset-0 cursor-pointer ${BACKDROP}`,
 
     card: [
-      `group @container absolute h-auto w-full overflow-hidden ${SHELL} p-2.5 backdrop-blur-md backdrop-saturate-150 cursor-pointer ${GLASS}`,
+      `group @container absolute h-auto w-full overflow-hidden rounded-shell p-2.5 backdrop-blur-md cursor-pointer ${SHELL}`,
       "data-[anchored=true]:cursor-default data-[blur=heavy]:backdrop-blur-lg data-[shelf=true]:px-[6.5px] data-[shelf=true]:py-0",
       "data-[placement=top]:inset-0 data-[placement=top]:h-full data-[placement=bottom]:bottom-0 data-[placement=float]:top-0",
       "data-[ghost=true]:pointer-events-none data-[ghost=true]:select-none",
@@ -77,34 +66,33 @@ export const dockThemeConfig = defineTheme(dockTheme, {
     titleWrap: "relative overflow-hidden",
     description: "relative min-h-[1.25rem] w-full overflow-hidden text-sm",
     descriptionText:
-      "text-white/60 data-[multiline=false]:truncate data-[multiline=true]:wrap-break-word data-[multiline=true]:whitespace-normal",
+      "text-ink-body data-[multiline=false]:truncate data-[multiline=true]:wrap-break-word data-[multiline=true]:whitespace-normal",
 
     icon: "relative size-12 shrink-0",
     iconMotion: "size-full",
-    iconImage: `size-12 shrink-0 ${INNER} bg-cover bg-center bg-no-repeat ring-1 ring-inset ring-white/[0.06]`,
-    iconGlyph: `center size-12 shrink-0 ${INNER} text-white ${FILL}`,
+    iconImage: `size-12 shrink-0 ${INNER} bg-cover bg-center bg-no-repeat ring-1 ring-inset ring-edge`,
+    iconGlyph: `center size-12 shrink-0 ${INNER} text-ink ${FILL}`,
     iconGlyphInner: "center shrink-0",
     iconButton: "size-full cursor-pointer p-0 focus:outline-none select-none",
     iconBadge:
-      "center absolute -end-1 -bottom-1 size-6 overflow-hidden rounded-full bg-black text-[11px] leading-none font-bold tabular-nums text-white",
+      "center absolute -end-1 -bottom-1 size-6 overflow-hidden rounded-full bg-black text-[11px] leading-none font-bold tabular-nums text-ink",
     iconOverlay:
       "center absolute -end-1.5 -bottom-1.5 size-6 overflow-hidden rounded-full data-[interactive=false]:cursor-default data-[interactive=true]:cursor-pointer",
     iconOverlayImage:
-      "size-full rounded-full bg-cover bg-center bg-no-repeat ring-1 ring-inset ring-white/10",
-    iconOverlayGlyph: "center text-white",
+      "size-full rounded-full bg-cover bg-center bg-no-repeat ring-1 ring-inset ring-edge-hover",
+    iconOverlayGlyph: "center text-ink",
 
     commandBar: "flex shrink-0 items-center",
-    commandTooltip:
-      "dock-tooltip rounded-full bg-black/70 px-3 py-1.5 text-xs font-medium text-white/90 shadow-[0_14px_32px_-16px_rgb(0_0_0/0.85)] ring-1 ring-white/[0.07] backdrop-blur-xl backdrop-saturate-150 ring-inset inset-shadow-[0_1px_0_rgb(255_255_255/0.06)]",
+    commandTooltip: `dock-tooltip ${TIP_SHAPE} ${TIP}`,
     command:
-      "ui-iris center relative size-9 cursor-pointer rounded-full bg-transparent text-white/60 hover:text-white select-none data-[banner=true]:[--iris:rgb(255_255_255/0.1)] data-[banner=true]:before:backdrop-blur-md",
+      "ui-iris center relative size-9 cursor-pointer rounded-full bg-transparent text-ink-body hover:text-ink select-none data-[banner=true]:[--iris:rgb(255_255_255/0.1)] data-[banner=true]:before:backdrop-blur-md",
     commandBadge:
       "center bg-white absolute -right-0.5 -top-0.5 h-4 min-w-4 px-1 rounded-full text-[10px] leading-none font-semibold tabular-nums text-black",
 
-    statusCard: SURFACE,
-    statusIcon: "bg-white/[0.06] text-white",
-    statusTitle: "text-white",
-    statusDescription: "text-white/70",
+    statusCard: GLASS,
+    statusIcon: "bg-fill text-ink",
+    statusTitle: "text-ink",
+    statusDescription: "text-ink-body",
 
     surfaceHost: `@container relative w-full overflow-hidden ${INNER}`,
     surfaceHostInner: "w-full",
@@ -141,37 +129,35 @@ export const dockThemeConfig = defineTheme(dockTheme, {
       "pointer-events-auto data-[fill=true]:w-full data-[fill=true]:min-w-0 data-[fill=true]:flex-1",
 
     scrubber:
-      "group absolute inset-x-0 top-0 h-3 cursor-pointer touch-none overflow-hidden rounded-t-[26px] select-none",
+      "group absolute inset-x-0 top-0 h-3 cursor-pointer touch-none overflow-hidden rounded-t-shell select-none",
     scrubberTrack:
-      "absolute inset-x-0 top-0 h-1 w-full origin-top scale-y-[0.625] transform-gpu bg-white/10",
+      "absolute inset-x-0 top-0 h-1 w-full origin-top scale-y-[0.625] transform-gpu bg-line",
     scrubberProgress:
       "h-full w-full origin-left bg-white/70 group-hover:bg-white",
-    scrubberTooltip:
-      "pointer-events-none absolute top-3 -translate-x-1/2 rounded-full bg-black/70 px-2.5 py-1 text-xs font-medium tabular-nums text-white/90 ring-1 ring-white/[0.07] backdrop-blur-xl ring-inset",
+    scrubberTooltip: `pointer-events-none absolute top-3 -translate-x-1/2 tabular-nums ${TIP_SHAPE} ${TIP}`,
 
     media: "flex w-full items-center justify-between gap-2 select-none",
     mediaGroup: "flex items-center gap-1.5",
-    mediaSpeed: `center h-8 cursor-pointer rounded-full px-3.5 text-xs font-medium tabular-nums text-white/70 select-none hover:text-white data-[active=true]:bg-white data-[active=true]:text-black data-[active=true]:ring-white ${FILL}`,
+    mediaSpeed: `center h-8 cursor-pointer rounded-full px-3.5 text-xs font-medium tabular-nums text-ink-body select-none hover:text-ink data-[active=true]:bg-white data-[active=true]:text-black data-[active=true]:ring-white ${FILL}`,
     mediaSkip: MEDIA_ICON_BUTTON,
-    mediaToggle: `flex size-8 cursor-pointer items-center justify-center rounded-full text-white/70 select-none hover:text-white data-[active=true]:bg-white data-[active=true]:text-black data-[active=true]:ring-white ${FILL}`,
-    mediaMute:
-      "center size-5 cursor-pointer p-0 text-white/70 hover:text-white",
-    mediaVolume: `group flex h-8 items-center gap-1.5 rounded-full px-3 select-none data-[active=true]:bg-white/10 ${FILL}`,
+    mediaToggle: `flex size-8 cursor-pointer items-center justify-center rounded-full text-ink-body select-none hover:text-ink data-[active=true]:bg-white data-[active=true]:text-black data-[active=true]:ring-white ${FILL}`,
+    mediaMute: "center size-5 cursor-pointer p-0 text-ink-body hover:text-ink",
+    mediaVolume: `group flex h-8 items-center gap-1.5 rounded-full px-3 select-none data-[active=true]:bg-fill-hover ${FILL}`,
     mediaVolumeTrack:
       "group/track relative flex h-6 w-16 cursor-pointer touch-none items-center select-none sm:w-20",
     mediaVolumeRail:
-      "relative h-1.5 w-full overflow-hidden rounded-full bg-white/10",
+      "relative h-1.5 w-full overflow-hidden rounded-full bg-line",
     mediaVolumeFill: "h-full origin-left rounded-full bg-white",
     mediaVolumeThumb:
       "ui-fade pointer-events-none absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white opacity-0 shadow-md group-hover/track:opacity-100 data-[active=true]:opacity-100",
 
     breadcrumbs: `absolute inset-x-0 top-[calc(100%+6px)] flex h-10 w-full items-center justify-center rounded-full px-5 text-xs select-none ${FLOAT}`,
     breadcrumbsNav: "flex scrollbar-none items-center gap-1.5 overflow-x-auto",
-    breadcrumbsEllipsis: "px-0.5 text-white/50 select-none",
+    breadcrumbsEllipsis: "px-0.5 text-ink-muted select-none",
     breadcrumbsItem: "flex items-center gap-1.5",
-    breadcrumbsCurrent: "max-w-[180px] truncate font-medium text-white",
-    breadcrumbsLink: "max-w-[140px] truncate text-white/70 hover:text-white",
-    breadcrumbsSeparator: "center shrink-0 text-white/50 rtl:rotate-180",
+    breadcrumbsCurrent: "max-w-[180px] truncate font-medium text-ink",
+    breadcrumbsLink: "max-w-[140px] truncate text-ink-body hover:text-ink",
+    breadcrumbsSeparator: "center shrink-0 text-ink-muted rtl:rotate-180",
 
     loading: "flex min-h-[48px] w-full items-center gap-2.5",
     loadingIcon: `skeleton-block size-12 shrink-0 ${INNER}`,
@@ -180,13 +166,13 @@ export const dockThemeConfig = defineTheme(dockTheme, {
     loadingDescription: "skeleton-block h-3 w-56 max-w-[85%] rounded-full",
 
     action: `ui-sheen center h-10 w-full ${INNER} gap-2 px-4 text-[13px] font-medium tracking-[-0.005em] cursor-pointer select-none`,
-    actionActive: TONE_ACTIVE,
+    actionActive: PRIMARY,
     actionFill: "min-w-0 flex-1 justify-center whitespace-nowrap",
     actionLabel: "truncate",
     actionMuted: TONE_MUTED,
     actionRow: "flex w-full items-center gap-2.5",
     actionStack: "flex flex-col gap-2.5",
-    actionSurface: SURFACE,
+    actionSurface: GLASS,
   },
   styles: {
     stack: {

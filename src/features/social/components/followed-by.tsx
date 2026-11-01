@@ -18,10 +18,10 @@ export function FollowedBy({
       : formatNames(names, names.length);
 
   return (
-    <div className="flex min-w-0 items-center gap-2.5 text-xs text-white/70">
+    <div className="flex min-w-0 items-center gap-2.5 text-xs text-ink-body">
       <AvatarStack people={mutual.people} round size={22} />
       <span className="min-w-0 truncate">
-        Followed by <span className="font-semibold text-white">{text}</span> you
+        Followed by <span className="font-semibold text-ink">{text}</span> you
         follow
       </span>
     </div>

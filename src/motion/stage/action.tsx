@@ -41,8 +41,8 @@ export function StageAction({
     <Magnet className="gap-2.5">
       <span
         className={cn(
-          "inline-flex shrink-0 transition-[scale] duration-slow ease-out-expo",
-          active ? "scale-110" : "group-hover:scale-110",
+          "inline-flex shrink-0 transition-[scale] duration-reveal ease-out-expo",
+          active ? "scale-108" : "group-hover:scale-108",
         )}
       >
         <Icon icon={active ? icon.on : icon.off} size={iconSize} />

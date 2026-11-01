@@ -41,11 +41,7 @@ export const SCENE = {
     window: size(3),
   },
   timeline: { dot: size(1) },
-  layers: {
-    bio: { opacity: [1, 0.2], range: [60, 640] },
-    rule: { opacity: [1, 0.15], range: [20, 520] },
-    title: { opacity: [1, 0.15], range: [0, 560] },
-  },
+  layers: { ...GRAMMAR.layers, bio: GRAMMAR.layers.prose },
 } as const;
 
 export const factsGap = (count: number) =>

@@ -32,12 +32,14 @@ export function ListComments({
 
   if (comments.length === 0) {
     return (
-      <p className="py-10 text-center text-sm text-white/50">No comments yet</p>
+      <p className="py-10 text-center text-sm text-ink-muted">
+        No comments yet
+      </p>
     );
   }
 
   return (
-    <ul className="flex flex-col divide-y divide-white/[0.06]">
+    <ul className="flex flex-col divide-y divide-rule">
       {comments.map((comment) => {
         const profile = accountHref(comment.author.username);
         return (
@@ -54,13 +56,13 @@ export function ListComments({
                 </AccountLink>
                 <div className="flex min-w-0 flex-col gap-1">
                   <AccountLink
-                    className="truncate text-base font-semibold text-white underline decoration-transparent hover:decoration-current"
+                    className="truncate text-base font-semibold text-ink underline decoration-transparent hover:decoration-current"
                     href={profile}
                   >
                     {comment.author.displayName}
                   </AccountLink>
                   <time
-                    className="text-xs font-semibold text-white/50"
+                    className="text-xs font-semibold text-ink-muted"
                     dateTime={comment.createdAt}
                   >
                     {DATE.format(new Date(comment.createdAt))}
@@ -88,7 +90,7 @@ export function ListComments({
                 </div>
               </div>
 
-              <div className="[&_p]:text-[15px] [&_p]:leading-7 [&_p]:text-white/70">
+              <div className="[&_p]:text-[15px] [&_p]:leading-7 [&_p]:text-ink-body">
                 <ReviewBody content={comment.content} isSpoiler={false} />
               </div>
             </article>

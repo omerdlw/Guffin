@@ -50,7 +50,7 @@ const corner = (a: Side, b: Side) =>
   `color-mix(in oklab, var(${light(a)}), var(${light(b)}))`;
 const shade = (color: string, mix: number, alpha: number) =>
   `color-mix(in oklab, color-mix(in oklab, ${color} ${mix}%, black) ${alpha}%, transparent)`;
-const CEILING = "linear-gradient(rgb(0 0 0 / 0.08), rgb(0 0 0 / 0.14))";
+const CEILING = "linear-gradient(rgb(0 0 0 / 0.1), rgb(0 0 0 / 0.15))";
 const WASH = [
   `radial-gradient(90% 70% at 22% 18%, ${shade(corner("top", "left"), 34, 68)}, transparent 74%)`,
   `radial-gradient(80% 65% at 88% 82%, ${shade(corner("bottom", "right"), 26, 64)}, transparent 74%)`,

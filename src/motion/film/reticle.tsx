@@ -743,12 +743,12 @@ function Reticle() {
           <i className="absolute right-0 bottom-0 size-3.5 rounded-br-[3px] border-r-[1.5px] border-b-[1.5px] border-white/90" />
         </span>
         <span
-          className="tabular-nums text-[10px] leading-none font-bold tracking-[0.16em] whitespace-nowrap uppercase"
+          className="tabular-nums text-[10px] leading-none font-bold tracking-[0.14em] whitespace-nowrap uppercase"
           ref={words}
           style={{ opacity: 0 }}
         />
         <span
-          className="absolute bottom-full left-0 mb-2.5 flex w-max max-w-[calc(100vw-2rem)] items-center gap-2 tabular-nums text-[10px] leading-none font-bold tracking-[0.16em] whitespace-nowrap text-white uppercase [text-shadow:0_1px_10px_rgb(0_0_0/0.7)]"
+          className="absolute bottom-full left-0 mb-2.5 flex w-max max-w-[calc(100vw-2rem)] items-center gap-2 tabular-nums text-[10px] leading-none font-bold tracking-[0.14em] whitespace-nowrap text-ink uppercase [text-shadow:0_1px_10px_rgb(0_0_0/0.7)]"
           ref={slate}
           style={{ opacity: 0 }}
         >
@@ -757,7 +757,7 @@ function Reticle() {
             ref={slateName}
           />
           <span
-            className="relative inline-grid shrink-0 overflow-hidden border-l border-white/20 pl-2 text-white/50"
+            className="relative inline-grid shrink-0 overflow-hidden border-l border-white/20 pl-2 text-ink-muted"
             hidden
             ref={slateYear}
           />

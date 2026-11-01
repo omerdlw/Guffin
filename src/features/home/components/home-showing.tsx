@@ -3,7 +3,7 @@
 import { useState, type JSX } from "react";
 import { MoviePosterLink } from "@/features/movie";
 import { Carousel, Header, Section, Swap } from "@/motion/stage";
-import { Icon, SegmentedControl, TONE } from "@/ui";
+import { Icon, RADIUS, SegmentedControl, TONE } from "@/ui";
 import { compact, releaseDay } from "../lib/format";
 import type { ShowingFilm } from "../lib/types";
 
@@ -16,8 +16,8 @@ function Caption({ film, shelf }: { film: ShowingFilm; shelf: Shelf }) {
   const date =
     shelf === "soon" && film.releaseDate ? releaseDay(film.releaseDate) : null;
   return (
-    <span className="flex min-h-5 min-w-0 items-center gap-1.5 text-xs font-medium text-white/45 tabular-nums">
-      {date ? <span className="text-white/70">{date}</span> : null}
+    <span className="flex min-h-5 min-w-0 items-center gap-1.5 text-xs font-medium text-ink-muted tabular-nums">
+      {date ? <span className="text-ink-body">{date}</span> : null}
       {film.waiting > 0 ? (
         <span className="inline-flex min-w-0 items-center gap-1 truncate">
           {date ? "·" : null}
@@ -73,17 +73,17 @@ export function HomeShowing({
       <Swap id={shelf}>
         <Carousel
           arrowClassName={TONE.arrows}
-          className="rounded-[16px]"
+          className="rounded-card"
           itemClassName={ITEM}
           label={shelf === "theatres" ? "In theatres" : "Coming soon"}
-          radius={16}
+          radius={RADIUS.card}
         >
           {films.map((film) => (
             <MoviePosterLink
               caption={<Caption film={film} shelf={shelf} />}
               key={film.id}
               movie={film}
-              radius={16}
+              radius={RADIUS.card}
               sizes="(min-width: 1024px) 18vw, (min-width: 768px) 22vw, 30vw"
             />
           ))}

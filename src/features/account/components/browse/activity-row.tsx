@@ -1,7 +1,7 @@
 import type { JSX, ReactNode } from "react";
 import { cn } from "@omerdlw/base-framework/utils";
 import { accountHref, listHref, movieHref } from "@/config/routes";
-import { Icon, MediaCard } from "@/ui";
+import { Icon, MediaCard, RADIUS } from "@/ui";
 import type { ActivityItem } from "../../lib/browse-data";
 import { AccountLink } from "./account-link";
 import { posterImage } from "./poster";
@@ -24,7 +24,7 @@ const ICONS: Record<string, string> = {
 };
 
 const strong =
-  "font-medium text-white underline decoration-transparent hover:decoration-current";
+  "font-medium text-ink underline decoration-transparent hover:decoration-current";
 
 function sentence(item: ActivityItem): ReactNode {
   const movie = item.tmdbId ? (
@@ -32,7 +32,7 @@ function sentence(item: ActivityItem): ReactNode {
       {item.title ?? "a movie"}
     </AccountLink>
   ) : (
-    <span className="font-medium text-white">{item.title ?? "a movie"}</span>
+    <span className="font-medium text-ink">{item.title ?? "a movie"}</span>
   );
   const list =
     item.list && item.listOwner ? (
@@ -43,7 +43,7 @@ function sentence(item: ActivityItem): ReactNode {
         {item.list.title}
       </AccountLink>
     ) : (
-      <span className="font-medium text-white">
+      <span className="font-medium text-ink">
         {item.list?.title ?? "a list"}
       </span>
     );
@@ -129,21 +129,21 @@ export function ActivityRow({
           href={movieHref(item.tmdbId)}
           image={posterImage(item.posterPath, "36px")}
           label={item.title ?? "Movie"}
-          radius={8}
+          radius={RADIUS.thumb}
         />
       ) : (
-        <span className="center size-9 shrink-0 rounded-[8px] bg-white/[0.06] text-white/60">
+        <span className="center size-9 shrink-0 rounded-thumb bg-fill text-ink-body">
           <Icon icon={ICONS[item.type] ?? "solar:bolt-bold"} size={15} />
         </span>
       )}
-      <p className="min-w-0 flex-1 text-sm leading-6 text-white/60">
+      <p className="min-w-0 flex-1 text-sm leading-6 text-ink-body">
         <AccountLink className={strong} href={accountHref(actor.username)}>
           {actor.displayName}
         </AccountLink>{" "}
         {sentence(item)}
       </p>
       <time
-        className="shrink-0 text-xs text-white/40 tabular-nums"
+        className="shrink-0 text-xs text-ink-muted tabular-nums"
         dateTime={item.createdAt}
       >
         {timeAgo(item.createdAt)}
@@ -163,17 +163,17 @@ export function ActivityFeed({
     <ol className="flex flex-col">
       {items.map((item) => (
         <li
-          className="relative border-l border-white/10 pb-4 pl-4 text-[13px] leading-5 text-white/55 last:border-transparent last:pb-0"
+          className="relative border-l border-line pb-4 pl-4 text-[13px] leading-5 text-ink-muted last:border-transparent last:pb-0"
           key={item.id}
         >
           <span
             aria-hidden="true"
             className="absolute top-1.5 -left-[3.5px] size-1.5 rounded-full bg-white/40"
           />
-          <span className="font-medium text-white/85">{actor.displayName}</span>{" "}
+          <span className="font-medium text-ink-lead">{actor.displayName}</span>{" "}
           {sentence(item)}{" "}
           <time
-            className="text-xs whitespace-nowrap text-white/35 tabular-nums"
+            className="text-xs whitespace-nowrap text-ink-faint tabular-nums"
             dateTime={item.createdAt}
           >
             {timeAgo(item.createdAt)}
@@ -191,9 +191,5 @@ export function ActivityLog({
   children: ReactNode;
   className?: string;
 }) {
-  return (
-    <ul className={cn("divide-y divide-white/[0.07]", className)}>
-      {children}
-    </ul>
-  );
+  return <ul className={cn("divide-y divide-rule", className)}>{children}</ul>;
 }

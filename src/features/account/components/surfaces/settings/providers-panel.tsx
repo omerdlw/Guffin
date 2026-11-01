@@ -101,7 +101,7 @@ export function ProvidersPanel({
     <div className="flex flex-col gap-2.5">
       {[...connected].map(([provider, identity]) => (
         <div
-          className="flex h-10 w-full items-center justify-between rounded-[16px] bg-white/[0.06] p-1 pl-4 text-white ring-1 ring-inset ring-white/[0.04]"
+          className="flex h-10 w-full items-center justify-between rounded-card bg-fill p-1 pl-4 text-ink ring-1 ring-inset ring-edge"
           key={provider}
         >
           <div className="flex min-w-0 items-center gap-3">
@@ -110,7 +110,7 @@ export function ProvidersPanel({
               icon={PROVIDERS[provider].icon}
               size={18}
             />
-            <span className="truncate text-sm font-medium text-white">
+            <span className="truncate text-sm font-medium text-ink">
               {PROVIDERS[provider].label}
             </span>
           </div>
@@ -127,7 +127,7 @@ export function ProvidersPanel({
       {OAUTH_PROVIDERS.filter((provider) => !connected.has(provider)).map(
         (provider) => (
           <Button
-            className="group/link flex h-10 w-full items-center justify-between rounded-[16px] bg-white/[0.06] px-4 text-white/70 ring-1 ring-inset ring-white/[0.04] hover:bg-white/10 hover:text-white hover:ring-white/[0.08] disabled:cursor-not-allowed disabled:opacity-50"
+            className="group/link flex h-10 w-full items-center justify-between rounded-card bg-fill px-4 text-ink-body ring-1 ring-inset ring-edge hover:bg-fill-hover hover:text-ink hover:ring-edge-hover disabled:cursor-not-allowed disabled:opacity-50"
             disabled={Boolean(linking)}
             key={provider}
             loading={linking === provider}
@@ -135,7 +135,7 @@ export function ProvidersPanel({
           >
             <span className="flex min-w-0 items-center gap-3">
               <Icon
-                className="ui-glyph center shrink-0 text-white/70 group-hover/link:text-white"
+                className="ui-glyph center shrink-0 text-ink-body group-hover/link:text-ink"
                 icon={PROVIDERS[provider].icon}
                 size={18}
               />
@@ -144,7 +144,7 @@ export function ProvidersPanel({
               </span>
             </span>
             <Icon
-              className="center shrink-0 text-white/50 group-hover/link:text-white/80"
+              className="center shrink-0 text-ink-muted group-hover/link:text-ink-body"
               icon="solar:link-linear"
               size={16}
             />

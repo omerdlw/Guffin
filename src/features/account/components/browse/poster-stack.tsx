@@ -18,7 +18,7 @@ export function PosterStack({
         const path = paths[index] ?? null;
         return (
           <div
-            className="relative aspect-[2/3] w-[28%] shrink-0 overflow-hidden rounded-[10px] bg-white/[0.04] shadow-[6px_0_14px_-6px_rgb(0_0_0/0.9)] not-first:-ml-[10%]"
+            className="relative aspect-[2/3] w-[28%] shrink-0 overflow-hidden rounded-thumb bg-[color-mix(in_srgb,var(--white)_4%,var(--black))] shadow-[6px_0_14px_-6px_rgb(0_0_0/0.9)] not-first:-ml-[10%]"
             key={index}
             style={{ zIndex: SLOTS - index }}
           >
@@ -30,7 +30,7 @@ export function PosterStack({
                 src={tmdbImageUrl("poster", path, "w185")}
               />
             ) : null}
-            <span className="absolute inset-0 rounded-[inherit] ring-1 ring-white/10 ring-inset" />
+            <span className="absolute inset-0 rounded-[inherit] ring-1 ring-edge-hover ring-inset" />
           </div>
         );
       })}

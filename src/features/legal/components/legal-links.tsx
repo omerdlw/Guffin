@@ -7,7 +7,7 @@ import { LEGAL_CONTACT_EMAIL, LEGAL_LINKS } from "../lib/constants";
 import { useDockLinkClick } from "@/ui";
 
 const BASE =
-  "cine-fade flex-1 px-4 py-3 text-center text-sm font-medium ring-1 ring-inset outline-none focus-visible:ring-white/[0.16]";
+  "cine-fade flex-1 px-4 py-3 text-center text-sm font-medium ring-1 ring-inset outline-none focus-visible:ring-edge-focus";
 
 function LegalLink({
   active,
@@ -25,8 +25,8 @@ function LegalLink({
       className={cn(
         BASE,
         active
-          ? "bg-white/10 text-white ring-white/10"
-          : "bg-white/5 text-white/70 ring-white/5 hover:bg-white/10 hover:text-white hover:ring-white/10",
+          ? "bg-fill-hover text-ink ring-edge-hover"
+          : "bg-fill text-ink-body ring-edge hover:bg-fill-hover hover:text-ink hover:ring-edge-hover",
       )}
       href={href}
       onClick={onClick}
@@ -51,7 +51,7 @@ export function LegalLinks({ active }: { active: string | null }): JSX.Element {
       <a
         className={cn(
           BASE,
-          "bg-white/5 text-white/70 ring-white/5 hover:bg-white/10 hover:text-white hover:ring-white/10",
+          "bg-fill text-ink-body ring-edge hover:bg-fill-hover hover:text-ink hover:ring-edge-hover",
         )}
         href={`mailto:${LEGAL_CONTACT_EMAIL}`}
       >

@@ -168,7 +168,7 @@ function ReviewEditorSurface({
               }
               value={content}
             />
-            <div className="pointer-events-none absolute right-3.5 bottom-2.5 text-xs font-medium text-white/50 select-none">
+            <div className="pointer-events-none absolute right-3.5 bottom-2.5 text-xs font-medium text-ink-muted select-none">
               {problem && (text || rating !== null) ? (
                 <span className="font-semibold text-red-400/80">{problem}</span>
               ) : text ? (

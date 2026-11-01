@@ -23,10 +23,10 @@ export function HomePulse({
   return (
     <Section className="flex w-full flex-col gap-5">
       <Item className="flex flex-col gap-1" from="light">
-        <h2 className="text-lg font-semibold text-white">
+        <h2 className="text-lg font-semibold text-ink">
           {greeting ?? "This week on Guffin"}
         </h2>
-        <p className="text-sm text-white/50">
+        <p className="text-sm text-ink-muted">
           {greeting
             ? "Here’s what your circle and the community have been watching."
             : "A film diary for people who love them. Here’s the last seven days."}
@@ -34,15 +34,15 @@ export function HomePulse({
       </Item>
       <Item
         as="div"
-        className={`grid grid-cols-2 divide-white/[0.06] sm:grid-cols-4 sm:divide-x [&>div]:py-3 sm:[&>div]:px-6 sm:[&>div:first-child]:pl-0`}
+        className={`grid grid-cols-2 divide-rule sm:grid-cols-4 sm:divide-x [&>div]:py-3 sm:[&>div]:px-6 sm:[&>div:first-child]:pl-0`}
         from="light"
       >
         {figures.map((figure) => (
           <div className="flex flex-col gap-1.5" key={figure.label}>
-            <span className={`${TONE.label} text-white/45`}>
+            <span className={`${TONE.label} text-ink-muted`}>
               {figure.label}
             </span>
-            <span className="font-zuume text-4xl leading-none font-bold text-white tabular-nums sm:text-5xl">
+            <span className="font-zuume text-4xl leading-none font-bold text-ink tabular-nums sm:text-5xl">
               {whole(figure.value)}
             </span>
           </div>

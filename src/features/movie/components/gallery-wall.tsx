@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useModal } from "@omerdlw/base-framework/modules/modal";
 import { cn } from "@omerdlw/base-framework/utils";
 import { artworkTarget } from "@/features/artwork";
-import { Icon, MediaCard, SegmentedControl, TONE, Tooltip } from "@/ui";
+import { Icon, MediaCard, RADIUS, SegmentedControl, TONE, Tooltip } from "@/ui";
 import type { MediaCardAspect } from "@/ui";
 import {
   GRAMMAR,
@@ -52,7 +52,7 @@ export const WALL_SIZES: Record<"poster" | "video", string> = {
     "(min-width: 1536px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw",
 };
 
-const CONTROL = `cine-press center h-8 cursor-pointer gap-2 rounded-full ${TONE.surface} focus-visible:outline-[1.5px] focus-visible:outline-offset-2 focus-visible:outline-white/20`;
+const CONTROL = `cine-press center h-8 cursor-pointer gap-2 rounded-full ${TONE.surface}`;
 
 export function WallButton({ set }: { set: string }) {
   const wall = useWall();
@@ -170,7 +170,7 @@ export function GalleryWall({
             }}
           >
             {shown.pictures.slice(0, reach).map((picture, index) => (
-              <Tile key={picture.path} radius={16}>
+              <Tile key={picture.path} radius={RADIUS.card}>
                 <MediaCard
                   {...artworkTarget(shown.slot, picture.path)}
                   aspect={shown.aspect}

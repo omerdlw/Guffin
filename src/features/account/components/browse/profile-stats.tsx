@@ -13,10 +13,10 @@ const CELL = "group/stat flex flex-col items-center gap-1 px-1 sm:px-4";
 function Figure({ count, label }: { count: number; label: string }) {
   return (
     <>
-      <span className="text-xl leading-7 font-semibold text-white tabular-nums sm:text-2xl sm:leading-8">
+      <span className="text-xl leading-7 font-semibold text-ink tabular-nums sm:text-2xl sm:leading-8">
         {count.toLocaleString("en-US")}
       </span>
-      <span className="text-[9px] leading-3 font-semibold tracking-[0.02em] whitespace-nowrap text-white/40 uppercase group-hover/stat:text-white/75 min-[400px]:text-[10px] min-[400px]:tracking-[0.08em] sm:tracking-[0.12em]">
+      <span className="text-[9px] leading-3 font-semibold tracking-[0.02em] whitespace-nowrap text-ink-muted uppercase group-hover/stat:text-ink-body min-[400px]:text-[10px] min-[400px]:tracking-[0.08em] sm:tracking-[0.12em]">
         {label}
       </span>
     </>
@@ -71,7 +71,7 @@ export function ProfileStats({
 
 export function ProfileStatRow({ children }: { children: ReactNode }) {
   return (
-    <ul className="grid auto-cols-fr grid-flow-col divide-x divide-white/10">
+    <ul className="grid auto-cols-fr grid-flow-col divide-x divide-rule">
       {children}
     </ul>
   );

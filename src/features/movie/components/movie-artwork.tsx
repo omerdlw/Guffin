@@ -52,15 +52,15 @@ function Slate({ title }: { title: string }) {
       {reel ? (
         <motion.div
           animate={{ filter: "blur(0px)", opacity: 1, y: 0 }}
-          className="absolute top-6 right-4 z-20 flex items-center gap-1 rounded-full bg-black/60 p-1 shadow-[0_14px_32px_-16px_rgb(0_0_0/0.85)] ring-1 ring-white/[0.08] backdrop-blur-md backdrop-saturate-150 ring-inset inset-shadow-[0_1px_0_rgb(255_255_255/0.07)] sm:right-6 lg:right-8"
+          className={`absolute top-6 right-4 z-20 flex items-center gap-1 p-1 sm:right-6 lg:right-8 ${TONE.glass}`}
           exit={{ filter: "blur(6px)", opacity: 0, y: -8 }}
           initial={{ filter: "blur(6px)", opacity: 0, y: -8 }}
           transition={{ duration: SCENE.view.enter, ease: EASE.expo }}
         >
-          <span className={`px-3 ${TONE.label} text-white/50`}>Still</span>
+          <span className={`px-3 ${TONE.label} text-ink-muted`}>Still</span>
           <button
             aria-label="View this still"
-            className="cine-fade center size-8 cursor-pointer rounded-full text-white/70 hover:bg-white/10 hover:text-white"
+            className="cine-fade center size-8 cursor-pointer rounded-full text-ink-body hover:bg-fill-hover hover:text-ink"
             onClick={() => {
               const src = tmdbImageUrl("backdrop", reel, "original");
               if (!src) return;
@@ -72,7 +72,7 @@ function Slate({ title }: { title: string }) {
             <Icon icon="solar:maximize-square-minimalistic-linear" size={16} />
           </button>
           <button
-            className="cine-fade h-8 cursor-pointer rounded-full px-3 text-[13px] font-medium text-white hover:bg-white/10"
+            className="cine-fade h-8 cursor-pointer rounded-full px-3 text-[13px] font-medium text-ink hover:bg-fill-hover"
             onClick={() => project(null)}
             type="button"
           >

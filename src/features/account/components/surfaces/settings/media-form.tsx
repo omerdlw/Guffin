@@ -28,7 +28,7 @@ const bannerY = (position: string) =>
 
 function Preview({ children }: { children: ReactNode }) {
   return (
-    <div className="relative flex h-32 w-full items-center justify-center overflow-hidden rounded-[16px] bg-white/[0.06] ring-1 ring-inset ring-white/[0.04]">
+    <div className="relative flex h-32 w-full items-center justify-center overflow-hidden rounded-card bg-fill ring-1 ring-inset ring-edge">
       {children}
     </div>
   );
@@ -49,7 +49,7 @@ function UrlInput({
     <div className="relative flex w-full items-center">
       <Input
         className={cn(
-          "h-10 w-full rounded-[16px] bg-white/[0.06] pl-4 text-sm text-white ring-1 ring-inset ring-white/[0.04] placeholder:text-white/40 hover:bg-white/10 focus:bg-white/10 focus:ring-white/[0.12] focus:outline-none",
+          "h-10 w-full rounded-card bg-fill pl-4 text-sm text-ink ring-1 ring-inset ring-edge placeholder:text-ink-muted hover:bg-fill-hover focus:bg-fill-hover focus:ring-edge-focus focus:outline-none",
           value ? "pr-9" : "pr-4",
         )}
         disabled={disabled}
@@ -61,7 +61,7 @@ function UrlInput({
       {value ? (
         <Button
           aria-label="Clear input"
-          className="center absolute right-1 size-8 cursor-pointer rounded-[12px] p-0 text-white/50 hover:bg-white/10 hover:text-white"
+          className="center absolute right-1 size-8 cursor-pointer rounded-tile p-0 text-ink-muted hover:bg-fill-hover hover:text-ink"
           disabled={disabled}
           onClick={() => onChange("")}
         >
@@ -126,7 +126,7 @@ function BannerSlider({
       aria-valuemin={0}
       aria-valuenow={value}
       className={cn(
-        "group/slider flex w-10 shrink-0 cursor-ns-resize flex-col items-center justify-between self-stretch rounded-[16px] bg-white/[0.06] py-3 ring-1 ring-inset ring-white/[0.04] select-none touch-none hover:bg-white/10",
+        "group/slider flex w-10 shrink-0 cursor-ns-resize flex-col items-center justify-between self-stretch rounded-card bg-fill py-3 ring-1 ring-inset ring-edge select-none touch-none hover:bg-fill-hover",
         disabled && "pointer-events-none opacity-50",
       )}
       data-no-surface-drag="true"
@@ -137,12 +137,12 @@ function BannerSlider({
       tabIndex={disabled ? -1 : 0}
     >
       <Icon
-        className="shrink-0 text-white/50 group-hover/slider:text-white/80"
+        className="shrink-0 text-ink-muted group-hover/slider:text-ink-body"
         icon="solar:alt-arrow-up-linear"
         size={12}
       />
       <div
-        className="relative my-1.5 w-1.5 flex-1 rounded-full bg-white/15"
+        className="relative my-1.5 w-1.5 flex-1 rounded-full bg-fill-active"
         ref={track}
       >
         <div
@@ -155,7 +155,7 @@ function BannerSlider({
         />
       </div>
       <Icon
-        className="shrink-0 text-white/50 group-hover/slider:text-white/80"
+        className="shrink-0 text-ink-muted group-hover/slider:text-ink-body"
         icon="solar:alt-arrow-down-linear"
         size={12}
       />
@@ -177,7 +177,7 @@ function DockPreview({
   username?: string;
 }) {
   return (
-    <div className="relative flex h-[60px] w-full items-center justify-between overflow-hidden rounded-[16px] bg-black/70 p-1.5 pr-2.5 ring-1 ring-inset ring-white/[0.08] inset-shadow-[0_1px_0_rgb(255_255_255/0.07)] shadow-xl backdrop-blur-lg select-none">
+    <div className="relative flex h-[60px] w-full items-center justify-between overflow-hidden rounded-card bg-black/70 p-1.5 pr-2.5 ring-1 ring-inset ring-edge-hover inset-shadow-[0_1px_0_var(--color-edge)] shadow-xl backdrop-blur-lg select-none">
       {bannerUrl ? (
         <DockCardBanner
           bannerPosition={`center ${position}%`}
@@ -187,7 +187,7 @@ function DockPreview({
       ) : null}
       <div className="pointer-events-none relative z-10 flex w-full items-center justify-between gap-2.5">
         <div className="flex min-w-0 items-center gap-2.5">
-          <div className="center relative size-12 shrink-0 overflow-hidden rounded-[10px] bg-white/[0.06] text-white shadow-sm">
+          <div className="center relative size-12 shrink-0 overflow-hidden rounded-inset bg-fill text-ink shadow-sm">
             {avatarUrl ? (
               <AdaptiveImage
                 alt="Preview avatar"
@@ -200,11 +200,11 @@ function DockPreview({
           </div>
           <div className="flex min-w-0 flex-col justify-center gap-0.5">
             <span
-              className={`truncate text-[15px] leading-tight font-semibold tracking-[-0.01em] text-white ${PREVIEW_SHADOW}`}
+              className={`truncate text-[15px] leading-tight font-semibold tracking-[-0.01em] text-ink ${PREVIEW_SHADOW}`}
             >
               {displayName || "Your Name"}
             </span>
-            <span className="truncate text-sm leading-tight text-white/60 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+            <span className="truncate text-sm leading-tight text-ink-body drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
               @{username || "username"}
             </span>
           </div>
@@ -216,7 +216,7 @@ function DockPreview({
             "solar:bell-bold",
           ].map((icon) => (
             <div
-              className={`center size-9 rounded-full text-white/60 ${PREVIEW_SHADOW}`}
+              className={`center size-9 rounded-full text-ink-body ${PREVIEW_SHADOW}`}
               key={icon}
             >
               <Icon icon={icon} size={16} />
@@ -281,7 +281,7 @@ export function MediaForm({ onSaved }: { onSaved: () => void }) {
       <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
         <div className="flex flex-col gap-2.5">
           <Preview>
-            <div className="center relative size-20 shrink-0 overflow-hidden rounded-full bg-black/60 text-white/50">
+            <div className="center relative size-20 shrink-0 overflow-hidden rounded-full bg-black/60 text-ink-muted">
               {avatarUrl ? (
                 <AdaptiveImage
                   alt="Avatar preview"
@@ -310,7 +310,7 @@ export function MediaForm({ onSaved }: { onSaved: () => void }) {
               />
             ) : (
               <Icon
-                className="text-white/50"
+                className="text-ink-muted"
                 icon="solar:wallpaper-bold"
                 size={24}
               />

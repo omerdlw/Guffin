@@ -27,7 +27,7 @@ export function Star({
       </svg>
       {lit ? (
         <svg
-          className="absolute inset-0 fill-amber-400"
+          className="absolute inset-0 fill-rated"
           style={fill >= 1 ? undefined : { clipPath: "inset(0 50% 0 0)" }}
           viewBox="0 0 24 24"
         >
@@ -49,7 +49,7 @@ export function RatingStars({
 }): JSX.Element {
   if (rating === null || !Number.isFinite(rating) || rating <= 0) {
     return (
-      <span aria-label="No rating" className="text-white/40">
+      <span aria-label="No rating" className="text-ink-muted">
         —
       </span>
     );
@@ -72,13 +72,13 @@ export function RatingStars({
     >
       <span
         aria-hidden="true"
-        className="rating-stars absolute inset-0 bg-white/15"
+        className="rating-stars absolute inset-0 bg-fill-active"
         style={mask}
       />
       {lit > 0 ? (
         <span
           aria-hidden="true"
-          className="rating-stars absolute inset-0 bg-amber-400"
+          className="rating-stars absolute inset-0 bg-rated"
           style={{ ...mask, clipPath: `inset(0 ${width - lit}px 0 0)` }}
         />
       ) : null}

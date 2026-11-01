@@ -3,7 +3,7 @@ import { LEGAL_LAST_UPDATED } from "../lib/constants";
 import type { LegalDocument } from "../lib/types";
 import { LegalLinks } from "./legal-links";
 import { LegalText } from "./legal-text";
-import { PAGE_CLASS } from "@/ui";
+import { PAGE_CLASS, TONE } from "@/ui";
 
 export function LegalPage({
   document,
@@ -17,23 +17,23 @@ export function LegalPage({
           <h1 className="font-zuume text-5xl leading-none font-bold uppercase sm:text-6xl">
             {document.title}
           </h1>
-          <p className="max-w-xl text-sm leading-7 text-white/60">
+          <p className="max-w-xl text-sm leading-7 text-ink-body">
             {document.intro}
           </p>
-          <p className="text-xs font-semibold tracking-[0.16em] text-white/50 uppercase">
+          <p className={`${TONE.label} text-ink-muted`}>
             Last updated {LEGAL_LAST_UPDATED}
           </p>
         </header>
 
         <LegalLinks active={document.path} />
 
-        <article className="mt-6 flex flex-col gap-9 bg-white/[0.03] p-6 ring-1 ring-white/5 ring-inset sm:p-8">
+        <article className="mt-6 flex flex-col gap-9 bg-fill p-6 ring-1 ring-edge ring-inset sm:p-8">
           {document.sections.map((section) => (
             <section className="flex flex-col gap-3" key={section.title}>
-              <h2 className="text-lg font-semibold text-white sm:text-xl">
+              <h2 className="text-lg font-semibold text-ink sm:text-xl">
                 {section.title}
               </h2>
-              <div className="flex flex-col gap-3 text-sm leading-7 text-white/70">
+              <div className="flex flex-col gap-3 text-sm leading-7 text-ink-body">
                 {section.blocks.map((block, index) =>
                   block.kind === "paragraph" ? (
                     <p key={index}>

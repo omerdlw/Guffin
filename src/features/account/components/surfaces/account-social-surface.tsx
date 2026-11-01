@@ -39,6 +39,7 @@ import {
   SurfaceSegmentedControl,
   scrollWithin,
 } from "@/ui";
+import { PRIMARY } from "@/config/theme/chrome";
 import { SlidingHighlight } from "@/ui/sliding-highlight";
 import {
   acceptFollowRequest,
@@ -69,10 +70,10 @@ const TAB_LABELS: Record<SocialTab, string> = {
 };
 
 const BUTTON =
-  "center h-10 min-w-[6rem] shrink-0 rounded-[10px] px-4 text-xs font-medium select-none cursor-pointer disabled:cursor-not-allowed";
-const PRIMARY_BUTTON = `${BUTTON} ui-sheen bg-white text-black hover:bg-white/90 disabled:bg-white/40 [--sheen-ink:0_0_0] [--sheen:0.08]`;
-const SECONDARY_BUTTON = `${BUTTON} text-white/65 ring-1 ring-white/15 ring-inset hover:bg-white/[0.06] hover:text-white disabled:text-white/35`;
-const MUTED_BUTTON = `${BUTTON} text-white/40 ring-1 ring-white/10 ring-inset cursor-default`;
+  "center h-10 min-w-[6rem] shrink-0 rounded-inset px-4 text-xs font-medium select-none cursor-pointer disabled:cursor-not-allowed";
+const PRIMARY_BUTTON = `${BUTTON} ${PRIMARY} disabled:opacity-50`;
+const SECONDARY_BUTTON = `${BUTTON} text-ink-body ring-1 ring-edge-focus ring-inset hover:bg-fill hover:text-ink disabled:opacity-50`;
+const MUTED_BUTTON = `${BUTTON} text-ink-muted ring-1 ring-edge-hover ring-inset cursor-default`;
 const ROW = `${SURFACE_TILE} w-full`;
 
 interface Collection {
@@ -246,7 +247,7 @@ function StatusTile({
   return (
     <div className={ROW}>
       <div
-        className={`center size-10 shrink-0 bg-white/[0.06] text-white/45 ${SURFACE_TILE_INNER}`}
+        className={`center size-10 shrink-0 bg-fill text-ink-muted ${SURFACE_TILE_INNER}`}
       >
         <Icon icon={icon} size={18} />
       </div>
@@ -284,7 +285,7 @@ const UserRow = memo(function UserRow({
     >
       {highlighted ? (
         <SlidingHighlight
-          className="rounded-[16px] bg-white/[0.04] ring-1 ring-white/[0.08] ring-inset"
+          className="rounded-card bg-fill ring-1 ring-edge-hover ring-inset"
           layoutId="account-social-row-highlight"
         />
       ) : null}
@@ -294,7 +295,7 @@ const UserRow = memo(function UserRow({
         onClick={onNavigate}
       >
         <div
-          className={`relative size-10 shrink-0 overflow-hidden bg-white/5 ${SURFACE_TILE_INNER}`}
+          className={`relative size-10 shrink-0 overflow-hidden bg-fill ${SURFACE_TILE_INNER}`}
         >
           <AdaptiveImage
             alt={user.displayName}
@@ -308,7 +309,7 @@ const UserRow = memo(function UserRow({
         </div>
         <div className={SURFACE_TEXT}>
           <span className={SURFACE_TITLE}>{user.displayName}</span>
-          <span className={`${SURFACE_META} group-hover/user:text-white/70`}>
+          <span className={`${SURFACE_META} group-hover/user:text-ink-body`}>
             @{user.username || "user"}
           </span>
         </div>
@@ -689,9 +690,7 @@ function AccountSocialSurface({
                     userId={user.id}
                   />
                 }
-                highlighted={
-                  (hoveredUserId ?? focusedUserId) === user.id
-                }
+                highlighted={(hoveredUserId ?? focusedUserId) === user.id}
                 key={user.id}
                 onBlur={(event) => {
                   if (

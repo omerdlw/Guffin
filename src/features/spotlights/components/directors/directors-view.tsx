@@ -47,7 +47,7 @@ const AIR = 96;
 type Act = "wait" | "print" | "pour" | "rest" | "leave" | "arrive" | "enter";
 
 const PRINT_WINDOW_S = size(3);
-const PRINT_STEP_S = 0.18;
+const PRINT_STEP_S = size(-2);
 const PRINT_S = size(2);
 const DRAIN_S = size(3);
 const LEAVE_S = size(0);
@@ -410,7 +410,7 @@ export function DirectorsView({
                     aria-current={on ? "true" : undefined}
                     className={cn(
                       "cine-fade py-1.5 pr-3 text-[13px] font-medium whitespace-nowrap lg:py-1 lg:pr-0",
-                      on ? "text-white" : "text-white/30 hover:text-white/70",
+                      on ? "text-ink" : "text-ink-faint hover:text-ink-body",
                     )}
                     onClick={() => pick(i)}
                     type="button"

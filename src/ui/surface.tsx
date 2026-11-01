@@ -1,20 +1,22 @@
 "use client";
 
 import type { WheelEvent } from "react";
+import { FILL, PRIMARY } from "@/config/theme/chrome";
 
 const BUTTON =
-  "center relative inline-flex cursor-pointer items-center justify-center gap-2 rounded-[16px] text-[13px] font-medium ring-1 ring-inset select-none outline-none focus-visible:ring-white/[0.16] disabled:pointer-events-none";
-const IDLE =
-  "bg-white/[0.06] text-white/75 ring-white/[0.04] hover:bg-white/10 hover:text-white hover:ring-white/[0.08]";
+  "center relative inline-flex cursor-pointer items-center justify-center gap-2 rounded-card text-[13px] font-medium ring-1 ring-inset select-none outline-none focus-visible:ring-edge-focus disabled:pointer-events-none disabled:opacity-50";
+const IDLE = `text-ink-body hover:text-ink ${FILL}`;
 const LIT =
-  "bg-[rgb(var(--grade)/0.16)] text-[rgb(var(--grade))] ring-[rgb(var(--grade)/0.3)] hover:bg-[rgb(var(--grade)/0.24)] hover:ring-[rgb(var(--grade)/0.4)]";
+  "bg-grade/15 text-grade ring-grade/25 hover:bg-grade/20 hover:ring-grade/30";
 const ROW_IDLE =
-  "bg-white/[0.06] text-white/75 ring-white/[0.04] hover:text-white hover:ring-white/[0.08]";
-const ROW_LIT =
-  "bg-[rgb(var(--grade)/0.16)] text-[rgb(var(--grade))] ring-[rgb(var(--grade)/0.3)] hover:ring-[rgb(var(--grade)/0.4)]";
+  "bg-fill text-ink-body ring-edge hover:text-ink hover:ring-edge-hover";
+const ROW_LIT = "bg-grade/15 text-grade ring-grade/25 hover:ring-grade/30";
 
 export const surfaceButton = (lit: boolean) =>
   `${BUTTON} h-10 ${lit ? LIT : IDLE}`;
+
+// The one action a surface exists for (save, sign in, follow).
+export const SURFACE_PRIMARY = `${BUTTON} h-10 px-4 ${PRIMARY}`;
 
 export const surfaceIconButton = (lit: boolean) =>
   `${BUTTON} size-10 shrink-0 p-0 ${lit ? LIT : IDLE}`;
@@ -22,10 +24,10 @@ export const surfaceIconButton = (lit: boolean) =>
 export const SURFACE_STACK = "flex w-full flex-col gap-2.5";
 
 const TILE_SHAPE =
-  "flex min-w-0 items-center gap-3 rounded-[16px] p-1.5 ring-1 ring-inset";
-export const SURFACE_TILE = `${TILE_SHAPE} bg-white/[0.06] ring-white/[0.04]`;
-export const SURFACE_TILE_HOVER = "hover:bg-white/10 hover:ring-white/[0.08]";
-export const SURFACE_TILE_INNER = "rounded-[10px]";
+  "flex min-w-0 items-center gap-3 rounded-card p-1.5 ring-1 ring-inset";
+export const SURFACE_TILE = `${TILE_SHAPE} bg-fill ring-edge`;
+export const SURFACE_TILE_HOVER = "hover:bg-fill-hover hover:ring-edge-hover";
+export const SURFACE_TILE_INNER = "rounded-inset";
 export const SURFACE_TILE_END = "pr-3.5";
 
 export const SURFACE_POSTER = "h-[60px] w-10 shrink-0 overflow-hidden";
@@ -33,23 +35,21 @@ export const SURFACE_POSTER = "h-[60px] w-10 shrink-0 overflow-hidden";
 export const SURFACE_TEXT =
   "flex min-w-0 flex-1 flex-col justify-center gap-1 text-left";
 export const SURFACE_TITLE =
-  "truncate text-sm leading-tight font-semibold text-white";
-export const SURFACE_META = "truncate text-xs leading-tight text-white/50";
+  "truncate text-sm leading-tight font-semibold text-ink";
+export const SURFACE_META = "truncate text-xs leading-tight text-ink-muted";
 
 export const surfaceRow = (lit: boolean) =>
-  `group relative isolate w-full cursor-pointer ${TILE_SHAPE} ${SURFACE_TILE_END} select-none outline-none focus-visible:ring-white/[0.16] disabled:cursor-wait ${lit ? ROW_LIT : ROW_IDLE}`;
+  `group relative isolate w-full cursor-pointer ${TILE_SHAPE} ${SURFACE_TILE_END} select-none outline-none focus-visible:ring-edge-focus disabled:cursor-wait ${lit ? ROW_LIT : ROW_IDLE}`;
 
-export const SURFACE_PANEL =
-  "rounded-[16px] bg-white/[0.06] ring-1 ring-white/[0.04] ring-inset";
+export const SURFACE_PANEL = "rounded-card bg-fill ring-1 ring-edge ring-inset";
 
-export const SURFACE_CHECK_ON =
-  "bg-[rgb(var(--grade))] text-black ring-[rgb(var(--grade))]";
+export const SURFACE_CHECK_ON = "bg-grade text-black ring-grade";
 
 export const SURFACE_FIELD =
-  "rounded-[16px] bg-white/[0.06] text-white ring-1 ring-white/[0.04] ring-inset outline-none placeholder:text-white/40 hover:bg-white/10 focus:bg-white/10 focus:ring-white/[0.12]";
+  "rounded-card bg-fill text-ink ring-1 ring-edge ring-inset outline-none placeholder:text-ink-muted hover:bg-fill-hover focus:bg-fill-hover focus:ring-edge-focus";
 
 export const SURFACE_SCROLL =
-  "overflow-y-auto overscroll-contain rounded-[16px] [clip-path:inset(0_round_16px)] scrollbar-none";
+  "overflow-y-auto overscroll-contain rounded-card [clip-path:inset(0_round_var(--radius-card))] scrollbar-none";
 
 export function scrollWithin(event: WheelEvent<HTMLElement>) {
   const box = event.currentTarget;
@@ -72,7 +72,7 @@ export function SurfaceProse({ text }: { text: string }) {
       data-lenis-prevent-wheel
       onWheel={scrollWithin}
     >
-      <div className="flex flex-col gap-3 text-sm leading-6 text-pretty [overflow-wrap:anywhere] text-white/75 select-text">
+      <div className="flex flex-col gap-3 text-sm leading-6 text-pretty [overflow-wrap:anywhere] text-ink-body select-text">
         {paragraphs.map((paragraph, index) => (
           <p className="whitespace-pre-line" key={index}>
             {paragraph}

@@ -14,7 +14,7 @@ export function PersonCareer({ career }: { career: CareerData }) {
       <Header
         actions={
           <button
-            className={`cine-fade hidden cursor-pointer items-center gap-1.5 ${TONE.label} text-white/50 hover:text-white focus-visible:text-white sm:flex`}
+            className={`hidden cursor-pointer items-center gap-1.5 sm:flex ${TONE.link}`}
             onClick={() => openTimeline(career.peak)}
             type="button"
           >

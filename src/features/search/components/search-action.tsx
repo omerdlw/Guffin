@@ -16,7 +16,14 @@ import { ACTION_TONE_CLASS } from "@omerdlw/base-framework/tokens";
 import { cn } from "@omerdlw/base-framework/utils";
 import { MoviePosterLink, MoviePosterPlaceholder } from "@/features/movie";
 import { PersonResultRow } from "@/features/person";
-import { Button, Icon, Input, SegmentedControl, SkeletonBlock } from "@/ui";
+import {
+  Button,
+  Icon,
+  Input,
+  RADIUS,
+  SegmentedControl,
+  SkeletonBlock,
+} from "@/ui";
 import { SlidingHighlight } from "@/ui/sliding-highlight";
 import {
   SEARCH_EMPTY_HINTS,
@@ -61,7 +68,7 @@ function Option({
     >
       {active ? (
         <SlidingHighlight
-          className="rounded-[16px] bg-white/[0.07]"
+          className="rounded-card bg-fill-hover"
           layoutId="search-result-highlight"
         />
       ) : null}
@@ -173,7 +180,7 @@ function Section({
               detail={hit.originalTitle}
               movie={hit}
               onNavigated={onNavigated}
-              radius={12}
+              radius={RADIUS.tile}
               sizes="110px"
             />,
             hit.id,
@@ -212,7 +219,7 @@ function ResultsSkeleton({ scope }: { scope: SearchScope }) {
         <div className={POSTER_GRID}>
           {Array.from({ length: posters }, (_, index) => (
             <SkeletonBlock
-              className="aspect-[2/3] w-full rounded-[12px]"
+              className="aspect-[2/3] w-full rounded-tile"
               key={index}
             />
           ))}
@@ -222,7 +229,7 @@ function ResultsSkeleton({ scope }: { scope: SearchScope }) {
         <div className={ROW_LIST}>
           {Array.from({ length: rows }, (_, index) => (
             <div className="flex h-16 items-center gap-3 p-2" key={index}>
-              <SkeletonBlock className="h-12 w-8 shrink-0 rounded-[8px]" />
+              <SkeletonBlock className="h-12 w-8 shrink-0 rounded-thumb" />
               <div className="flex flex-1 flex-col gap-2">
                 <SkeletonBlock className="h-3.5 w-1/2 rounded-full" />
                 <SkeletonBlock className="h-3 w-3/4 rounded-full" />
@@ -382,7 +389,7 @@ export function SearchAction({
         <Icon
           className={cn(
             "pointer-events-none absolute top-1/2 left-4 -translate-y-1/2",
-            input ? "text-white" : "text-white/50",
+            input ? "text-ink" : "text-ink-muted",
           )}
           icon="solar:magnifer-linear"
           size={16}
@@ -397,7 +404,7 @@ export function SearchAction({
           autoCapitalize="off"
           autoComplete="off"
           autoCorrect="off"
-          className="h-10 rounded-[16px] bg-white/[0.06] pr-10 pl-11 text-sm text-white ring-1 ring-inset ring-white/[0.04] placeholder:text-white/40 hover:bg-white/10 focus:bg-white/10 focus:ring-white/[0.12] focus:outline-none"
+          className="h-10 rounded-card bg-fill pr-10 pl-11 text-sm text-ink ring-1 ring-inset ring-edge placeholder:text-ink-muted hover:bg-fill-hover focus:bg-fill-hover focus:ring-edge-focus focus:outline-none"
           enterKeyHint="search"
           maxLength={SEARCH_MAX_QUERY_LENGTH}
           name="search"
@@ -413,14 +420,14 @@ export function SearchAction({
           {isLoading ? (
             <Icon
               aria-label="Searching"
-              className="text-white/70"
+              className="text-ink-body"
               icon="line-md:loading-loop"
               size={16}
             />
           ) : input ? (
             <Button
               aria-label="Clear search"
-              className="ui-iris center relative size-6 cursor-pointer rounded-full text-white/50 hover:text-white"
+              className="ui-iris center relative size-6 cursor-pointer rounded-full text-ink-muted hover:text-ink"
               onClick={handleClear}
             >
               <Icon icon="material-symbols:close-rounded" size={16} />
@@ -460,13 +467,15 @@ export function SearchAction({
             }}
             role="listbox"
           >
-            <LayoutGroup id={`search-results-${listId}`}>{sections}</LayoutGroup>
+            <LayoutGroup id={`search-results-${listId}`}>
+              {sections}
+            </LayoutGroup>
           </div>
         ) : null}
 
         {hasPager && hitCount > 0 ? (
           <div className="flex h-8 items-center justify-between pl-1">
-            <span className="text-xs text-white/50 tabular-nums">
+            <span className="text-xs text-ink-muted tabular-nums">
               {from}–{to} of {view.total}
             </span>
             <span className="flex items-center gap-1">
@@ -486,16 +495,18 @@ export function SearchAction({
 
         {showEmpty ? (
           <div className="flex flex-col items-center gap-1 px-1 py-3 text-center">
-            <p className="text-sm text-white/70">
+            <p className="text-sm text-ink-body">
               No {SEARCH_NOUNS[scope]} for “{query}”
             </p>
-            <p className="text-xs text-white/50">{SEARCH_EMPTY_HINTS[scope]}</p>
+            <p className="text-xs text-ink-muted">
+              {SEARCH_EMPTY_HINTS[scope]}
+            </p>
           </div>
         ) : null}
 
         {failure ? (
           <div className="flex flex-col items-center gap-2.5">
-            <p className="px-1 py-2 text-center text-sm text-white/50">
+            <p className="px-1 py-2 text-center text-sm text-ink-muted">
               {failure.message}
             </p>
             {failure.code !== "invalid_query" ? (

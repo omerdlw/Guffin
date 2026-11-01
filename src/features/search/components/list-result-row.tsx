@@ -1,6 +1,6 @@
 "use client";
 
-import { Highlight, MediaCard, ResultRow } from "@/ui";
+import { Highlight, MediaCard, RADIUS, ResultRow } from "@/ui";
 import { tmdbImageSrcSet, tmdbImageUrl } from "@/infrastructure/tmdb/images";
 import type { ListSearchHit } from "../lib/types";
 import { listHref } from "@/config/routes";
@@ -43,7 +43,7 @@ export function ListResultRow({
               tmdbImageSrcSet("poster", list.posterPath, POSTER_WIDTHS) ??
               undefined,
           }}
-          radius={8}
+          radius={RADIUS.thumb}
         />
       }
       title={<Highlight query={query} text={list.title} />}
