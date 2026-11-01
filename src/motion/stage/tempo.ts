@@ -27,6 +27,11 @@ export const EASE = {
   silk: [0.22, 1, 0.36, 1] as Bezier,
 };
 
+export const SPRING = {
+  press: { type: "spring", stiffness: 640, damping: 30, mass: 0.32 },
+  follow: { type: "spring", stiffness: 360, damping: 38 },
+} as const;
+
 export const blur = (px: number) => `blur(${px}px)`;
 
 export const focus = (px: number) => (px > 0.05 ? blur(px) : "none");

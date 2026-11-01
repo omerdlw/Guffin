@@ -5,9 +5,9 @@ import {
   type CSSProperties,
   type ReactNode,
 } from "react";
-import { cn } from "@omerdlw/base-framework/utils";
+import { cn } from "@/ui/cn";
 import { size } from "./tempo";
-import { ArrivalContext, IN_DOCK } from "./wave";
+import { ArrivalContext, IN_DOCK } from "./arrival";
 
 export const SURFACE_LEAD = size(-2);
 

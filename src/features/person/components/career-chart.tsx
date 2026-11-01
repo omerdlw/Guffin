@@ -8,9 +8,9 @@ import {
   useReducedMotion,
   useTransform,
 } from "motion/react";
-import { cn } from "@omerdlw/base-framework/utils";
-import { SCENE, careerGap } from "../lib/motion";
-import type { CareerYear } from "../lib/types";
+import { cn } from "@/ui/cn";
+import { SCENE, careerGap } from "../motion";
+import type { CareerYear } from "../types";
 import { Cascade, EASE, Item, Trace, useCue } from "@/motion/stage";
 import { TONE } from "@/ui";
 
@@ -20,7 +20,6 @@ function labelStep(count: number) {
 }
 
 const SLOT = "relative min-w-[3px] max-w-7 flex-1";
-// Year labels this close to an edge hang inward so they stay in the gutter.
 const EDGE_SLOTS = 2;
 
 function Light() {
@@ -31,7 +30,7 @@ function Light() {
     <motion.span
       animate={shown ? { opacity: 1 } : undefined}
       aria-hidden="true"
-      className="absolute inset-0 rounded-t-[3px] bg-grade shadow-[0_0_28px_rgb(var(--grade)/0.5)]"
+      className="absolute inset-0 rounded-t-mark bg-grade shadow-glow"
       initial={{ opacity: 0 }}
       transition={{
         delay,
@@ -95,7 +94,7 @@ export function Career({
       <Cascade className="flex flex-col gap-5" gap={gap}>
         <Item className="flex min-h-14 items-end gap-6" from="light">
           <div className="flex min-w-0 items-end gap-5">
-            <span className="font-zuume text-5xl leading-[0.8] font-bold text-ink tabular-nums sm:text-6xl">
+            <span className="font-zuume type-display-sm leading-crop font-bold text-ink tabular-nums sm:type-display-md">
               <Roll year={current.year} />
             </span>
             <span className="flex min-w-0 flex-col gap-1 pb-0.5">
@@ -107,7 +106,7 @@ export function Career({
                     ? "1 film"
                     : `${current.count} films`}
               </span>
-              <span className="truncate text-sm leading-5 font-medium text-ink-body">
+              <span className="truncate type-body font-medium text-ink-body">
                 {current.films.slice(0, MAX_TITLES).join(" · ") || " "}
                 {hidden > 0 ? (
                   <span className="text-ink-muted"> · +{hidden}</span>
@@ -145,8 +144,8 @@ export function Career({
                 >
                   <span
                     className={cn(
-                      "cine-fade relative block w-full rounded-t-[3px] group-focus-visible:bg-ink",
-                      item.year === active ? "bg-ink" : "bg-white/25",
+                      "cine-fade relative block w-full rounded-t-mark group-focus-visible:bg-ink",
+                      item.year === active ? "bg-ink" : "bg-ink-faint",
                     )}
                     style={{ height: `${Math.max(item.weight, 0.05) * 100}%` }}
                   >
@@ -174,7 +173,7 @@ export function Career({
                     index < EDGE_SLOTS
                       ? "left-0"
                       : index >= years.length - EDGE_SLOTS
-                        ? "right-0 -mr-[0.14em]"
+                        ? "right-0 -mr-(--tracking-label)"
                         : "left-1/2 -translate-x-1/2",
                   )}
                 >

@@ -4,11 +4,11 @@ import {
   ACTIVITY_SORTS,
   parseActivityFilters,
   type AccountViewProps,
-} from "../lib/browse";
-import { ActivityLog, ActivityRow } from "../components/browse/activity-row";
-import { FilterBar } from "../components/browse/filter-bar";
-import { Pagination } from "../components/browse/pagination";
-import { EmptyState } from "../components/browse/empty-state";
+} from "../browse";
+import { ActivityLog, ActivityRow } from "../components/activity-row";
+import { FilterBar } from "../components/filter-bar";
+import { Pagination } from "../components/pagination";
+import { EmptyState } from "../components/empty-state";
 import { getActivityPage } from "../server/browse";
 import { getAccountPageContext } from "../server/context";
 

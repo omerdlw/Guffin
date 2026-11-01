@@ -4,9 +4,9 @@ import { cache } from "react";
 import { report } from "@omerdlw/base-framework/utils";
 import { findMovieByImdb } from "@/infrastructure/tmdb/server";
 import { CANON } from "../data/imdb-top-100";
-import { genreNames } from "../lib/genres";
-import type { CanonFilm } from "../lib/types";
-import { batched, kept } from "./keep";
+import { genreNames } from "../genres";
+import type { CanonFilm } from "../types";
+import { batched, kept } from "./cache";
 
 async function readCanon(): Promise<CanonFilm[]> {
   const films = await batched(CANON, 20, async ([imdbId, title, year], i) => {

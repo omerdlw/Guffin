@@ -50,11 +50,11 @@ export function Highlight({
   const [start, end] = range;
   return (
     <>
-      <span className="opacity-60">{text.slice(0, start)}</span>
+      <span className="opacity-70">{text.slice(0, start)}</span>
       <mark className="bg-transparent text-inherit">
         {text.slice(start, end)}
       </mark>
-      <span className="opacity-60">{text.slice(end)}</span>
+      <span className="opacity-70">{text.slice(end)}</span>
     </>
   );
 }

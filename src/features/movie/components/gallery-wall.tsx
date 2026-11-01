@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useModal } from "@omerdlw/base-framework/modules/modal";
-import { cn } from "@omerdlw/base-framework/utils";
+import { cn } from "@/ui/cn";
 import { artworkTarget } from "@/features/artwork";
 import { Icon, MediaCard, RADIUS, SegmentedControl, TONE, Tooltip } from "@/ui";
 import type { MediaCardAspect } from "@/ui";
@@ -15,7 +15,7 @@ import {
   useRoom,
   useWall,
 } from "@/motion/stage";
-import { ImageModal, type ImageModalData } from "./movie-modals";
+import { ImageModal, type ImageModalData } from "./modals";
 
 export interface WallPicture {
   crossOrigin?: "anonymous";

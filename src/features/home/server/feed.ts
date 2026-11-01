@@ -12,7 +12,7 @@ import type {
   FeaturedMoviePage,
   TmdbError,
 } from "@/infrastructure/tmdb/types";
-import { fresh, fuse, loglineOf, yearOf } from "../lib/rank";
+import { fresh, fuse, loglineOf, yearOf } from "../rank";
 import type {
   Circle,
   Feature,
@@ -22,7 +22,7 @@ import type {
   Member,
   Picks,
   ShowingFilm,
-} from "../lib/types";
+} from "../types";
 import {
   getCircle,
   getPulse,
@@ -78,9 +78,6 @@ function distinct(movies: readonly FeaturedMovie[]): FeaturedMovie[] {
   });
 }
 
-// The hero: what the world is watching (TMDB's weekly trending) and what
-// members are watching (the pulse's popular list), fused by rank. A film on
-// both lists rises above the leader of either.
 async function getFeatures(
   trending: FeaturedMovie[],
   pulse: PulseRow,
@@ -148,9 +145,6 @@ async function getFeatures(
     .slice(0, FEATURES);
 }
 
-// "Picked for you": TMDB's recommendations for the films the viewer rated
-// four stars or more or liked lately, fused by rank across those seeds, less
-// everything the viewer has already watched.
 async function getPicks(circle: CircleRow): Promise<Picks | null> {
   const seeds = circle.seeds.slice(0, SEEDS);
   if (seeds.length === 0) return null;
@@ -274,8 +268,6 @@ export const getHomeFeed = cache(async (): Promise<HomeFeed> => {
     waiting: waiting.get(movie.id) ?? 0,
   });
 
-  // Rising leaves out what the popular row already shows, so the two rows
-  // never repeat each other.
   const shown = new Set<number>();
   const popular = fresh(
     pulse.popular

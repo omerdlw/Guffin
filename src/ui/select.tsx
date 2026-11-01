@@ -19,7 +19,7 @@ import {
   useEscapeKey,
 } from "@omerdlw/base-framework/hooks";
 import { useTheme } from "@omerdlw/base-framework/theme";
-import { cn } from "@omerdlw/base-framework/utils";
+import { cn } from "@/ui/cn";
 import { Icon } from "./icon";
 import { primitivesTheme } from "./theme";
 import { SlidingHighlight } from "./sliding-highlight";
@@ -72,8 +72,8 @@ const VIEWPORT_MARGIN = 12;
 
 const COMPACT = {
   content: "p-1",
-  option: "px-2.5 py-1.5 text-xs",
-  trigger: "h-8 px-3 py-0 text-xs",
+  option: "px-2.5 py-1.5 type-meta",
+  trigger: "h-8 px-3 py-0 type-meta",
 } as const;
 
 export function Select<T extends string = string>({

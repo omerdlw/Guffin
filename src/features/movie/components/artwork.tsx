@@ -1,0 +1,120 @@
+"use client";
+
+import { AnimatePresence, motion } from "motion/react";
+import { useModal } from "@omerdlw/base-framework/modules/modal";
+import { ArtworkPoster, useArtworkPath } from "@/features/artwork";
+import { Icon, TONE } from "@/ui";
+import { Projection } from "@/motion/effects";
+import { tmdbImageUrl } from "@/infrastructure/tmdb/images";
+import type { Awards, MovieDetails } from "@/infrastructure/tmdb/types";
+import { SCENE } from "../motion";
+import { Ambient, Backdrop, ease, EASE, Grade, unit } from "@/motion/stage";
+import { ImageModal, type ImageModalData } from "./modals";
+import { useReel } from "./reel";
+
+type Artwork = Pick<
+  MovieDetails,
+  "backdropPath" | "id" | "posterPath" | "title"
+>;
+
+export function MoviePoster({
+  awards,
+  movie,
+}: {
+  awards?: Promise<Awards | null>;
+  movie: Artwork;
+}) {
+  const path = useArtworkPath("movie", movie.id, "poster", movie.posterPath);
+
+  return (
+    <ArtworkPoster
+      alt={`${movie.title} poster`}
+      awards={awards}
+      className="@container w-full shrink-0"
+      fallbackIcon="solar:clapperboard-play-bold"
+      frameClassName="h-[round(150cqw,1px)]"
+      path={path}
+      src={tmdbImageUrl("poster", path, "w780")}
+    />
+  );
+}
+
+const [FROM, TO] = SCENE.scrub.defocus.range;
+const defocusAt = (y: number) => ease.glide(unit((y - FROM) / (TO - FROM)));
+
+const REEL_SIZE = "w1280";
+
+function Slate({ title }: { title: string }) {
+  const { project, reel } = useReel();
+  const [openImage] = useModal(ImageModal);
+  return (
+    <AnimatePresence>
+      {reel ? (
+        <motion.div
+          animate={{ filter: "blur(0px)", opacity: 1, y: 0 }}
+          className={`absolute top-6 right-4 z-20 flex items-center gap-1 p-1 sm:right-6 lg:right-8 ${TONE.glass}`}
+          exit={{ filter: "blur(6px)", opacity: 0, y: -8 }}
+          initial={{ filter: "blur(6px)", opacity: 0, y: -8 }}
+          transition={{ duration: SCENE.view.enter, ease: EASE.expo }}
+        >
+          <span className={`px-3 ${TONE.label} text-ink-muted`}>Still</span>
+          <button
+            aria-label="View this still"
+            className="cine-fade center size-8 cursor-pointer rounded-full text-ink-body hover:bg-fill-hover hover:text-ink"
+            onClick={() => {
+              const src = tmdbImageUrl("backdrop", reel, "original");
+              if (!src) return;
+              const data: ImageModalData = { alt: `Still of ${title}`, src };
+              void openImage(data);
+            }}
+            type="button"
+          >
+            <Icon icon="solar:maximize-square-minimalistic-linear" size={16} />
+          </button>
+          <button
+            className="cine-fade h-8 cursor-pointer rounded-full px-3 type-control font-medium text-ink hover:bg-fill-hover"
+            onClick={() => project(null)}
+            type="button"
+          >
+            Back to the film
+          </button>
+        </motion.div>
+      ) : null}
+    </AnimatePresence>
+  );
+}
+
+export function MovieBackdropHero({ movie }: { movie: Artwork }) {
+  const path = useArtworkPath(
+    "movie",
+    movie.id,
+    "backdrop",
+    movie.backdropPath,
+  );
+  const { reel } = useReel();
+  const image = tmdbImageUrl("backdrop", path, "original");
+  const room = tmdbImageUrl("backdrop", path, "w300");
+  const still = reel ? tmdbImageUrl("backdrop", reel, REEL_SIZE) : null;
+  return image ? (
+    <>
+      {room ? <Ambient rises={false} source={room} /> : null}
+      <Backdrop>
+        {(reveal) => (
+          <>
+            <Grade source={tmdbImageUrl("backdrop", reel ?? path, "w300")} />
+            <Projection
+              cut={SCENE.film.cut}
+              defocusAt={defocusAt}
+              halation={SCENE.film.halation}
+              onReady={reveal}
+              position="center 20%"
+              reel={still}
+              src={image}
+            />
+          </>
+        )}
+      </Backdrop>
+      <Slate title={movie.title} />
+    </>
+  ) : null;
+}

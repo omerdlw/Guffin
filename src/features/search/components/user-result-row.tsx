@@ -1,7 +1,7 @@
 "use client";
 
 import { Avatar, Highlight, Icon, ResultRow } from "@/ui";
-import type { UserSearchHit } from "../lib/types";
+import type { UserSearchHit } from "../types";
 import { accountHref } from "@/config/routes";
 
 export function UserResultRow({

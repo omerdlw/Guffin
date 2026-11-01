@@ -9,7 +9,8 @@ import {
   type SyntheticEvent,
 } from "react";
 import { useTheme } from "@omerdlw/base-framework/theme";
-import { cn, trimToNull } from "@omerdlw/base-framework/utils";
+import { cn } from "@/ui/cn";
+import { trimToNull } from "@omerdlw/base-framework/utils";
 import { primitivesTheme } from "./theme";
 
 interface AdaptiveImageProps extends Omit<

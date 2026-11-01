@@ -3,7 +3,8 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { DockSurfaceExtension } from "@omerdlw/base-framework/modules/dock";
-import { cn } from "@omerdlw/base-framework/utils";
+import { SPRING } from "@/motion/stage/tempo";
+import { cn } from "@/ui/cn";
 import { Button } from "./button";
 import { Icon } from "./icon";
 
@@ -28,13 +29,6 @@ interface PillBox {
   width: number;
   x: number;
 }
-
-const PILL_SPRING = {
-  damping: 32,
-  mass: 1.1,
-  stiffness: 150,
-  type: "spring",
-} as const;
 
 export function useSlidingPill<T extends HTMLElement>(
   selector: string,
@@ -79,7 +73,7 @@ export function SlidingPill({
       className={cn("pointer-events-none absolute left-0", className)}
       data-pill=""
       initial={false}
-      transition={reduced ? { duration: 0 } : PILL_SPRING}
+      transition={reduced ? { duration: 0 } : SPRING.follow}
     />
   );
 }
@@ -134,7 +128,7 @@ export function SegmentedControl<K extends string>({
         <SlidingPill
           box={pill}
           className={cn(
-            "inset-y-0.5 bg-fill-active shadow-sm",
+            "inset-y-0.5 bg-fill-active shadow-knob",
             round && "rounded-full",
           )}
         />
@@ -146,7 +140,7 @@ export function SegmentedControl<K extends string>({
             aria-selected={active}
             data-pill-target={item.key === pillKey ? "" : undefined}
             className={cn(
-              "relative inline-flex min-w-fit cursor-pointer items-center justify-center gap-1.5 px-3.5 text-xs font-medium whitespace-nowrap cine-fade outline-none focus-visible:ring-1 focus-visible:ring-edge-focus focus-visible:ring-inset",
+              "relative inline-flex min-w-fit cursor-pointer items-center justify-center gap-1.5 px-3.5 type-meta font-medium whitespace-nowrap cine-fade outline-none focus-visible:ring-1 focus-visible:ring-edge-focus focus-visible:ring-inset",
               fill && "flex-1",
               round && "rounded-full",
               active

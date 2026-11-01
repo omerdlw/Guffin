@@ -23,9 +23,9 @@ import {
 import { useSmoothScroll } from "@/motion/scroll";
 import { ClockContext } from "./clock";
 import { Develop } from "./develop";
-import { GRAMMAR } from "./grammar";
+import { GRAMMAR } from "./choreography";
 import { EASE } from "./tempo";
-import { useArrival, useArrivalClock } from "./wave";
+import { useArrival, useArrivalClock } from "./arrival";
 import { clamp } from "../math";
 
 type WallPhase = "page" | "leaving" | "wall" | "closing" | "returning";

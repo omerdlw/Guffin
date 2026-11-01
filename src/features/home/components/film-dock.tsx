@@ -9,11 +9,10 @@ import {
 import { movieHref } from "@/config/routes";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/images";
 import { Button, Icon } from "@/ui";
-import type { Feature } from "../lib/types";
+import type { Feature } from "../types";
 
 const FALLBACK_ICON = "solar:clapperboard-play-bold";
 
-// While the hero is on screen the dock carries the film it projects.
 export function FilmDock({
   film,
   shown,

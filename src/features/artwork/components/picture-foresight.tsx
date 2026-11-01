@@ -3,8 +3,8 @@
 import { report } from "@omerdlw/base-framework/utils";
 import { useNavigationIntent } from "@omerdlw/base-framework/modules/navigation";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/images";
-import { artworkKey } from "../lib/entries";
-import { artworkStore } from "../lib/store";
+import { artworkKey } from "../entries";
+import { artworkStore } from "../store";
 import { readable } from "@/motion/gl";
 
 const PAGE = /^\/(movie|person)\/([1-9]\d{0,9})$/;
@@ -34,7 +34,7 @@ async function ready(path: string) {
     if (src) hold(src);
     return;
   }
-  const response = await fetch(`/api/picture?kind=${kind}&id=${id}`);
+  const response = await fetch(`/api/backdrop?kind=${kind}&id=${id}`);
   if (!response.ok) return;
   const { path: picture } = (await response.json()) as { path: unknown };
   const src =

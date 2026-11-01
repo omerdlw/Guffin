@@ -29,7 +29,8 @@ export function SmoothScrollProvider({
   children: ReactNode;
   options?: SmoothScrollOptions;
 }) {
-  const [engine] = useState(() => new SmoothScroll(options));  const pathname = useOptionalPathname();
+  const [engine] = useState(() => new SmoothScroll(options));
+  const pathname = useOptionalPathname();
   const isFirstMount = useRef(true);
 
   useEffect(() => {

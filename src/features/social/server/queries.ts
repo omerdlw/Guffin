@@ -1,8 +1,8 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/infrastructure/supabase/client";
-import type { MovieSocialProof } from "../lib/types";
-import { buildMovieSocialProof } from "../lib/utils";
+import type { MovieSocialProof } from "../types";
+import { buildMovieSocialProof } from "../utils";
 
 const MOVIE_PROOF_LIMIT = 100;
 

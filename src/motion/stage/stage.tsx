@@ -26,15 +26,15 @@ import {
   useNavigationPayload,
   type NavigationTrip,
 } from "@omerdlw/base-framework/modules/navigation";
-import { cn } from "@omerdlw/base-framework/utils";
+import { cn } from "@/ui/cn";
 import {
   dropCarry,
   liftCarry,
   settleCarry,
   useTintedFavicon,
-} from "@/motion/film";
+} from "@/motion/effects";
 import { useScrollY, useSmoothScroll } from "@/motion/scroll";
-import { GRAMMAR, type Opening } from "./grammar";
+import { GRAMMAR, type Opening } from "./choreography";
 import { EASE, FOCUSED, blur, focus } from "./tempo";
 import {
   ExitContext,
@@ -43,8 +43,8 @@ import {
   TimelineContext,
   useExit,
 } from "./clock";
-import { Frame, GradeContext } from "./frame";
-import { RoomContext } from "./room";
+import { Frame, GradeContext } from "./color-grade";
+import { RoomContext } from "./lead-image";
 import { createTimeline } from "./timeline";
 import { Hung, WallContext, pageDown, useWall, useWallScene } from "./wall";
 
@@ -101,10 +101,6 @@ export function Stage({
   wall,
   wash = true,
 }: {
-  /**
-   * A pure #000 room: the frame adds no light of its own (no wash, grain,
-   * glass sheen), so only the page's own effects light it.
-   */
   black?: boolean;
   children: ReactNode;
   className?: string;
@@ -248,8 +244,6 @@ function Leaving({
     else timeline?.resume();
   }, [leaving, timeline]);
 
-  // Every trip out of the page, by the dock or the back button, waits for
-  // the exit; the carry rides along only on the way forward.
   useNavigationHold(
     reduced
       ? null

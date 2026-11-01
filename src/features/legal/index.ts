@@ -1,2 +1,2 @@
-export { LegalPage } from "./components/legal-page";
-export { PRIVACY, TERMS } from "./lib/content";
+export { LegalPage } from "./view";
+export { PRIVACY, TERMS } from "./content";

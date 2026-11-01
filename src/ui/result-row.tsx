@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { useDockLinkClick } from "./dock-link";
+import { useDockLinkClick } from "./hooks/use-dock-link";
 
 export function ResultRow({
   href,
@@ -33,10 +33,10 @@ export function ResultRow({
         {thumb}
       </span>
       <span className="flex min-w-0 flex-1 flex-col gap-1">
-        <span className="truncate text-sm leading-tight font-semibold text-ink">
+        <span className="truncate type-body font-semibold text-ink">
           {title}
         </span>
-        <span className="flex min-w-0 items-center gap-1.5 text-xs leading-tight text-ink-muted group-hover:text-ink-body group-focus-visible:text-ink-body in-data-active:text-ink-body">
+        <span className="flex min-w-0 items-center gap-1.5 type-meta text-ink-muted group-hover:text-ink-body group-focus-visible:text-ink-body in-data-active:text-ink-body">
           {meta}
         </span>
       </span>

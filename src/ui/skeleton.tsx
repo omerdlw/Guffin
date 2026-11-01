@@ -1,5 +1,5 @@
 import type { CSSProperties, JSX, ReactNode } from "react";
-import { cn } from "@omerdlw/base-framework/utils";
+import { cn } from "@/ui/cn";
 
 export function SkeletonBlock({
   className,
@@ -25,7 +25,6 @@ export function SkeletonLines({
 }: {
   className?: string;
   height?: string;
-  /** The lines below the sm breakpoint, where copy wraps differently. */
   phone?: readonly string[];
   widths: readonly string[];
 }): JSX.Element {

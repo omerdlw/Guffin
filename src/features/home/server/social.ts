@@ -9,9 +9,6 @@ import {
   createServerSupabaseClient,
 } from "@/infrastructure/supabase/server";
 
-// The shapes get_home_pulse and get_home_circle return, as the database
-// writes them (supabase/migrations/20261027190000_home_feed.sql).
-
 export interface MemberRow {
   avatar_url: string | null;
   display_name: string | null;
@@ -107,10 +104,6 @@ const EMPTY_PULSE: PulseRow = {
 };
 
 const PULSE_KEY = "home:pulse:v2";
-// The pulse is the same for every visitor and takes the database a few
-// hundred milliseconds (seconds, cold), so it is kept in Redis: fresh for
-// five minutes, then served stale for up to an hour while one request
-// recounts it after its response has gone out.
 const PULSE_FRESH_MS = 5 * 60_000;
 const PULSE_KEEP_SECONDS = 60 * 60;
 
@@ -119,8 +112,6 @@ interface CachedPulse {
   pulse: PulseRow;
 }
 
-// It reads public accounts only and never asks who is viewing, so it goes
-// through the server key, out of reach of the anon role's statement timeout.
 async function readPulse(): Promise<PulseRow> {
   const { data, error } =
     await createAdminSupabaseClient().rpc("get_home_pulse");
@@ -168,7 +159,6 @@ export async function getPulse(): Promise<PulseRow> {
   }
 }
 
-/** Null for a visitor who isn't signed in. */
 export async function getCircle(): Promise<CircleRow | null> {
   try {
     if (!(await getOptionalUser())) return null;
@@ -182,7 +172,6 @@ export async function getCircle(): Promise<CircleRow | null> {
   }
 }
 
-/** Watchlist counts for films the database didn't rank, keyed by TMDB id. */
 export async function getWaiting(ids: number[]): Promise<Map<number, number>> {
   const waiting = new Map<number, number>();
   if (ids.length === 0) return waiting;

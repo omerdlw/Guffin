@@ -27,10 +27,10 @@ export const MAIN_COLUMN_CLASS = `${STACK_CLASS} min-w-0 lg:col-start-2 lg:row-s
 export const VIEW_CLASS = STACK_CLASS;
 
 const HEADLINE_SIZES = [
-  "text-7xl sm:text-8xl lg:text-9xl",
-  "text-6xl sm:text-7xl lg:text-8xl",
-  "text-5xl sm:text-6xl lg:text-7xl",
-  "text-4xl sm:text-5xl lg:text-6xl",
+  "type-display-lg sm:type-display-xl lg:type-display-2xl",
+  "type-display-md sm:type-display-lg lg:type-display-xl",
+  "type-display-sm sm:type-display-md lg:type-display-lg",
+  "type-display-xs sm:type-display-sm lg:type-display-md",
 ] as const;
 const HEADLINE_FACE = "font-zuume leading-none font-bold uppercase";
 
@@ -50,50 +50,44 @@ export function headlineClass(
 
 export const RULE_GAP = "mt-10 mb-6";
 export const PROSE_BOX = "max-w-[62ch]";
-export const PROSE_TYPE =
-  "text-left text-base leading-7 sm:text-[17px] sm:leading-[30px]";
+export const PROSE_TYPE = "text-left type-prose";
 export const PROSE_CLASS = `${PROSE_BOX} ${PROSE_TYPE} text-pretty`;
 
 export const SIDEBAR_CLASS =
   "grid grid-cols-1 items-start gap-x-8 gap-y-6 sm:grid-cols-[20rem_minmax(0,1fr)] lg:grid-cols-1";
-export const FACT_ROW_TYPE = "text-sm leading-5";
+export const FACT_ROW_TYPE = "type-body";
 
 export const CAROUSEL_ITEM =
   "w-[calc((100%-1.5rem)/3)] md:w-[calc((100%-2.25rem)/4)]";
 export const CAROUSEL_WIDE_ITEM = "w-full sm:w-[calc((100%-0.75rem)/2)]";
 
-// Corner radii in px, the same steps as --radius-* in globals.css. Props
-// that take a number (Carousel, MediaCard, Tile, Develop) read these.
 export const RADIUS = {
   thumb: 8,
   tile: 12,
   card: 16,
   panel: 20,
   sheet: 24,
+  inset: 10,
+  shell: 26,
 } as const;
 
-// A frame inside another keeps the curves parallel: the outer radius less
-// the padding between them.
 export const nested = (outer: number, padding: number) =>
   Math.max(0, outer - padding);
 
 const GLASS =
-  "rounded-full bg-black/60 text-ink shadow-float ring-1 ring-edge-hover ring-inset backdrop-blur-md backdrop-saturate-150 inset-shadow-[0_1px_0_var(--color-edge)]";
+  "rounded-full bg-black/60 text-ink shadow-float ring-1 ring-edge-hover ring-inset backdrop-blur-md backdrop-saturate-150 inset-shadow-top";
 
 const SURFACE =
   "bg-fill ring-1 ring-edge ring-inset hover:bg-fill-hover hover:ring-edge-hover";
 
 export const TONE = {
-  arrows: `${GLASS} hover:bg-black/75`,
+  arrows: `${GLASS} hover:bg-black/70`,
   chosen:
     "bg-grade/15 text-grade ring-1 ring-grade/25 ring-inset hover:bg-grade/20 hover:ring-grade/30",
-  // Floating chrome over a picture.
   glass: GLASS,
-  label: "text-[11px] leading-4 font-semibold tracking-[0.14em] uppercase",
-  // A label-sized text action: a section's "More", "Read more".
-  link: "cine-fade text-[11px] leading-4 font-semibold tracking-[0.14em] uppercase text-ink-muted hover:text-ink focus-visible:text-ink",
-  // The full-width button under a list that shows the rest of it.
-  more: `cine-press center h-10 w-full cursor-pointer gap-2 rounded-full text-[13px] leading-4 font-medium text-ink-body hover:text-ink ${SURFACE}`,
+  label: "type-label font-semibold tracking-label uppercase",
+  link: "cine-fade type-label font-semibold tracking-label uppercase text-ink-muted hover:text-ink focus-visible:text-ink",
+  more: `cine-press center h-10 w-full cursor-pointer gap-2 rounded-full type-control font-medium text-ink-body hover:text-ink ${SURFACE}`,
   rule: "bg-rule",
   rules: "divide-rule",
   select: {

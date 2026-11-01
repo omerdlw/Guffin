@@ -1,7 +1,7 @@
 "use client";
 
 import { useTheme } from "@omerdlw/base-framework/theme";
-import { cn } from "@omerdlw/base-framework/utils";
+import { cn } from "@/ui/cn";
 import { Icon } from "./icon";
 import { primitivesTheme } from "./theme";
 

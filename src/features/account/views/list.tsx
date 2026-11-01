@@ -7,16 +7,16 @@ import {
   parseListItemFilters,
   type AccountViewProps,
   MEDIA_FILTERS,
-} from "../lib/browse";
-import { AccountLink } from "../components/browse/account-link";
-import { FilterBar } from "../components/browse/filter-bar";
-import { ListComments } from "../components/browse/list-comments";
-import { ListChrome } from "../components/browse/list-chrome";
-import { Pagination } from "../components/browse/pagination";
-import { PosterGrid } from "../components/browse/poster-grid";
-import { EmptyState } from "../components/browse/empty-state";
-import { Section, counted } from "../components/browse/section";
-import { formatShortDate } from "../lib/dates";
+} from "../browse";
+import { AccountLink } from "../components/link";
+import { FilterBar } from "../components/filter-bar";
+import { ListComments } from "../components/list-comments";
+import { ListChrome } from "../components/list-chrome";
+import { Pagination } from "../components/pagination";
+import { PosterGrid } from "../components/poster-grid";
+import { EmptyState } from "../components/empty-state";
+import { Section, counted } from "../components/section";
+import { formatShortDate } from "../dates";
 import { Icon } from "@/ui";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/images";
 import { getListPage } from "../server/browse";
@@ -57,7 +57,7 @@ export async function AccountListView({
       />
       <header className="flex flex-col gap-5">
         <AccountLink
-          className="inline-flex w-fit items-center gap-1.5 text-[11px] font-semibold tracking-[0.14em] text-ink-muted uppercase hover:text-ink"
+          className="inline-flex w-fit items-center gap-1.5 type-label font-semibold tracking-label text-ink-muted uppercase hover:text-ink"
           href={lists}
         >
           <Icon icon="solar:alt-arrow-left-linear" size={13} />
@@ -66,7 +66,7 @@ export async function AccountListView({
 
         <div className="flex min-w-0 flex-col gap-3">
           <div className="flex min-w-0 items-center gap-2.5">
-            <h1 className="text-2xl leading-8 font-semibold tracking-tight break-words text-ink">
+            <h1 className="type-heading font-semibold break-words text-ink">
               {list.title}
             </h1>
             {list.isPrivate ? (
@@ -78,7 +78,7 @@ export async function AccountListView({
               />
             ) : null}
           </div>
-          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-ink-muted">
+          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 type-body text-ink-muted">
             <span>
               By{" "}
               <AccountLink
@@ -107,7 +107,7 @@ export async function AccountListView({
               ))}
           </p>
           {list.description ? (
-            <p className="max-w-2xl text-sm leading-6 whitespace-pre-line text-ink-body">
+            <p className="max-w-2xl type-body leading-6 whitespace-pre-line text-ink-body">
               {list.description}
             </p>
           ) : null}

@@ -2,7 +2,7 @@
 
 import { Highlight, MediaCard, RADIUS, ResultRow } from "@/ui";
 import { tmdbImageSrcSet, tmdbImageUrl } from "@/infrastructure/tmdb/images";
-import type { ListSearchHit } from "../lib/types";
+import type { ListSearchHit } from "../types";
 import { listHref } from "@/config/routes";
 
 const POSTER_WIDTHS = ["w185"] as const;

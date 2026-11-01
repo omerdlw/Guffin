@@ -1,8 +1,7 @@
-export { PersonPageChrome } from "./components/person-page-chrome";
-export { PersonResultRow } from "./components/person-result-row";
-export { PersonView } from "./components/person-view";
-export { PersonViewProvider } from "./components/person-view-state";
-export { getTimeline } from "./lib/credits";
-export { getBackdropPath, personSwatch } from "./lib/images";
-export { describePerson, parsePersonId } from "./lib/profile";
-export { PersonSkeleton } from "./components/person-skeleton";
+export { PersonPageChrome } from "./components/chrome";
+export { PersonView } from "./view";
+export { PersonViewProvider } from "./components/view-state";
+export { getTimeline } from "./credits";
+export { getBackdropPath, personSwatch } from "./images";
+export { departmentRole, describePerson, parsePersonId } from "./profile";
+export { PersonSkeleton } from "./skeleton";

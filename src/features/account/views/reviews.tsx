@@ -4,11 +4,11 @@ import {
   REVIEW_SORTS,
   parseReviewFilters,
   type AccountViewProps,
-} from "../lib/browse";
-import { FilterBar } from "../components/browse/filter-bar";
-import { Pagination } from "../components/browse/pagination";
-import { ReviewList } from "../components/browse/review-list";
-import { EmptyState } from "../components/browse/empty-state";
+} from "../browse";
+import { FilterBar } from "../components/filter-bar";
+import { Pagination } from "../components/pagination";
+import { ReviewList } from "../components/review-list";
+import { EmptyState } from "../components/empty-state";
 import { getReviewsPage } from "../server/browse";
 import { getAccountPageContext } from "../server/context";
 

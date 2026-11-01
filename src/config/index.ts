@@ -18,4 +18,4 @@ export const themes = Object.freeze([
   notificationThemeConfig,
 ]);
 
-export { motion } from "./theme/motion/tokens";
+export { motion } from "./theme/motion";

@@ -15,10 +15,10 @@ import {
   useTransform,
   type MotionValue,
 } from "motion/react";
-import { GRAMMAR, sinceBase } from "./grammar";
+import { GRAMMAR, sinceBase } from "./choreography";
 import { EASE, size } from "./tempo";
-import { bezier, play } from "./play";
-import type { Opening } from "./grammar";
+import { bezier, play } from "./animate";
+import type { Opening } from "./choreography";
 import type { Timeline } from "./timeline";
 
 export const TimelineContext = createContext<Timeline | null>(null);
@@ -67,8 +67,6 @@ export function useClockStart(
       begin(clock.get());
       return stopAll;
     }
-    // Unsubscribing inside the handler shifts motion's subscriber list and
-    // skips the next one; a single set (reduced motion) never reaches it.
     let begun = false;
     const unsubscribe = clock.on("change", (time) => {
       if (begun) return;

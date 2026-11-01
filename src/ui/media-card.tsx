@@ -2,8 +2,8 @@
 
 import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
-import { cn } from "@omerdlw/base-framework/utils";
-import { useDockLinkClick } from "./dock-link";
+import { cn } from "@/ui/cn";
+import { useDockLinkClick } from "./hooks/use-dock-link";
 import { AdaptiveImage } from "./adaptive-image";
 import { Icon } from "./icon";
 import { Tooltip } from "./tooltip";

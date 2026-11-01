@@ -16,7 +16,7 @@ import {
   type ListSort,
   type MediaFilters,
   type ReviewFilters,
-} from "../lib/browse";
+} from "../browse";
 import type {
   ActivityDays,
   ActivityItem,
@@ -29,7 +29,7 @@ import type {
   Paged,
   PersonPreview,
   ReviewCardData,
-} from "../lib/browse-data";
+} from "../browse-types";
 type Client = SupabaseClient<Database>;
 
 type LibraryCounts = Record<

@@ -4,12 +4,12 @@ import {
   parseListSort,
   readPage,
   type AccountViewProps,
-} from "../lib/browse";
-import { FilterBar } from "../components/browse/filter-bar";
-import { ListRows } from "../components/browse/list-row";
-import { ListsChrome } from "../components/browse/list-owner-actions";
-import { Pagination } from "../components/browse/pagination";
-import { EmptyState } from "../components/browse/empty-state";
+} from "../browse";
+import { FilterBar } from "../components/filter-bar";
+import { ListRows } from "../components/list-row";
+import { ListsChrome } from "../components/list-owner-actions";
+import { Pagination } from "../components/pagination";
+import { EmptyState } from "../components/empty-state";
 import { getListsPage } from "../server/browse";
 import { getAccountPageContext } from "../server/context";
 

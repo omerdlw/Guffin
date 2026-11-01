@@ -1,14 +1,14 @@
 "use client";
 
 import type { JSX, ReactNode } from "react";
-import { cn } from "@omerdlw/base-framework/utils";
+import { cn } from "@/ui/cn";
 import { Button, Icon, TONE } from "@/ui";
-import { Magnet } from "../film/magnet";
+import { Magnet } from "../effects/magnet";
 import { Fade } from "./clock";
 import { Item } from "./section";
 
 const BASE =
-  "cine-card cine-fade group center relative w-full cursor-pointer gap-2.5 overflow-hidden rounded-full text-[13px] leading-4 font-medium select-none";
+  "cine-card cine-fade group center relative w-full cursor-pointer gap-2.5 overflow-hidden rounded-full type-control font-medium select-none";
 
 export function StageAction({
   active,

@@ -5,9 +5,9 @@ import { report } from "@omerdlw/base-framework/utils";
 import { getMovieDetails, searchMovies } from "@/infrastructure/tmdb/server";
 import type { MovieSearchPage } from "@/infrastructure/tmdb/types";
 import { BEST_PICTURE, ceremonyYear } from "../data/best-picture";
-import { genreNames } from "../lib/genres";
-import type { Laureate } from "../lib/types";
-import { batched, kept, loglineOf } from "./keep";
+import { genreNames } from "../genres";
+import type { Laureate } from "../types";
+import { batched, kept, loglineOf } from "./cache";
 
 type Hit = MovieSearchPage["results"][number];
 
@@ -18,8 +18,6 @@ const normal = (title: string) =>
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
 
-// TMDB search is fuzzy, so the winner is the most-voted hit whose title
-// matches and whose release sits within a year of the honoured one.
 function winnerAmong(
   found: readonly Hit[],
   title: string,

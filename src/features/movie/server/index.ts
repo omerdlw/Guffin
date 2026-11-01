@@ -1,1 +1,1 @@
-export { MoviePageContent } from "../components/movie-page";
+export { MoviePageContent } from "../view";

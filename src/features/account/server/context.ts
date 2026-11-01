@@ -3,7 +3,7 @@ import { cache } from "react";
 import { notFound } from "next/navigation";
 import { getOptionalUser } from "@/features/auth/server";
 import { createServerSupabaseClient } from "@/infrastructure/supabase/server";
-import type { PublicAccount } from "../lib/types";
+import type { PublicAccount } from "../types";
 import { getAccountFollowRelation } from "./follows";
 import { getPublicAccount } from "./profile";
 

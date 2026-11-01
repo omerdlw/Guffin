@@ -1,13 +1,82 @@
 import { Z_INDEX } from "@omerdlw/base-framework/tokens";
 import { defineTheme } from "@omerdlw/base-framework/theme";
 import { modalTheme } from "@omerdlw/base-framework/modules/modal";
-import { BACKDROP, FILL, SHELL } from "./chrome";
-import { modalMotion } from "./motion/modal";
+import { BACKDROP, DIM, FILL, SHELL } from "./chrome";
+import type {
+  ModalMotion,
+  ModalPositionMotion,
+} from "@omerdlw/base-framework/modules/modal";
+import { motion, tween } from "./motion";
+
+const { durations: time, easings: ease } = motion;
+
+const REST = "translate3d(0px, 0px, 0) scale(1)";
+
+const leave = tween(time.leave, ease.fade);
+
+const sheet = (offset: string): ModalPositionMotion => ({
+  variants: {
+    hidden: { opacity: 0, transform: offset },
+    visible: {
+      opacity: 1,
+      transform: REST,
+      transition: {
+        transform: tween(time.move, ease.pour),
+        opacity: tween(time.light, ease.fade),
+      },
+    },
+    exit: {
+      opacity: 0,
+      transform: offset,
+      transition: {
+        transform: tween(time.reveal, ease.glide),
+        opacity: tween(time.reveal, ease.fade, time.leave),
+      },
+    },
+  },
+});
+
+const still = { hidden: { opacity: 1 }, visible: { opacity: 1 } };
+
+export const modalMotion: ModalMotion = {
+  backdrop: {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: tween(time.move, ease.fade) },
+    exit: { opacity: 0, transition: tween(time.reveal, ease.fade) },
+  },
+  content: still,
+  header: still,
+  footer: still,
+  positions: {
+    center: {
+      variants: {
+        hidden: {
+          opacity: 0,
+          transform: "translate3d(0px, 0px, 0) scale(0.98)",
+        },
+        visible: {
+          opacity: 1,
+          transform: REST,
+          transition: {
+            transform: tween(time.move, ease.pour),
+            opacity: tween(time.light, ease.fade),
+          },
+        },
+        exit: { opacity: 0, transform: REST, transition: leave },
+      },
+      transition: tween(time.move, ease.pour),
+    },
+    top: sheet("translate3d(0px, -100%, 0) scale(1)"),
+    right: sheet("translate3d(100%, 0px, 0) scale(1)"),
+    bottom: sheet("translate3d(0px, 100%, 0) scale(1)"),
+    left: sheet("translate3d(-100%, 0px, 0) scale(1)"),
+  },
+};
 
 export const modalThemeConfig = defineTheme(modalTheme, {
   slots: {
     backdrop: `fixed inset-0 cursor-pointer ${BACKDROP}`,
-    dim: "pointer-events-auto absolute inset-0 cursor-pointer bg-black/30 backdrop-blur-xs",
+    dim: `pointer-events-auto absolute inset-0 cursor-pointer ${DIM}`,
 
     layer: [
       "pointer-events-none fixed inset-0 flex flex-col data-[inset=true]:px-3",
@@ -45,18 +114,18 @@ export const modalThemeConfig = defineTheme(modalTheme, {
       "flex min-h-0 flex-col overflow-hidden data-[height=capped]:max-h-[70dvh] data-[height=full]:h-full data-[height=full]:max-h-full",
     body: "modal-body min-h-0 w-full flex-1 overflow-y-auto overscroll-contain p-2.5 pt-0 first:pt-2.5",
 
-    row: "items-center gap-2.5 p-2.5 pl-4 data-[columns=2]:flex data-[columns=2]:justify-between data-[columns=3]:grid data-[columns=3]:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] data-[sticky]:bg-black/80 data-[sticky]:backdrop-blur-md data-[sticky=bottom]:sticky data-[sticky=bottom]:bottom-0 data-[sticky=top]:sticky data-[sticky=top]:top-0",
+    row: "items-center gap-2.5 p-2.5 pl-4 data-[columns=2]:flex data-[columns=2]:justify-between data-[columns=3]:grid data-[columns=3]:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] data-[sticky]:bg-black/70 data-[sticky]:backdrop-blur-md data-[sticky=bottom]:sticky data-[sticky=bottom]:bottom-0 data-[sticky=top]:sticky data-[sticky=top]:top-0",
     rowCenter: "flex items-center justify-center",
     rowEnd: "flex min-w-0 items-center justify-end gap-2.5",
     rowStart: "min-w-0",
-    title: "truncate text-[15px] font-semibold tracking-[-0.01em] text-ink",
+    title: "truncate type-copy font-semibold text-ink",
     closeButton: `ui-iris center relative inline-flex size-8 cursor-pointer rounded-full text-ink-body hover:text-ink ${FILL}`,
 
     switcher: "center shrink-0 gap-2 border-t border-rule bg-fill p-2.5",
-    switcherButton: `flex h-8 cursor-pointer items-center gap-1.5 rounded-full px-3.5 text-xs font-medium text-ink-body *:shrink-0 hover:text-ink ${FILL}`,
+    switcherButton: `flex h-8 cursor-pointer items-center gap-1.5 rounded-full px-3.5 type-meta font-medium text-ink-body *:shrink-0 hover:text-ink ${FILL}`,
     switcherCurrent:
-      "flex h-8 items-center rounded-full bg-fill-active px-3.5 text-xs font-medium ring-1 ring-edge-hover ring-inset",
-    switcherDivider: "text-xs text-ink-faint",
+      "flex h-8 items-center rounded-full bg-fill-active px-3.5 type-meta font-medium ring-1 ring-edge-hover ring-inset",
+    switcherDivider: "type-meta text-ink-faint",
   },
   styles: {
     backdrop: { zIndex: Z_INDEX.MODAL_BACKDROP },

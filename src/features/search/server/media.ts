@@ -16,13 +16,13 @@ import {
   orderWeight,
   renown,
   splitYear,
-} from "../lib/rank";
+} from "../rank";
 import type {
   MovieSearchResponse,
   PersonSearchResponse,
   SearchFailure,
   SearchFailureCode,
-} from "../lib/types";
+} from "../types";
 import { catalogMatches } from "./catalog";
 
 const MESSAGES: Record<SearchFailureCode, string> = {

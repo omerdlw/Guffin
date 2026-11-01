@@ -1,0 +1,1 @@
+export { getMoviePopularLists } from "./popular";

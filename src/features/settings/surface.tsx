@@ -1,0 +1,128 @@
+"use client";
+
+import {
+  useDockActions,
+  type SurfaceEntry,
+} from "@omerdlw/base-framework/modules/dock";
+import { Button, Icon } from "@/ui";
+import { DeletePanel } from "./components/delete-panel";
+import { EmailForm } from "./components/email-form";
+import { MediaForm } from "./components/media-form";
+import { PasskeysPanel } from "./components/passkeys-panel";
+import { ProfileForm } from "./components/profile-form";
+import { ProvidersPanel } from "./components/providers-panel";
+import { SessionsPanel } from "./components/sessions-panel";
+import { useSecurity } from "./hooks";
+
+const SECTIONS = {
+  "avatar-banner": { icon: "solar:gallery-bold", title: "Avatar & Banners" },
+  account: { icon: "solar:user-circle-bold", title: "Account info" },
+  email: { icon: "solar:letter-bold", title: "Email sign-in" },
+  providers: { icon: "solar:link-bold", title: "Connected providers" },
+  sessions: { icon: "solar:devices-bold", title: "Active sessions" },
+  passkeys: { icon: "solar:key-bold", title: "Passkeys" },
+  delete: { icon: "solar:trash-bin-trash-bold", title: "Delete account" },
+} as const;
+
+type Section = keyof typeof SECTIONS;
+type SettingsKey = Section | "overview";
+
+const OVERVIEW = { icon: "solar:settings-bold", title: "Account settings" };
+const SECURITY_SECTIONS: readonly SettingsKey[] = [
+  "passkeys",
+  "providers",
+  "sessions",
+];
+
+function Overview() {
+  const { openSurface } = useDockActions();
+  return (
+    <div className="grid gap-2.5">
+      {(Object.keys(SECTIONS) as Section[]).map((key) => (
+        <Button
+          className="group/item flex h-[52px] w-full cursor-pointer items-center gap-3 rounded-card bg-fill py-1.5 pr-4 pl-1.5 text-left ring-1 ring-inset ring-edge hover:bg-fill-hover hover:ring-edge-hover"
+          key={key}
+          onClick={() =>
+            void openSurface(createAccountSettingsSurfaceEntry(key))
+          }
+        >
+          <span className="center size-10 shrink-0 rounded-inset bg-fill text-ink-body group-hover/item:bg-fill-hover group-hover/item:text-ink">
+            <Icon
+              className="ui-glyph center"
+              icon={SECTIONS[key].icon}
+              size={20}
+            />
+          </span>
+          <span className="min-w-0 flex-1 type-body font-medium text-ink">
+            {SECTIONS[key].title}
+          </span>
+          <Icon
+            className="center shrink-0 text-ink-muted group-hover/item:translate-x-0.5 group-hover/item:text-ink"
+            icon="solar:alt-arrow-right-linear"
+            size={16}
+          />
+        </Button>
+      ))}
+    </div>
+  );
+}
+
+function AccountSettingsSurface({
+  close,
+  section,
+}: {
+  close?: () => void;
+  section: SettingsKey;
+}) {
+  const security = useSecurity(SECURITY_SECTIONS.includes(section));
+  const done = () => close?.();
+
+  switch (section) {
+    case "overview":
+      return <Overview />;
+    case "account":
+      return <ProfileForm onSaved={done} />;
+    case "avatar-banner":
+      return <MediaForm onSaved={done} />;
+    case "email":
+      return <EmailForm />;
+    case "providers":
+      return (
+        <ProvidersPanel
+          identities={security.identities}
+          reload={security.reload}
+        />
+      );
+    case "sessions":
+      return (
+        <SessionsPanel
+          loading={security.loading}
+          reload={security.reload}
+          sessions={security.sessions}
+        />
+      );
+    case "passkeys":
+      return (
+        <PasskeysPanel
+          loading={security.loading}
+          passkeys={security.passkeys}
+          reload={security.reload}
+        />
+      );
+    case "delete":
+      return <DeletePanel />;
+  }
+}
+
+export function createAccountSettingsSurfaceEntry(
+  section: SettingsKey = "overview",
+): SurfaceEntry {
+  const { icon, title } = section === "overview" ? OVERVIEW : SECTIONS[section];
+  return {
+    component: AccountSettingsSurface,
+    icon,
+    props: { section },
+    title,
+    width: section === "avatar-banner" ? 580 : undefined,
+  };
+}

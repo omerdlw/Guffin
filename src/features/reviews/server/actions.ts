@@ -14,14 +14,14 @@ import {
   isMovieReviewSort,
   type MovieReviewFilter,
   type MovieReviewSort,
-} from "../lib/constants";
+} from "../constants";
 import type {
   MovieReview,
   ReviewInput,
   ReviewResult,
   ReviewStats,
-} from "../lib/types";
-import { getReviewValidationError } from "../lib/validation";
+} from "../types";
+import { getReviewValidationError } from "../validation";
 import { getMovieReviews, getReviewStats } from "./queries";
 import { isUuid } from "@/infrastructure/uuid";
 

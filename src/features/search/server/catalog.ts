@@ -1,7 +1,7 @@
 import "server-only";
 
 import { discoverMovies } from "@/infrastructure/tmdb/server";
-import { MATCH, textMatch } from "../lib/rank";
+import { MATCH, textMatch } from "../rank";
 
 const PAGES = { "popularity.desc": 5, "vote_count.desc": 25 } as const;
 const LIFETIME_MS = 6 * 60 * 60 * 1000;

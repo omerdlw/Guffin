@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "motion/react";
+import { SPRING } from "@/motion/stage/tempo";
 
 export function SlidingHighlight({
   className,
@@ -17,9 +18,7 @@ export function SlidingHighlight({
       className={`pointer-events-none absolute inset-0 z-0 ${className}`}
       layoutId={layoutId}
       transition={{
-        layout: reducedMotion
-          ? { duration: 0 }
-          : { type: "spring", stiffness: 480, damping: 38 },
+        layout: reducedMotion ? { duration: 0 } : SPRING.follow,
       }}
     />
   );

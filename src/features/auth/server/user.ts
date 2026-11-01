@@ -5,9 +5,9 @@ import { redirect } from "next/navigation";
 import { UserError } from "@omerdlw/base-framework/utils";
 import { createServerSupabaseClient } from "@/infrastructure/supabase/server";
 import { SESSION_CHECKED_HEADER } from "@/infrastructure/supabase/session";
-import { MAX_AUTH_AGE_SECONDS } from "../lib/constants";
-import type { AuthUser } from "../lib/types";
-import { toAuthUser } from "../lib/utils";
+import { MAX_AUTH_AGE_SECONDS } from "../constants";
+import type { AuthUser } from "../types";
+import { toAuthUser } from "../utils";
 
 export async function getOptionalUser(): Promise<AuthUser | null> {
   const supabase = await createServerSupabaseClient();

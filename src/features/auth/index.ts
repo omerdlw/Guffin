@@ -7,15 +7,12 @@ export {
   renamePasskey,
   requestEmailAuth,
   unlinkIdentity,
-} from "./lib/client";
-export { OAUTH_PROVIDERS } from "./lib/constants";
-export { getAuthErrorMessage } from "./lib/messages";
-export { AuthProvider, useAuth } from "./lib/provider";
-export type { OAuthProvider } from "./lib/types";
-export { getAuthCallbackUrl } from "./lib/utils";
-export { AuthListener } from "./components/auth-listener";
-export {
-  AUTH_INPUT_CLASS,
-  createSignInSurfaceEntry,
-} from "./components/sign-in-surface";
-export { createVerificationSurfaceEntry } from "./components/verification-surface";
+} from "./client";
+export { OAUTH_PROVIDERS } from "./constants";
+export { getAuthErrorMessage } from "./messages";
+export { AuthProvider, useAuth } from "./provider";
+export type { OAuthProvider } from "./types";
+export { getAuthCallbackUrl } from "./utils";
+export { AuthListener } from "./components/listener";
+export { AUTH_INPUT_CLASS, createSignInSurfaceEntry } from "./surfaces/sign-in";
+export { createVerificationSurfaceEntry } from "./surfaces/verification";

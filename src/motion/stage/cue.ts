@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useRef, useState } from "react";
-import { imagesReady } from "./ready";
+import { imagesReady } from "./images-ready";
 import { TimelineContext } from "./clock";
 
 interface Opened {

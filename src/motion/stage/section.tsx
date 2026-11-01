@@ -23,9 +23,9 @@ import {
   useTransform,
   type MotionValue,
 } from "motion/react";
-import { useHeldHeight } from "@/motion/flow";
+import { useHeldHeight } from "@/motion/layout-flow";
 import { Icon, TONE } from "@/ui";
-import { GRAMMAR } from "./grammar";
+import { GRAMMAR } from "./choreography";
 import { EASE, itemsAt, type ItemKind } from "./tempo";
 import { ClockContext, ease, unit } from "./clock";
 import {
@@ -35,14 +35,14 @@ import {
   useCue,
   useSection,
 } from "./cue";
-import { Expose, clearMask, setMask } from "./type";
+import { Expose, clearMask, setMask } from "./text";
 import {
   ArrivalContext,
   WaveContext,
   useArrival,
   useArrivalClock,
   useWave,
-} from "./wave";
+} from "./arrival";
 
 const contentFrom = (opened: { at: number; delay: number }) =>
   opened.at + (opened.delay + GRAMMAR.section.lead) * 1000;

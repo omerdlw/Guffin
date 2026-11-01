@@ -10,10 +10,10 @@ import {
   useTransform,
   type MotionValue,
 } from "motion/react";
-import { cn } from "@omerdlw/base-framework/utils";
-import { useLanding } from "@/motion/film";
+import { cn } from "@/ui/cn";
+import { useLanding } from "@/motion/effects";
 import { ease, useExit, useProgress } from "./clock";
-import { GRAMMAR } from "./grammar";
+import { GRAMMAR } from "./choreography";
 import { EASE, PHI, size } from "./tempo";
 
 const RUN = size(4);

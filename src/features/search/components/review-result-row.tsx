@@ -3,7 +3,7 @@
 import { RatingStars } from "@/features/reviews";
 import { Highlight, MediaCard, RADIUS, ResultRow } from "@/ui";
 import { tmdbImageSrcSet, tmdbImageUrl } from "@/infrastructure/tmdb/images";
-import type { ReviewSearchHit } from "../lib/types";
+import type { ReviewSearchHit } from "../types";
 import { reviewHref } from "@/config/routes";
 
 const POSTER_WIDTHS = ["w185"] as const;
@@ -62,7 +62,7 @@ export function ReviewResultRow({
         <>
           <Highlight query={query} text={review.title} />
           {review.year ? (
-            <span className="font-normal text-ink-muted"> {review.year}</span>
+            <span className="font-medium text-ink-muted"> {review.year}</span>
           ) : null}
         </>
       }

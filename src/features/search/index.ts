@@ -1,1 +1,1 @@
-export { SearchDockCommand } from "./components/search-dock-command";
+export { SearchDockCommand } from "./components/dock-command";

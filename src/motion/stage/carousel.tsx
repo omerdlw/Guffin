@@ -15,13 +15,13 @@ import {
   useReducedMotion,
   type AnimationPlaybackControls,
 } from "motion/react";
-import { cn } from "@omerdlw/base-framework/utils";
-import { Button, Icon } from "@/ui";
-import { GRAMMAR } from "./grammar";
+import { cn } from "@/ui/cn";
+import { Button, Icon, TONE } from "@/ui";
+import { GRAMMAR } from "./choreography";
 import { EASE, LANDED, size } from "./tempo";
 import { ClockContext } from "./clock";
 import { Develop } from "./develop";
-import { useArrival, useArrivalClock } from "./wave";
+import { useArrival, useArrivalClock } from "./arrival";
 
 const EDGE_TOLERANCE = 4;
 const DRAG_THRESHOLD = 5;
@@ -128,7 +128,7 @@ function Slide({
 const ARROW_STYLE = { transitionDuration: `${size(1)}s` };
 
 const ARROW_CLASS =
-  "center absolute top-1/2 z-10 size-9 -translate-y-1/2 transition-[opacity,scale,background-color] ease-out-expo cursor-pointer bg-white/70 text-black shadow-md ring-1 ring-black/10 ring-inset hover:bg-white sm:size-10";
+  "center absolute top-1/2 z-10 size-9 -translate-y-1/2 transition-[opacity,scale,background-color] ease-out-expo cursor-pointer sm:size-10";
 
 const arrowState = (visible: boolean) =>
   visible ? "opacity-100 scale-100" : "pointer-events-none opacity-0 scale-75";
@@ -175,7 +175,7 @@ function glideTarget(track: HTMLElement, direction: -1 | 1): number {
 }
 
 export function Carousel({
-  arrowClassName,
+  arrowClassName = TONE.arrows,
   children,
   className,
   itemClassName,

@@ -5,11 +5,9 @@ import { report } from "@omerdlw/base-framework/utils";
 import { getPersonDetails } from "@/infrastructure/tmdb/server";
 import type { PersonCrewCredit } from "@/infrastructure/tmdb/types";
 import { DIRECTORS } from "../data/directors";
-import { MAX_FILMS, type Director, type DirectorFilm } from "../lib/types";
-import { batched, kept } from "./keep";
+import { MAX_FILMS, type Director, type DirectorFilm } from "../types";
+import { batched, kept } from "./cache";
 
-// TMDB lists every credit, down to student shorts and stray duplicates; a
-// few dozen votes is where the films people actually know begin.
 const KNOWN_VOTES = 50;
 
 function filmographyOf(crew: readonly PersonCrewCredit[]): DirectorFilm[] {
@@ -23,7 +21,6 @@ function filmographyOf(crew: readonly PersonCrewCredit[]): DirectorFilm[] {
     const held = byTitle.get(key);
     if (!held || held.voteCount < credit.voteCount) byTitle.set(key, credit);
   }
-  // The portrait has a slot per film; past that, the best known stay.
   return [...byTitle.values()]
     .sort((a, b) => b.voteCount - a.voteCount)
     .slice(0, MAX_FILMS)

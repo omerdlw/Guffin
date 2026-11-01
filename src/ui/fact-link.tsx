@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { useDockLinkClick } from "./dock-link";
+import { useDockLinkClick } from "./hooks/use-dock-link";
 
 export function FactLink({
   children,
@@ -17,7 +17,7 @@ export function FactLink({
   return (
     <Link
       aria-label={label}
-      className="cine-fade border-b border-white/25 outline-none hover:border-white/50 focus-visible:border-white/50"
+      className="cine-fade border-b border-ink-faint outline-none hover:border-ink-muted focus-visible:border-ink-muted"
       href={href}
       onClick={handleClick}
       prefetch={false}

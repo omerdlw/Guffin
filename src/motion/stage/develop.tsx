@@ -2,10 +2,10 @@
 
 import { useContext, useRef, useState, type ReactNode } from "react";
 import { useReducedMotion } from "motion/react";
-import { cn } from "@omerdlw/base-framework/utils";
+import { cn } from "@/ui/cn";
 import { ARRIVE, EASE, PHI } from "./tempo";
 import { ClockContext, useClockStart } from "./clock";
-import { bezier, play } from "./play";
+import { bezier, play } from "./animate";
 
 const POUR = bezier(EASE.pour);
 

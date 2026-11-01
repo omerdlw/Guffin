@@ -1,7 +1,7 @@
 export { MovieAction } from "./components/movie-action";
 export { RatingStars, Star } from "./components/rating-stars";
 export { ReviewActions, ReviewBody } from "./components/review-actions";
-export { createReviewEditorSurfaceEntry } from "./components/review-editor-surface";
+export { createReviewEditorSurfaceEntry } from "./surfaces/editor";
 export { getMovieReviewsPageAction } from "./server/actions";
 export {
   MOVIE_REVIEW_FILTERS,
@@ -10,8 +10,7 @@ export {
   REVIEW_EVENTS,
   isMovieReviewFilter,
   isMovieReviewSort,
-} from "./lib/constants";
-export type { MovieReviewFilter, MovieReviewSort } from "./lib/constants";
-export type { MovieReview } from "./lib/types";
-export { ListCommentAction } from "./components/list-comment-action";
-export { useLikeToggle } from "./lib/use-like-toggle";
+} from "./constants";
+export type { MovieReviewFilter, MovieReviewSort } from "./constants";
+export type { MovieReview } from "./types";
+export { useLikeToggle } from "./hooks";

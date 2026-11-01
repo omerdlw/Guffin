@@ -1,4 +1,4 @@
-export { sanitizeNextPath } from "../lib/utils";
+export { sanitizeNextPath } from "../utils";
 export { isSeedLoginEnabled, signInSeedAccount } from "./seed-login";
 export {
   getOptionalUser,

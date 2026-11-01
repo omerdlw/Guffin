@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FocusEvent, type JSX } from "react";
-import { cn } from "@omerdlw/base-framework/utils";
+import { cn } from "@/ui/cn";
 import { Button } from "@/ui";
 import { STAR_PATH } from "./rating-stars";
 
@@ -32,7 +32,7 @@ export function RatingSelector({
   return (
     <div
       aria-label="Rating"
-      className={cn("flex items-center gap-1.5", disabled && "opacity-60")}
+      className={cn("flex items-center gap-1.5", disabled && "opacity-50")}
       onMouseLeave={() => setHover(null)}
       role="group"
     >
@@ -48,7 +48,7 @@ export function RatingSelector({
                 <rect
                   height="24"
                   style={{
-                    transition: `width 0.5s var(--ease-out-cream) ${(star - 1) * 0.035}s`,
+                    transition: `width var(--duration-reveal) var(--ease-out-cream) calc(var(--duration-ripple) * ${star - 1})`,
                     width: fillOf(star, shown),
                   }}
                   x="0"
@@ -56,7 +56,7 @@ export function RatingSelector({
                 />
               </clipPath>
             </defs>
-            <path className="fill-white/10" d={STAR_PATH} />
+            <path className="fill-fill-active" d={STAR_PATH} />
             <path
               className="fill-rated"
               clipPath={`url(#rating-star-${star})`}

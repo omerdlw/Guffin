@@ -1,10 +1,8 @@
 import "server-only";
 import { report } from "@omerdlw/base-framework/utils";
 import { createServerSupabaseClient } from "@/infrastructure/supabase/server";
-import type { FilmStats } from "../lib/types";
+import type { FilmStats } from "../types";
 
-// A missing row means nobody has touched the film yet; a failed read only
-// hides the row, it never takes the page down.
 export async function getFilmStats(tmdbId: number): Promise<FilmStats | null> {
   try {
     const client = await createServerSupabaseClient();

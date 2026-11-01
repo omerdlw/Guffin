@@ -4,7 +4,7 @@ import type { WheelEvent } from "react";
 import { FILL, PRIMARY } from "@/config/theme/chrome";
 
 const BUTTON =
-  "center relative inline-flex cursor-pointer items-center justify-center gap-2 rounded-card text-[13px] font-medium ring-1 ring-inset select-none outline-none focus-visible:ring-edge-focus disabled:pointer-events-none disabled:opacity-50";
+  "center relative inline-flex cursor-pointer items-center justify-center gap-2 rounded-card type-control font-medium ring-1 ring-inset select-none outline-none focus-visible:ring-edge-focus disabled:pointer-events-none disabled:opacity-50";
 const IDLE = `text-ink-body hover:text-ink ${FILL}`;
 const LIT =
   "bg-grade/15 text-grade ring-grade/25 hover:bg-grade/20 hover:ring-grade/30";
@@ -15,7 +15,6 @@ const ROW_LIT = "bg-grade/15 text-grade ring-grade/25 hover:ring-grade/30";
 export const surfaceButton = (lit: boolean) =>
   `${BUTTON} h-10 ${lit ? LIT : IDLE}`;
 
-// The one action a surface exists for (save, sign in, follow).
 export const SURFACE_PRIMARY = `${BUTTON} h-10 px-4 ${PRIMARY}`;
 
 export const surfaceIconButton = (lit: boolean) =>
@@ -34,9 +33,8 @@ export const SURFACE_POSTER = "h-[60px] w-10 shrink-0 overflow-hidden";
 
 export const SURFACE_TEXT =
   "flex min-w-0 flex-1 flex-col justify-center gap-1 text-left";
-export const SURFACE_TITLE =
-  "truncate text-sm leading-tight font-semibold text-ink";
-export const SURFACE_META = "truncate text-xs leading-tight text-ink-muted";
+export const SURFACE_TITLE = "truncate type-body font-semibold text-ink";
+export const SURFACE_META = "truncate type-meta text-ink-muted";
 
 export const surfaceRow = (lit: boolean) =>
   `group relative isolate w-full cursor-pointer ${TILE_SHAPE} ${SURFACE_TILE_END} select-none outline-none focus-visible:ring-edge-focus disabled:cursor-wait ${lit ? ROW_LIT : ROW_IDLE}`;
@@ -72,7 +70,7 @@ export function SurfaceProse({ text }: { text: string }) {
       data-lenis-prevent-wheel
       onWheel={scrollWithin}
     >
-      <div className="flex flex-col gap-3 text-sm leading-6 text-pretty [overflow-wrap:anywhere] text-ink-body select-text">
+      <div className="flex flex-col gap-3 type-body leading-6 text-pretty [overflow-wrap:anywhere] text-ink-body select-text">
         {paragraphs.map((paragraph, index) => (
           <p className="whitespace-pre-line" key={index}>
             {paragraph}

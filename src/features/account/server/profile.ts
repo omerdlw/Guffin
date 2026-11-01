@@ -1,18 +1,18 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/infrastructure/supabase/client";
-import { PUBLIC_ACCOUNT_FIELDS } from "../lib/constants";
+import { PUBLIC_ACCOUNT_FIELDS } from "../constants";
 import {
   normalizeAccountPatch,
   readAccountPatchField,
   toCurrentAccount,
   toPublicAccount,
-} from "../lib/format";
+} from "../normalize";
 import type {
   AccountPatchInput,
   CurrentAccount,
   PublicAccount,
-} from "../lib/types";
+} from "../types";
 import { UserError } from "@omerdlw/base-framework/utils";
 import { isUuid } from "@/infrastructure/uuid";
 

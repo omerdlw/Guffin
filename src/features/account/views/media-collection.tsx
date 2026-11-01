@@ -5,13 +5,13 @@ import {
   parseMediaFilters,
   type AccountViewProps,
   MEDIA_FILTERS,
-} from "../lib/browse";
+} from "../browse";
 import { getAccountPageContext } from "../server/context";
 import { getMediaPage, type MediaKind } from "../server/browse";
-import { EmptyState } from "../components/browse/empty-state";
-import { FilterBar } from "../components/browse/filter-bar";
-import { Pagination } from "../components/browse/pagination";
-import { PosterGrid } from "../components/browse/poster-grid";
+import { EmptyState } from "../components/empty-state";
+import { FilterBar } from "../components/filter-bar";
+import { Pagination } from "../components/pagination";
+import { PosterGrid } from "../components/poster-grid";
 
 const KINDS: Record<
   MediaKind,

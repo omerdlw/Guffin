@@ -2,15 +2,16 @@
 
 import { useEffect, useState, type JSX } from "react";
 import { useDockActions } from "@omerdlw/base-framework/modules/dock";
-import { cn, report } from "@omerdlw/base-framework/utils";
+import { cn } from "@/ui/cn";
+import { report } from "@omerdlw/base-framework/utils";
 import { useAuth } from "@/features/auth";
 import { Icon } from "@/ui";
 import { Fade, Item } from "@/motion/stage";
 import { getMovieSocialProofAction } from "../server/actions";
-import type { MovieSocialProof as Proof } from "../lib/types";
-import { describeProof } from "../lib/utils";
+import type { MovieSocialProof as Proof } from "../types";
+import { describeProof } from "../utils";
 import { AvatarStack } from "./avatar-stack";
-import { createSocialProofSurfaceEntry } from "./social-proof-surface";
+import { createSocialProofSurfaceEntry } from "../surfaces/proof";
 
 export function MovieSocialProof({
   movieId,
@@ -82,11 +83,11 @@ export function MovieSocialProof({
               >
                 <AvatarStack people={proof.friends} round />
                 <span className="flex min-w-0 flex-1 flex-col">
-                  <span className="truncate text-xs leading-4 font-semibold text-ink">
+                  <span className="truncate type-meta font-semibold text-ink">
                     {summary.headline}
                   </span>
                   {summary.details ? (
-                    <span className="truncate text-[11px] leading-4 text-ink-body">
+                    <span className="truncate type-label text-ink-body">
                       {summary.details}
                     </span>
                   ) : null}

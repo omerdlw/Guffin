@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { BouncingDots } from "loading-dev";
 import { useTheme } from "@omerdlw/base-framework/theme";
-import { cn } from "@omerdlw/base-framework/utils";
+import { cn } from "@/ui/cn";
 import { primitivesTheme } from "./theme";
 
 export function Loader({

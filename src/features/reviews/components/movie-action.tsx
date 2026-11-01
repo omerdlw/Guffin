@@ -10,10 +10,10 @@ import {
 import { report } from "@omerdlw/base-framework/utils";
 import { useAuth } from "@/features/auth";
 import { Button, Icon } from "@/ui";
-import { REVIEW_EVENTS } from "../lib/constants";
+import { REVIEW_EVENTS } from "../constants";
 import { getOwnMovieReviewAction } from "../server/actions";
-import type { ReviewInput } from "../lib/types";
-import { createReviewEditorSurfaceEntry } from "./review-editor-surface";
+import type { ReviewInput } from "../types";
+import { createReviewEditorSurfaceEntry } from "../surfaces/editor";
 
 export function MovieAction({
   hasProviders,

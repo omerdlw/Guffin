@@ -1,6 +1,6 @@
 import type { JSX } from "react";
-import type { MutualFollowers } from "../lib/types";
-import { formatNames } from "../lib/utils";
+import type { MutualFollowers } from "../types";
+import { formatNames } from "../utils";
 import { AvatarStack } from "./avatar-stack";
 
 export function FollowedBy({
@@ -18,7 +18,7 @@ export function FollowedBy({
       : formatNames(names, names.length);
 
   return (
-    <div className="flex min-w-0 items-center gap-2.5 text-xs text-ink-body">
+    <div className="flex min-w-0 items-center gap-2.5 type-meta text-ink-body">
       <AvatarStack people={mutual.people} round size={22} />
       <span className="min-w-0 truncate">
         Followed by <span className="font-semibold text-ink">{text}</span> you

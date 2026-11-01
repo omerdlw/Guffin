@@ -1,6 +1,7 @@
 import { primitivesTheme } from "@/ui";
 import { defineTheme } from "@omerdlw/base-framework/theme";
 import { Z_INDEX } from "@omerdlw/base-framework/tokens";
+import { SHELL } from "./chrome";
 
 const DISABLED = "disabled:cursor-not-allowed disabled:opacity-50";
 const LAYER = "col-start-1 row-start-1";
@@ -16,7 +17,7 @@ export const primitivesThemeConfig = defineTheme(primitivesTheme, {
     avatar:
       "relative inline-flex shrink-0 items-center justify-center overflow-hidden bg-fill-hover text-ink-body select-none",
     avatarFallback:
-      "flex h-full w-full items-center justify-center text-xs font-medium uppercase",
+      "flex h-full w-full items-center justify-center type-meta font-medium uppercase",
     avatarImage: "h-full w-full object-cover",
 
     backdropHero:
@@ -41,22 +42,21 @@ export const primitivesThemeConfig = defineTheme(primitivesTheme, {
     selectCheck: "shrink-0 text-ink",
     selectChevron:
       "cine-turn shrink-0 text-ink-muted group-aria-expanded:rotate-180 group-aria-expanded:text-ink",
-    selectContent:
-      "ui-motion absolute top-full left-0 mt-1.5 max-h-64 w-full overflow-y-auto overscroll-contain bg-[color-mix(in_oklab,var(--black),var(--white)_10%)] p-1 shadow-[0_16px_48px_rgba(0,0,0,0.55)] ring-1 ring-edge-focus ring-inset",
-    selectEmpty: "px-3 py-2 text-center text-xs text-ink-muted",
+    selectContent: `ui-motion absolute top-full left-0 mt-1.5 max-h-64 w-full overflow-y-auto overscroll-contain p-1 backdrop-blur-xl ${SHELL}`,
+    selectEmpty: "px-3 py-2 text-center type-meta text-ink-muted",
     selectIcon: "ui-glyph shrink-0 text-ink-body",
-    selectOption: `flex cursor-pointer items-center justify-between gap-2.5 px-3 py-2 text-sm text-ink-body select-none data-[highlighted]:text-ink aria-selected:font-medium aria-selected:text-ink aria-disabled:cursor-not-allowed aria-disabled:opacity-50`,
+    selectOption: `flex cursor-pointer items-center justify-between gap-2.5 px-3 py-2 type-body text-ink-body select-none data-[highlighted]:text-ink aria-selected:font-medium aria-selected:text-ink aria-disabled:cursor-not-allowed aria-disabled:opacity-50`,
     selectOptionBody: "flex min-w-0 flex-col",
     selectOptionContent: "flex min-w-0 items-center gap-2.5",
-    selectOptionDescription: "truncate text-xs text-ink-muted",
+    selectOptionDescription: "truncate type-meta text-ink-muted",
     selectPlaceholder: "truncate text-ink-muted",
     selectRoot: "relative inline-flex w-full flex-col gap-1.5",
     selectText: "truncate",
-    selectTrigger: `cine-fade group flex w-full items-center justify-between gap-2 bg-fill px-3.5 py-2.5 text-left text-sm text-ink ring-1 ring-edge ring-inset hover:bg-fill-hover hover:ring-edge-hover aria-expanded:bg-fill-hover aria-expanded:ring-edge-focus ${DISABLED}`,
+    selectTrigger: `cine-fade group flex w-full items-center justify-between gap-2 bg-fill px-3.5 py-2.5 text-left type-body text-ink ring-1 ring-edge ring-inset hover:bg-fill-hover hover:ring-edge-hover aria-expanded:bg-fill-hover aria-expanded:ring-edge-focus ${DISABLED}`,
     selectTriggerContent: "flex min-w-0 items-center gap-2 truncate",
 
     switch: `group/switch ui-still relative inline-flex h-6 w-10 shrink-0 cursor-pointer items-center rounded-full bg-fill-hover p-0.5 ring-1 ring-edge ring-inset transition-[background-color,box-shadow,outline-color,outline-offset] duration-reveal ease-out-cream hover:bg-fill-active hover:ring-edge-hover data-[state=checked]:bg-white data-[state=checked]:ring-white data-[state=checked]:hover:bg-white/90 ${DISABLED}`,
-    switchThumb: `pointer-events-none block h-5 w-5 translate-x-0 rounded-full bg-white/60 shadow-[0_1px_3px_rgb(0_0_0/0.35)] transition-[translate,width,background-color] duration-reveal ease-out-cream group-hover/switch:bg-white/80 group-active/switch:w-6 data-[state=checked]:translate-x-4 data-[state=checked]:bg-black group-active/switch:data-[state=checked]:translate-x-3`,
+    switchThumb: `pointer-events-none block h-5 w-5 translate-x-0 rounded-full bg-ink-body shadow-knob transition-[translate,width,background-color] duration-reveal ease-out-cream group-hover/switch:bg-ink-lead group-active/switch:w-6 data-[state=checked]:translate-x-4 data-[state=checked]:bg-black group-active/switch:data-[state=checked]:translate-x-3`,
 
     tooltip: "tooltip-content pointer-events-none select-none",
   },

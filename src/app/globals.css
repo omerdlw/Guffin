@@ -1,50 +1,86 @@
 @import "tailwindcss";
 @source "../../node_modules/@omerdlw/base-framework";
 
-/* The design tokens. Every visual value on a page comes from here (or its
-   TypeScript mirror: RADIUS in src/ui/page.ts, size() in
-   src/motion/stage/tempo.ts). The rules they encode live in DESIGN.md. */
 @theme {
+  --color-*: initial;
   --color-black: var(--black);
   --color-white: var(--white);
-  --color-primary: var(--primary);
 
   --font-*: initial;
   --font-zuume: var(--font-zuume);
 
-  /* Corners on the 4px grid. A frame inside another takes the outer
-     radius minus the padding between them. */
+  --text-*: initial;
+  --type-micro: 10px;
+  --type-micro--line-height: 12px;
+  --type-label: 11px;
+  --type-label--line-height: 16px;
+  --type-meta: 12px;
+  --type-meta--line-height: 16px;
+  --type-control: 13px;
+  --type-control--line-height: 16px;
+  --type-body: 14px;
+  --type-body--line-height: 20px;
+  --type-copy: 15px;
+  --type-copy--line-height: 24px;
+  --type-base: 16px;
+  --type-base--line-height: 24px;
+  --type-prose: 16px;
+  --type-prose--line-height: 28px;
+  --type-prose-wide: 17px;
+  --type-prose-wide--line-height: 30px;
+  --type-title: 18px;
+  --type-title--line-height: 28px;
+  --type-heading: 24px;
+  --type-heading--line-height: 32px;
+  --type-display-xs: 36px;
+  --type-display-xs--line-height: 1;
+  --type-display-sm: 48px;
+  --type-display-sm--line-height: 1;
+  --type-display-md: 60px;
+  --type-display-md--line-height: 1;
+  --type-display-lg: 72px;
+  --type-display-lg--line-height: 1;
+  --type-display-xl: 96px;
+  --type-display-xl--line-height: 1;
+  --type-display-2xl: 128px;
+  --type-display-2xl--line-height: 1;
+
+  --leading-*: initial;
+  --leading-crop: 0.8;
+
+  --tracking-*: initial;
+  --tracking-label: 0.14em;
+  --tracking-tagline: 0.12em;
+  --tracking-slate: 0.32em;
+
+  --radius-*: initial;
   --radius-thumb: 8px;
   --radius-tile: 12px;
   --radius-card: 16px;
   --radius-panel: 20px;
   --radius-sheet: 24px;
-  /* Derived, not chosen: a card's 16 less the 6px tile padding, and a card's
-     16 plus the 10px gutter of the dock and modal shells. */
   --radius-inset: 10px;
   --radius-shell: 26px;
+  --radius-mark: 3px;
 
-  /* float: one control or note over the page; lift: a layer that holds
-     content (dock card, modal, menu). */
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
   --shadow-float: 0 14px 32px -16px rgb(0 0 0 / 0.85);
   --shadow-lift:
     0 30px 70px -30px rgb(0 0 0 / 0.9), 0 10px 24px -14px rgb(0 0 0 / 0.7);
+  --shadow-knob: 0 1px 3px rgb(0 0 0 / 0.35);
+  --shadow-stack: 6px 0 14px -6px rgb(0 0 0 / 0.9);
+  --inset-shadow-top: 0 1px 0 rgb(var(--white-rgb) / 0.05);
+  --drop-shadow-legible: 0 1px 3px rgb(0 0 0 / 0.8);
 
-  /* What a member did with a film: the only colours besides the grade. */
   --color-watched: #00e054;
   --color-listed: #40bcf4;
   --color-liked: #ff9010;
-  --color-rated: var(--color-amber-400);
+  --color-rated: oklch(82.8% 0.189 84.429);
+  --color-danger: oklch(70.4% 0.191 22.216);
+  --color-award: #e9c46a;
 
-  /* Each curve has one job; the JS name in EASE (tempo.ts) is in brackets.
-     cream: a hover or focus arriving [cream]
-     phosphor: light decaying after the pointer leaves
-     expo: chrome and readouts snapping in [expo]
-     quint: names and lines settling [silk]
-     fade: plain opacity [fade]
-     in-out-cubic: symmetric loops and sweeps [glide]
-     in-cubic: leaving
-     quart: the browser default for anything unnamed */
   --ease-*: initial;
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
@@ -55,8 +91,6 @@
   --ease-phosphor: cubic-bezier(0.06, 0.62, 0.2, 1);
   --ease-fade: cubic-bezier(0.4, 0, 0.2, 1);
 
-  /* The tempo: size(n) = 0.5s * phi^n from tempo.ts, rounded to 5ms, named
-     like the motion tokens. */
   --duration-ripple: 30ms; /* size(-6): a stagger across many marks */
   --duration-flick: 75ms; /* size(-4): a stagger between siblings */
   --duration-touch: 120ms; /* size(-3): a press going down */
@@ -71,12 +105,6 @@
   --default-transition-timing-function: var(--ease-out-quart);
 }
 
-/* Colours by role, in steps of 5%. Inline, so `grade` resolves on the
-   element that sets --grade rather than on :root.
-   ink: titles and values · ink-lead: a tagline · ink-body: prose, secondary
-   text, idle controls · ink-muted: labels and meta · ink-faint: placeholder
-   glyphs. fill: a surface at rest, -hover, -active. edge: its inset ring,
-   -hover, -focus. rule: dividers between rows · line: tracks and axes. */
 @theme inline {
   --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
 
@@ -96,8 +124,10 @@
 
   --color-rule: rgb(var(--white-rgb) / 0.05);
   --color-line: rgb(var(--white-rgb) / 0.1);
-
+  --color-plate: color-mix(in srgb, var(--white) 5%, var(--black));
   --color-grade: rgb(var(--grade, var(--white-rgb)));
+
+  --shadow-glow: 0 0 28px rgb(var(--grade, var(--white-rgb)) / 0.5);
 }
 
 @utility duration-flick {
@@ -123,6 +153,75 @@
 }
 @utility duration-linger {
   transition-duration: var(--duration-linger);
+}
+
+@utility type-micro {
+  font-size: var(--type-micro);
+  line-height: var(--tw-leading, var(--type-micro--line-height));
+}
+@utility type-label {
+  font-size: var(--type-label);
+  line-height: var(--tw-leading, var(--type-label--line-height));
+}
+@utility type-meta {
+  font-size: var(--type-meta);
+  line-height: var(--tw-leading, var(--type-meta--line-height));
+}
+@utility type-control {
+  font-size: var(--type-control);
+  line-height: var(--tw-leading, var(--type-control--line-height));
+}
+@utility type-body {
+  font-size: var(--type-body);
+  line-height: var(--tw-leading, var(--type-body--line-height));
+}
+@utility type-copy {
+  font-size: var(--type-copy);
+  line-height: var(--tw-leading, var(--type-copy--line-height));
+}
+@utility type-base {
+  font-size: var(--type-base);
+  line-height: var(--tw-leading, var(--type-base--line-height));
+}
+@utility type-prose {
+  font-size: var(--type-prose);
+  line-height: var(--tw-leading, var(--type-prose--line-height));
+  @media (width >= 40rem) {
+    font-size: var(--type-prose-wide);
+    line-height: var(--tw-leading, var(--type-prose-wide--line-height));
+  }
+}
+@utility type-title {
+  font-size: var(--type-title);
+  line-height: var(--tw-leading, var(--type-title--line-height));
+}
+@utility type-heading {
+  font-size: var(--type-heading);
+  line-height: var(--tw-leading, var(--type-heading--line-height));
+}
+@utility type-display-xs {
+  font-size: var(--type-display-xs);
+  line-height: var(--tw-leading, var(--type-display-xs--line-height));
+}
+@utility type-display-sm {
+  font-size: var(--type-display-sm);
+  line-height: var(--tw-leading, var(--type-display-sm--line-height));
+}
+@utility type-display-md {
+  font-size: var(--type-display-md);
+  line-height: var(--tw-leading, var(--type-display-md--line-height));
+}
+@utility type-display-lg {
+  font-size: var(--type-display-lg);
+  line-height: var(--tw-leading, var(--type-display-lg--line-height));
+}
+@utility type-display-xl {
+  font-size: var(--type-display-xl);
+  line-height: var(--tw-leading, var(--type-display-xl--line-height));
+}
+@utility type-display-2xl {
+  font-size: var(--type-display-2xl);
+  line-height: var(--tw-leading, var(--type-display-2xl--line-height));
 }
 
 @utility rating-stars {
@@ -175,7 +274,6 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
     --white-rgb: 252 252 251;
     --white: rgb(var(--white-rgb));
     --black: var(--ambient-shadow, #000);
-    --primary: var(--ambient-vibrant, #101010);
   }
 
   html,
@@ -246,7 +344,6 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
     background-color: var(--color-fill);
   }
 
-  /* Relative only by default, so an `absolute` block keeps its place. */
   :where(.skeleton-block, .skeleton-block-soft) {
     position: relative;
   }
@@ -352,7 +449,6 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
     }
   }
 
-  /* The time left on the hero's current film. */
   .home-reel {
     animation: home-reel linear both;
   }
@@ -511,9 +607,6 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
 }
 
 @layer components {
-  /* Every control answers in the same two beats: a hover or focus comes up
-     in reveal on cream, and fades out over settle on phosphor. A press goes
-     down in touch and comes back in move. */
   :root {
     --touch-in: var(--duration-reveal);
     --touch-out: var(--duration-settle);
@@ -758,10 +851,6 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
   .ui-develop {
     animation: ui-develop var(--duration-reveal) var(--ease-out-cream) both;
   }
-  /* The directors page (timings come from the page). Opening: posters
-     sweep in on a diagonal at full light, give their colour up to the
-     portrait and dim, then the names come down the list. A change: the
-     shelf fades out and the next fades in, already dim. */
   @keyframes directors-print {
     from {
       opacity: 0;
@@ -792,9 +881,6 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
     :is([data-act="wait"], [data-act="arrive"]) .directors-print {
       opacity: 0;
     }
-    /* A soft start and a long settle, so each poster eases in behind the
-       front instead of popping: neighbours overlap and the sweep reads as
-       one continuous move. */
     :is([data-act="print"], [data-act="pour"]) .directors-print {
       animation: directors-print var(--print) var(--ease-fade) both;
       animation-delay: calc(var(--at, 0) * var(--sweep));
@@ -824,8 +910,6 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
       translate: 0 -16px;
     }
   }
-  /* The Oscars dial comes up once the opening has cut the year: the
-     needle drops, the ticks rise out from it both ways, then the decades. */
   @keyframes oscars-rise {
     from {
       opacity: 0;
@@ -943,16 +1027,15 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
     max-width: min(16rem, calc(100vw - 1.5rem));
     padding: 6px 12px 7px;
     border-radius: var(--radius-card);
-    background: rgb(0 0 0 / 0.7);
+    background: color-mix(in oklab, var(--color-black) 70%, transparent);
     box-shadow:
       inset 0 0 0 1px var(--color-edge),
-      inset 0 1px 0 0 var(--color-edge),
+      inset var(--inset-shadow-top),
       var(--shadow-float);
     color: var(--color-ink-lead);
-    font-size: 12px;
+    font-size: var(--type-meta);
     font-weight: 500;
-    letter-spacing: -0.003em;
-    line-height: 1.4;
+    line-height: var(--type-meta--line-height);
     text-wrap: balance;
     -webkit-backdrop-filter: blur(24px) saturate(1.5);
     backdrop-filter: blur(24px) saturate(1.5);

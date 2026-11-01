@@ -7,7 +7,7 @@ import { report, toUserMessage } from "@omerdlw/base-framework/utils";
 import { accountHref } from "@/config/routes";
 import { createServerSupabaseClient } from "@/infrastructure/supabase/server";
 import { requireUser } from "@/features/auth/server";
-import type { AccountPatchInput, CurrentAccount } from "../lib/types";
+import type { AccountPatchInput, CurrentAccount } from "../types";
 import { updateAccount } from "./profile";
 
 type FollowStatus = "accepted" | "pending";

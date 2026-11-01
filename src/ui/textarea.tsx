@@ -2,7 +2,7 @@
 
 import type { Ref, TextareaHTMLAttributes } from "react";
 import { useTheme } from "@omerdlw/base-framework/theme";
-import { cn } from "@omerdlw/base-framework/utils";
+import { cn } from "@/ui/cn";
 import { primitivesTheme } from "./theme";
 
 interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {

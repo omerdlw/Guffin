@@ -1,8 +1,8 @@
 import type { JSX } from "react";
-import { readMonth, shiftMonth, type AccountViewProps } from "../lib/browse";
-import { DiaryChrome } from "../components/browse/diary-chrome";
-import { DiaryLedger } from "../components/browse/diary-ledger";
-import { EmptyState } from "../components/browse/empty-state";
+import { readMonth, shiftMonth, type AccountViewProps } from "../browse";
+import { DiaryChrome } from "../components/diary-chrome";
+import { DiaryLedger } from "../components/diary-ledger";
+import { EmptyState } from "../components/empty-state";
 import { getDiaryMonth } from "../server/browse";
 import { getAccountPageContext } from "../server/context";
 import { accountHref } from "@/config/routes";

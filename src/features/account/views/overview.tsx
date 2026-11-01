@@ -1,23 +1,19 @@
 import type { JSX } from "react";
 import { Icon } from "@/ui";
-import { FAVORITES_MAX } from "../lib/browse-data";
+import { FAVORITES_MAX } from "../browse-types";
 import { getAccountOverview } from "../server/browse";
 import { getAccountPageContext } from "../server/context";
-import { AccountBio } from "../components/browse/account-bio";
-import { AccountLink } from "../components/browse/account-link";
-import { ActivityCalendar } from "../components/browse/activity-calendar";
-import { ActivityFeed } from "../components/browse/activity-row";
-import { EmptyState } from "../components/browse/empty-state";
-import { ListTeaser } from "../components/browse/list-row";
-import { PosterGrid, PosterTile } from "../components/browse/poster-grid";
-import { PROFILE_ROW } from "../components/browse/poster";
-import {
-  DiaryDigest,
-  PeopleGrid,
-  RatingsChart,
-} from "../components/browse/profile-sidebar";
-import { ReviewList } from "../components/browse/review-list";
-import { CountLink, Section, ViewAll } from "../components/browse/section";
+import { AccountBio } from "../components/bio";
+import { AccountLink } from "../components/link";
+import { ActivityCalendar } from "../components/activity-calendar";
+import { ActivityFeed } from "../components/activity-row";
+import { EmptyState } from "../components/empty-state";
+import { ListTeaser } from "../components/list-row";
+import { PosterGrid, PosterTile } from "../components/poster-grid";
+import { PROFILE_ROW } from "../poster";
+import { DiaryDigest, PeopleGrid, RatingsChart } from "../components/sidebar";
+import { ReviewList } from "../components/review-list";
+import { CountLink, Section, ViewAll } from "../components/section";
 import { accountHref } from "@/config/routes";
 
 const RECENT = 5;
@@ -101,7 +97,7 @@ export async function AccountOverviewView({
                       <li key={`slot-${index}`}>
                         <AccountLink
                           aria-label="Pin a favorite from your likes"
-                          className="center aspect-[2/3] rounded-card border border-dashed border-white/15 text-ink-faint hover:border-white/35 hover:text-ink-body"
+                          className="center aspect-[2/3] rounded-card border border-dashed border-edge-focus text-ink-faint hover:border-ink-faint hover:text-ink-body"
                           href={`${base}/likes`}
                         >
                           <Icon icon="solar:add-circle-linear" size={20} />

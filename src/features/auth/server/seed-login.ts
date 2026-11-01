@@ -4,7 +4,7 @@ import {
   createAdminSupabaseClient,
   createServerSupabaseClient,
 } from "@/infrastructure/supabase/server";
-import { SEED_EMAIL_DOMAIN } from "../lib/constants";
+import { SEED_EMAIL_DOMAIN } from "../constants";
 
 const NOT_A_SEED_ACCOUNT = "This is not a test account";
 

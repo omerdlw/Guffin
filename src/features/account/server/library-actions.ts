@@ -16,7 +16,7 @@ import {
   type MovieLibraryKind,
   type MovieLibraryResult,
   type MovieLibraryState,
-} from "../lib/library";
+} from "../library";
 import { movieSnapshot } from "@/infrastructure/tmdb/snapshot";
 import { rememberWatchedPayload } from "./watched-payload";
 
@@ -145,7 +145,6 @@ export type LibraryMarksResult =
 
 const MARKS_MAX = 100;
 
-/** Which of these films the viewer has watched or saved, in one read. */
 export async function getLibraryMarksAction(
   tmdbIds: number[],
 ): Promise<LibraryMarksResult> {

@@ -1,9 +1,213 @@
 import type { CSSProperties } from "react";
-import { Z_INDEX } from "@omerdlw/base-framework/tokens";
+import { Z_INDEX, gpuTransform } from "@omerdlw/base-framework/tokens";
 import { defineTheme } from "@omerdlw/base-framework/theme";
 import { dockTheme } from "@omerdlw/base-framework/modules/dock";
 import { BACKDROP, FILL, FLOAT, GLASS, PRIMARY, SHELL, TIP } from "./chrome";
-import { dockMotion } from "./motion/dock";
+import { RADIUS } from "@/ui/page";
+import type { DockMotion } from "@omerdlw/base-framework/modules/dock";
+import { motion, tween } from "./motion";
+
+const { durations: time, easings: ease, springs } = motion;
+
+const DARK = { opacity: 0 } as const;
+const LIT = { opacity: 1 } as const;
+
+const leave = tween(time.leave, ease.fade);
+const touchLeave = tween(time.touch, ease.fade);
+const move = tween(time.move, ease.pour);
+
+const lightSet = (
+  enter: ReturnType<typeof tween>,
+  exit: ReturnType<typeof tween> = leave,
+) => ({
+  hidden: DARK,
+  visible: { ...LIT, transition: enter },
+  exit: { ...DARK, transition: exit },
+});
+
+const resizeFor = (distancePx: number) => {
+  const run = time.reveal * Math.sqrt(Math.max(distancePx, 0) / 240);
+  return tween(Math.min(time.move, Math.max(time.light, run)), ease.pour);
+};
+
+const atRest = (y: unknown) => gpuTransform(Number(y) || 0);
+
+const controlSlot = {
+  hidden: { opacity: 0, width: 0, marginRight: -2 },
+  visible: {
+    opacity: 1,
+    width: "auto",
+    marginRight: 0,
+    transition: {
+      width: tween(time.reveal, ease.pour),
+      marginRight: tween(time.reveal, ease.pour),
+      opacity: tween(time.light, ease.fade, time.touch),
+    },
+  },
+  exit: {
+    opacity: 0,
+    width: 0,
+    marginRight: -2,
+    transition: {
+      opacity: touchLeave,
+      width: tween(time.light, ease.glide, time.touch),
+      marginRight: tween(time.light, ease.glide, time.touch),
+    },
+  },
+};
+
+export const dockMotion: DockMotion = {
+  transitions: {
+    stack: move,
+    expand: move,
+    surfaceResize: (distancePx) => {
+      const resize = resizeFor(distancePx);
+      return { ...resize, height: resize, width: resize };
+    },
+    surfaceArrival: move,
+    anticipation: leave,
+    surfaceEnter: tween(time.reveal, ease.fade, time.touch),
+    surfaceStep: tween(time.reveal, ease.fade),
+    surfaceExit: tween(time.leave, ease.fade),
+    card: move,
+    cardExpanded: move,
+    cardPeek: tween(time.light, ease.pour),
+    fade: tween(time.reveal, ease.fade),
+    text: tween(time.light, ease.fade),
+    headerSwap: tween(time.light, ease.fade, time.step),
+    actionDismiss: touchLeave,
+    icon: tween(time.light, ease.fade),
+    badge: tween(time.light, ease.pour),
+    hud: tween(time.reveal, ease.fade),
+    press: springs.press,
+    scrubberTooltip: tween(time.leave, ease.fade),
+    scrubberFollow: springs.follow,
+    mediaVolume: tween(time.touch, ease.pour),
+  },
+  variants: {
+    fade: lightSet(tween(time.light, ease.fade, time.step)),
+    textCrossfade: lightSet(tween(time.reveal, ease.fade)),
+    description: (opacity = 0.7) => ({
+      hidden: DARK,
+      visible: {
+        opacity,
+        transition: tween(time.light, ease.fade, time.step),
+      },
+      exit: { ...DARK, transition: leave },
+    }),
+    headerSwap: {
+      hidden: DARK,
+      visible: LIT,
+      exit: { ...DARK, transition: leave },
+    },
+    headerRestore: lightSet(tween(time.reveal, ease.fade)),
+    extensionShelf: lightSet(tween(time.leave, ease.fade)),
+    actionDismiss: {
+      hidden: DARK,
+      visible: LIT,
+      exit: { ...DARK, transition: touchLeave },
+    },
+    commandBar: {
+      hidden: DARK,
+      visible: (index: unknown = 0) => ({
+        ...LIT,
+        transition: tween(
+          time.light,
+          ease.fade,
+          Math.min(Number(index) || 0, 4) * time.step,
+        ),
+      }),
+      exit: { ...DARK, transition: touchLeave },
+    },
+    icon: lightSet(tween(time.light, ease.fade)),
+    badge: {
+      hidden: { opacity: 0, transform: gpuTransform(0, 0.6) },
+      visible: {
+        opacity: 1,
+        transform: gpuTransform(0, 1),
+        transition: {
+          transform: tween(time.light, ease.pour),
+          opacity: tween(time.leave, ease.fade),
+        },
+      },
+      exit: { opacity: 0, transform: gpuTransform(0, 0.8), transition: leave },
+    },
+    hud: lightSet(tween(time.reveal, ease.fade)),
+    scrubberTooltip: lightSet(tween(time.leave, ease.fade), touchLeave),
+    breadcrumbs: lightSet(tween(time.reveal, ease.fade, time.leave)),
+    backdrop: {
+      hidden: DARK,
+      visible: { ...LIT, transition: tween(time.move, ease.fade) },
+      exit: { ...DARK, transition: tween(time.reveal, ease.fade) },
+    },
+    surfaceBody: { hidden: DARK, visible: LIT, exit: DARK },
+    controlsContainer: {
+      hidden: (y: unknown = 0) => ({ opacity: 0, transform: atRest(y) }),
+      visible: (y: unknown = 0) => ({
+        opacity: 1,
+        transform: atRest(y),
+        transition: {
+          opacity: tween(time.light, ease.fade, time.touch),
+          transform: move,
+        },
+      }),
+      exit: (y: unknown = 0) => ({
+        opacity: 0,
+        transform: atRest(y),
+        transition: { opacity: touchLeave, transform: move },
+      }),
+    },
+    controlsAction: controlSlot,
+    controlsBack: controlSlot,
+    controlsClose: lightSet(tween(time.light, ease.fade), touchLeave),
+    press: {
+      idle: { scale: 1 },
+      hover: { scale: 1 },
+      tap: { scale: 1 },
+    },
+    mediaVolumeThumb: { idle: { scale: 1 }, dragging: { scale: 1.15 } },
+    cardContent: { hidden: DARK, visible: LIT },
+  },
+  deck: {
+    elevation: {
+      rest: "0px 12px 32px 0px rgba(0,0,0,0.35), 0px 2px 8px 0px rgba(0,0,0,0.25)",
+      elevated:
+        "0px 32px 80px 0px rgba(0,0,0,0.55), 0px 8px 24px 0px rgba(0,0,0,0.35)",
+    },
+    compress: { open: 1, close: 1 },
+    peek: (position) => {
+      const progress = Math.min(position / 3, 1);
+      return {
+        lift: position * (4 * (0.85 + progress * 0.35)),
+        scale: 1 + 0.008 * (1 - progress * 0.25),
+      };
+    },
+    exit: ({ y, scale }) => ({
+      opacity: 0,
+      transform: gpuTransform(y, scale ?? 1),
+      transition: tween(time.reveal, ease.fade),
+    }),
+    tapScale: 0.98,
+  },
+  drag: {
+    elastic: { top: 0.05, bottom: 0.5 },
+    range: [0, 180],
+    opacity: [1, 0.75],
+    scale: [1, 0.96],
+  },
+  skeleton: "",
+  timings: {
+    dismissAction: time.touch,
+    anticipation: time.touch,
+    expandBody: time.move,
+    collapseBody: time.move,
+    restoreHeader: 0,
+    expandStagger: time.step,
+    expandStaggerCap: time.leave,
+    peekStagger: time.step / 2,
+    peekStaggerCap: time.touch,
+  },
+};
 
 const toLeft = (gradient: string) =>
   gradient
@@ -23,7 +227,7 @@ const CONTROL_BUTTON = `ui-iris center relative size-9 shrink-0 cursor-pointer t
 const MEDIA_ICON_BUTTON = `ui-iris center relative size-8 cursor-pointer rounded-full text-ink-body hover:text-ink ${FILL}`;
 
 const TONE_MUTED = `text-ink-body hover:text-ink ${FILL}`;
-const TIP_SHAPE = "rounded-full px-3 py-1.5 text-xs font-medium";
+const TIP_SHAPE = "rounded-full px-3 py-1.5 type-meta font-medium";
 
 export const dockThemeConfig = defineTheme(dockTheme, {
   slots: {
@@ -61,10 +265,10 @@ export const dockThemeConfig = defineTheme(dockTheme, {
     headerText:
       "flex h-full min-w-0 flex-1 flex-col justify-center -space-y-0.5",
     headerTitleRow: "flex items-center gap-1.5",
-    headerTitle: "text-[15px] tracking-[-0.01em]",
+    headerTitle: "type-copy",
     title: "truncate font-semibold",
     titleWrap: "relative overflow-hidden",
-    description: "relative min-h-[1.25rem] w-full overflow-hidden text-sm",
+    description: "relative min-h-[1.25rem] w-full overflow-hidden type-body",
     descriptionText:
       "text-ink-body data-[multiline=false]:truncate data-[multiline=true]:wrap-break-word data-[multiline=true]:whitespace-normal",
 
@@ -75,7 +279,7 @@ export const dockThemeConfig = defineTheme(dockTheme, {
     iconGlyphInner: "center shrink-0",
     iconButton: "size-full cursor-pointer p-0 focus:outline-none select-none",
     iconBadge:
-      "center absolute -end-1 -bottom-1 size-6 overflow-hidden rounded-full bg-black text-[11px] leading-none font-bold tabular-nums text-ink",
+      "center absolute -end-1 -bottom-1 size-6 overflow-hidden rounded-full bg-black type-label leading-none font-bold tabular-nums text-ink",
     iconOverlay:
       "center absolute -end-1.5 -bottom-1.5 size-6 overflow-hidden rounded-full data-[interactive=false]:cursor-default data-[interactive=true]:cursor-pointer",
     iconOverlayImage:
@@ -85,9 +289,9 @@ export const dockThemeConfig = defineTheme(dockTheme, {
     commandBar: "flex shrink-0 items-center",
     commandTooltip: `dock-tooltip ${TIP_SHAPE} ${TIP}`,
     command:
-      "ui-iris center relative size-9 cursor-pointer rounded-full bg-transparent text-ink-body hover:text-ink select-none data-[banner=true]:[--iris:rgb(255_255_255/0.1)] data-[banner=true]:before:backdrop-blur-md",
+      "ui-iris center relative size-9 cursor-pointer rounded-full bg-transparent text-ink-body hover:text-ink select-none data-[banner=true]:[--iris:var(--color-fill-hover)] data-[banner=true]:before:backdrop-blur-md",
     commandBadge:
-      "center bg-white absolute -right-0.5 -top-0.5 h-4 min-w-4 px-1 rounded-full text-[10px] leading-none font-semibold tabular-nums text-black",
+      "center bg-white absolute -right-0.5 -top-0.5 h-4 min-w-4 px-1 rounded-full type-micro leading-none font-semibold tabular-nums text-black",
 
     statusCard: GLASS,
     statusIcon: "bg-fill text-ink",
@@ -107,7 +311,7 @@ export const dockThemeConfig = defineTheme(dockTheme, {
     controlClose: "pointer-events-auto shrink-0",
     controlButton: CONTROL_BUTTON,
     controlBackIcon: "rtl:rotate-180",
-    controlHeaderButton: `pointer-events-auto ${CONTROL_BUTTON} disabled:opacity-50 disabled:pointer-events-none data-[text=true]:h-9 data-[text=true]:px-4 data-[text=true]:text-[13px] data-[text=true]:font-medium data-[text=true]:whitespace-nowrap`,
+    controlHeaderButton: `pointer-events-auto ${CONTROL_BUTTON} disabled:opacity-50 disabled:pointer-events-none data-[text=true]:h-9 data-[text=true]:px-4 data-[text=true]:type-control data-[text=true]:font-medium data-[text=true]:whitespace-nowrap`,
     controlRadiusSingle: "rounded-full",
     controlRadiusFirst: "rounded-full",
     controlRadiusLast: "rounded-full",
@@ -133,12 +337,12 @@ export const dockThemeConfig = defineTheme(dockTheme, {
     scrubberTrack:
       "absolute inset-x-0 top-0 h-1 w-full origin-top scale-y-[0.625] transform-gpu bg-line",
     scrubberProgress:
-      "h-full w-full origin-left bg-white/70 group-hover:bg-white",
+      "h-full w-full origin-left bg-ink-body group-hover:bg-ink",
     scrubberTooltip: `pointer-events-none absolute top-3 -translate-x-1/2 tabular-nums ${TIP_SHAPE} ${TIP}`,
 
     media: "flex w-full items-center justify-between gap-2 select-none",
     mediaGroup: "flex items-center gap-1.5",
-    mediaSpeed: `center h-8 cursor-pointer rounded-full px-3.5 text-xs font-medium tabular-nums text-ink-body select-none hover:text-ink data-[active=true]:bg-white data-[active=true]:text-black data-[active=true]:ring-white ${FILL}`,
+    mediaSpeed: `center h-8 cursor-pointer rounded-full px-3.5 type-meta font-medium tabular-nums text-ink-body select-none hover:text-ink data-[active=true]:bg-white data-[active=true]:text-black data-[active=true]:ring-white ${FILL}`,
     mediaSkip: MEDIA_ICON_BUTTON,
     mediaToggle: `flex size-8 cursor-pointer items-center justify-center rounded-full text-ink-body select-none hover:text-ink data-[active=true]:bg-white data-[active=true]:text-black data-[active=true]:ring-white ${FILL}`,
     mediaMute: "center size-5 cursor-pointer p-0 text-ink-body hover:text-ink",
@@ -149,9 +353,9 @@ export const dockThemeConfig = defineTheme(dockTheme, {
       "relative h-1.5 w-full overflow-hidden rounded-full bg-line",
     mediaVolumeFill: "h-full origin-left rounded-full bg-white",
     mediaVolumeThumb:
-      "ui-fade pointer-events-none absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white opacity-0 shadow-md group-hover/track:opacity-100 data-[active=true]:opacity-100",
+      "ui-fade pointer-events-none absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white opacity-0 shadow-knob group-hover/track:opacity-100 data-[active=true]:opacity-100",
 
-    breadcrumbs: `absolute inset-x-0 top-[calc(100%+6px)] flex h-10 w-full items-center justify-center rounded-full px-5 text-xs select-none ${FLOAT}`,
+    breadcrumbs: `absolute inset-x-0 top-[calc(100%+6px)] flex h-10 w-full items-center justify-center rounded-full px-5 type-meta select-none ${FLOAT}`,
     breadcrumbsNav: "flex scrollbar-none items-center gap-1.5 overflow-x-auto",
     breadcrumbsEllipsis: "px-0.5 text-ink-muted select-none",
     breadcrumbsItem: "flex items-center gap-1.5",
@@ -165,7 +369,7 @@ export const dockThemeConfig = defineTheme(dockTheme, {
     loadingTitle: "skeleton-block h-3.5 w-36 max-w-[60%] rounded-full",
     loadingDescription: "skeleton-block h-3 w-56 max-w-[85%] rounded-full",
 
-    action: `ui-sheen center h-10 w-full ${INNER} gap-2 px-4 text-[13px] font-medium tracking-[-0.005em] cursor-pointer select-none`,
+    action: `ui-sheen center h-10 w-full ${INNER} gap-2 px-4 type-control font-medium cursor-pointer select-none`,
     actionActive: PRIMARY,
     actionFill: "min-w-0 flex-1 justify-center whitespace-nowrap",
     actionLabel: "truncate",
@@ -179,7 +383,7 @@ export const dockThemeConfig = defineTheme(dockTheme, {
       zIndex: Z_INDEX.DOCK,
       maxWidth: "100vw",
       contain: "layout",
-      borderRadius: 26,
+      borderRadius: RADIUS.shell,
     },
     backdrop: { zIndex: Z_INDEX.DOCK_BACKDROP },
     cardFooter: { zIndex: Z_INDEX.DOCK_CARD_CONTENT },

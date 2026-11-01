@@ -1,7 +1,7 @@
-export { DirectorsView } from "./components/directors/directors-view";
-export { OscarsView } from "./components/oscars/oscars-view";
-export { SpotlightLoading } from "./components/spotlight-loading";
-export { WallView } from "./components/wall/wall-view";
+export { DirectorsView } from "./views/directors";
+export { OscarsView } from "./views/oscars";
+export { SpotlightLoading } from "./skeleton";
+export { WallView } from "./views/wall";
 export { getCanon } from "./server/canon";
 export { getDirectors } from "./server/directors";
 export { getLaureates } from "./server/laureates";

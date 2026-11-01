@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, type ReactNode } from "react";
 import { useOptionalDockState } from "@omerdlw/base-framework/modules/dock";
-import { cn } from "@omerdlw/base-framework/utils";
+import { cn } from "@/ui/cn";
 
 export function StickyAside({
   children,

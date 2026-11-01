@@ -3,16 +3,16 @@ import "server-only";
 import { err, ok, type Result } from "@omerdlw/base-framework/result";
 import { report } from "@omerdlw/base-framework/utils";
 import { createServerSupabaseClient } from "@/infrastructure/supabase/server";
-import { SEARCH_COMMUNITY_LIMIT } from "../lib/constants";
+import { SEARCH_COMMUNITY_LIMIT } from "../constants";
 import type {
   ListSearchResponse,
   ReviewSearchResponse,
   SearchFailure,
   SearchResponse,
   UserSearchResponse,
-} from "../lib/types";
-import { MATCH, RENOWN, bestMatch, fold, renown, textMatch } from "../lib/rank";
-import { excerpt, isSearchable, normalizeQuery } from "../lib/utils";
+} from "../types";
+import { MATCH, RENOWN, bestMatch, fold, renown, textMatch } from "../rank";
+import { excerpt, isSearchable, normalizeQuery } from "../utils";
 
 const INVALID: SearchFailure = {
   code: "invalid_query",

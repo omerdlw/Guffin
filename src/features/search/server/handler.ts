@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { COMMUNITY_SEARCH_TYPES } from "../lib/constants";
+import { COMMUNITY_SEARCH_TYPES } from "../constants";
 import type {
   SearchFailure,
   SearchFailureCode,
   SearchResponse,
   SearchType,
-} from "../lib/types";
+} from "../types";
 import {
   getClientIp,
   rateLimitResponse,

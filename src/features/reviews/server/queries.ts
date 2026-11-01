@@ -1,8 +1,8 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/infrastructure/supabase/client";
-import type { MovieReviewFilter, MovieReviewSort } from "../lib/constants";
-import type { MovieReview, ReviewStats } from "../lib/types";
+import type { MovieReviewFilter, MovieReviewSort } from "../constants";
+import type { MovieReview, ReviewStats } from "../types";
 
 type Client = SupabaseClient<Database>;
 
@@ -78,7 +78,6 @@ export async function getMovieReviews({
 
   const rows = (data ?? []) as unknown as Row[];
   const authors = rows.flatMap((row) => (row.author ? [row.author.id] : []));
-  // Which reviews the viewer liked, and which authors liked the film itself.
   const [likes, fans] = await Promise.all([
     viewerId && rows.length > 0
       ? client

@@ -5,7 +5,7 @@ import { report, toUserMessage } from "@omerdlw/base-framework/utils";
 import { getOptionalUser } from "@/features/auth/server";
 import { createServerSupabaseClient } from "@/infrastructure/supabase/server";
 import { isTmdbId } from "@/infrastructure/tmdb/validation";
-import type { MovieSocialProof, SocialResult } from "../lib/types";
+import type { MovieSocialProof, SocialResult } from "../types";
 import { readMovieSocialProof } from "./queries";
 
 export async function getMovieSocialProofAction(

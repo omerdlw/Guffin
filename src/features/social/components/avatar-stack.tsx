@@ -1,7 +1,7 @@
 import type { CSSProperties, JSX } from "react";
-import { cn } from "@omerdlw/base-framework/utils";
+import { cn } from "@/ui/cn";
 import { Avatar } from "@/ui";
-import type { SocialPerson } from "../lib/types";
+import type { SocialPerson } from "../types";
 
 const OVERLAP = 0.3;
 const GAP = 2;

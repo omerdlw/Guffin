@@ -2,10 +2,10 @@
 
 import { useContext, useEffect, type ReactNode, type Ref } from "react";
 import { animate, useMotionValue, useReducedMotion } from "motion/react";
-import { GRAMMAR, sinceBase } from "./grammar";
+import { GRAMMAR, sinceBase } from "./choreography";
 import { ClockContext, OpeningContext, PaceContext } from "./clock";
 import { useCue } from "./cue";
-import { WaveContext, useWave } from "./wave";
+import { WaveContext, useWave } from "./arrival";
 
 export function Sequence({
   as: Tag = "div",

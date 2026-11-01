@@ -4,11 +4,11 @@ import Link from "next/link";
 import { personHref } from "@/config/routes";
 import { useArtworkPath } from "@/features/artwork";
 import { MediaCard, nested, TONE, useDockLinkClick } from "@/ui";
-import { SCENE } from "../lib/motion";
+import { SCENE } from "../motion";
 import { Develop, Expose } from "@/motion/stage";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/images";
-import { cn } from "@omerdlw/base-framework/utils";
-import type { PersonEntry } from "../lib/types";
+import { cn } from "@/ui/cn";
+import type { PersonEntry } from "../types";
 
 export function PersonCard({
   compact = false,
@@ -21,7 +21,6 @@ export function PersonCard({
   person: PersonEntry;
   radius?: number;
 }) {
-  // The photo sits one p-1 in from the card's edge.
   const photoRadius = radius === undefined ? undefined : nested(radius, 4);
   const photoPath = useArtworkPath(
     "person",
@@ -62,7 +61,7 @@ export function PersonCard({
       {compact ? (
         <Expose
           as="div"
-          className="min-w-0 truncate text-xs leading-4 font-semibold text-ink"
+          className="min-w-0 truncate type-meta font-semibold text-ink"
           since={SCENE.card.name}
           truncate
         >
@@ -72,7 +71,7 @@ export function PersonCard({
         <div className="flex min-w-0 flex-col">
           <Expose
             as="div"
-            className="truncate text-sm leading-5 font-semibold text-ink"
+            className="truncate type-body font-semibold text-ink"
             since={SCENE.card.name}
             truncate
           >

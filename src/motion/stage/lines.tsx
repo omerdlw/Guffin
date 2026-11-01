@@ -7,11 +7,11 @@ import {
   useReducedMotion,
   useTransform,
 } from "motion/react";
-import { cn } from "@omerdlw/base-framework/utils";
-import { sinceBase } from "./grammar";
+import { cn } from "@/ui/cn";
+import { sinceBase } from "./choreography";
 import { EASE, size } from "./tempo";
 import { ClockContext, useClockStart, useExit, useProgress } from "./clock";
-import { bezier, play } from "./play";
+import { bezier, play } from "./animate";
 
 export function Hairline({
   at,

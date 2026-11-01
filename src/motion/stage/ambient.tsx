@@ -7,12 +7,12 @@ import {
   useReducedMotion,
   useTransform,
 } from "motion/react";
-import { Room } from "@/motion/film";
+import { Room } from "@/motion/effects";
 import { useScrollY } from "@/motion/scroll";
 import { ease, unit, useExit } from "./clock";
-import { GradeContext } from "./frame";
-import { GRAMMAR } from "./grammar";
-import { useRoom } from "./room";
+import { GradeContext } from "./color-grade";
+import { GRAMMAR } from "./choreography";
+import { useRoom } from "./lead-image";
 import { EASE } from "./tempo";
 import { useWall } from "./wall";
 

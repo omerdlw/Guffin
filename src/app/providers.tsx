@@ -23,12 +23,11 @@ import {
 import { PictureForesight } from "@/features/artwork";
 import { SearchDockCommand } from "@/features/search";
 import { SmoothScrollProvider } from "@/motion/scroll";
-import { Carry, Cursor } from "@/motion/film";
-import { isFilmPage } from "@/motion/handoff";
+import { Carry, Cursor } from "@/motion/effects";
+import { isFilmPage } from "@/motion/page-handoff";
 import { motion, themes } from "@/config";
 import { APP_REGISTRY_ENTRIES } from "./registry";
 
-// Hover warms film pages only: they are what the stage leads to.
 configureNavigation({ intent: { match: isFilmPage } });
 
 const MODULES = Object.freeze([

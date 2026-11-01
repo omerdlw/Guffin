@@ -1,7 +1,7 @@
 "use client";
 
 import { AdaptiveImage, Icon } from "@/ui";
-import { useArtworkPath } from "../lib/hooks";
+import { useArtworkPath } from "../hooks";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/images";
 
 export function PosterThumb({
