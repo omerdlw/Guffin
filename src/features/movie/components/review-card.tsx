@@ -13,7 +13,7 @@ import {
   type MovieReview,
 } from "@/features/reviews";
 import { Avatar, Icon, TONE } from "@/ui";
-import { MoviePart } from "../motion";
+import { DetailPart } from "@/features/detail";
 import { accountHref } from "@/config/routes";
 
 const DATE = new Intl.DateTimeFormat("en-US", {
@@ -28,15 +28,15 @@ const LIGHTS = 6;
 
 function LitStar({ fill, index }: { fill: number; index: number }) {
   return (
-    <MoviePart as="span" className="inline-flex" index={index} name="star">
+    <DetailPart as="span" className="inline-flex" index={index} name="star">
       <Star fill={fill} size={14} />
-    </MoviePart>
+    </DetailPart>
   );
 }
 
 function LitFilmLike({ author, index }: { author: string; index: number }) {
   return (
-    <MoviePart
+    <DetailPart
       as="span"
       className="inline-flex shrink-0"
       index={index}
@@ -48,7 +48,7 @@ function LitFilmLike({ author, index }: { author: string; index: number }) {
         icon="solar:heart-bold"
         size={14}
       />
-    </MoviePart>
+    </DetailPart>
   );
 }
 
@@ -100,7 +100,7 @@ export function ReviewCard({
     review.rating > 0;
 
   return (
-    <MoviePart
+    <DetailPart
       as="li"
       className="flex py-6 first:pt-0 last:pb-0"
       index={index}
@@ -177,6 +177,6 @@ export function ReviewCard({
           </div>
         ) : null}
       </article>
-    </MoviePart>
+    </DetailPart>
   );
 }

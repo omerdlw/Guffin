@@ -1,7 +1,7 @@
 "use client";
 
 import { Icon, TONE } from "@/ui";
-import { Header, Section } from "@/motion/stage";
+import { DetailSection, Heading } from "@/features/detail";
 import { Career } from "./career-chart";
 import type { Career as CareerData } from "../types";
 import { usePersonView } from "./view-state";
@@ -10,8 +10,8 @@ export function PersonCareer({ career }: { career: CareerData }) {
   const { openTimeline } = usePersonView();
 
   return (
-    <Section className="flex w-full flex-col">
-      <Header
+    <DetailSection className="flex w-full flex-col" cue="career">
+      <Heading
         actions={
           <button
             className={`hidden cursor-pointer items-center gap-1.5 sm:flex ${TONE.link}`}
@@ -26,6 +26,6 @@ export function PersonCareer({ career }: { career: CareerData }) {
         title="Career"
       />
       <Career onOpen={openTimeline} peak={career.peak} years={career.years} />
-    </Section>
+    </DetailSection>
   );
 }

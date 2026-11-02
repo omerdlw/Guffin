@@ -16,8 +16,12 @@ import {
   type MovieReviewSort,
 } from "@/features/reviews";
 import { Button, Icon, Select, TONE } from "@/ui";
-import { MoviePart, MovieSection, MovieSwap } from "../motion";
-import { Heading } from "./heading";
+import {
+  DetailPart,
+  DetailSection,
+  DetailSwap,
+  Heading,
+} from "@/features/detail";
 import { ReviewCard } from "./review-card";
 
 function Stats({
@@ -197,14 +201,14 @@ export function MovieReviews({
   };
 
   return (
-    <MovieSection className="flex w-full flex-col" cue="board">
+    <DetailSection className="flex w-full flex-col" cue="board">
       <Heading
         actions={page ? <Stats stats={page.stats} /> : null}
         icon="solar:chat-round-line-bold"
         title="Reviews"
       />
 
-      <MoviePart
+      <DetailPart
         className="mb-6 flex flex-wrap items-center gap-3"
         name="control"
       >
@@ -231,10 +235,10 @@ export function MovieReviews({
           value={sort}
         />
         {username ? <Account name={username} onClear={clearAccount} /> : null}
-      </MoviePart>
+      </DetailPart>
 
       {page ? (
-        <MovieSwap
+        <DetailSwap
           as="ul"
           className={`flex flex-col divide-y ${TONE.rules}`}
           cue="reviews"
@@ -252,7 +256,7 @@ export function MovieReviews({
               />
             ))
           ) : (
-            <MoviePart
+            <DetailPart
               as="li"
               className="py-10 text-center type-body text-ink-muted"
               name="review"
@@ -262,13 +266,13 @@ export function MovieReviews({
                 : username
                   ? "No entry from this account yet"
                   : "No reviews yet. Be the first."}
-            </MoviePart>
+            </DetailPart>
           )}
-        </MovieSwap>
+        </DetailSwap>
       ) : null}
 
       {page && page.reviews.length < page.total ? (
-        <MoviePart className="mt-6" name="control">
+        <DetailPart className="mt-6" name="control">
           <Button
             className={TONE.more}
             disabled={loadingMore}
@@ -280,8 +284,8 @@ export function MovieReviews({
             ) : null}
             More reviews ({page.total - page.reviews.length})
           </Button>
-        </MoviePart>
+        </DetailPart>
       ) : null}
-    </MovieSection>
+    </DetailSection>
   );
 }

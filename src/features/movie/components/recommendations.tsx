@@ -3,8 +3,7 @@ import type { MovieDetails } from "@/infrastructure/tmdb/types";
 import { getRecommendations } from "../utils";
 import { MoviePosterLink } from "./poster-link";
 import { CAROUSEL_ITEM, Carousel, RADIUS, TONE } from "@/ui";
-import { MovieSection } from "../motion";
-import { Heading } from "./heading";
+import { DetailSection, Heading } from "@/features/detail";
 
 export function MovieRecommendations({
   movie,
@@ -15,7 +14,7 @@ export function MovieRecommendations({
   if (recommendations.length === 0) return null;
 
   return (
-    <MovieSection className="flex w-full flex-col" cue="row">
+    <DetailSection className="flex w-full flex-col" cue="row">
       <Heading icon="solar:stars-minimalistic-bold" title="More like this" />
       <Carousel
         arrowClassName={TONE.arrows}
@@ -39,6 +38,6 @@ export function MovieRecommendations({
           />
         ))}
       </Carousel>
-    </MovieSection>
+    </DetailSection>
   );
 }

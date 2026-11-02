@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
 import { Icon, TONE } from "@/ui";
-import { MovieHeader } from "../motion";
+import { DetailHeader } from "../motion";
 
-// A section's heading on the film page: the kit's header, lit by the room.
+// A section's heading on a film or person page: the kit's header, lit by the
+// room.
 export function Heading({
   actions,
   icon,
@@ -13,7 +14,7 @@ export function Heading({
   title: string;
 }) {
   return (
-    <MovieHeader
+    <DetailHeader
       actions={actions}
       icon={<Icon icon={icon} size={18} />}
       nameClassName={`min-w-0 ${TONE.label} text-ink-body`}

@@ -4,8 +4,12 @@ import { useState, type CSSProperties } from "react";
 import { useModal } from "@omerdlw/base-framework/modules/modal";
 import { Button, Icon, RADIUS, SegmentedControl, TONE } from "@/ui";
 import { MOVIE_COMPACT_PEOPLE, MOVIE_FEATURED_PEOPLE } from "../constants";
-import { MoviePart, MovieSection, MovieSwap } from "../motion";
-import { Heading } from "./heading";
+import {
+  DetailPart,
+  DetailSection,
+  DetailSwap,
+  Heading,
+} from "@/features/detail";
 import type { PersonEntry } from "../types";
 import { PeopleModal, type PeopleModalData } from "./modals";
 import { PersonCard } from "./person-card";
@@ -48,7 +52,7 @@ export function MoviePeople({ cast, crew }: MoviePeopleProps) {
   };
 
   return (
-    <MovieSection className="flex w-full flex-col" cue="shelf">
+    <DetailSection className="flex w-full flex-col" cue="shelf">
       <Heading
         actions={
           <SegmentedControl
@@ -63,10 +67,10 @@ export function MoviePeople({ cast, crew }: MoviePeopleProps) {
         title="Cast & Crew"
       />
 
-      <MovieSwap className="flex flex-col gap-3" cue="cast" id={tab}>
+      <DetailSwap className="flex flex-col gap-3" cue="cast" id={tab}>
         <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {featured.map((person, index) => (
-            <MoviePart
+            <DetailPart
               as="li"
               className="min-w-0"
               index={index}
@@ -74,7 +78,7 @@ export function MoviePeople({ cast, crew }: MoviePeopleProps) {
               name="person"
             >
               <PersonCard index={index} person={person} radius={RADIUS.panel} />
-            </MoviePart>
+            </DetailPart>
           ))}
         </ul>
 
@@ -84,7 +88,7 @@ export function MoviePeople({ cast, crew }: MoviePeopleProps) {
             style={compactCells(compact.length, hasMore)}
           >
             {compact.map((person, index) => (
-              <MoviePart
+              <DetailPart
                 className={`min-w-0 ${index > 1 ? "hidden sm:block" : ""}`}
                 index={featured.length + index}
                 key={person.key}
@@ -96,9 +100,9 @@ export function MoviePeople({ cast, crew }: MoviePeopleProps) {
                   person={person}
                   radius={RADIUS.panel}
                 />
-              </MoviePart>
+              </DetailPart>
             ))}
-            <MoviePart
+            <DetailPart
               className="min-w-0"
               index={featured.length + compact.length}
               name="person"
@@ -110,10 +114,10 @@ export function MoviePeople({ cast, crew }: MoviePeopleProps) {
               >
                 <Icon icon="solar:alt-arrow-right-linear" size={16} />
               </Button>
-            </MoviePart>
+            </DetailPart>
           </div>
         ) : null}
-      </MovieSwap>
-    </MovieSection>
+      </DetailSwap>
+    </DetailSection>
   );
 }

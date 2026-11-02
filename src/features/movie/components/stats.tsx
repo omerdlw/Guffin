@@ -1,6 +1,6 @@
 import type { JSX } from "react";
 import { Icon, Tooltip } from "@/ui";
-import { MoviePart } from "../motion";
+import { DetailPart } from "@/features/detail";
 import type { FilmStats } from "../types";
 
 const compact = new Intl.NumberFormat("en", {
@@ -42,7 +42,7 @@ export function MovieStats({
   if (!stats || stats.watched + stats.listed + stats.liked === 0) return null;
 
   return (
-    <MoviePart className="flex items-center justify-center gap-5" name="stat">
+    <DetailPart className="flex items-center justify-center gap-5" name="stat">
       {STATS.map((stat) => (
         <Tooltip key={stat.icon} position="top" text={stat.label(stats)}>
           <span className="flex cursor-help items-center gap-1.5 type-control leading-5 font-medium text-ink-body tabular-nums">
@@ -51,6 +51,6 @@ export function MovieStats({
           </span>
         </Tooltip>
       ))}
-    </MoviePart>
+    </DetailPart>
   );
 }

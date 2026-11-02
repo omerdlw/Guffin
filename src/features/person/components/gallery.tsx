@@ -1,19 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useModal } from "@omerdlw/base-framework/modules/modal";
 import { artworkTarget } from "@/features/artwork";
 import {
+  DetailSection,
+  DetailSwap,
   GalleryWall,
+  Heading,
   ImageModal,
+  useLead,
   WALL_SIZES,
   WallButton,
   type ImageModalData,
   type WallSet,
-} from "@/features/movie";
+} from "@/features/detail";
 import {
   CAROUSEL_ITEM,
   CAROUSEL_WIDE_ITEM,
+  Carousel,
   MediaCard,
   RADIUS,
   SegmentedControl,
@@ -22,7 +27,6 @@ import {
 import type { MediaCardAspect } from "@/ui";
 import { tmdbImageSrcSet, tmdbImageUrl } from "@/infrastructure/tmdb/images";
 import type { PersonImage } from "@/infrastructure/tmdb/types";
-import { Carousel, Header, Section, Swap } from "@/motion/stage";
 
 type Tab = "portraits" | "backdrops";
 
@@ -75,6 +79,8 @@ export function PersonGallery({
   portraits: PersonImage[];
 }) {
   const [openImage] = useModal(ImageModal);
+  const lead = useLead();
+  useEffect(() => () => lead(null), [lead]);
   const tabs = shelves(backdrops, portraits);
   const [tab, setTab] = useState<Tab>(tabs[0]?.[0] ?? "portraits");
   if (tabs.length === 0) return null;
@@ -84,8 +90,8 @@ export function PersonGallery({
   const portrait = key === "portraits";
 
   return (
-    <Section className="flex w-full flex-col">
-      <Header
+    <DetailSection className="flex w-full flex-col" cue="shelf">
+      <Heading
         actions={
           <div className="flex items-center gap-2">
             {tabs.length > 1 ? (
@@ -106,40 +112,59 @@ export function PersonGallery({
         icon="solar:gallery-wide-bold"
         title="Gallery"
       />
-      <Swap id={key}>
-        <Carousel
-          arrowClassName={TONE.arrows}
-          className="rounded-card"
-          itemClassName={!portrait && paths.length === 1 ? "w-full" : view.item}
-          label={view.label}
-          radius={RADIUS.card}
-        >
-          {paths.map((path, index) => {
-            const full = portrait
-              ? tmdbImageUrl("profile", path, "original")
-              : tmdbImageUrl("backdrop", path, "original");
-            return (
-              <MediaCard
-                key={path}
-                {...artworkTarget(portrait ? "poster" : "backdrop", path)}
-                aspect={view.aspect}
-                image={{ sizes: view.sizes, src: full }}
-                label={`View ${view.noun} ${index + 1} of ${name}`}
-                radius={RADIUS.card}
-                onClick={() => {
-                  if (!full) return;
-                  const data: ImageModalData = {
-                    alt: `${view.noun[0].toUpperCase()}${view.noun.slice(1)} ${index + 1} of ${name}`,
-                    src: full,
-                  };
-                  void openImage(data);
-                }}
-              />
+      <DetailSwap cue="slides" id={key}>
+        <div
+          onPointerLeave={() => lead(null)}
+          onPointerOver={(event) => {
+            if (event.pointerType !== "mouse") return;
+            const card = (event.target as Element).closest("[data-still]");
+            const still = card?.getAttribute("data-still");
+            lead(
+              still
+                ? portrait
+                  ? tmdbImageUrl("profile", still, "w185")
+                  : tmdbImageUrl("backdrop", still, "w300")
+                : null,
             );
-          })}
-        </Carousel>
-      </Swap>
-    </Section>
+          }}
+        >
+          <Carousel
+            arrowClassName={TONE.arrows}
+            className="rounded-card"
+            itemClassName={
+              !portrait && paths.length === 1 ? "w-full" : view.item
+            }
+            label={view.label}
+            part="slide"
+          >
+            {paths.map((path, index) => {
+              const full = portrait
+                ? tmdbImageUrl("profile", path, "original")
+                : tmdbImageUrl("backdrop", path, "original");
+              return (
+                <MediaCard
+                  key={path}
+                  {...artworkTarget(portrait ? "poster" : "backdrop", path)}
+                  aspect={view.aspect}
+                  data-still={path}
+                  image={{ sizes: view.sizes, src: full }}
+                  label={`View ${view.noun} ${index + 1} of ${name}`}
+                  radius={RADIUS.card}
+                  onClick={() => {
+                    if (!full) return;
+                    const data: ImageModalData = {
+                      alt: `${view.noun[0].toUpperCase()}${view.noun.slice(1)} ${index + 1} of ${name}`,
+                      src: full,
+                    };
+                    void openImage(data);
+                  }}
+                />
+              );
+            })}
+          </Carousel>
+        </div>
+      </DetailSwap>
+    </DetailSection>
   );
 }
 

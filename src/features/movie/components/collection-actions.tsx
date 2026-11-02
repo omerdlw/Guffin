@@ -4,14 +4,12 @@ import {
   useCallback,
   useEffect,
   useState,
-  type ComponentProps,
   type JSX,
   type ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
 import { useDockActions } from "@omerdlw/base-framework/modules/dock";
 import { useToast } from "@omerdlw/base-framework/modules/notification";
-import { cn } from "@/ui/cn";
 import { report, toUserMessage } from "@omerdlw/base-framework/utils";
 import {
   EMPTY_MOVIE_LIBRARY,
@@ -24,52 +22,9 @@ import {
   setMovieLibraryAction,
 } from "@/features/account";
 import { createSignInSurfaceEntry, useAuth } from "@/features/auth";
-import { ActionButton } from "@/ui";
-import { MoviePart } from "../motion";
+import { DetailAction as Action } from "@/features/detail";
 import { useMovieView } from "./view-switcher";
 import { createListPickerSurfaceEntry } from "@/features/lists";
-
-const SIZE = "h-12 px-4 py-0 disabled:cursor-wait";
-const SECONDARY_SIZE = "h-11 gap-2 px-3";
-
-function Action({
-  grow = false,
-  label,
-  secondary = false,
-  shortLabel,
-  ...props
-}: Omit<
-  ComponentProps<typeof ActionButton>,
-  "ariaLabel" | "className" | "iconSize" | "label"
-> & {
-  grow?: boolean;
-  label: string;
-  secondary?: boolean;
-  shortLabel?: string;
-}): JSX.Element {
-  return (
-    <MoviePart className={cn("min-w-0", grow && "flex-1")} name="action">
-      <ActionButton
-        {...props}
-        ariaLabel={secondary && shortLabel ? label : undefined}
-        className={cn(SIZE, secondary && SECONDARY_SIZE)}
-        iconSize={secondary ? 14 : 16}
-        label={
-          shortLabel && secondary ? (
-            shortLabel
-          ) : shortLabel ? (
-            <>
-              <span className="sm:max-xl:hidden">{label}</span>
-              <span className="hidden sm:max-xl:inline">{shortLabel}</span>
-            </>
-          ) : (
-            label
-          )
-        }
-      />
-    </MoviePart>
-  );
-}
 
 const ICONS = {
   like: { off: "solar:heart-linear", on: "solar:heart-bold" },

@@ -283,8 +283,8 @@ export function usePartOf(
   };
 }
 
-// A section is cued when its top reaches φ⁻¹ of the window, or once it has
-// been scrolled past.
+// A section is cued when its top reaches φ⁻¹ of the window. One found already
+// scrolled past, never seen, is simply there.
 export function useSectionOf(
   stage: Stage<string, string>,
   name: string,
@@ -298,8 +298,9 @@ export function useSectionOf(
         ([entry]) => {
           const passed =
             entry.boundingClientRect.top < (entry.rootBounds?.top ?? 0);
-          if (!entry.isIntersecting && !passed) return;
-          stage.cue(name, scope);
+          if (entry.isIntersecting) stage.cue(name, scope);
+          else if (passed) stage.pass(name, scope);
+          else return;
           observer.disconnect();
         },
         { rootMargin: SECTION_MARGIN },

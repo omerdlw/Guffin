@@ -12,8 +12,7 @@ import {
   TONE,
 } from "@/ui";
 import type { MovieVideo } from "@/infrastructure/tmdb/types";
-import { MovieSection, MovieSwap } from "../motion";
-import { Heading } from "./heading";
+import { DetailSection, DetailSwap, Heading } from "@/features/detail";
 import { VideoModal, type VideoModalData } from "./modals";
 
 const plural = (type: string) => (type.endsWith("s") ? type : `${type}s`);
@@ -32,7 +31,7 @@ export function MovieVideos({
   const visible = videos.filter((v) => v.site === "YouTube" && v.type === type);
 
   return (
-    <MovieSection className="flex w-full flex-col" cue="shelf">
+    <DetailSection className="flex w-full flex-col" cue="shelf">
       <Heading
         actions={
           <SegmentedControl
@@ -47,7 +46,7 @@ export function MovieVideos({
         title="Videos"
       />
 
-      <MovieSwap cue="slides" id={type}>
+      <DetailSwap cue="slides" id={type}>
         <Carousel
           arrowClassName={TONE.arrows}
           className="rounded-card"
@@ -89,7 +88,7 @@ export function MovieVideos({
             />
           ))}
         </Carousel>
-      </MovieSwap>
-    </MovieSection>
+      </DetailSwap>
+    </DetailSection>
   );
 }

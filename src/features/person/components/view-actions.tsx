@@ -1,56 +1,47 @@
 "use client";
 
 import type { JSX } from "react";
-import { StageAction } from "@/motion/stage";
+import { DetailAction } from "@/features/detail";
+import type { PersonViewKey } from "../types";
 import { usePersonView } from "./view-state";
 
-function Action({
-  active,
-  ...props
-}: {
-  active: boolean;
+const ACTIONS: readonly {
   icon: { off: string; on: string };
+  key: Exclude<PersonViewKey, "main">;
   label: string;
-  onClick: () => void;
-}): JSX.Element {
-  return (
-    <StageAction
-      {...props}
-      active={active}
-      className="h-auto p-4"
-      grow
-      hoverLabel={active ? "Back" : undefined}
-    />
-  );
-}
-
-const ICONS = {
-  awards: { off: "solar:cup-star-linear", on: "solar:cup-star-bold" },
-  timeline: { off: "solar:sort-by-time-linear", on: "solar:sort-by-time-bold" },
-};
+}[] = [
+  {
+    icon: { off: "solar:sort-by-time-linear", on: "solar:sort-by-time-bold" },
+    key: "timeline",
+    label: "Timeline",
+  },
+  {
+    icon: { off: "solar:cup-star-linear", on: "solar:cup-star-bold" },
+    key: "awards",
+    label: "Awards",
+  },
+];
 
 export function PersonViewActions(): JSX.Element | null {
   const { awards, hasTimeline, toggle, view } = usePersonView();
-  if (!hasTimeline && !awards) return null;
+  const shown = ACTIONS.filter(({ key }) =>
+    key === "timeline" ? hasTimeline : awards !== null,
+  );
+  if (shown.length === 0) return null;
 
   return (
     <div className="flex gap-3">
-      {hasTimeline ? (
-        <Action
-          active={view === "timeline"}
-          icon={ICONS.timeline}
-          label="Timeline"
-          onClick={() => toggle("timeline")}
+      {shown.map(({ icon, key, label }) => (
+        <DetailAction
+          active={view === key}
+          grow
+          hoverLabel={view === key ? "Back" : undefined}
+          icon={icon}
+          key={key}
+          label={label}
+          onClick={() => toggle(key)}
         />
-      ) : null}
-      {awards ? (
-        <Action
-          active={view === "awards"}
-          icon={ICONS.awards}
-          label="Awards"
-          onClick={() => toggle("awards")}
-        />
-      ) : null}
+      ))}
     </div>
   );
 }

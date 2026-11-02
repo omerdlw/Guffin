@@ -317,6 +317,26 @@ export class Stage<P extends string, S extends string = never> {
     if (!this.leaving) this.schedule();
   }
 
+  // A section the eye was carried past unseen (a jump over it) is simply
+  // there: its parts take no turn in the queue, so whatever is in view after
+  // the jump does not wait behind them.
+  pass(section: S, scope: string | null = null) {
+    if (!this.started || this.leaving) {
+      this.cue(section, scope);
+      return;
+    }
+    if (this.cued.some((cue) => cue.section === section && cue.scope === scope))
+      return;
+    this.cued.push({ section, scope });
+    for (const item of this.score.sections[section]) {
+      if (!("parts" in item)) continue;
+      for (const name of item.parts) {
+        this.played.add(keyOf(name, scope));
+        for (const actor of this.ranked(name, scope)) actor.enter.set(1);
+      }
+    }
+  }
+
   private steps(section: S, scope: string | null): Queued<P>[] {
     const cue = keyOf(section, scope);
     return this.score.sections[section].map((step) => ({ step, cue, scope }));

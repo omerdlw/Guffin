@@ -1,12 +1,9 @@
 "use client";
 
 import { useArtworkPath } from "@/features/artwork";
-import { Flowing } from "@/motion/layout-flow";
-import { Intermission } from "@/motion/effects";
+import { DetailIntermission } from "@/features/detail";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/images";
 import type { PersonDetails } from "@/infrastructure/tmdb/types";
-import { SCENE } from "../motion";
-import { EASE, useLeaving, useWall } from "@/motion/stage";
 import { readable } from "@/motion/gl";
 
 export function PersonProjection({
@@ -16,9 +13,6 @@ export function PersonProjection({
   backdrop: string | null;
   person: Pick<PersonDetails, "id" | "name" | "profilePath">;
 }) {
-  const leaving = useLeaving();
-  const away = (useWall()?.phase ?? "page") !== "page";
-  const { intermission } = SCENE.film;
   const path = useArtworkPath("person", person.id, "backdrop", backdrop);
   const photo = useArtworkPath(
     "person",
@@ -27,20 +21,13 @@ export function PersonProjection({
     person.profilePath,
   );
   const picture = tmdbImageUrl("backdrop", path, "original");
-  const image = picture
-    ? readable(picture)
-    : tmdbImageUrl("profile", photo, "original");
 
   return (
-    <>
-      <Flowing ease={EASE.glide} run={SCENE.flow.run} />
-      <Intermission
-        {...intermission}
-        ease={EASE.silk}
-        image={image}
-        paused={leaving || away}
-        title={person.name}
-      />
-    </>
+    <DetailIntermission
+      image={
+        picture ? readable(picture) : tmdbImageUrl("profile", photo, "original")
+      }
+      title={person.name}
+    />
   );
 }

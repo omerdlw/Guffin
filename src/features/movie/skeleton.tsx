@@ -1,5 +1,6 @@
 import type { JSX } from "react";
-import { AFTER_TAGLINE, SIDEBAR_FACTS_CLASS, TAGLINE_TYPE } from "./styles";
+import { SIDEBAR_FACTS_CLASS } from "@/features/detail";
+import { AFTER_TAGLINE, TAGLINE_TYPE } from "./styles";
 import {
   ASIDE_CLASS,
   BackdropHeroSkeleton,

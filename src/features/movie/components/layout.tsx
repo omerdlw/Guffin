@@ -1,15 +1,4 @@
-import {
-  ASIDE_CLASS,
-  COLUMNS_CLASS,
-  CONTAINER_CLASS,
-  HEADER_CLASS,
-  MAIN_COLUMN_CLASS,
-  PAGE_CLASS,
-  pageBodyClass,
-  PROSE_CLASS,
-  RULE_GAP,
-  StickyAside,
-} from "@/ui";
+import { MAIN_COLUMN_CLASS, PROSE_CLASS, RULE_GAP } from "@/ui";
 import { cn } from "@/ui/cn";
 import { Suspense, type JSX } from "react";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/images";
@@ -19,7 +8,7 @@ import type {
   MovieImages,
 } from "@/infrastructure/tmdb/types";
 import { AFTER_TAGLINE, TAGLINE_CLASS, titleClass } from "../styles";
-import { MoviePart, MovieText, MovieWallStage } from "../motion";
+import { DetailLayout, DetailPart, DetailText } from "@/features/detail";
 import type { FilmStats, PersonEntry } from "../types";
 import type { MovieReviewSort } from "@/features/reviews";
 import { AccountLink } from "@/features/account";
@@ -81,7 +70,7 @@ export function MovieView({
   }));
 
   const title = (
-    <MovieText
+    <DetailText
       as="h1"
       className={titleClass(movie.title)}
       mask
@@ -93,119 +82,107 @@ export function MovieView({
   return (
     <ReelProvider>
       <MovieStage movie={movie}>
-        <main
-          className={`movie-page ui-scene overflow-x-clip ${PAGE_CLASS}`}
-          data-cinematic=""
-        >
-          <MovieProjection movie={movie} />
-          <MovieWallStage
-            cue="wall"
-            wall={
-              <MovieGalleryWall
-                backdrops={getGalleryImages(images)}
-                posters={getPosterImages(images)}
-                title={movie.title}
-              />
-            }
-          >
-            <div className={CONTAINER_CLASS}>
-              {backdrop ? <MovieBackdropHero movie={movie} /> : null}
-
-              <div className={pageBodyClass(Boolean(backdrop))}>
-                <div className={COLUMNS_CLASS}>
-                  <header className={HEADER_CLASS}>
-                    {page.kind === "reviews" ? (
-                      <AccountLink
-                        className="ui-fade hover:opacity-80"
-                        href={movieHref(movie.id)}
-                      >
-                        {title}
-                      </AccountLink>
-                    ) : (
-                      title
-                    )}
-                    {movie.tagline || movie.overview ? (
-                      <MoviePart
-                        className={`${RULE_GAP} h-px w-full bg-grade/40`}
-                        name="rule"
-                      />
-                    ) : null}
-                    {movie.tagline ? (
-                      <MovieText
-                        as="p"
-                        className={`${TAGLINE_CLASS} opacity-90`}
-                        part="tagline"
-                        text={movie.tagline}
-                      />
-                    ) : null}
-                    {movie.overview ? (
-                      <MovieText
-                        as="p"
-                        by="line"
-                        className={cn(
-                          PROSE_CLASS,
-                          "opacity-70",
-                          movie.tagline && AFTER_TAGLINE,
-                        )}
-                        part="overview"
-                        text={movie.overview}
-                      />
-                    ) : null}
-                  </header>
-
-                  <StickyAside className={ASIDE_CLASS}>
-                    <MovieSidebar awards={awards} movie={movie} stats={stats} />
-                  </StickyAside>
-
-                  {page.kind === "reviews" ? (
-                    <div className={MAIN_COLUMN_CLASS}>
-                      <MovieReviews
-                        initialSort={page.sort}
-                        movieId={movie.id}
-                        reviewer={page.reviewer}
+        <DetailLayout
+          after={
+            page.kind === "film" ? (
+              <>
+                <MovieReviewDigest movieId={movie.id} title={movie.title} />
+                <Suspense fallback={null}>
+                  <MoviePopularLists lists={page.popularLists} />
+                </Suspense>
+              </>
+            ) : null
+          }
+          backdrop={backdrop ? <MovieBackdropHero movie={movie} /> : null}
+          className="movie-page"
+          header={
+            <>
+              {page.kind === "reviews" ? (
+                <AccountLink
+                  className="ui-fade hover:opacity-80"
+                  href={movieHref(movie.id)}
+                >
+                  {title}
+                </AccountLink>
+              ) : (
+                title
+              )}
+              {movie.tagline || movie.overview ? (
+                <DetailPart
+                  className={`${RULE_GAP} h-px w-full bg-grade/40`}
+                  name="rule"
+                />
+              ) : null}
+              {movie.tagline ? (
+                <DetailText
+                  as="p"
+                  className={`${TAGLINE_CLASS} opacity-90`}
+                  part="tagline"
+                  text={movie.tagline}
+                />
+              ) : null}
+              {movie.overview ? (
+                <DetailText
+                  as="p"
+                  by="line"
+                  className={cn(
+                    PROSE_CLASS,
+                    "opacity-70",
+                    movie.tagline && AFTER_TAGLINE,
+                  )}
+                  part="overview"
+                  text={movie.overview}
+                />
+              ) : null}
+            </>
+          }
+          intermission={<MovieProjection movie={movie} />}
+          main={
+            page.kind === "reviews" ? (
+              <div className={MAIN_COLUMN_CLASS}>
+                <MovieReviews
+                  initialSort={page.sort}
+                  movieId={movie.id}
+                  reviewer={page.reviewer}
+                  title={movie.title}
+                />
+              </div>
+            ) : (
+              <MovieViews
+                views={{
+                  awards: (
+                    <Suspense fallback={null}>
+                      <MovieAwards awards={awards} />
+                    </Suspense>
+                  ),
+                  overview: (
+                    <>
+                      <MoviePeople cast={cast} crew={crew} />
+                      <MovieGallery
+                        backdrops={getGalleryImages(images)}
+                        posters={getPosterImages(images)}
                         title={movie.title}
                       />
-                    </div>
-                  ) : (
-                    <MovieViews
-                      views={{
-                        awards: (
-                          <Suspense fallback={null}>
-                            <MovieAwards awards={awards} />
-                          </Suspense>
-                        ),
-                        overview: (
-                          <>
-                            <MoviePeople cast={cast} crew={crew} />
-                            <MovieGallery
-                              backdrops={getGalleryImages(images)}
-                              posters={getPosterImages(images)}
-                              title={movie.title}
-                            />
-                            <MovieVideos
-                              types={getVideoTypes(movie)}
-                              videos={movie.videos}
-                            />
-                            <MovieRecommendations movie={movie} />
-                          </>
-                        ),
-                      }}
-                    />
-                  )}
-                </div>
-
-                {page.kind === "film" ? (
-                  <>
-                    <MovieReviewDigest movieId={movie.id} title={movie.title} />
-                    <Suspense fallback={null}>
-                      <MoviePopularLists lists={page.popularLists} />
-                    </Suspense>
-                  </>
-                ) : null}
-              </div>
-            </div>
-          </MovieWallStage>
-        </main>
+                      <MovieVideos
+                        types={getVideoTypes(movie)}
+                        videos={movie.videos}
+                      />
+                      <MovieRecommendations movie={movie} />
+                    </>
+                  ),
+                }}
+              />
+            )
+          }
+          sidebar={<MovieSidebar awards={awards} movie={movie} stats={stats} />}
+          wall={
+            <MovieGalleryWall
+              backdrops={getGalleryImages(images)}
+              posters={getPosterImages(images)}
+              title={movie.title}
+            />
+          }
+        />
       </MovieStage>
     </ReelProvider>
   );

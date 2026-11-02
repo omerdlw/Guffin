@@ -7,7 +7,7 @@ import { useArtworkPath } from "@/features/artwork";
 import { MediaCard, nested, TONE, useDockLinkClick } from "@/ui";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/images";
 import { cn } from "@/ui/cn";
-import { MovieExpose, MoviePart } from "../motion";
+import { DetailExpose, DetailPart } from "@/features/detail";
 import type { PersonEntry } from "../types";
 
 // A credit as a card. On the page (`index` given) the photo opens like a door
@@ -53,7 +53,7 @@ export function PersonCard({
 
   const text = (value: string, className: string): ReactNode =>
     staged ? (
-      <MovieExpose
+      <DetailExpose
         as="div"
         className={className}
         index={index}
@@ -83,9 +83,9 @@ export function PersonCard({
           className="shrink-0 overflow-hidden"
           style={{ borderRadius: photoRadius }}
         >
-          <MoviePart index={index} name="photo">
+          <DetailPart index={index} name="photo">
             {photo}
-          </MoviePart>
+          </DetailPart>
         </div>
       ) : (
         photo

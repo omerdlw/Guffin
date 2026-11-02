@@ -1,12 +1,10 @@
 "use client";
 
-import { ArtworkPoster, useArtworkPath } from "@/features/artwork";
-import { Projection } from "@/motion/effects";
+import { ArtworkPrint, useArtworkPath } from "@/features/artwork";
+import { DetailBackdrop } from "@/features/detail";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/images";
 import type { Awards, PersonDetails } from "@/infrastructure/tmdb/types";
 import { PERSON_FALLBACK_ICON } from "../constants";
-import { SCENE } from "../motion";
-import { Ambient, Backdrop, ease, Grade, unit } from "@/motion/stage";
 
 export function PersonPortrait({
   awards,
@@ -23,67 +21,27 @@ export function PersonPortrait({
   );
 
   return (
-    <ArtworkPoster
+    <ArtworkPrint
       alt={person.name}
       awards={awards}
+      className="@container w-full shrink-0"
       fallbackIcon={PERSON_FALLBACK_ICON}
-      frameClassName="aspect-[2/3]"
+      frameClassName="h-[round(150cqw,1px)]"
+      part="poster"
       path={path}
       src={tmdbImageUrl("profile", path, "h632")}
     />
   );
 }
 
-const [FROM, TO] = SCENE.scrub.defocus.range;
-const defocusAt = (y: number) => ease.glide(unit((y - FROM) / (TO - FROM)));
-
 export function PersonBackdropHero({
   fallback,
   person,
 }: {
   fallback: string | null;
-  person: Pick<PersonDetails, "id" | "profilePath">;
+  person: Pick<PersonDetails, "id">;
 }) {
   const path = useArtworkPath("person", person.id, "backdrop", fallback);
   const image = tmdbImageUrl("backdrop", path, "original");
-  const room = tmdbImageUrl("backdrop", path, "w300");
-  return image ? (
-    <>
-      {room ? <Ambient source={room} /> : null}
-      <Backdrop>
-        {(reveal) => (
-          <>
-            <Grade source={room} />
-            <Projection
-              defocusAt={defocusAt}
-              halation={SCENE.film.halation}
-              onReady={reveal}
-              position="center 20%"
-              src={image}
-            />
-          </>
-        )}
-      </Backdrop>
-    </>
-  ) : null;
-}
-
-export function PersonPhotoGrade({
-  person,
-}: {
-  person: Pick<PersonDetails, "id" | "profilePath">;
-}) {
-  const path = useArtworkPath(
-    "person",
-    person.id,
-    "poster",
-    person.profilePath,
-  );
-  const photo = tmdbImageUrl("profile", path, "w185");
-  return (
-    <>
-      {photo ? <Ambient source={photo} /> : null}
-      <Grade source={photo} />
-    </>
-  );
+  return image ? <DetailBackdrop src={image} /> : null;
 }

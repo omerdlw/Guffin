@@ -1,17 +1,18 @@
 "use client";
 
-import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { useModal } from "@omerdlw/base-framework/modules/modal";
 import { ArtworkPrint, useArtworkPath } from "@/features/artwork";
 import { Icon, TONE } from "@/ui";
-import { Projection } from "@/motion/effects";
-import { CURVE, POINTS, clamp, step } from "@/motion/engine";
+import { POINTS, step } from "@/motion/engine";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/images";
 import type { Awards, MovieDetails } from "@/infrastructure/tmdb/types";
 import { posterCarry } from "../constants";
-import { MoviePart } from "../motion";
-import { ImageModal, type ImageModalData } from "./modals";
+import {
+  DetailBackdrop,
+  ImageModal,
+  type ImageModalData,
+} from "@/features/detail";
 import { useReel } from "./reel";
 
 type Artwork = Pick<
@@ -43,18 +44,8 @@ export function MoviePoster({
   );
 }
 
-// The projection goes out of focus over the first screen of scroll.
-const DEFOCUS_FROM = 24;
-const DEFOCUS_TO = 560;
-
-const defocusAt = (y: number) =>
-  CURVE.glide(clamp((y - DEFOCUS_FROM) / (DEFOCUS_TO - DEFOCUS_FROM), 0, 1));
-
 const REEL_SIZE = "w1280";
 
-// A cut between two pictures takes the rung a plate settles on, less two.
-const CUT_RUNG = 2;
-const HALATION = 0.55;
 // The still's controls come in on the glass rung.
 const SLATE_RUNG = 1;
 
@@ -106,27 +97,13 @@ export function MovieBackdropHero({ movie }: { movie: Artwork }) {
     movie.backdropPath,
   );
   const { reel } = useReel();
-  const [ready, setReady] = useState(false);
   const image = tmdbImageUrl("backdrop", path, "original");
   const still = reel ? tmdbImageUrl("backdrop", reel, REEL_SIZE) : null;
   if (!image) return null;
 
   return (
-    <div className="relative">
-      <MoviePart name="backdrop" ready={ready}>
-        <div className="relative">
-          <Projection
-            cut={step(CUT_RUNG)}
-            defocusAt={defocusAt}
-            halation={HALATION}
-            onReady={() => setReady(true)}
-            position="center 20%"
-            reel={still}
-            src={image}
-          />
-        </div>
-      </MoviePart>
+    <DetailBackdrop src={image} still={still}>
       <Slate title={movie.title} />
-    </div>
+    </DetailBackdrop>
   );
 }

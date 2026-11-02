@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, type RefObject } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
-import { LayoutGroup, motion, useTransform } from "motion/react";
+import { LayoutGroup } from "motion/react";
 import { movieHref } from "@/config/routes";
 import { PosterThumb } from "@/features/artwork";
+import { DetailPart, DetailSection, Heading } from "@/features/detail";
+import { clamp, useEngine } from "@/motion/engine";
 import { layoutTop } from "@/motion/layout-flow";
-import { useScrollY } from "@/motion/scroll";
-import { Cascade, Header, Item, Section, Trace } from "@/motion/stage";
 import type { TimelineCredit, TimelineYear } from "../types";
 import { useDockLinkClick } from "@/ui";
 import { SlidingHighlight } from "@/ui/sliding-highlight";
@@ -61,45 +61,54 @@ function TimelineRow({
   );
 }
 
-function useSpine(ref: RefObject<HTMLElement | null>) {
-  const scrollY = useScrollY();
-  const box = useRef({ end: 1, start: 0 });
+// The spine fills in as the list is read: from when its top passes the lower
+// part of the window to when its end is reached, or the page ends.
+function Progress({ list }: { list: HTMLOListElement | null }) {
+  const engine = useEngine();
+  const fill = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
-    const element = ref.current;
-    if (!element) return;
+    if (!list) return;
+    let start = 0;
+    let end = 1;
+    const draw = (y: number) => {
+      const progress = clamp((y - start) / (end - start), 0, 1);
+      if (fill.current) fill.current.style.transform = `scaleY(${progress})`;
+    };
     const measure = () => {
-      const height = element.offsetHeight;
       const view = window.innerHeight;
-      const start = layoutTop(element) - view * 0.6;
       const furthest = document.documentElement.scrollHeight - view;
-      box.current = {
-        end: Math.max(start + 1, Math.min(start + height, furthest)),
-        start,
-      };
+      start = layoutTop(list) - view * 0.6;
+      end = Math.max(start + 1, Math.min(start + list.offsetHeight, furthest));
+      draw(engine.scroll.get());
     };
     measure();
     const observer = new ResizeObserver(measure);
-    observer.observe(element);
+    observer.observe(list);
     observer.observe(document.body);
     window.addEventListener("resize", measure);
+    const stop = engine.scroll.subscribe(draw);
     return () => {
+      stop();
       observer.disconnect();
       window.removeEventListener("resize", measure);
     };
-  }, [ref]);
+  }, [engine, list]);
 
-  return useTransform(scrollY, (y) => {
-    const { end, start } = box.current;
-    return Math.min(1, Math.max(0, (y - start) / (end - start)));
-  });
+  return (
+    <span
+      aria-hidden="true"
+      className="absolute inset-0 origin-top bg-ink-muted"
+      ref={fill}
+      style={{ transform: "scaleY(0)" }}
+    />
+  );
 }
 
 const SPINE = "left-14 sm:left-20";
 
 export function PersonTimeline({ years }: { years: TimelineYear[] }) {
-  const list = useRef<HTMLOListElement>(null);
-  const progress = useSpine(list);
+  const [list, setList] = useState<HTMLOListElement | null>(null);
   const highlightGroupId = useId();
   const [hoveredRow, setHoveredRow] = useState<string | null>(null);
   const [focusedRow, setFocusedRow] = useState<string | null>(null);
@@ -109,8 +118,8 @@ export function PersonTimeline({ years }: { years: TimelineYear[] }) {
   const films = years.reduce((total, { credits }) => total + credits.length, 0);
 
   return (
-    <Section className="flex w-full flex-col">
-      <Header icon="solar:sort-by-time-bold" title={`Timeline (${films})`} />
+    <DetailSection className="flex w-full flex-col" cue="timeline">
+      <Heading icon="solar:sort-by-time-bold" title={`Timeline (${films})`} />
 
       <LayoutGroup id={`person-timeline-${highlightGroupId}`}>
         <ol
@@ -123,58 +132,60 @@ export function PersonTimeline({ years }: { years: TimelineYear[] }) {
             }
           }}
           onPointerLeave={() => setHoveredRow(null)}
-          ref={list}
+          ref={setList}
         >
-          <Trace
-            axis="y"
-            className={`absolute top-2 bottom-0 w-px origin-top bg-line ${SPINE}`}
-          />
-          <motion.span
-            aria-hidden="true"
-            className={`absolute top-2 bottom-0 w-px origin-top bg-ink-muted ${SPINE}`}
-            style={{ scaleY: progress }}
-            suppressHydrationWarning
-          />
+          <DetailPart
+            className={`absolute top-2 bottom-0 w-px bg-line ${SPINE}`}
+            name="spine"
+          >
+            <Progress list={list} />
+          </DetailPart>
           {years.map(({ credits, year }, index) => (
+            // Each year comes in as it is reached: its stamp on the spine,
+            // then its films.
             <li data-year={year ?? "undated"} key={year ?? "undated"}>
-              <Cascade
+              <DetailSection
+                as="div"
                 className={`relative flex ${index === years.length - 1 ? "" : "pb-8"}`}
-                free
+                cue="year"
               >
-                <Item
+                <DetailPart
                   className="w-14 shrink-0 pt-1 pr-3 text-right sm:w-20 sm:pr-4"
-                  from="light"
+                  name="stamp"
                 >
                   <h3 className="type-meta font-bold text-ink-muted tabular-nums sm:type-body">
                     {year ?? "—"}
                   </h3>
-                </Item>
-                <Item
+                </DetailPart>
+                <DetailPart
                   className={`absolute top-1.5 z-10 size-3 -translate-x-1/2 rounded-full bg-ink ${SPINE}`}
-                  from="dot"
-                >
-                  <span aria-hidden="true" />
-                </Item>
+                  name="stamp"
+                />
                 <ul className="flex min-w-0 flex-1 flex-col gap-1 pl-4 sm:pl-6">
-                  {credits.map((credit) => {
+                  {credits.map((credit, at) => {
                     const rowId = `${year ?? "undated"}:${credit.key}`;
                     return (
-                      <Item as="li" from="light" key={credit.key}>
+                      <DetailPart
+                        as="li"
+                        index={at}
+                        key={credit.key}
+                        name="entry"
+                      >
                         <TimelineRow
                           credit={credit}
                           highlighted={activeRow === rowId}
                           onFocus={() => setFocusedRow(rowId)}
                           onPointerEnter={() => setHoveredRow(rowId)}
                         />
-                      </Item>
+                      </DetailPart>
                     );
                   })}
                 </ul>
-              </Cascade>
+              </DetailSection>
             </li>
           ))}
         </ol>
       </LayoutGroup>
-    </Section>
+    </DetailSection>
   );
 }

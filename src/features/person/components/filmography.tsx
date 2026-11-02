@@ -4,9 +4,13 @@ import { useMemo, useState } from "react";
 import { MoviePosterLink } from "@/features/movie";
 import { Button, RADIUS, SegmentedControl, Select, TONE } from "@/ui";
 import { PERSON_DEFAULT_SORT, PERSON_FILMOGRAPHY_PREVIEW } from "../constants";
+import {
+  DetailPart,
+  DetailSection,
+  DetailSwap,
+  Heading,
+} from "@/features/detail";
 import { FILMOGRAPHY_GRID_CLASS } from "../styles";
-import { gridGap } from "../motion";
-import { Beat, Header, Item, Section, Swap } from "@/motion/stage";
 import type { FilmographyGroup, FilmographySort } from "../types";
 import {
   FILMOGRAPHY_SORTS,
@@ -42,8 +46,8 @@ export function PersonFilmography({
   const several = groups.length > 1;
 
   return (
-    <Section className="flex w-full flex-col">
-      <Header
+    <DetailSection className="flex w-full flex-col" cue="board">
+      <Heading
         actions={
           <Select
             ariaLabel="Sort filmography"
@@ -64,47 +68,52 @@ export function PersonFilmography({
       />
 
       {several ? (
-        <Beat from="light">
-          <div className="mb-6 flex w-full items-center">
-            <SegmentedControl
-              ariaLabel="Kind of work"
-              className={TONE.tabs}
-              items={groups.map((item) => ({
-                key: item.key,
-                label: `${item.label} (${item.total})`,
-              }))}
-              onChange={setActive}
-              value={group.key}
-            />
-          </div>
-        </Beat>
+        <DetailPart className="mb-6 flex w-full items-center" name="control">
+          <SegmentedControl
+            ariaLabel="Kind of work"
+            className={TONE.tabs}
+            items={groups.map((item) => ({
+              key: item.key,
+              label: `${item.label} (${item.total})`,
+            }))}
+            onChange={setActive}
+            value={group.key}
+          />
+        </DetailPart>
       ) : null}
 
-      <Swap
+      <DetailSwap
         className="flex flex-col"
-        gap={gridGap(visible.length)}
+        cue="tiles"
         id={`${group.key}:${sort}`}
       >
         <ul className={FILMOGRAPHY_GRID_CLASS}>
-          {visible.map((credit) => (
-            <Item as="li" className="min-w-0" from="light" key={credit.key}>
-              <MoviePosterLink
-                detail={credit.role}
-                radius={RADIUS.card}
-                carried
-                movie={{
-                  id: credit.id,
-                  posterPath: credit.posterPath,
-                  title: credit.title,
-                  year: credit.year,
-                }}
-                sizes="(min-width: 1024px) 16vw, (min-width: 640px) 20vw, 30vw"
-              />
-            </Item>
+          {visible.map((credit, index) => (
+            // Each poster opens up inside its own frame.
+            <li
+              className="min-w-0 overflow-hidden"
+              key={credit.key}
+              style={{ borderRadius: RADIUS.card }}
+            >
+              <DetailPart index={index} name="tile">
+                <MoviePosterLink
+                  detail={credit.role}
+                  radius={RADIUS.card}
+                  carried
+                  movie={{
+                    id: credit.id,
+                    posterPath: credit.posterPath,
+                    title: credit.title,
+                    year: credit.year,
+                  }}
+                  sizes="(min-width: 1024px) 16vw, (min-width: 640px) 20vw, 30vw"
+                />
+              </DetailPart>
+            </li>
           ))}
         </ul>
         {credits.length > visible.length ? (
-          <Item from="light">
+          <DetailPart index={visible.length} name="tile">
             <Button
               className={`mt-3 ${TONE.more}`}
               onClick={() => setExpanded(new Set(expanded).add(group.key))}
@@ -112,9 +121,9 @@ export function PersonFilmography({
             >
               Show all {credits.length}
             </Button>
-          </Item>
+          </DetailPart>
         ) : null}
-      </Swap>
-    </Section>
+      </DetailSwap>
+    </DetailSection>
   );
 }

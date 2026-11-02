@@ -223,8 +223,9 @@ Partisyonun kâğıt üzerindeki zamanlaması da ekranda görünür.
 | Sayfa          | Durum         | Not                                                                                 |
 | -------------- | ------------- | ----------------------------------------------------------------------------------- |
 | Terms, Privacy | **Motorda**   | `features/legal/motion.tsx`; tempo −1; her bölüm kendi kapsamında (`Section`) gelir |
-| Film, yorumlar | **Motorda**   | `features/movie/motion.tsx`; aşağıdaki "Film sayfası" notları                       |
-| Diğer sayfalar | Eski sistemde | Sıradaki: kişi sayfası                                                              |
+| Film, yorumlar | **Motorda**   | `features/detail/motion.tsx`; aşağıdaki "Film ve kişi sayfası" notları              |
+| Kişi           | **Motorda**   | Film sayfasıyla aynı altyapı (`features/detail`)                                    |
+| Diğer sayfalar | Eski sistemde | Sıradaki: ana sayfa                                                                 |
 
 `EngineProvider` uygulamanın kökünde. Token'ları yazar, sayfa geçişlerinde rengi taşır. Tekerleği henüz sürmüyor (`drive` kapalı), çünkü eski sayfalar hâlâ eski SmoothScroll'u kullanıyor.
 
@@ -296,29 +297,30 @@ Sahne üç yeni fiil kazandı:
 
 Laboratuvar: `/lab/kit` (yalnızca geliştirme). Her kit parçası orada denenebilir.
 
-### Film sayfası
+### Film ve kişi sayfası
 
-`features/movie/motion.tsx` içindeki score:
+İki sayfa tek altyapıdır: `features/detail`. Projeksiyon, oda, başlık, yapışkan kenar sütunu (afiş, butonlar, künye), görünüm geçişi, ara kartı, galeri duvarı ve ödüller ortaktır (`DetailLayout`, `DetailSidebar`, `DetailViews`, `DetailBackdrop`, `DetailIntermission`, `DetailAwards`, `GalleryWall`). Sayfaya ait olan yalnızca sağ sütundaki bölümlerdir.
 
-- **Açılış:** projeksiyon (backdrop, `plate`, `depth 1`, resim hazır olana kadar bekler) → başlık → çizgi → tagline → overview, afiş ve istatistikler birlikte → butonlar → künye satırları (etiket, değer, çizgi).
-- **Bölümler:** her `Heading` bir bölümün başlığıdır. Sekmeyle değişen içerik (oyuncular, galeri, videolar) kendi `Swap` bölümüdür. Öneriler, yorum özeti, listeler ve ödüller başlıklarıyla birlikte tek bir bölümdür.
-- **Oda:** rengi, sırayla şunlardan alınır: elin üzerinde durduğu still, projeksiyona alınan still, filmin backdrop'u (`MovieStage`).
-- **Galeri duvarı:** `MovieWallStage`. Hangi setle açılacağı `useWallSet`'te tutulur.
-- **Devir:** öneri afişleri `posterCarry(id)` anahtarıyla sunulur; yeni film sayfasındaki afiş aynı anahtarla alır.
-- **Paylaşılan parçalar:** `ArtworkPrint`, `Carousel`, `ActionButton` ve `Tilt` kişi sayfası için de hazır.
+`features/detail/motion.tsx` içindeki score:
 
-Geçiş dönemi notları (kişi sayfası taşınınca kalkacak):
+- **Açılış:** projeksiyon (backdrop, `plate`, `depth 1`, resim hazır olana kadar bekler) → başlık → çizgi → tagline ya da kişinin mesleği (`role`) → overview, afiş ve istatistikler birlikte → butonlar, sosyal bağlantılar ve "Read more" (`link`) → künye satırları (etiket, değer, çizgi). Bir sayfada olmayan parça diğerinin zaten çaldığı bir vuruşa katılır; motor boş vuruşu da beklediği için yeni vuruş eklemek film sayfasını yavaşlatır.
+- **Bölümler:** her `Heading` bir bölümün başlığıdır. Sekmeyle değişen içerik (oyuncular, galeri, videolar, filmografi) kendi `Swap` bölümüdür. Öneriler, yorum özeti, listeler ve ödüller başlıklarıyla birlikte tek bir bölümdür.
+- **Kişi bölümleri:** kariyer (`career`: başlık, okunan yıl ve eksenden açılan çubuklar, sonra yıllar), filmografi (`board` + `tiles`), galeri (`shelf` + `slides`), zaman çizelgesi (`timeline`: başlık ve omurga; her yıl kendi `year` bölümü: damga, sonra filmler). Omurganın dolumu motorun `scroll` sinyalinden okunur.
+- **Oda:** rengi, sırayla şunlardan alınır: elin üzerinde durduğu still, projeksiyona alınan still (film), sayfanın resmi: filmin backdrop'u ya da kişinin backdrop'u, yoksa fotoğrafı (`MovieStage`, `PersonStage`). Kaydırınca arka plana renk basan eski `Ambient` kişi sayfasından kalktı.
+- **Galeri duvarı:** `DetailWallStage`. Hangi setle açılacağı `useWallSet`'te tutulur.
+- **Devir:** öneri ve filmografi afişleri `posterCarry(id)` anahtarıyla sunulur; yeni film sayfasındaki afiş aynı anahtarla alır.
 
-- Kişi sayfası hâlâ eski `GalleryWall` (`movie/components/gallery-wall.tsx`), `ArtworkPoster` ve `StageAction`'ı kullanıyor.
-- Eski sayfalardan (kişi, ana sayfa) film sayfasına giden afiş uçuşu inmez; uçan resim süresi dolunca söner. Motordaki sayfalar arasında devir çalışıyor.
+Geçiş dönemi notları:
+
+- Ana sayfadan film sayfasına giden afiş uçuşu inmez; uçan resim süresi dolunca söner. Motordaki sayfalar arasında devir çalışıyor.
 - Eski `useShowing` artık motorun salon ışığını sayıyor; iki sistem aynı ışığı paylaşıyor.
-- Dock'taki "Where to watch" yüzeyi hâlâ eski sahne bileşenlerini kullanıyor (yüzeyler en sonda).
+- Dock yüzeyleri ("Where to watch", biyografi) hâlâ eski sahne bileşenlerini kullanıyor (yüzeyler en sonda).
 - Ödül verisi yerel ortamda hiçbir filmde yok. Bu yüzden Genel bakış / Ödüller geçişi film sayfasında denenmedi; aynı `Deck` biçimi `/lab/kit`'teki "Columns" örneğinde denendi.
 
 ### Sıra
 
 1. ~~Kit~~ (tamam).
-2. ~~Film sayfası~~ (tamam), sonra kişi sayfası.
+2. ~~Film sayfası~~, ~~kişi sayfası~~ (tamam).
 3. Ana sayfa ve hesap sayfası.
 4. Salon sayfaları (Oscars, yönetmenler, Top 100): spotlight WebGL sahneleri `useScene` ile.
 5. Kökte `EngineProvider drive`, eski `SmoothScrollProvider` ve `src/motion/{stage,scene,scroll}` kaldırılır; `globals.css` süre token'ları `--step-*`'e taşınır.

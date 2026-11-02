@@ -1,9 +1,6 @@
 import type { JSX } from "react";
-import {
-  FILMOGRAPHY_GRID_CLASS,
-  LINKS_CLASS,
-  SIDEBAR_FACTS_CLASS,
-} from "./styles";
+import { SIDEBAR_FACTS_CLASS } from "@/features/detail";
+import { FILMOGRAPHY_GRID_CLASS, LINKS_CLASS } from "./styles";
 import { PERSON_FILMOGRAPHY_PREVIEW } from "./constants";
 import {
   ASIDE_CLASS,

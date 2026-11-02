@@ -2,21 +2,27 @@
 
 import { bindScore, defineScore } from "@/motion/engine";
 
-// A film page: the picture is projected first and the room takes its color,
-// the title is set under it, then the words with the poster beside them, the
-// hand's buttons and the facts. Every section below plays as it is reached.
-const MOVIE = defineScore({
+// A page about one film or one person: the picture is projected first and the
+// room takes its color, the title is set under it, then the words with the
+// poster beside them, the hand's buttons and the facts. Every section below
+// plays as it is reached. Both pages play the same opening, so a part only
+// one of them has is folded into a beat the other already plays.
+const DETAIL = defineScore({
   cast: {
     // The projected still, a step behind the page.
     backdrop: { matter: "plate", depth: 1 },
     title: "ink",
     rule: { matter: "ink", enter: "wipe", leave: "fade" },
     tagline: "light",
+    // A person's trade, set by the rule where a film has its tagline.
+    role: "light",
     overview: { matter: "ink", leave: "fade" },
     poster: { matter: "plate", enter: "door" },
     stat: "light",
     action: "glass",
     proof: "glass",
+    // A person's profiles, and the way to the whole biography.
+    link: "glass",
     label: "light",
     value: "light",
     line: { matter: "light", enter: "wipe" },
@@ -32,6 +38,15 @@ const MOVIE = defineScore({
     list: "paper",
     awards: "light",
     tile: { matter: "paper", enter: "door" },
+    // A career by year: the year read out, its bars opening up from the axis,
+    // then the years along it.
+    readout: "light",
+    bar: { matter: "light", enter: "door" },
+    tick: "light",
+    // A timeline's spine, and each year's stamp and its films.
+    spine: "light",
+    stamp: "light",
+    entry: "paper",
   },
   // The poster comes in with the overview, so the words under the title are
   // not held back by the plate's longer settle.
@@ -39,9 +54,9 @@ const MOVIE = defineScore({
     "backdrop",
     "title",
     "rule",
-    "tagline",
+    ["tagline", "role"],
     ["overview", "poster", "stat"],
-    ["action", "proof"],
+    ["action", "proof", "link"],
     ["label", "value", "line"],
   ],
   sections: {
@@ -58,20 +73,23 @@ const MOVIE = defineScore({
     awards: ["header", "awards"],
     wall: ["header"],
     tiles: ["tile"],
+    career: ["header", ["readout", "bar"], "tick"],
+    timeline: ["header", "spine"],
+    year: ["stamp", "entry"],
   },
 });
 
-const bound = bindScore(MOVIE);
+const bound = bindScore(DETAIL);
 
-export const MovieStageRoot = bound.StageRoot;
-export const MoviePart = bound.Part;
-export const MovieSection = bound.Section;
-export const MovieText = bound.Text;
-export const MovieHeader = bound.Header;
-export const MovieExpose = bound.Expose;
-export const MovieCount = bound.Count;
-export const MovieSwap = bound.Swap;
-export const MovieDeck = bound.Deck;
-export const MovieWallStage = bound.WallStage;
-export const useMoviePart = bound.usePart;
-export const useMovieAct = bound.useAct;
+export const DetailStageRoot = bound.StageRoot;
+export const DetailPart = bound.Part;
+export const DetailSection = bound.Section;
+export const DetailText = bound.Text;
+export const DetailHeader = bound.Header;
+export const DetailExpose = bound.Expose;
+export const DetailCount = bound.Count;
+export const DetailSwap = bound.Swap;
+export const DetailDeck = bound.Deck;
+export const DetailWallStage = bound.WallStage;
+export const useDetailPart = bound.usePart;
+export const useDetailAct = bound.useAct;

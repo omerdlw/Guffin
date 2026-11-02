@@ -5,27 +5,22 @@ import { useModal } from "@omerdlw/base-framework/modules/modal";
 import { cn } from "@/ui/cn";
 import { artworkTarget } from "@/features/artwork";
 import { Icon, MediaCard, RADIUS, SegmentedControl, TONE, Tooltip } from "@/ui";
-import {
-  GRAMMAR,
-  Header,
-  Section,
-  Swap,
-  Tile,
-  useRoom,
-  useWall,
-} from "@/motion/stage";
-import { ImageModal, type ImageModalData } from "./modals";
+import { useWall } from "@/motion/engine";
+import { DetailPart, DetailSection, DetailSwap } from "../motion";
+import { Heading } from "./heading";
+import { ImageModal, type ImageModalData } from "./image-modal";
+import { useLead, useWallSet } from "./stage";
 import { GRID, STRETCH, type WallPicture, type WallSet } from "./wall-set";
 
-export { WALL_SIZES, type WallPicture, type WallSet } from "./wall-set";
-
-// The wall for pages still on the old stage (the person page); the film page
-// hangs its own, on the engine, from ./wall.
+// Every picture of the film or the person, hung in front of the page. The
+// button names the set the wall opens on; on the wall the sets swap in place,
+// and pictures are hung a stretch at a time as the end of the wall comes near.
 
 const CONTROL = `cine-press center h-8 cursor-pointer gap-2 rounded-full ${TONE.surface}`;
 
 export function WallButton({ set }: { set: string }) {
   const wall = useWall();
+  const { choose } = useWallSet();
   const button = useRef<HTMLButtonElement>(null);
   if (!wall) return null;
   return (
@@ -33,9 +28,10 @@ export function WallButton({ set }: { set: string }) {
       <button
         aria-label="See the whole gallery"
         className={cn(CONTROL, "w-8")}
-        onClick={() =>
-          wall.open(set, button.current?.closest("section") ?? null)
-        }
+        onClick={() => {
+          choose(set);
+          wall.open(button.current?.closest("section") ?? null);
+        }}
         ref={button}
         type="button"
       >
@@ -55,15 +51,16 @@ export function GalleryWall({
   title: string;
 }) {
   const wall = useWall();
+  const lead = useLead();
+  const { set } = useWallSet();
   const [openImage] = useModal(ImageModal);
-  const { setLead } = useRoom();
-  const [chosen, setChosen] = useState(wall?.set ?? sets[0]?.key);
+  const [chosen, setChosen] = useState(set ?? sets[0]?.key);
   const [reach, setReach] = useState(STRETCH);
   const end = useRef<HTMLDivElement>(null);
   const shown = sets.find((item) => item.key === chosen) ?? sets[0];
   const total = shown?.pictures.length ?? 0;
 
-  useEffect(() => () => setLead(null), [setLead]);
+  useEffect(() => () => lead(null), [lead]);
 
   useEffect(() => {
     const element = end.current;
@@ -96,8 +93,8 @@ export function GalleryWall({
 
   return (
     <div className="mx-auto w-full max-w-[100rem] px-4 pt-16 sm:px-6 sm:pt-20 lg:px-8">
-      <Section className="flex w-full flex-col">
-        <Header
+      <DetailSection className="flex w-full flex-col" cue="wall">
+        <Heading
           actions={
             <div className="flex items-center gap-2">
               {sets.length > 1 ? (
@@ -125,10 +122,14 @@ export function GalleryWall({
           icon="solar:gallery-wide-bold"
           title={`${title} · Gallery`}
         />
-        <Swap gap={GRAMMAR.wall.gap} id={shown.key}>
+        <DetailSwap
+          className={cn("grid gap-3", GRID[shown.aspect])}
+          cue="tiles"
+          id={shown.key}
+        >
           <div
-            className={cn("grid gap-3", GRID[shown.aspect])}
-            onPointerLeave={() => setLead(null)}
+            className="contents"
+            onPointerLeave={() => lead(null)}
             onPointerOver={(event) => {
               if (event.pointerType !== "mouse") return;
               const card = (event.target as Element).closest("[data-still]");
@@ -136,30 +137,37 @@ export function GalleryWall({
               const picture = Number.isInteger(index)
                 ? shown.pictures[index]
                 : undefined;
-              setLead(picture?.lead ?? null);
+              lead(picture?.lead ?? null);
             }}
           >
             {shown.pictures.slice(0, reach).map((picture, index) => (
-              <Tile key={picture.path} radius={RADIUS.card}>
-                <MediaCard
-                  {...artworkTarget(shown.slot, picture.path)}
-                  aspect={shown.aspect}
-                  data-still={String(index)}
-                  image={{
-                    crossOrigin: picture.crossOrigin,
-                    sizes: picture.sizes,
-                    src: picture.src,
-                    srcSet: picture.srcSet,
-                  }}
-                  label={`View ${shown.noun} ${index + 1} of ${title}`}
-                  onClick={() => open(picture, index)}
-                />
-              </Tile>
+              <div
+                className="overflow-hidden"
+                key={picture.path}
+                style={{ borderRadius: RADIUS.card }}
+              >
+                <DetailPart index={index} name="tile">
+                  <MediaCard
+                    {...artworkTarget(shown.slot, picture.path)}
+                    aspect={shown.aspect}
+                    data-still={String(index)}
+                    image={{
+                      crossOrigin: picture.crossOrigin,
+                      sizes: picture.sizes,
+                      src: picture.src,
+                      srcSet: picture.srcSet,
+                    }}
+                    label={`View ${shown.noun} ${index + 1} of ${title}`}
+                    onClick={() => open(picture, index)}
+                    radius={RADIUS.card}
+                  />
+                </DetailPart>
+              </div>
             ))}
           </div>
-        </Swap>
+        </DetailSwap>
         <div aria-hidden="true" className="h-px" ref={end} />
-      </Section>
+      </DetailSection>
     </div>
   );
 }

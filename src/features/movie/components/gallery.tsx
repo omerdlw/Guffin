@@ -15,12 +15,18 @@ import {
 import type { MediaCardAspect } from "@/ui";
 import { tmdbImageSrcSet, tmdbImageUrl } from "@/infrastructure/tmdb/images";
 import type { MovieImage } from "@/infrastructure/tmdb/types";
-import { MovieSection, MovieSwap } from "../motion";
-import { Heading } from "./heading";
-import { ImageModal, type ImageModalData } from "./modals";
-import { useLead } from "./stage";
-import { GalleryWall, WallButton } from "./wall";
-import { WALL_SIZES, type WallSet } from "./wall-set";
+import {
+  DetailSection,
+  DetailSwap,
+  GalleryWall,
+  Heading,
+  ImageModal,
+  type ImageModalData,
+  useLead,
+  WALL_SIZES,
+  WallButton,
+  type WallSet,
+} from "@/features/detail";
 
 type Tab = "backdrops" | "posters";
 
@@ -128,7 +134,7 @@ export function MovieGallery({
   };
 
   return (
-    <MovieSection className="flex w-full flex-col" cue="shelf">
+    <DetailSection className="flex w-full flex-col" cue="shelf">
       <Heading
         actions={
           <div className="flex items-center gap-2">
@@ -150,7 +156,7 @@ export function MovieGallery({
         icon="solar:gallery-wide-bold"
         title="Gallery"
       />
-      <MovieSwap cue="slides" id={key}>
+      <DetailSwap cue="slides" id={key}>
         <div
           onPointerLeave={() => lead(null)}
           onPointerOver={(event) => {
@@ -197,8 +203,8 @@ export function MovieGallery({
             })}
           </Carousel>
         </div>
-      </MovieSwap>
-    </MovieSection>
+      </DetailSwap>
+    </DetailSection>
   );
 }
 

@@ -11,9 +11,8 @@ import {
   type MovieReviewSort,
 } from "@/features/reviews";
 import { TONE } from "@/ui";
-import { MovieSection } from "../motion";
+import { DetailSection, Heading } from "@/features/detail";
 import { movieReviewsHref } from "@/config/routes";
-import { Heading } from "./heading";
 import { ReviewCard } from "./review-card";
 
 const SHOWN = 4;
@@ -42,7 +41,7 @@ function ReviewsSection({
   viewerId: string | null;
 }): JSX.Element {
   return (
-    <MovieSection className="flex w-full flex-col" cue="digest">
+    <DetailSection className="flex w-full flex-col" cue="digest">
       <Heading
         actions={
           <AccountLink
@@ -69,7 +68,7 @@ function ReviewsSection({
           />
         ))}
       </ul>
-    </MovieSection>
+    </DetailSection>
   );
 }
 

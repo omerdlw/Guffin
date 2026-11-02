@@ -4,31 +4,15 @@ import { useId, useState } from "react";
 import { LayoutGroup } from "motion/react";
 import { useDockActions } from "@omerdlw/base-framework/modules/dock";
 import { cn } from "@/ui/cn";
-import {
-  Button,
-  HEADER_CLASS,
-  Icon,
-  PROSE_CLASS,
-  RULE_GAP,
-  TONE,
-  Tooltip,
-} from "@/ui";
+import { Button, Icon, PROSE_CLASS, RULE_GAP, TONE, Tooltip } from "@/ui";
 import { SlidingHighlight } from "@/ui/sliding-highlight";
+import { DetailExpose, DetailPart, DetailText } from "@/features/detail";
 import { LINKS_CLASS, nameClass } from "../styles";
-import { SCENE, linksGap } from "../motion";
-import {
-  Expose,
-  Fade,
-  Hairline,
-  Layer,
-  Sequence,
-  size,
-  Title,
-  Words,
-} from "@/motion/stage";
 import type { SocialLink } from "../types";
 import { createPersonBioSurfaceEntry } from "../surfaces/bio";
 
+// Where a film has its tagline under the rule, a person has their trade and
+// their profiles set along it.
 function Rule({
   links,
   name,
@@ -39,65 +23,16 @@ function Rule({
   role: string | null;
 }) {
   return (
-    <Layer
-      className={cn(RULE_GAP, "flex items-center gap-4")}
-      {...SCENE.layers.rule}
-    >
+    <div className={cn(RULE_GAP, "flex items-center gap-4")}>
       {role ? (
-        <span className={cn(TONE.label, "shrink-0 text-ink-body")}>
-          <Expose at={SCENE.label.at} out={0} run={SCENE.label.run}>
-            {role}
-          </Expose>
-        </span>
+        <DetailExpose
+          className={cn(TONE.label, "shrink-0 text-ink-body")}
+          part="role"
+          text={role}
+        />
       ) : null}
-      <Hairline className="w-auto min-w-6 flex-1" {...SCENE.rule} />
+      <DetailPart className="h-px min-w-6 flex-1 bg-grade/40" name="rule" />
       {links.length > 0 ? <Links links={links} name={name} /> : null}
-    </Layer>
-  );
-}
-
-function Bio({
-  excerpt,
-  full,
-  name,
-  truncated,
-}: {
-  excerpt: string;
-  full: string;
-  name: string;
-  truncated: boolean;
-}) {
-  const { openSurface } = useDockActions();
-
-  const openFull = () => {
-    void openSurface(createPersonBioSurfaceEntry({ biography: full, name }));
-  };
-
-  return (
-    <div className="flex flex-col items-start gap-3">
-      <Layer {...SCENE.layers.bio}>
-        <Words
-          {...SCENE.bio}
-          alpha={0.7}
-          className={`${PROSE_CLASS} whitespace-pre-line`}
-        >
-          {excerpt}
-        </Words>
-      </Layer>
-      {truncated ? (
-        <Layer {...SCENE.layers.bio}>
-          <Fade at={SCENE.opening.end - size(1)} out={0} run={size(0)}>
-            <Button
-              aria-label={`Read the full biography of ${name}`}
-              className={`cursor-pointer ${TONE.link}`}
-              onClick={openFull}
-              type="button"
-            >
-              Read more
-            </Button>
-          </Fade>
-        </Layer>
-      ) : null}
     </div>
   );
 }
@@ -109,7 +44,6 @@ function Links({
   links: readonly SocialLink[];
   name: string;
 }) {
-  const gap = linksGap(links.length);
   const highlightGroupId = useId();
   const [hoveredLink, setHoveredLink] = useState<string | null>(null);
   const [focusedLink, setFocusedLink] = useState<string | null>(null);
@@ -136,7 +70,7 @@ function Links({
                 layoutId="person-links-highlight"
               />
             ) : null}
-            <Fade at={SCENE.links.at + index * gap} run={size(2)}>
+            <DetailPart index={index} name="link">
               <Tooltip position="top" text={link.label}>
                 <a
                   aria-label={`${name} on ${link.label}`}
@@ -151,7 +85,7 @@ function Links({
                   <Icon icon={link.icon} size={20} />
                 </a>
               </Tooltip>
-            </Fade>
+            </DetailPart>
           </li>
         ))}
       </ul>
@@ -159,6 +93,50 @@ function Links({
   );
 }
 
+function Bio({
+  excerpt,
+  full,
+  name,
+  truncated,
+}: {
+  excerpt: string;
+  full: string;
+  name: string;
+  truncated: boolean;
+}) {
+  const { openSurface } = useDockActions();
+
+  const openFull = () => {
+    void openSurface(createPersonBioSurfaceEntry({ biography: full, name }));
+  };
+
+  return (
+    <div className="flex flex-col items-start gap-3">
+      <DetailText
+        as="p"
+        by="line"
+        className={cn(PROSE_CLASS, "opacity-70")}
+        part="overview"
+        text={excerpt}
+      />
+      {truncated ? (
+        <DetailPart name="link">
+          <Button
+            aria-label={`Read the full biography of ${name}`}
+            className={`cursor-pointer ${TONE.link}`}
+            onClick={openFull}
+            type="button"
+          >
+            Read more
+          </Button>
+        </DetailPart>
+      ) : null}
+    </div>
+  );
+}
+
+// The page's header: the name, the rule with the person's trade and profiles,
+// and the start of their biography.
 export function PersonHeader({
   biography,
   excerpt,
@@ -175,10 +153,14 @@ export function PersonHeader({
   truncated: boolean;
 }) {
   return (
-    <Sequence as="header" className={HEADER_CLASS}>
-      <Layer {...SCENE.layers.title}>
-        <Title className={nameClass(name)}>{name}</Title>
-      </Layer>
+    <>
+      <DetailText
+        as="h1"
+        className={nameClass(name)}
+        mask
+        part="title"
+        text={name}
+      />
       <Rule links={links} name={name} role={role} />
       {biography && excerpt ? (
         <Bio
@@ -188,6 +170,6 @@ export function PersonHeader({
           truncated={truncated}
         />
       ) : null}
-    </Sequence>
+    </>
   );
 }
