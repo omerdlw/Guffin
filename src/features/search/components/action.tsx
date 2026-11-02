@@ -23,6 +23,7 @@ import {
   RADIUS,
   SegmentedControl,
   SkeletonBlock,
+  SURFACE_FIELD,
 } from "@/ui";
 import { SlidingHighlight } from "@/ui/sliding-highlight";
 import {
@@ -404,7 +405,7 @@ export function SearchAction({
           autoCapitalize="off"
           autoComplete="off"
           autoCorrect="off"
-          className="h-10 rounded-card bg-fill pr-10 pl-11 type-body text-ink ring-1 ring-inset ring-edge placeholder:text-ink-muted hover:bg-fill-hover focus:bg-fill-hover focus:ring-edge-focus focus:outline-none"
+          className={cn(SURFACE_FIELD, "h-10 pr-10 pl-11 type-body")}
           enterKeyHint="search"
           maxLength={SEARCH_MAX_QUERY_LENGTH}
           name="search"
@@ -427,7 +428,7 @@ export function SearchAction({
           ) : input ? (
             <Button
               aria-label="Clear search"
-              className="ui-iris center relative size-6 cursor-pointer rounded-full text-ink-muted hover:text-ink"
+              className="ui-iris center relative size-6 cursor-pointer rounded-full text-ink-muted hover:text-ink focus-visible:text-ink"
               onClick={handleClear}
             >
               <Icon icon="material-symbols:close-rounded" size={16} />

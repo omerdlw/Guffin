@@ -33,7 +33,7 @@ function ListRow({
         <div className="flex min-w-0 items-center gap-2">
           <h3 className="min-w-0 truncate type-base leading-6 font-semibold text-ink">
             <AccountLink
-              className="underline decoration-transparent hover:decoration-current"
+              className="underline underline-offset-2 decoration-transparent hover:decoration-current focus-visible:decoration-current"
               href={href}
             >
               {list.title}
@@ -72,7 +72,7 @@ function ListRow({
 
       {ownerEdit ? (
         <EditListButton
-          className="center size-8 shrink-0 cursor-pointer self-start rounded-full text-ink-muted ring-1 ring-edge-hover ring-inset hover:bg-fill-hover hover:text-ink"
+          className="center size-8 shrink-0 cursor-pointer self-start rounded-full text-ink-muted ring-1 ring-edge-hover ring-inset hover:bg-fill-hover focus-visible:bg-fill-hover hover:text-ink focus-visible:text-ink"
           list={{
             description: list.description,
             id: list.id,
@@ -123,11 +123,11 @@ export function ListTeaser({
   return (
     <AccountLink className="group/list flex flex-col gap-2.5" href={href}>
       <PosterStack
-        className="ui-fade group-hover/list:opacity-80"
+        className="ui-fade group-hover/list:opacity-80 group-focus-visible/list:opacity-80 group-has-focus-visible/list:opacity-80"
         paths={list.previews}
       />
       <span className="flex min-w-0 items-baseline gap-2">
-        <span className="truncate type-body font-semibold text-ink underline decoration-transparent group-hover/list:decoration-current">
+        <span className="truncate type-body font-semibold text-ink underline underline-offset-2 decoration-transparent group-hover/list:decoration-current group-focus-visible/list:decoration-current group-has-focus-visible/list:decoration-current">
           {list.title}
         </span>
         <span className="shrink-0 type-meta text-ink-muted tabular-nums">

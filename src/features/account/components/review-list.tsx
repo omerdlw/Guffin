@@ -21,7 +21,7 @@ function Body({ review }: { review: Review }) {
       <p className="type-body leading-6 text-ink-muted italic">
         This review may contain spoilers.{" "}
         <Button
-          className="cursor-pointer font-medium text-ink-body not-italic underline-offset-2 hover:text-ink underline decoration-transparent hover:decoration-current"
+          className="cursor-pointer font-medium text-ink-body not-italic underline-offset-2 hover:text-ink focus-visible:text-ink underline decoration-transparent hover:decoration-current focus-visible:decoration-current"
           onClick={() => setRevealed(true)}
           type="button"
         >
@@ -65,7 +65,7 @@ function ReviewRow({
       <article className="flex min-w-0 flex-1 flex-col">
         <h3 className="flex min-w-0 flex-wrap items-baseline gap-x-2">
           <AccountLink
-            className="type-base font-semibold text-ink underline decoration-transparent hover:decoration-current sm:type-title"
+            className="type-base font-semibold text-ink underline underline-offset-2 decoration-transparent hover:decoration-current focus-visible:decoration-current sm:type-title"
             href={href}
           >
             {review.title}
@@ -82,7 +82,7 @@ function ReviewRow({
           ) : null}
           <AccountLink
             aria-label={`Read this review of ${review.title} on its page`}
-            className="hover:text-ink underline decoration-transparent hover:decoration-current"
+            className="hover:text-ink focus-visible:text-ink underline underline-offset-2 decoration-transparent hover:decoration-current focus-visible:decoration-current"
             href={reviewHref(review.tmdbId, username)}
           >
             <time dateTime={review.updatedAt}>

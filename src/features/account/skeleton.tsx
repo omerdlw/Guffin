@@ -170,7 +170,7 @@ export function PosterStackSkeleton(): JSX.Element {
     <div aria-hidden="true" className="flex w-full">
       {Array.from({ length: 5 }, (_, index) => (
         <SkeletonBlock
-          className="aspect-[2/3] w-[28%] shrink-0 rounded-thumb shadow-stack ring-1 ring-edge-hover ring-inset not-first:-ml-[10%]"
+          className="aspect-[2/3] w-[28%] shrink-0 rounded-thumb ring-1 ring-edge-hover ring-inset not-first:-ml-[10%]"
           key={index}
           style={{ backgroundColor: SOLID_TINT, zIndex: 5 - index }}
         />

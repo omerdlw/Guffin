@@ -14,6 +14,7 @@ import {
   Icon,
   SURFACE_FIELD,
   SURFACE_STACK,
+  SURFACE_PRIMARY,
   surfaceButton,
   Textarea,
 } from "@/ui";
@@ -196,7 +197,7 @@ function ReviewEditorSurface({
             ) : null}
             <Item className="min-w-0 flex-1" from="right">
               <Button
-                className={`${surfaceButton(true)} w-full`}
+                className={`${SURFACE_PRIMARY} w-full`}
                 disabled={Boolean(problem)}
                 loading={saving}
                 type="submit"

@@ -62,5 +62,5 @@ async function readDirectors(): Promise<Director[]> {
 }
 
 export const getDirectors = cache(() =>
-  kept("spotlight:directors:v4", readDirectors),
+  kept("spotlight:directors", readDirectors),
 );

@@ -12,8 +12,18 @@ import {
   useAuth,
 } from "@/features/auth";
 import { requestJson } from "@/infrastructure/http/client";
-import { Button, Input } from "@/ui";
-import { INPUT_CLASS, useSubmitClass } from "./form";
+import {
+  Button,
+  SURFACE_TEXT,
+  Icon,
+  Input,
+  SURFACE_DANGER,
+  SURFACE_META,
+  SURFACE_STACK,
+  SURFACE_TILE,
+  SURFACE_TITLE,
+} from "@/ui";
+import { INPUT_CLASS, Mark } from "./form";
 
 const CONFIRMATION = "DELETE";
 
@@ -22,7 +32,6 @@ export function DeletePanel() {
   const router = useRouter();
   const toast = useToast();
   const { closeSurface, openSurface } = useDockActions();
-  const submitClass = useSubmitClass();
   const [confirmation, setConfirmation] = useState("");
   const [sending, setSending] = useState(false);
   const email = auth.user?.email ?? "";
@@ -60,7 +69,14 @@ export function DeletePanel() {
   }
 
   return (
-    <div className="flex flex-col gap-2.5">
+    <div className={SURFACE_STACK}>
+      <div className={SURFACE_TILE}>
+        <Mark icon="solar:danger-triangle-bold" tone="danger" />
+        <span className={SURFACE_TEXT}>
+          <span className={SURFACE_TITLE}>This can&apos;t be undone</span>
+          <span className={SURFACE_META}>Your account is removed for good</span>
+        </span>
+      </div>
       <Input
         aria-label='Type "DELETE" to confirm'
         className={INPUT_CLASS}
@@ -70,11 +86,12 @@ export function DeletePanel() {
         value={confirmation}
       />
       <Button
-        className={submitClass}
+        className={`${SURFACE_DANGER} w-full`}
         disabled={sending || !ready}
         loading={sending}
         onClick={sendCode}
       >
+        <Icon icon="solar:letter-bold" size={16} />
         Send verification code
       </Button>
     </div>

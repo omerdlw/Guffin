@@ -72,7 +72,7 @@ const TAB_LABELS: Record<SocialTab, string> = {
 const BUTTON =
   "center h-10 min-w-[6rem] shrink-0 rounded-inset px-4 type-meta font-medium select-none cursor-pointer disabled:cursor-not-allowed";
 const PRIMARY_BUTTON = `${BUTTON} ${PRIMARY} disabled:opacity-50`;
-const SECONDARY_BUTTON = `${BUTTON} text-ink-body ring-1 ring-edge-focus ring-inset hover:bg-fill hover:text-ink disabled:opacity-50`;
+const SECONDARY_BUTTON = `${BUTTON} text-ink-body ring-1 ring-edge-focus ring-inset hover:bg-fill-hover focus-visible:bg-fill-hover hover:text-ink focus-visible:text-ink disabled:opacity-50`;
 const MUTED_BUTTON = `${BUTTON} text-ink-muted ring-1 ring-edge-hover ring-inset cursor-default`;
 const ROW = `${SURFACE_TILE} w-full`;
 
@@ -284,10 +284,7 @@ const UserRow = memo(function UserRow({
       onPointerEnter={onPointerEnter}
     >
       {highlighted ? (
-        <SlidingHighlight
-          className="rounded-card bg-fill ring-1 ring-edge-hover ring-inset"
-          layoutId="account-social-row-highlight"
-        />
+        <SlidingHighlight layoutId="account-social-row-highlight" />
       ) : null}
       <Link
         className={`relative z-10 flex h-full min-w-0 flex-1 items-center gap-3 ${SURFACE_TILE_INNER}`}
@@ -309,7 +306,9 @@ const UserRow = memo(function UserRow({
         </div>
         <div className={SURFACE_TEXT}>
           <span className={SURFACE_TITLE}>{user.displayName}</span>
-          <span className={`${SURFACE_META} group-hover/user:text-ink-body`}>
+          <span
+            className={`${SURFACE_META} group-hover/user:text-ink-body group-focus-visible/user:text-ink-body group-has-focus-visible/user:text-ink-body`}
+          >
             @{user.username || "user"}
           </span>
         </div>

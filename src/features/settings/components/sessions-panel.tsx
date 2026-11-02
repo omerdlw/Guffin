@@ -1,32 +1,84 @@
 "use client";
 
 import { useState } from "react";
-import { ACTION_TONE_CLASS } from "@omerdlw/base-framework/tokens";
 import { cn } from "@/ui/cn";
 import { requestJson } from "@/infrastructure/http/client";
-import { Button, Icon } from "@/ui";
+import {
+  Button,
+  HighlightGroup,
+  SURFACE_TEXT,
+  Icon,
+  SURFACE_META,
+  SURFACE_PANEL,
+  SURFACE_STACK,
+  SURFACE_TILE,
+  SURFACE_TITLE,
+  useHighlight,
+} from "@/ui";
 import { describeDevice, describeSession } from "../session-format";
-import { useSecurityTask, useSubmitClass } from "./form";
+import { Mark, rowAction, SUBMIT_CLASS, useSecurityTask } from "./form";
 import type { AuthSession } from "../hooks";
 
 function SessionsSkeleton() {
   return (
-    <div className="flex flex-col gap-2.5">
+    <div className={SURFACE_STACK}>
       {[0, 1].map((index) => (
-        <div
-          className="flex h-[52px] w-full items-center justify-between gap-3 rounded-card bg-fill p-1.5 pl-4"
-          key={index}
-        >
-          <div className="flex min-w-0 items-center gap-3">
-            <div className="size-5 shrink-0 rounded-full bg-fill-hover" />
-            <div className="flex flex-col gap-1.5">
-              <div className="h-3.5 w-32 rounded-full bg-fill-hover" />
-              <div className="h-2.5 w-44 rounded-full bg-fill-hover" />
-            </div>
+        <div className={cn(SURFACE_TILE, "h-[52px] pr-1.5")} key={index}>
+          <div className="size-10 shrink-0 rounded-inset bg-fill-hover" />
+          <div className="flex flex-1 flex-col gap-1.5">
+            <div className="h-3.5 w-28 rounded-full bg-fill-hover" />
+            <div className="h-2.5 w-40 rounded-full bg-fill-hover" />
           </div>
           <div className="h-10 w-20 shrink-0 rounded-inset bg-fill-hover" />
         </div>
       ))}
+    </div>
+  );
+}
+
+function SessionRow({
+  busy,
+  disabled,
+  onRevoke,
+  session,
+}: {
+  busy: boolean;
+  disabled: boolean;
+  onRevoke: () => void;
+  session: AuthSession;
+}) {
+  const highlight = useHighlight(session.session_id);
+  const device = describeDevice(session.user_agent);
+  return (
+    <div
+      className={cn(SURFACE_TILE, "relative isolate")}
+      title={session.user_agent ?? undefined}
+      {...highlight.props}
+    >
+      {highlight.node}
+      <Mark icon={device.icon} />
+      <span className={SURFACE_TEXT}>
+        <span className={SURFACE_TITLE}>{device.title}</span>
+        <span className={SURFACE_META}>{describeSession(session)}</span>
+      </span>
+      {session.is_current ? (
+        <span className="flex shrink-0 items-center gap-2 px-3 type-meta font-medium text-ink-muted">
+          <span
+            aria-hidden="true"
+            className="size-1.5 rounded-full bg-ink-body"
+          />
+          This device
+        </span>
+      ) : (
+        <Button
+          className={rowAction()}
+          disabled={disabled}
+          loading={busy}
+          onClick={onRevoke}
+        >
+          Sign out
+        </Button>
+      )}
     </div>
   );
 }
@@ -40,7 +92,6 @@ export function SessionsPanel({
   reload: () => Promise<void>;
   sessions: AuthSession[];
 }) {
-  const submitClass = useSubmitClass();
   const run = useSecurityTask(reload);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [revokingOthers, setRevokingOthers] = useState(false);
@@ -67,9 +118,14 @@ export function SessionsPanel({
     );
 
   return (
-    <div className="flex flex-col gap-2.5">
+    <HighlightGroup className={SURFACE_STACK}>
       {sessions.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-2 rounded-card bg-fill p-6 text-center">
+        <div
+          className={cn(
+            SURFACE_PANEL,
+            "flex flex-col items-center gap-2 p-6 text-center",
+          )}
+        >
           <Icon
             className="text-ink-muted"
             icon="solar:devices-bold"
@@ -80,78 +136,28 @@ export function SessionsPanel({
           </span>
         </div>
       ) : (
-        sessions.map((session) => {
-          const device = describeDevice(session.user_agent);
-          return (
-            <div
-              className={cn(
-                "flex min-h-[52px] w-full items-center justify-between gap-3 rounded-card p-1.5 pl-4 ring-1 ring-inset",
-                session.is_current
-                  ? "bg-grade/15 ring-grade/25"
-                  : "bg-fill ring-edge hover:bg-fill-hover",
-              )}
-              key={session.session_id}
-              title={session.user_agent ?? undefined}
-            >
-              <div className="flex min-w-0 items-center gap-3">
-                <Icon
-                  className={cn(
-                    "shrink-0",
-                    session.is_current ? "text-grade" : "text-ink-body",
-                  )}
-                  icon={device.icon}
-                  size={20}
-                />
-                <div className="flex min-w-0 flex-col justify-center gap-0.5">
-                  <span className="truncate type-body font-semibold text-ink">
-                    {device.title}
-                  </span>
-                  <span className="truncate type-meta text-ink-muted">
-                    {describeSession(session)}
-                  </span>
-                </div>
-              </div>
-              {session.is_current ? (
-                <span
-                  className={cn(
-                    "center h-10 shrink-0 rounded-inset px-4 type-meta font-medium",
-                    ACTION_TONE_CLASS,
-                  )}
-                >
-                  Current
-                </span>
-              ) : (
-                <Button
-                  className={cn(
-                    "center h-10 shrink-0 cursor-pointer rounded-inset px-4 type-meta font-medium",
-                    ACTION_TONE_CLASS,
-                  )}
-                  disabled={busyId === session.session_id}
-                  loading={busyId === session.session_id}
-                  onClick={() => revoke(session.session_id)}
-                >
-                  Revoke
-                </Button>
-              )}
-            </div>
-          );
-        })
+        sessions.map((session) => (
+          <SessionRow
+            busy={busyId === session.session_id}
+            disabled={busyId !== null || revokingOthers}
+            key={session.session_id}
+            onRevoke={() => revoke(session.session_id)}
+            session={session}
+          />
+        ))
       )}
 
       {sessions.some((session) => !session.is_current) ? (
         <Button
-          className={cn(
-            submitClass,
-            "mt-0.5 flex items-center justify-center gap-2",
-          )}
-          disabled={revokingOthers}
+          className={SUBMIT_CLASS}
+          disabled={revokingOthers || busyId !== null}
           loading={revokingOthers}
           onClick={revokeOthers}
         >
           <Icon icon="solar:logout-2-bold" size={16} />
-          <span>Sign out other sessions</span>
+          Sign out all other devices
         </Button>
       ) : null}
-    </div>
+    </HighlightGroup>
   );
 }

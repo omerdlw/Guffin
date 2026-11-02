@@ -4,9 +4,21 @@ import {
   useDockActions,
   type SurfaceEntry,
 } from "@omerdlw/base-framework/modules/dock";
-import { Button, Icon } from "@/ui";
+import {
+  Button,
+  HighlightGroup,
+  Icon,
+  SURFACE_META,
+  SURFACE_STACK,
+  SURFACE_TEXT,
+  SURFACE_TITLE,
+  surfaceRow,
+  useHighlight,
+} from "@/ui";
+import { Cascade, Item, SURFACE_LEAD, SurfaceScene } from "@/motion/stage";
 import { DeletePanel } from "./components/delete-panel";
 import { EmailForm } from "./components/email-form";
+import { Mark } from "./components/form";
 import { MediaForm } from "./components/media-form";
 import { PasskeysPanel } from "./components/passkeys-panel";
 import { ProfileForm } from "./components/profile-form";
@@ -15,13 +27,41 @@ import { SessionsPanel } from "./components/sessions-panel";
 import { useSecurity } from "./hooks";
 
 const SECTIONS = {
-  "avatar-banner": { icon: "solar:gallery-bold", title: "Avatar & Banners" },
-  account: { icon: "solar:user-circle-bold", title: "Account info" },
-  email: { icon: "solar:letter-bold", title: "Email sign-in" },
-  providers: { icon: "solar:link-bold", title: "Connected providers" },
-  sessions: { icon: "solar:devices-bold", title: "Active sessions" },
-  passkeys: { icon: "solar:key-bold", title: "Passkeys" },
-  delete: { icon: "solar:trash-bin-trash-bold", title: "Delete account" },
+  "avatar-banner": {
+    description: "Photo, banner and page background",
+    icon: "solar:gallery-bold",
+    title: "Avatar & Banners",
+  },
+  account: {
+    description: "Name, username, bio and privacy",
+    icon: "solar:user-circle-bold",
+    title: "Account info",
+  },
+  email: {
+    description: "The address you sign in with",
+    icon: "solar:letter-bold",
+    title: "Email sign-in",
+  },
+  providers: {
+    description: "Google, GitHub and X",
+    icon: "solar:link-bold",
+    title: "Connected providers",
+  },
+  sessions: {
+    description: "Devices signed in to your account",
+    icon: "solar:devices-bold",
+    title: "Active sessions",
+  },
+  passkeys: {
+    description: "Sign in with your device",
+    icon: "solar:key-bold",
+    title: "Passkeys",
+  },
+  delete: {
+    description: "Remove your account for good",
+    icon: "solar:trash-bin-trash-bold",
+    title: "Delete account",
+  },
 } as const;
 
 type Section = keyof typeof SECTIONS;
@@ -34,36 +74,50 @@ const SECURITY_SECTIONS: readonly SettingsKey[] = [
   "sessions",
 ];
 
+function OverviewRow({
+  onOpen,
+  section,
+}: {
+  onOpen: (section: Section) => void;
+  section: Section;
+}) {
+  const { description, icon, title } = SECTIONS[section];
+  const highlight = useHighlight(section);
+  return (
+    <Button
+      className={surfaceRow(false)}
+      onClick={() => onOpen(section)}
+      {...highlight.props}
+    >
+      {highlight.node}
+      <Mark icon={icon} tone={section === "delete" ? "danger" : "plain"} />
+      <span className={SURFACE_TEXT}>
+        <span className={SURFACE_TITLE}>{title}</span>
+        <span className={SURFACE_META}>{description}</span>
+      </span>
+      <Icon
+        className="center shrink-0 text-ink-muted group-hover:translate-x-0.5 group-hover:text-ink group-focus-visible:text-ink group-has-focus-visible:text-ink"
+        icon="solar:alt-arrow-right-linear"
+        size={16}
+      />
+    </Button>
+  );
+}
+
 function Overview() {
   const { openSurface } = useDockActions();
+  const open = (section: Section) =>
+    void openSurface(createAccountSettingsSurfaceEntry(section));
   return (
-    <div className="grid gap-2.5">
-      {(Object.keys(SECTIONS) as Section[]).map((key) => (
-        <Button
-          className="group/item flex h-[52px] w-full cursor-pointer items-center gap-3 rounded-card bg-fill py-1.5 pr-4 pl-1.5 text-left ring-1 ring-inset ring-edge hover:bg-fill-hover hover:ring-edge-hover"
-          key={key}
-          onClick={() =>
-            void openSurface(createAccountSettingsSurfaceEntry(key))
-          }
-        >
-          <span className="center size-10 shrink-0 rounded-inset bg-fill text-ink-body group-hover/item:bg-fill-hover group-hover/item:text-ink">
-            <Icon
-              className="ui-glyph center"
-              icon={SECTIONS[key].icon}
-              size={20}
-            />
-          </span>
-          <span className="min-w-0 flex-1 type-body font-medium text-ink">
-            {SECTIONS[key].title}
-          </span>
-          <Icon
-            className="center shrink-0 text-ink-muted group-hover/item:translate-x-0.5 group-hover/item:text-ink"
-            icon="solar:alt-arrow-right-linear"
-            size={16}
-          />
-        </Button>
-      ))}
-    </div>
+    <HighlightGroup>
+      <Cascade className={SURFACE_STACK} lead={SURFACE_LEAD}>
+        {(Object.keys(SECTIONS) as Section[]).map((section) => (
+          <Item from="up" key={section}>
+            <OverviewRow onOpen={open} section={section} />
+          </Item>
+        ))}
+      </Cascade>
+    </HighlightGroup>
   );
 }
 
@@ -77,6 +131,22 @@ function AccountSettingsSurface({
   const security = useSecurity(SECURITY_SECTIONS.includes(section));
   const done = () => close?.();
 
+  return (
+    <SurfaceScene>
+      <Panel done={done} section={section} security={security} />
+    </SurfaceScene>
+  );
+}
+
+function Panel({
+  done,
+  section,
+  security,
+}: {
+  done: () => void;
+  section: SettingsKey;
+  security: ReturnType<typeof useSecurity>;
+}) {
   switch (section) {
     case "overview":
       return <Overview />;

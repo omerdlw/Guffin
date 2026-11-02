@@ -1,7 +1,7 @@
 import type { JSX } from "react";
 import { AccountLink, PosterStack } from "@/features/account";
 import { Avatar, Icon, TONE } from "@/ui";
-import { Header, Item, Section } from "@/motion/stage";
+import { Header, StagePart, StageSection } from "@/motion/engine";
 import { accountHref, listHref } from "@/config/routes";
 import type { PopularList } from "../types";
 
@@ -10,13 +10,20 @@ const count = new Intl.NumberFormat("en", {
   notation: "compact",
 });
 
-function ListRow({ list }: { list: PopularList }): JSX.Element {
+function ListRow({
+  index,
+  list,
+}: {
+  index: number;
+  list: PopularList;
+}): JSX.Element {
   const href = listHref(list.owner.username, list.slug);
   return (
-    <Item
+    <StagePart
       as="li"
       className="flex flex-col gap-4 py-6 first:pt-0 last:pb-0 sm:flex-row sm:items-start sm:gap-6"
-      from="light"
+      index={index}
+      name="list"
     >
       <AccountLink
         aria-label={list.title}
@@ -29,7 +36,7 @@ function ListRow({ list }: { list: PopularList }): JSX.Element {
       <div className="flex min-w-0 flex-1 flex-col gap-2">
         <h3 className="min-w-0 truncate type-title font-semibold text-ink">
           <AccountLink
-            className="underline decoration-transparent hover:decoration-current"
+            className="underline underline-offset-2 decoration-transparent hover:decoration-current focus-visible:decoration-current"
             href={href}
           >
             {list.title}
@@ -37,7 +44,7 @@ function ListRow({ list }: { list: PopularList }): JSX.Element {
         </h3>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 type-control text-ink-muted tabular-nums">
           <AccountLink
-            className="flex min-w-0 items-center gap-2 font-semibold text-ink-body hover:text-ink"
+            className="flex min-w-0 items-center gap-2 font-semibold text-ink-body hover:text-ink focus-visible:text-ink"
             href={accountHref(list.owner.username)}
           >
             <Avatar
@@ -67,10 +74,12 @@ function ListRow({ list }: { list: PopularList }): JSX.Element {
           </p>
         ) : null}
       </div>
-    </Item>
+    </StagePart>
   );
 }
 
+// The lists a film is popular in, as a section of the film page's score: it
+// plays the `lists` cue with a `header` and a `list` part per row.
 export async function MoviePopularLists({
   lists,
 }: {
@@ -80,13 +89,18 @@ export async function MoviePopularLists({
   if (resolved.length === 0) return null;
 
   return (
-    <Section className="flex w-full flex-col">
-      <Header icon="solar:widget-bold" title="Popular Lists" />
+    <StageSection className="flex w-full flex-col" cue="lists">
+      <Header
+        icon={<Icon icon="solar:widget-bold" size={18} />}
+        nameClassName={`min-w-0 ${TONE.label} text-ink-body`}
+        part="header"
+        title="Popular Lists"
+      />
       <ul className={`flex flex-col divide-y ${TONE.rules}`}>
-        {resolved.map((list) => (
-          <ListRow key={list.id} list={list} />
+        {resolved.map((list, index) => (
+          <ListRow index={index} key={list.id} list={list} />
         ))}
       </ul>
-    </Section>
+    </StageSection>
   );
 }

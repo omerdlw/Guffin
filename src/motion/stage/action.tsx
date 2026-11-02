@@ -48,7 +48,12 @@ export function StageAction({
         <Icon icon={active ? icon.on : icon.off} size={iconSize} />
       </span>
       <span className="relative">
-        <span className={cn(hoverLabel && "cine-fade group-hover:opacity-0")}>
+        <span
+          className={cn(
+            hoverLabel &&
+              "cine-fade group-hover:opacity-0 group-focus-visible:opacity-0 group-has-focus-visible:opacity-0",
+          )}
+        >
           {label}
         </span>
         {hoverLabel ? (

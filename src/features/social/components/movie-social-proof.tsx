@@ -6,20 +6,22 @@ import { cn } from "@/ui/cn";
 import { report } from "@omerdlw/base-framework/utils";
 import { useAuth } from "@/features/auth";
 import { Icon } from "@/ui";
-import { Fade, Item } from "@/motion/stage";
+import { StagePart } from "@/motion/engine";
 import { getMovieSocialProofAction } from "../server/actions";
 import type { MovieSocialProof as Proof } from "../types";
 import { describeProof } from "../utils";
 import { AvatarStack } from "./avatar-stack";
 import { createSocialProofSurfaceEntry } from "../surfaces/proof";
 
+// The friends who saw this film, as a part of the page's score: it opens in
+// once they are known and plays the part (glass) the page casts as `part`.
 export function MovieSocialProof({
   movieId,
-  timing,
+  part = "proof",
   title,
 }: {
   movieId: number;
-  timing: { content: number; run: number };
+  part?: string;
   title: string;
 }): JSX.Element {
   const auth = useAuth();
@@ -65,9 +67,9 @@ export function MovieSocialProof({
     >
       <div className="min-h-0 overflow-hidden">
         {proof && summary ? (
-          <Item exit={false} from="light">
+          <StagePart name={part}>
             <button
-              className="cine-card cine-fade group relative flex h-14 w-full cursor-pointer items-center overflow-hidden rounded-full bg-fill px-3.5 text-left ring-1 ring-edge ring-inset hover:bg-fill-hover hover:ring-edge-hover"
+              className="cine-card cine-fade group relative flex h-14 w-full cursor-pointer items-center overflow-hidden rounded-full bg-fill px-3.5 text-left ring-1 ring-edge ring-inset hover:bg-fill-hover focus-visible:bg-fill-hover hover:ring-edge-hover focus-visible:ring-edge-focus"
               onClick={() =>
                 void openSurface(
                   createSocialProofSurfaceEntry({ movieId, proof, title }),
@@ -75,12 +77,7 @@ export function MovieSocialProof({
               }
               type="button"
             >
-              <Fade
-                as="span"
-                className="flex min-w-0 flex-1 items-center gap-3"
-                run={timing.run}
-                since={timing.content}
-              >
+              <span className="flex min-w-0 flex-1 items-center gap-3">
                 <AvatarStack people={proof.friends} round />
                 <span className="flex min-w-0 flex-1 flex-col">
                   <span className="truncate type-meta font-semibold text-ink">
@@ -93,13 +90,13 @@ export function MovieSocialProof({
                   ) : null}
                 </span>
                 <Icon
-                  className="shrink-0 text-ink-muted transition-colors duration-light group-hover:text-ink"
+                  className="shrink-0 text-ink-muted transition-colors duration-light group-hover:text-ink group-focus-visible:text-ink group-has-focus-visible:text-ink"
                   icon="solar:alt-arrow-right-linear"
                   size={16}
                 />
-              </Fade>
+              </span>
             </button>
-          </Item>
+          </StagePart>
         ) : null}
       </div>
     </div>

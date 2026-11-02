@@ -6,6 +6,7 @@ import { artworkTarget } from "@/features/artwork";
 import {
   CAROUSEL_ITEM,
   CAROUSEL_WIDE_ITEM,
+  Carousel,
   MediaCard,
   RADIUS,
   SegmentedControl,
@@ -14,14 +15,12 @@ import {
 import type { MediaCardAspect } from "@/ui";
 import { tmdbImageSrcSet, tmdbImageUrl } from "@/infrastructure/tmdb/images";
 import type { MovieImage } from "@/infrastructure/tmdb/types";
-import { Carousel, Header, Section, Swap, useRoom } from "@/motion/stage";
-import {
-  GalleryWall,
-  WALL_SIZES,
-  WallButton,
-  type WallSet,
-} from "./gallery-wall";
+import { MovieSection, MovieSwap } from "../motion";
+import { Heading } from "./heading";
 import { ImageModal, type ImageModalData } from "./modals";
+import { useLead } from "./stage";
+import { GalleryWall, WallButton } from "./wall";
+import { WALL_SIZES, type WallSet } from "./wall-set";
 
 type Tab = "backdrops" | "posters";
 
@@ -99,8 +98,8 @@ export function MovieGallery({
   title: string;
 }) {
   const [openImage] = useModal(ImageModal);
-  const { setLead } = useRoom();
-  useEffect(() => () => setLead(null), [setLead]);
+  const lead = useLead();
+  useEffect(() => () => lead(null), [lead]);
   const sets: Record<Tab, MovieImage[]> = { backdrops, posters };
   const available = ORDER.filter((key) => sets[key].length > 0);
   const [tab, setTab] = useState<Tab>(available[0] ?? "backdrops");
@@ -129,8 +128,8 @@ export function MovieGallery({
   };
 
   return (
-    <Section className="flex w-full flex-col">
-      <Header
+    <MovieSection className="flex w-full flex-col" cue="shelf">
+      <Heading
         actions={
           <div className="flex items-center gap-2">
             {available.length > 1 ? (
@@ -151,15 +150,15 @@ export function MovieGallery({
         icon="solar:gallery-wide-bold"
         title="Gallery"
       />
-      <Swap id={key}>
+      <MovieSwap cue="slides" id={key}>
         <div
-          onPointerLeave={() => setLead(null)}
+          onPointerLeave={() => lead(null)}
           onPointerOver={(event) => {
             if (event.pointerType !== "mouse") return;
             const card = (event.target as Element).closest("[data-still]");
             const still = card?.getAttribute("data-still");
             const slot = key === "backdrops" ? "backdrop" : "poster";
-            setLead(still ? tmdbImageUrl(slot, still, "w300") : null);
+            lead(still ? tmdbImageUrl(slot, still, "w300") : null);
           }}
         >
           <Carousel
@@ -170,7 +169,7 @@ export function MovieGallery({
             }
             label={view.label}
             onNearEnd={more}
-            radius={RADIUS.card}
+            part="slide"
           >
             {images.map((image, index) => {
               const label = `View ${view.noun} ${index + 1} of ${title}`;
@@ -198,8 +197,8 @@ export function MovieGallery({
             })}
           </Carousel>
         </div>
-      </Swap>
-    </Section>
+      </MovieSwap>
+    </MovieSection>
   );
 }
 

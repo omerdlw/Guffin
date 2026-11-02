@@ -9,7 +9,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { useSmoothScroll } from "@/motion/scroll";
+import { useScrollDriver } from "@/motion/engine";
 
 interface ReelState {
   project: (path: string | null) => void;
@@ -25,16 +25,16 @@ export const useReel = () => use(ReelContext);
 
 export function ReelProvider({ children }: { children: ReactNode }) {
   const [reel, setReel] = useState<string | null>(null);
-  const engine = useSmoothScroll();
+  const driver = useScrollDriver();
 
   const project = useCallback(
     (path: string | null) => {
       setReel(path);
       if (!path) return;
-      if (engine) engine.scrollTo(0);
+      if (driver.active) driver.to(0);
       else window.scrollTo({ behavior: "smooth", top: 0 });
     },
-    [engine],
+    [driver],
   );
 
   useEffect(() => {

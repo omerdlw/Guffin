@@ -1,26 +1,32 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { personHref } from "@/config/routes";
 import { useArtworkPath } from "@/features/artwork";
 import { MediaCard, nested, TONE, useDockLinkClick } from "@/ui";
-import { SCENE } from "../motion";
-import { Develop, Expose } from "@/motion/stage";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/images";
 import { cn } from "@/ui/cn";
+import { MovieExpose, MoviePart } from "../motion";
 import type { PersonEntry } from "../types";
 
+// A credit as a card. On the page (`index` given) the photo opens like a door
+// and the name and role are printed as the card comes in; in a modal, off the
+// page's stage, the card is simply there.
 export function PersonCard({
   compact = false,
+  index,
   onNavigated,
   person,
   radius,
 }: {
   compact?: boolean;
+  index?: number;
   onNavigated?: () => void;
   person: PersonEntry;
   radius?: number;
 }) {
+  const staged = index !== undefined;
   const photoRadius = radius === undefined ? undefined : nested(radius, 4);
   const photoPath = useArtworkPath(
     "person",
@@ -31,6 +37,33 @@ export function PersonCard({
   const src = tmdbImageUrl("profile", photoPath, "h632");
   const href = personHref(person.id);
   const handleClick = useDockLinkClick(href, onNavigated);
+
+  const photo = (
+    <MediaCard
+      aspect="free"
+      className="shrink-0"
+      fallbackIcon="solar:user-bold"
+      fallbackIconSize={compact ? 14 : 20}
+      frameClassName={compact ? "size-8" : "h-[76px] w-14"}
+      framed={false}
+      image={{ sizes: compact ? "32px" : "56px", src }}
+      radius={photoRadius}
+    />
+  );
+
+  const text = (value: string, className: string): ReactNode =>
+    staged ? (
+      <MovieExpose
+        as="div"
+        className={className}
+        index={index}
+        part="name"
+        text={value}
+        truncate
+      />
+    ) : (
+      <div className={className}>{value}</div>
+    );
 
   return (
     <Link
@@ -45,46 +78,25 @@ export function PersonCard({
       )}
       style={radius === undefined ? undefined : { borderRadius: radius }}
     >
-      <Develop at={SCENE.card.photo} className="shrink-0" radius={photoRadius}>
-        <MediaCard
-          aspect="free"
-          className="shrink-0"
-          fallbackIcon="solar:user-bold"
-          fallbackIconSize={compact ? 14 : 20}
-          frameClassName={compact ? "size-8" : "h-[76px] w-14"}
-          framed={false}
-          image={{ sizes: compact ? "32px" : "56px", src }}
-          radius={photoRadius}
-        />
-      </Develop>
+      {staged ? (
+        <div
+          className="shrink-0 overflow-hidden"
+          style={{ borderRadius: photoRadius }}
+        >
+          <MoviePart index={index} name="photo">
+            {photo}
+          </MoviePart>
+        </div>
+      ) : (
+        photo
+      )}
 
       {compact ? (
-        <Expose
-          as="div"
-          className="min-w-0 truncate type-meta font-semibold text-ink"
-          since={SCENE.card.name}
-          truncate
-        >
-          {person.name}
-        </Expose>
+        text(person.name, "min-w-0 truncate type-meta font-semibold text-ink")
       ) : (
         <div className="flex min-w-0 flex-col">
-          <Expose
-            as="div"
-            className="truncate type-body font-semibold text-ink"
-            since={SCENE.card.name}
-            truncate
-          >
-            {person.name}
-          </Expose>
-          <Expose
-            as="div"
-            className={`truncate ${TONE.label} text-ink-muted`}
-            since={SCENE.card.role}
-            truncate
-          >
-            {person.subtitle}
-          </Expose>
+          {text(person.name, "truncate type-body font-semibold text-ink")}
+          {text(person.subtitle, `truncate ${TONE.label} text-ink-muted`)}
         </div>
       )}
     </Link>

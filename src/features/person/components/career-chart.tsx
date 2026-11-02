@@ -30,7 +30,7 @@ function Light() {
     <motion.span
       animate={shown ? { opacity: 1 } : undefined}
       aria-hidden="true"
-      className="absolute inset-0 rounded-t-mark bg-grade shadow-glow"
+      className="absolute inset-0 rounded-t-mark bg-grade"
       initial={{ opacity: 0 }}
       transition={{
         delay,

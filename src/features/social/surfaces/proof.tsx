@@ -57,7 +57,7 @@ function Signal({
   if (!active) return null;
   return (
     <span
-      className="text-ink-muted group-hover/friend:text-ink-body"
+      className="text-ink-muted group-hover/friend:text-ink-body group-focus-visible/friend:text-ink-body group-has-focus-visible/friend:text-ink-body"
       title={label}
     >
       <Icon aria-label={label} icon={icon} size={15} />
@@ -87,10 +87,7 @@ function FriendRow({
       onPointerEnter={onPointerEnter}
     >
       {highlighted ? (
-        <SlidingHighlight
-          className="rounded-card bg-fill ring-1 ring-edge-hover ring-inset"
-          layoutId="social-proof-friend-highlight"
-        />
+        <SlidingHighlight layoutId="social-proof-friend-highlight" />
       ) : null}
       <Link
         className={`relative z-10 flex min-w-0 flex-1 items-center gap-3 ${SURFACE_TILE_INNER}`}
@@ -106,7 +103,9 @@ function FriendRow({
         />
         <span className={SURFACE_TEXT}>
           <span className={SURFACE_TITLE}>{friend.displayName}</span>
-          <span className={`${SURFACE_META} group-hover/friend:text-ink-body`}>
+          <span
+            className={`${SURFACE_META} group-hover/friend:text-ink-body group-focus-visible/friend:text-ink-body group-has-focus-visible/friend:text-ink-body`}
+          >
             @{friend.username}
           </span>
         </span>
@@ -126,7 +125,7 @@ function FriendRow({
         {friend.reviewed ? (
           <Link
             aria-label={`Read ${friend.displayName}'s review`}
-            className="center -m-1.5 size-7 rounded-full text-ink-muted group-hover/friend:text-ink-body hover:bg-fill-hover hover:text-ink"
+            className="center -m-1.5 size-7 rounded-full text-ink-muted group-hover/friend:text-ink-body group-focus-visible/friend:text-ink-body group-has-focus-visible/friend:text-ink-body hover:bg-fill-hover focus-visible:bg-fill-hover hover:text-ink focus-visible:text-ink"
             href={reviewHref(movieId, friend.username)}
             onClick={close}
             prefetch={false}

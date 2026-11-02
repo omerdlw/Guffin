@@ -10,7 +10,7 @@ import {
 import { report } from "@omerdlw/base-framework/utils";
 import { isPublicHttps, pinnedFetch } from "@/infrastructure/http/pinned-fetch";
 
-const PALETTE_VERSION = "account-ambient-v1";
+const PALETTE_VERSION = "account-ambient";
 const PALETTE_TIMEOUT_MS = 3_000;
 const PALETTE_MAX_BYTES = 8 * 1024 * 1024;
 

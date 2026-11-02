@@ -27,7 +27,7 @@ export function Foil({
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 rounded-[inherit] ring-1 ring-[rgb(226_184_104/0.4)] ring-inset"
+        className="pointer-events-none absolute inset-0 rounded-[inherit] ring-1 ring-award/40 ring-inset"
       />
     </>
   );

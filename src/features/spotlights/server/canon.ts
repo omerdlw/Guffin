@@ -39,4 +39,4 @@ async function readCanon(): Promise<CanonFilm[]> {
   return films.filter((film): film is CanonFilm => film !== null);
 }
 
-export const getCanon = cache(() => kept("spotlight:canon:v1", readCanon));
+export const getCanon = cache(() => kept("spotlight:canon", readCanon));

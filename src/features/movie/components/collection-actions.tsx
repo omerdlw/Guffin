@@ -24,8 +24,8 @@ import {
   setMovieLibraryAction,
 } from "@/features/account";
 import { createSignInSurfaceEntry, useAuth } from "@/features/auth";
-import { SCENE } from "../motion";
-import { StageAction } from "@/motion/stage";
+import { ActionButton } from "@/ui";
+import { MoviePart } from "../motion";
 import { useMovieView } from "./view-switcher";
 import { createListPickerSurfaceEntry } from "@/features/lists";
 
@@ -33,38 +33,41 @@ const SIZE = "h-12 px-4 py-0 disabled:cursor-wait";
 const SECONDARY_SIZE = "h-11 gap-2 px-3";
 
 function Action({
+  grow = false,
   label,
   secondary = false,
   shortLabel,
   ...props
 }: Omit<
-  ComponentProps<typeof StageAction>,
-  "ariaLabel" | "className" | "fade" | "iconSize" | "label"
+  ComponentProps<typeof ActionButton>,
+  "ariaLabel" | "className" | "iconSize" | "label"
 > & {
+  grow?: boolean;
   label: string;
   secondary?: boolean;
   shortLabel?: string;
 }): JSX.Element {
   return (
-    <StageAction
-      {...props}
-      ariaLabel={secondary && shortLabel ? label : undefined}
-      className={cn(SIZE, secondary && SECONDARY_SIZE)}
-      fade={{ run: SCENE.action.run, since: SCENE.action.content }}
-      iconSize={secondary ? 14 : 16}
-      label={
-        shortLabel && secondary ? (
-          shortLabel
-        ) : shortLabel ? (
-          <>
-            <span className="sm:max-xl:hidden">{label}</span>
-            <span className="hidden sm:max-xl:inline">{shortLabel}</span>
-          </>
-        ) : (
-          label
-        )
-      }
-    />
+    <MoviePart className={cn("min-w-0", grow && "flex-1")} name="action">
+      <ActionButton
+        {...props}
+        ariaLabel={secondary && shortLabel ? label : undefined}
+        className={cn(SIZE, secondary && SECONDARY_SIZE)}
+        iconSize={secondary ? 14 : 16}
+        label={
+          shortLabel && secondary ? (
+            shortLabel
+          ) : shortLabel ? (
+            <>
+              <span className="sm:max-xl:hidden">{label}</span>
+              <span className="hidden sm:max-xl:inline">{shortLabel}</span>
+            </>
+          ) : (
+            label
+          )
+        }
+      />
+    </MoviePart>
   );
 }
 

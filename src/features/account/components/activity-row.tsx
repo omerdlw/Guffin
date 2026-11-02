@@ -24,7 +24,7 @@ const ICONS: Record<string, string> = {
 };
 
 const strong =
-  "font-medium text-ink underline decoration-transparent hover:decoration-current";
+  "font-medium text-ink underline underline-offset-2 decoration-transparent hover:decoration-current focus-visible:decoration-current";
 
 function sentence(item: ActivityItem): ReactNode {
   const movie = item.tmdbId ? (
@@ -173,7 +173,7 @@ export function ActivityFeed({
           <span className="font-medium text-ink-lead">{actor.displayName}</span>{" "}
           {sentence(item)}{" "}
           <time
-            className="type-meta whitespace-nowrap text-ink-faint tabular-nums"
+            className="type-meta whitespace-nowrap text-ink-muted tabular-nums"
             dateTime={item.createdAt}
           >
             {timeAgo(item.createdAt)}

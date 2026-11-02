@@ -12,8 +12,7 @@ import {
   getWriters,
 } from "../utils";
 import { SIDEBAR_FACTS_CLASS } from "../styles";
-import { SCENE } from "../motion";
-import { Expose, Fade, Item, Line, Sequence, undoGap } from "@/motion/stage";
+import { MovieExpose, MoviePart } from "../motion";
 import { MoviePoster } from "./artwork";
 import { MovieSocialProof } from "@/features/social";
 import { MovieAwardsAction } from "./awards";
@@ -26,45 +25,35 @@ const MAX_VISIBLE_PEOPLE = 2;
 const MAX_VISIBLE_GENRES = 3;
 const MAX_VISIBLE_TAGS = 2;
 
+// A fact is one row: its label, its value and the rule under it are three
+// parts at the row's place, so the rows come in one after another.
 function Row({
   children,
+  index,
   label,
-  out,
 }: {
   children: ReactNode;
+  index: number;
   label: string;
-  out: number;
 }) {
-  const { line, value } = SCENE.row;
   return (
-    <Item
-      className="group/row relative flex py-3 first:pt-0 last:pb-0 sm:max-lg:grow-2 sm:max-lg:items-center sm:max-lg:first:grow sm:max-lg:first:items-start sm:max-lg:last:grow sm:max-lg:last:items-end"
-      exit={false}
-      from="still"
-    >
+    <div className="group/row relative flex py-3 first:pt-0 last:pb-0 sm:max-lg:grow-2 sm:max-lg:items-center sm:max-lg:first:grow sm:max-lg:first:items-start sm:max-lg:last:grow sm:max-lg:last:items-end">
       <div className="flex w-full items-baseline justify-between gap-6">
         <dt className={`shrink-0 ${TONE.label} text-ink-muted`}>
-          <Expose hover out={out} since={0}>
-            {label}
-          </Expose>
+          <MovieExpose hover index={index} part="label" text={label} />
         </dt>
-        <Fade
-          as="dd"
+        <dd
           className={`min-w-0 text-right ${FACT_ROW_TYPE} font-medium text-ink tabular-nums`}
-          out={out}
-          run={SCENE.facts.expose}
-          since={value}
         >
           {children}
-        </Fade>
+        </dd>
       </div>
-      <Line
-        className={`absolute inset-x-0 bottom-0 ${TONE.rule} group-last/row:hidden`}
-        out={out}
-        run={line}
-        since={0}
+      <MoviePart
+        className={`absolute inset-x-0 bottom-0 h-px ${TONE.rule} group-last/row:hidden`}
+        index={index}
+        name="line"
       />
-    </Item>
+    </div>
   );
 }
 
@@ -74,37 +63,39 @@ interface Name {
 }
 
 function Names({
+  index,
   max,
   names,
-  when,
 }: {
+  index: number;
   max: number;
   names: readonly Name[];
-  when: When;
 }) {
   const visible = names.slice(0, max);
   const hidden = names.slice(max);
   return (
     <>
-      {visible.map((name, index) => {
+      {visible.map((name, at) => {
         const text = (
-          <Expose hover out={when.out} since={when.since}>
-            {name.text}
-          </Expose>
+          <MovieExpose hover index={index} part="value" text={name.text} />
         );
         return (
-          <span key={`${name.text}-${index}`}>
+          <span key={`${name.text}-${at}`}>
             {name.href ? (
-              <FactLink href={name.href} label={name.text}>
-                {text}
-              </FactLink>
+              // The link's underline is drawn by the link, not the text, so
+              // the link comes in with the name.
+              <MoviePart as="span" index={index} name="value">
+                <FactLink href={name.href} label={name.text}>
+                  {text}
+                </FactLink>
+              </MoviePart>
             ) : (
               text
             )}
-            {index < visible.length - 1 ? (
-              <Fade as="span" out={when.out} since={when.since}>
+            {at < visible.length - 1 ? (
+              <MoviePart as="span" index={index} name="value">
                 {", "}
-              </Fade>
+              </MoviePart>
             ) : null}
           </span>
         );
@@ -114,26 +105,24 @@ function Names({
           position="top"
           text={hidden.map((name) => name.text).join(", ")}
         >
-          <Fade
-            as="span"
-            className="ml-1.5 cursor-help type-meta font-bold text-ink-body"
-            out={when.out}
-            since={when.since}
-          >
-            +{hidden.length}
-          </Fade>
+          <span className="ml-1.5 inline-block cursor-help">
+            <MoviePart
+              as="span"
+              className="inline-block type-meta font-bold text-ink-body"
+              index={index}
+              name="value"
+            >
+              +{hidden.length}
+            </MoviePart>
+          </span>
         </Tooltip>
       ) : null}
     </>
   );
 }
 
-function Text({ children, when }: { children: string; when: When }) {
-  return (
-    <Expose hover out={when.out} since={when.since}>
-      {children}
-    </Expose>
-  );
+function Text({ children, index }: { children: string; index: number }) {
+  return <MovieExpose hover index={index} part="value" text={children} />;
 }
 
 const asName = (person: { id: number; name: string }): Name => ({
@@ -147,14 +136,9 @@ const capitalize = (text: string) =>
     (_, space: string, letter: string) => `${space}${letter.toUpperCase()}`,
   );
 
-interface When {
-  out: number;
-  since: number;
-}
-
 interface Fact {
   label: string;
-  value: (when: When) => ReactNode;
+  value: (index: number) => ReactNode;
 }
 
 export function MovieSidebar({
@@ -180,11 +164,11 @@ export function MovieSidebar({
   if (genres.length > 0) {
     facts.push({
       label: genres.length > 1 ? "Genres" : "Genre",
-      value: (when) => (
+      value: (index) => (
         <Names
           max={MAX_VISIBLE_GENRES}
           names={genres.map((text) => ({ text }))}
-          when={when}
+          index={index}
         />
       ),
     });
@@ -192,11 +176,11 @@ export function MovieSidebar({
   if (tags.length > 0) {
     facts.push({
       label: "Tags",
-      value: (when) => (
+      value: (index) => (
         <Names
           max={MAX_VISIBLE_TAGS}
           names={tags.map((tag) => ({ text: capitalize(tag) }))}
-          when={when}
+          index={index}
         />
       ),
     });
@@ -204,11 +188,11 @@ export function MovieSidebar({
   if (directors.length > 0) {
     facts.push({
       label: directors.length > 1 ? "Directors" : "Director",
-      value: (when) => (
+      value: (index) => (
         <Names
           max={MAX_VISIBLE_PEOPLE}
           names={directors.map(asName)}
-          when={when}
+          index={index}
         />
       ),
     });
@@ -216,11 +200,11 @@ export function MovieSidebar({
   if (writers.length > 0) {
     facts.push({
       label: writers.length > 1 ? "Writers" : "Writer",
-      value: (when) => (
+      value: (index) => (
         <Names
           max={MAX_VISIBLE_PEOPLE}
           names={writers.map(asName)}
-          when={when}
+          index={index}
         />
       ),
     });
@@ -228,49 +212,43 @@ export function MovieSidebar({
   if (released) {
     facts.push({
       label: "Released",
-      value: (when) => <Text when={when}>{released}</Text>,
+      value: (index) => <Text index={index}>{released}</Text>,
     });
   }
   if (certification) {
     facts.push({
       label: "Rated",
-      value: (when) => <Text when={when}>{certification}</Text>,
+      value: (index) => <Text index={index}>{certification}</Text>,
     });
   }
   if (language) {
     facts.push({
       label: "Language",
-      value: (when) => <Text when={when}>{language}</Text>,
+      value: (index) => <Text index={index}>{language}</Text>,
     });
   }
   if (movie.status !== "Unknown") {
     facts.push({
       label: "Status",
-      value: (when) => <Text when={when}>{movie.status}</Text>,
+      value: (index) => <Text index={index}>{movie.status}</Text>,
     });
   }
   if (budget) {
     facts.push({
       label: "Budget",
-      value: (when) => (
-        <MoneyCount since={when.since} value={movie.budget ?? 0} />
-      ),
+      value: (index) => <MoneyCount index={index} value={movie.budget ?? 0} />,
     });
   }
   if (revenue) {
     facts.push({
       label: "Revenue",
-      value: (when) => (
-        <MoneyCount since={when.since} value={movie.revenue ?? 0} />
-      ),
+      value: (index) => <MoneyCount index={index} value={movie.revenue ?? 0} />,
     });
   }
 
-  const outGap = undoGap(facts.length);
-
   return (
-    <Sequence className={SIDEBAR_CLASS} wave={SCENE.buttons.at}>
-      <div className="flex min-w-0 flex-col gap-3" data-exit="">
+    <div className={SIDEBAR_CLASS}>
+      <div className="flex min-w-0 flex-col gap-3">
         <MoviePoster awards={awards} movie={movie} />
         <MovieStats stats={stats} />
         <MovieCollectionActions movieId={movie.id}>
@@ -278,25 +256,18 @@ export function MovieSidebar({
             <MovieAwardsAction awards={awards} />
           </Suspense>
         </MovieCollectionActions>
-        <MovieSocialProof
-          movieId={movie.id}
-          timing={SCENE.action}
-          title={movie.title}
-        />
+        <MovieSocialProof movieId={movie.id} title={movie.title} />
       </div>
 
-      <div className={SIDEBAR_FACTS_CLASS} data-flow="">
-        <dl className="flex flex-col sm:max-lg:flex-1" data-exit="">
-          {facts.map((fact, index) => {
-            const out = index * outGap;
-            return (
-              <Row key={fact.label} label={fact.label} out={out}>
-                {fact.value({ out, since: SCENE.row.value })}
-              </Row>
-            );
-          })}
+      <div className={SIDEBAR_FACTS_CLASS}>
+        <dl className="flex flex-col sm:max-lg:flex-1">
+          {facts.map((fact, index) => (
+            <Row index={index} key={fact.label} label={fact.label}>
+              {fact.value(index)}
+            </Row>
+          ))}
         </dl>
       </div>
-    </Sequence>
+    </div>
   );
 }

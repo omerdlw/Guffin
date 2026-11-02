@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useDockLinkClick } from "@/ui";
 
 const LINK_CLASS =
-  "underline decoration-ink-faint underline-offset-4 hover:text-ink hover:decoration-ink-muted";
+  "underline decoration-ink-faint underline-offset-2 hover:text-ink focus-visible:text-ink hover:decoration-ink-muted focus-visible:decoration-ink-muted";
 
 function AppLink({
   children,

@@ -40,7 +40,7 @@ const JOIN_DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
 });
 
 const AVATAR_CLASSES =
-  "relative flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-black/60 type-display-xs font-semibold text-ink shadow-lift ring-2 ring-edge-hover select-none sm:size-24";
+  "relative flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-black/60 type-display-xs font-semibold text-ink ring-2 ring-edge-hover select-none sm:size-24";
 
 const CONTAINER = "mx-auto flex w-full max-w-6xl flex-col px-4 sm:px-6 lg:px-8";
 

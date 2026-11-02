@@ -5,11 +5,6 @@ import { SEED_EMAIL_DOMAIN } from "./constants";
 import type { AuthClient, OAuthProvider, SignOutScope } from "./types";
 import { normalizeEmail } from "./utils";
 
-type SupabaseProvider = "google" | "github" | "twitter";
-
-const toSupabaseProvider = (provider: OAuthProvider): SupabaseProvider =>
-  provider === "x" ? "twitter" : provider;
-
 function unwrap<T>(
   result: { data: T | null; error: unknown },
   fallbackMessage: string,
@@ -78,7 +73,7 @@ export async function signInWithOAuth(
   redirectTo: string,
 ): Promise<void> {
   const { error } = await client.auth.signInWithOAuth({
-    provider: toSupabaseProvider(provider),
+    provider,
     options: { redirectTo },
   });
   if (error) throw error;
@@ -90,7 +85,7 @@ export async function linkIdentity(
   redirectTo: string,
 ): Promise<void> {
   const { data, error } = await client.auth.linkIdentity({
-    provider: toSupabaseProvider(provider),
+    provider,
     options: { redirectTo },
   });
   if (error) throw error;

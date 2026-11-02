@@ -87,7 +87,7 @@ function MemberCard({ member }: { member: HomeMember }): JSX.Element {
       </AccountLink>
       <div className="flex w-full min-w-0 flex-col gap-0.5">
         <AccountLink
-          className="truncate type-copy font-semibold text-ink underline decoration-transparent hover:decoration-current"
+          className="truncate type-copy font-semibold text-ink underline underline-offset-2 decoration-transparent hover:decoration-current focus-visible:decoration-current"
           href={href}
         >
           {member.displayName}

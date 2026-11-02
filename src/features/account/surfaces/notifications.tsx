@@ -25,16 +25,17 @@ import { useAuth } from "@/features/auth";
 import {
   AdaptiveImage,
   Button,
+  HighlightGroup,
   Icon,
   SegmentedControl,
   SURFACE_META,
   SURFACE_SCROLL,
   SURFACE_TEXT,
   SURFACE_TILE,
-  SURFACE_TILE_HOVER,
   SURFACE_TILE_INNER,
   SURFACE_TITLE,
   scrollWithin,
+  useHighlight,
 } from "@/ui";
 import {
   deleteAllNotifications,
@@ -68,7 +69,7 @@ const ICONS: Record<string, string> = {
 const ICON_BUTTON =
   "center size-10 shrink-0 cursor-pointer rounded-inset select-none";
 const TOOLBAR_BUTTON =
-  "flex h-full shrink-0 cursor-pointer items-center rounded-full bg-transparent px-3.5 type-meta font-medium text-ink-body select-none hover:bg-fill-hover hover:text-ink";
+  "flex h-full shrink-0 cursor-pointer items-center rounded-full bg-transparent px-3.5 type-meta font-medium text-ink-body select-none hover:bg-fill-hover focus-visible:bg-fill-hover hover:text-ink focus-visible:text-ink";
 const BANNER_FADE =
   "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.15) 30%, rgba(0,0,0,0.65) 70%, black 100%)";
 
@@ -177,6 +178,7 @@ const NotificationRow = memo(function NotificationRow({
   onNavigate?: () => void;
 }) {
   const { actor } = notification;
+  const highlight = useHighlight(notification.id, "rounded-card bg-fill");
   const href = actor ? accountHref(actor.username || actor.id) : null;
   const headline = headlineOf(notification);
   const age = timeAgo(notification.created_at);
@@ -217,7 +219,8 @@ const NotificationRow = memo(function NotificationRow({
 
   return (
     <div
-      className={`${SURFACE_TILE} ${SURFACE_TILE_HOVER} group/user relative w-full justify-between overflow-hidden`}
+      className={`${SURFACE_TILE} group/user relative isolate w-full justify-between overflow-hidden`}
+      {...highlight.props}
     >
       {actor && isValidBannerUrl(actor.banner_url) ? (
         <div
@@ -225,7 +228,7 @@ const NotificationRow = memo(function NotificationRow({
           className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[inherit] select-none"
         >
           <div
-            className="ui-fade absolute inset-0 bg-cover bg-center bg-no-repeat opacity-25 group-hover/user:opacity-40"
+            className="ui-fade absolute inset-0 bg-cover bg-center bg-no-repeat opacity-25 group-hover/user:opacity-40 group-focus-visible/user:opacity-40 group-has-focus-visible/user:opacity-40"
             style={{
               backgroundImage: `url("${actor.banner_url}")`,
               WebkitMaskImage: BANNER_FADE,
@@ -234,6 +237,8 @@ const NotificationRow = memo(function NotificationRow({
           <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/20 to-transparent" />
         </div>
       ) : null}
+
+      {highlight.node}
 
       {href ? (
         <Link
@@ -253,7 +258,7 @@ const NotificationRow = memo(function NotificationRow({
         {notification.read ? null : (
           <Button
             aria-label="Mark as read"
-            className={`${ICON_BUTTON} bg-grade/15 text-grade hover:bg-grade hover:text-black`}
+            className={`${ICON_BUTTON} bg-grade/15 text-grade hover:bg-grade/20 focus-visible:bg-grade/20`}
             onClick={(event) => onMarkRead(notification.id, event)}
             title="Mark as read"
           >
@@ -262,7 +267,7 @@ const NotificationRow = memo(function NotificationRow({
         )}
         <Button
           aria-label="Delete notification"
-          className={`${ICON_BUTTON} bg-fill text-ink-body hover:bg-fill-hover hover:text-ink`}
+          className={`${ICON_BUTTON} text-ink-body hover:bg-fill-hover focus-visible:bg-fill-hover hover:text-ink focus-visible:text-ink`}
           onClick={(event) => onDelete(notification.id, event)}
           title="Delete notification"
         >
@@ -459,7 +464,7 @@ export function AccountNotificationsSurface({ close }: { close?: () => void }) {
         key={filter}
         onWheel={scrollWithin}
       >
-        <div className="flex min-h-[48px] w-full flex-col justify-center gap-2.5 overflow-visible">
+        <HighlightGroup className="flex min-h-[48px] w-full flex-col justify-center gap-2.5 overflow-visible">
           {visible.map((notification) => (
             <NotificationRow
               key={notification.id}
@@ -469,7 +474,7 @@ export function AccountNotificationsSurface({ close }: { close?: () => void }) {
               onNavigate={close}
             />
           ))}
-        </div>
+        </HighlightGroup>
       </div>
     );
   }

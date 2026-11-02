@@ -103,7 +103,7 @@ const EMPTY_PULSE: PulseRow = {
   top_rated: [],
 };
 
-const PULSE_KEY = "home:pulse:v2";
+const PULSE_KEY = "home:pulse";
 const PULSE_FRESH_MS = 5 * 60_000;
 const PULSE_KEEP_SECONDS = 60 * 60;
 

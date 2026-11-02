@@ -19,7 +19,7 @@ function ListCard({ list }: { list: HomeList }): JSX.Element {
       </AccountLink>
       <h3 className="min-w-0 truncate type-base font-semibold text-ink">
         <AccountLink
-          className="underline decoration-transparent hover:decoration-current"
+          className="underline underline-offset-2 decoration-transparent hover:decoration-current focus-visible:decoration-current"
           href={href}
         >
           {list.title}
@@ -27,7 +27,7 @@ function ListCard({ list }: { list: HomeList }): JSX.Element {
       </h3>
       <div className="flex min-w-0 items-center gap-x-4 type-control text-ink-muted tabular-nums">
         <AccountLink
-          className="flex min-w-0 items-center gap-2 font-semibold text-ink-body hover:text-ink"
+          className="flex min-w-0 items-center gap-2 font-semibold text-ink-body hover:text-ink focus-visible:text-ink"
           href={accountHref(list.owner.username)}
         >
           <Avatar

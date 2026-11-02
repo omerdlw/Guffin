@@ -11,7 +11,7 @@ import { TMDB_IMAGE_BASE_URL } from "./constants";
 
 const IMAGE_HOST = new URL(TMDB_IMAGE_BASE_URL).hostname;
 
-const PALETTE_VERSION = "ambient-v2";
+const PALETTE_VERSION = "ambient";
 const PALETTE_TIMEOUT_MS = 3_000;
 
 class NoPalette extends Error {}

@@ -2,7 +2,6 @@
 
 import type { JSX } from "react";
 import { useRouter } from "next/navigation";
-import { motion, useTransform } from "motion/react";
 import { useDockActions } from "@omerdlw/base-framework/modules/dock";
 import { AccountLink } from "@/features/account";
 import {
@@ -14,8 +13,7 @@ import {
   type MovieReview,
 } from "@/features/reviews";
 import { Avatar, Icon, TONE } from "@/ui";
-import { SCENE } from "../motion";
-import { ease, Item, useProgress } from "@/motion/stage";
+import { MoviePart } from "../motion";
 import { accountHref } from "@/config/routes";
 
 const DATE = new Intl.DateTimeFormat("en-US", {
@@ -24,38 +22,43 @@ const DATE = new Intl.DateTimeFormat("en-US", {
   year: "numeric",
 });
 
-function useLitMotion(index: number) {
-  const { at, gap, run } = SCENE.stars;
-  const lit = useProgress(at + index * gap, run, ease.pour);
-  return {
-    opacity: useTransform(lit, (p) => ease.fade(p)),
-    scale: useTransform(lit, (p) => 0.7 + 0.3 * p),
-  };
-}
+// The stars of a review light one after another once its card is in, each a
+// step of the card's place on the list, so the lights run down the list too.
+const LIGHTS = 6;
 
 function LitStar({ fill, index }: { fill: number; index: number }) {
   return (
-    <motion.span className="inline-flex" style={useLitMotion(index)}>
+    <MoviePart as="span" className="inline-flex" index={index} name="star">
       <Star fill={fill} size={14} />
-    </motion.span>
+    </MoviePart>
   );
 }
 
 function LitFilmLike({ author, index }: { author: string; index: number }) {
-  const style = useLitMotion(index);
   return (
-    <motion.span className="inline-flex shrink-0" style={style}>
+    <MoviePart
+      as="span"
+      className="inline-flex shrink-0"
+      index={index}
+      name="star"
+    >
       <Icon
         aria-label={`${author} liked this film`}
         className="text-liked"
         icon="solar:heart-bold"
         size={14}
       />
-    </motion.span>
+    </MoviePart>
   );
 }
 
-function LitStars({ rating }: { rating: number | null }): JSX.Element {
+function LitStars({
+  first,
+  rating,
+}: {
+  first: number;
+  rating: number | null;
+}): JSX.Element {
   if (rating === null || !Number.isFinite(rating) || rating <= 0) {
     return <RatingStars rating={rating} />;
   }
@@ -68,23 +71,26 @@ function LitStars({ rating }: { rating: number | null }): JSX.Element {
       title={`${value} out of 5`}
     >
       {Array.from({ length: 5 }, (_, index) => (
-        <LitStar fill={value - index} index={index} key={index} />
+        <LitStar fill={value - index} index={first + index} key={index} />
       ))}
     </span>
   );
 }
 
 export function ReviewCard({
+  index,
   movieId,
   review,
   title,
   viewerId,
 }: {
+  index: number;
   movieId: number;
   review: MovieReview;
   title: string;
   viewerId: string | null;
 }): JSX.Element {
+  const first = index * LIGHTS;
   const router = useRouter();
   const { openSurface } = useDockActions();
   const profile = accountHref(review.author.username);
@@ -94,7 +100,12 @@ export function ReviewCard({
     review.rating > 0;
 
   return (
-    <Item as="li" className="flex py-6 first:pt-0 last:pb-0" from="light">
+    <MoviePart
+      as="li"
+      className="flex py-6 first:pt-0 last:pb-0"
+      index={index}
+      name="review"
+    >
       <article className="grid w-full grid-cols-[44px_minmax(0,1fr)] items-start gap-x-3.5 gap-y-3">
         <AccountLink className="flex shrink-0 self-start" href={profile}>
           <Avatar
@@ -107,7 +118,7 @@ export function ReviewCard({
         <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
           <div className="min-w-0">
             <AccountLink
-              className="block truncate type-base font-semibold text-ink hover:underline"
+              className="block truncate type-base font-semibold text-ink underline decoration-transparent underline-offset-2 hover:decoration-current focus-visible:decoration-current"
               href={profile}
             >
               {review.author.displayName}
@@ -121,11 +132,11 @@ export function ReviewCard({
           </div>
           <div className="flex min-w-0 items-center justify-between gap-4 sm:shrink-0 sm:justify-end">
             <div className="flex shrink-0 items-center gap-2.5">
-              <LitStars rating={review.rating} />
+              <LitStars first={first} rating={review.rating} />
               {review.authorLiked ? (
                 <LitFilmLike
                   author={review.author.displayName}
-                  index={hasRating ? 5 : 0}
+                  index={first + (hasRating ? 5 : 0)}
                 />
               ) : null}
             </div>
@@ -166,6 +177,6 @@ export function ReviewCard({
           </div>
         ) : null}
       </article>
-    </Item>
+    </MoviePart>
   );
 }

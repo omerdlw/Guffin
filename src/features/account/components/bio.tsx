@@ -52,7 +52,7 @@ export function AccountBio({
       </p>
       {cut ? (
         <button
-          className="absolute right-0 bottom-0 cursor-pointer font-medium text-ink underline underline-offset-2 hover:text-ink-body"
+          className="absolute right-0 bottom-0 cursor-pointer font-medium text-ink-body underline decoration-ink-faint underline-offset-2 hover:text-ink hover:decoration-ink-muted focus-visible:text-ink focus-visible:decoration-ink-muted"
           onClick={open}
           type="button"
         >

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import type { PasskeyListItem } from "@supabase/supabase-js";
-import { ACTION_TONE_CLASS } from "@omerdlw/base-framework/tokens";
 import { cn } from "@/ui/cn";
 import {
   deletePasskey,
@@ -10,26 +9,80 @@ import {
   renamePasskey,
   useAuth,
 } from "@/features/auth";
-import { Button, Icon, Input } from "@/ui";
+import {
+  Button,
+  HighlightGroup,
+  SURFACE_TEXT,
+  Icon,
+  Input,
+  SURFACE_PANEL,
+  SURFACE_STACK,
+  SURFACE_TILE,
+  SURFACE_TITLE,
+  surfaceButton,
+  useHighlight,
+} from "@/ui";
 import {
   INPUT_CLASS,
-  ROW_BUTTON_CLASS,
+  Mark,
+  rowAction,
+  SUBMIT_CLASS,
   useSecurityTask,
-  useSubmitClass,
 } from "./form";
 
 function PasskeysSkeleton() {
   return (
-    <div className="flex flex-col gap-2.5">
+    <div className={SURFACE_STACK}>
       {[0, 1].map((index) => (
-        <div
-          className="flex h-10 w-full items-center justify-between rounded-card bg-fill p-1 pl-4 ring-1 ring-inset ring-edge"
-          key={index}
-        >
-          <div className="h-3.5 w-28 rounded-full bg-fill-hover" />
-          <div className="h-8 w-20 rounded-tile bg-fill-hover" />
+        <div className={cn(SURFACE_TILE, "h-[52px] pr-1.5")} key={index}>
+          <div className="size-10 shrink-0 rounded-inset bg-fill-hover" />
+          <div className="h-3.5 w-28 flex-1 rounded-full bg-fill-hover" />
+          <div className="size-10 shrink-0 rounded-inset bg-fill-hover" />
         </div>
       ))}
+    </div>
+  );
+}
+
+function PasskeyRow({
+  disabled,
+  id,
+  name,
+  onEdit,
+  onRemove,
+}: {
+  disabled: boolean;
+  id: string;
+  name: string;
+  onEdit: () => void;
+  onRemove: () => void;
+}) {
+  const highlight = useHighlight(id);
+  return (
+    <div className={cn(SURFACE_TILE, "relative isolate")} {...highlight.props}>
+      {highlight.node}
+      <Mark icon="solar:key-bold" />
+      <span className={SURFACE_TEXT}>
+        <span className={SURFACE_TITLE}>{name}</span>
+      </span>
+      <span className="flex shrink-0 items-center">
+        <Button
+          aria-label={`Rename ${name}`}
+          className={rowAction(true)}
+          disabled={disabled}
+          onClick={onEdit}
+        >
+          <Icon icon="solar:pen-bold" size={16} />
+        </Button>
+        <Button
+          aria-label={`Remove ${name}`}
+          className={rowAction(true)}
+          disabled={disabled}
+          onClick={onRemove}
+        >
+          <Icon icon="solar:trash-bin-trash-bold" size={16} />
+        </Button>
+      </span>
     </div>
   );
 }
@@ -44,7 +97,6 @@ export function PasskeysPanel({
   reload: () => Promise<void>;
 }) {
   const { client } = useAuth();
-  const submitClass = useSubmitClass();
   const run = useSecurityTask(reload);
   const [pending, setPending] = useState(false);
   const [editing, setEditing] = useState<{ id: string; name: string } | null>(
@@ -54,10 +106,16 @@ export function PasskeysPanel({
   if (loading && passkeys.length === 0) return <PasskeysSkeleton />;
 
   return (
-    <div className="flex flex-col gap-2.5">
+    <HighlightGroup className={SURFACE_STACK}>
       {passkeys.length === 0 ? (
-        <div className="flex min-h-24 w-full items-center justify-center rounded-card bg-fill p-4 text-center">
-          <span className="type-meta text-ink-muted">
+        <div
+          className={cn(
+            SURFACE_PANEL,
+            "flex flex-col items-center gap-2 p-6 text-center",
+          )}
+        >
+          <Icon className="text-ink-muted" icon="solar:key-bold" size={22} />
+          <span className="type-meta font-medium text-ink-muted">
             No passkeys registered
           </span>
         </div>
@@ -66,8 +124,9 @@ export function PasskeysPanel({
           const name = passkey.friendly_name || "Passkey";
           if (editing?.id === passkey.id) {
             return (
-              <div className="flex w-full flex-col gap-2.5" key={passkey.id}>
+              <div className={SURFACE_STACK} key={passkey.id}>
                 <Input
+                  aria-label="Passkey name"
                   autoFocus
                   className={INPUT_CLASS}
                   onChange={(event) =>
@@ -78,7 +137,14 @@ export function PasskeysPanel({
                 />
                 <div className="flex w-full gap-2.5">
                   <Button
-                    className={submitClass}
+                    className={cn(surfaceButton(false), "flex-1")}
+                    disabled={pending}
+                    onClick={() => setEditing(null)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    className={cn(SUBMIT_CLASS, "flex-1")}
                     disabled={pending || !editing.name.trim() || !client}
                     loading={pending}
                     onClick={() =>
@@ -100,62 +166,34 @@ export function PasskeysPanel({
                   >
                     Save
                   </Button>
-                  <Button
-                    className="center size-10 shrink-0 cursor-pointer rounded-card bg-fill type-meta text-ink-body ring-1 ring-inset ring-edge hover:bg-fill-hover hover:text-ink"
-                    disabled={pending}
-                    onClick={() => setEditing(null)}
-                  >
-                    <Icon icon="solar:close-bold" />
-                  </Button>
                 </div>
               </div>
             );
           }
           return (
-            <div
-              className="flex h-10 w-full items-center justify-between rounded-card bg-fill p-1 pl-4 text-ink ring-1 ring-inset ring-edge"
+            <PasskeyRow
+              disabled={pending || !client}
               key={passkey.id}
-            >
-              <span className="truncate type-body font-medium">{name}</span>
-              <div className="flex shrink-0 items-center gap-1">
-                <Button
-                  className={cn(
-                    ROW_BUTTON_CLASS,
-                    "text-ink-body hover:bg-fill-hover hover:text-ink disabled:opacity-50",
-                  )}
-                  disabled={pending}
-                  onClick={() => setEditing({ id: passkey.id, name })}
-                >
-                  Rename
-                </Button>
-                <Button
-                  className={cn(
-                    ROW_BUTTON_CLASS,
-                    "text-ink-body hover:bg-fill-hover disabled:opacity-50",
-                    ACTION_TONE_CLASS,
-                  )}
-                  disabled={pending || !client}
-                  onClick={() =>
-                    client &&
-                    run(
-                      () => deletePasskey(client, passkey.id),
-                      setPending,
-                      "Passkey removed",
-                      "Couldn't remove this passkey",
-                    )
-                  }
-                >
-                  Remove
-                </Button>
-              </div>
-            </div>
+              name={name}
+              onEdit={() => setEditing({ id: passkey.id, name })}
+              onRemove={() =>
+                client &&
+                run(
+                  () => deletePasskey(client, passkey.id),
+                  setPending,
+                  "Passkey removed",
+                  "Couldn't remove this passkey",
+                )
+              }
+              id={passkey.id}
+            />
           );
         })
       )}
       <Button
-        className={submitClass}
-        disabled={pending || !client}
-        loading={pending}
+        className={SUBMIT_CLASS}
+        disabled={pending || !client || editing !== null}
+        loading={pending && editing === null}
         onClick={() =>
           client &&
           run(
@@ -166,9 +204,9 @@ export function PasskeysPanel({
           )
         }
       >
-        <Icon icon="solar:key-bold" size={16} />
-        <span>Add passkey</span>
+        <Icon icon="solar:add-circle-bold" size={16} />
+        Add passkey
       </Button>
-    </div>
+    </HighlightGroup>
   );
 }

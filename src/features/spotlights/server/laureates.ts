@@ -77,5 +77,5 @@ async function readLaureates(): Promise<Laureate[]> {
 }
 
 export const getLaureates = cache(() =>
-  kept("spotlight:laureates:v1", readLaureates),
+  kept("spotlight:laureates", readLaureates),
 );

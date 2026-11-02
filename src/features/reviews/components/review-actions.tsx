@@ -26,7 +26,7 @@ export function ReviewBody({
     return (
       <Button
         className={cn(
-          "inline-flex w-fit cursor-pointer items-center gap-1.5 bg-fill px-3 py-2 type-meta font-semibold text-ink-body ring-1 ring-edge ring-inset hover:bg-fill-hover hover:text-ink",
+          "inline-flex w-fit cursor-pointer items-center gap-1.5 bg-fill px-3 py-2 type-meta font-semibold text-ink-body ring-1 ring-edge ring-inset hover:bg-fill-hover focus-visible:bg-fill-hover hover:text-ink focus-visible:text-ink",
           revealClassName,
         )}
         onClick={() => setRevealed(true)}
@@ -101,12 +101,15 @@ export function ReviewActions({
 
   const like = cn(
     "inline-flex h-8 cursor-pointer items-center gap-1.5 px-2 type-meta font-semibold disabled:cursor-wait",
-    liked ? "text-grade" : "text-ink-muted hover:text-ink",
+    liked
+      ? "text-grade"
+      : "text-ink-muted hover:text-ink focus-visible:text-ink",
   );
-  const round = "center size-8 cursor-pointer text-ink-muted hover:text-ink";
+  const round =
+    "center size-8 cursor-pointer text-ink-muted hover:text-ink focus-visible:text-ink";
   const trash = confirming
     ? "center size-8 cursor-pointer text-danger disabled:cursor-wait"
-    : "center size-8 cursor-pointer text-ink-muted hover:text-ink disabled:cursor-wait";
+    : "center size-8 cursor-pointer text-ink-muted hover:text-ink focus-visible:text-ink disabled:cursor-wait";
 
   return (
     <div className="flex items-center gap-1.5">

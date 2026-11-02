@@ -49,7 +49,7 @@ export function DiaryDigest({
                     {Number(entry.watchedOn.slice(8, 10))}
                   </span>
                   <AccountLink
-                    className="truncate text-ink-body hover:text-ink"
+                    className="truncate text-ink-body hover:text-ink focus-visible:text-ink"
                     href={movieHref(entry.tmdbId)}
                   >
                     {entry.title}
@@ -102,7 +102,7 @@ export function RatingsChart({
                 {count ? (
                   <span
                     className={cn(
-                      "w-full rounded-t-mark group-hover/bar:bg-ink-muted",
+                      "w-full rounded-t-mark group-hover/bar:bg-ink-muted group-focus-visible/bar:bg-ink-muted group-has-focus-visible/bar:bg-ink-muted",
                       count === peak ? "bg-ink-faint" : "bg-fill-active",
                     )}
                     style={{ height: `max(4px, ${(count / peak) * 100}%)` }}

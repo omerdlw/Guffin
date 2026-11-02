@@ -170,9 +170,8 @@ export const dockMotion: DockMotion = {
   },
   deck: {
     elevation: {
-      rest: "0px 12px 32px 0px rgba(0,0,0,0.35), 0px 2px 8px 0px rgba(0,0,0,0.25)",
-      elevated:
-        "0px 32px 80px 0px rgba(0,0,0,0.55), 0px 8px 24px 0px rgba(0,0,0,0.35)",
+      rest: "none",
+      elevated: "none",
     },
     compress: { open: 1, close: 1 },
     peek: (position) => {
@@ -222,11 +221,11 @@ const BANNER_SCRIM =
 
 const INNER = "rounded-card";
 
-const CONTROL_BUTTON = `ui-iris center relative size-9 shrink-0 cursor-pointer text-ink-body hover:text-ink ${FLOAT}`;
+const CONTROL_BUTTON = `ui-iris center relative size-9 shrink-0 cursor-pointer text-ink-body hover:text-ink focus-visible:text-ink ${FLOAT}`;
 
-const MEDIA_ICON_BUTTON = `ui-iris center relative size-8 cursor-pointer rounded-full text-ink-body hover:text-ink ${FILL}`;
+const MEDIA_ICON_BUTTON = `ui-iris center relative size-8 cursor-pointer rounded-full text-ink-body hover:text-ink focus-visible:text-ink ${FILL}`;
 
-const TONE_MUTED = `text-ink-body hover:text-ink ${FILL}`;
+const TONE_MUTED = `text-ink-body hover:text-ink focus-visible:text-ink ${FILL}`;
 const TIP_SHAPE = "rounded-full px-3 py-1.5 type-meta font-medium";
 
 export const dockThemeConfig = defineTheme(dockTheme, {
@@ -289,9 +288,9 @@ export const dockThemeConfig = defineTheme(dockTheme, {
     commandBar: "flex shrink-0 items-center",
     commandTooltip: `dock-tooltip ${TIP_SHAPE} ${TIP}`,
     command:
-      "ui-iris center relative size-9 cursor-pointer rounded-full bg-transparent text-ink-body hover:text-ink select-none data-[banner=true]:[--iris:var(--color-fill-hover)] data-[banner=true]:before:backdrop-blur-md",
+      "ui-iris center relative size-9 cursor-pointer rounded-full bg-transparent text-ink-body hover:text-ink focus-visible:text-ink select-none data-[banner=true]:[--iris:var(--color-fill-hover)] data-[banner=true]:before:backdrop-blur-md",
     commandBadge:
-      "center bg-white absolute -right-0.5 -top-0.5 h-4 min-w-4 px-1 rounded-full type-micro leading-none font-semibold tabular-nums text-black",
+      "center bg-grade absolute -right-0.5 -top-0.5 h-4 min-w-4 px-1 rounded-full type-micro leading-none font-semibold tabular-nums text-black",
 
     statusCard: GLASS,
     statusIcon: "bg-fill text-ink",
@@ -301,7 +300,7 @@ export const dockThemeConfig = defineTheme(dockTheme, {
     surfaceHost: `@container relative w-full overflow-hidden ${INNER}`,
     surfaceHostInner: "w-full",
     surfaceShell: `@container relative flex flex-col overflow-hidden ${INNER}`,
-    surfaceBody: `@container w-full overflow-hidden ${INNER}`,
+    surfaceBody: `tempo-quick @container w-full overflow-hidden ${INNER}`,
 
     controls:
       "pointer-events-none absolute inset-x-0 bottom-[calc(100%+12px)] select-none flex items-center justify-center gap-1",
@@ -337,30 +336,32 @@ export const dockThemeConfig = defineTheme(dockTheme, {
     scrubberTrack:
       "absolute inset-x-0 top-0 h-1 w-full origin-top scale-y-[0.625] transform-gpu bg-line",
     scrubberProgress:
-      "h-full w-full origin-left bg-ink-body group-hover:bg-ink",
+      "h-full w-full origin-left bg-ink-body group-hover:bg-ink group-focus-visible:bg-ink group-has-focus-visible:bg-ink",
     scrubberTooltip: `pointer-events-none absolute top-3 -translate-x-1/2 tabular-nums ${TIP_SHAPE} ${TIP}`,
 
     media: "flex w-full items-center justify-between gap-2 select-none",
     mediaGroup: "flex items-center gap-1.5",
-    mediaSpeed: `center h-8 cursor-pointer rounded-full px-3.5 type-meta font-medium tabular-nums text-ink-body select-none hover:text-ink data-[active=true]:bg-white data-[active=true]:text-black data-[active=true]:ring-white ${FILL}`,
+    mediaSpeed: `center h-8 cursor-pointer rounded-full px-3.5 type-meta font-medium tabular-nums text-ink-body select-none hover:text-ink focus-visible:text-ink data-[active=true]:bg-grade/15 data-[active=true]:text-grade data-[active=true]:ring-grade/25 data-[active=true]:hover:bg-grade/20 data-[active=true]:focus-visible:bg-grade/20 data-[active=true]:hover:text-grade data-[active=true]:hover:ring-grade/30 data-[active=true]:focus-visible:ring-grade/30 ${FILL}`,
     mediaSkip: MEDIA_ICON_BUTTON,
-    mediaToggle: `flex size-8 cursor-pointer items-center justify-center rounded-full text-ink-body select-none hover:text-ink data-[active=true]:bg-white data-[active=true]:text-black data-[active=true]:ring-white ${FILL}`,
-    mediaMute: "center size-5 cursor-pointer p-0 text-ink-body hover:text-ink",
+    mediaToggle: `flex size-8 cursor-pointer items-center justify-center rounded-full text-ink-body select-none hover:text-ink focus-visible:text-ink data-[active=true]:bg-grade/15 data-[active=true]:text-grade data-[active=true]:ring-grade/25 data-[active=true]:hover:bg-grade/20 data-[active=true]:focus-visible:bg-grade/20 data-[active=true]:hover:text-grade data-[active=true]:hover:ring-grade/30 data-[active=true]:focus-visible:ring-grade/30 ${FILL}`,
+    mediaMute:
+      "center size-5 cursor-pointer p-0 text-ink-body hover:text-ink focus-visible:text-ink",
     mediaVolume: `group flex h-8 items-center gap-1.5 rounded-full px-3 select-none data-[active=true]:bg-fill-hover ${FILL}`,
     mediaVolumeTrack:
       "group/track relative flex h-6 w-16 cursor-pointer touch-none items-center select-none sm:w-20",
     mediaVolumeRail:
       "relative h-1.5 w-full overflow-hidden rounded-full bg-line",
-    mediaVolumeFill: "h-full origin-left rounded-full bg-white",
+    mediaVolumeFill: "h-full origin-left rounded-full bg-ink-body",
     mediaVolumeThumb:
-      "ui-fade pointer-events-none absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white opacity-0 shadow-knob group-hover/track:opacity-100 data-[active=true]:opacity-100",
+      "ui-fade pointer-events-none absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white opacity-0 group-hover/track:opacity-100 group-focus-visible/track:opacity-100 group-has-focus-visible/track:opacity-100 data-[active=true]:opacity-100",
 
     breadcrumbs: `absolute inset-x-0 top-[calc(100%+6px)] flex h-10 w-full items-center justify-center rounded-full px-5 type-meta select-none ${FLOAT}`,
     breadcrumbsNav: "flex scrollbar-none items-center gap-1.5 overflow-x-auto",
     breadcrumbsEllipsis: "px-0.5 text-ink-muted select-none",
     breadcrumbsItem: "flex items-center gap-1.5",
     breadcrumbsCurrent: "max-w-[180px] truncate font-medium text-ink",
-    breadcrumbsLink: "max-w-[140px] truncate text-ink-body hover:text-ink",
+    breadcrumbsLink:
+      "max-w-[140px] truncate text-ink-body hover:text-ink focus-visible:text-ink",
     breadcrumbsSeparator: "center shrink-0 text-ink-muted rtl:rotate-180",
 
     loading: "flex min-h-[48px] w-full items-center gap-2.5",

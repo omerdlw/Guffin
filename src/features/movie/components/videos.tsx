@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useModal } from "@omerdlw/base-framework/modules/modal";
 import {
   CAROUSEL_WIDE_ITEM,
+  Carousel,
   Icon,
   MediaCard,
   RADIUS,
@@ -11,7 +12,8 @@ import {
   TONE,
 } from "@/ui";
 import type { MovieVideo } from "@/infrastructure/tmdb/types";
-import { Carousel, Header, Section, Swap } from "@/motion/stage";
+import { MovieSection, MovieSwap } from "../motion";
+import { Heading } from "./heading";
 import { VideoModal, type VideoModalData } from "./modals";
 
 const plural = (type: string) => (type.endsWith("s") ? type : `${type}s`);
@@ -30,8 +32,8 @@ export function MovieVideos({
   const visible = videos.filter((v) => v.site === "YouTube" && v.type === type);
 
   return (
-    <Section className="flex w-full flex-col">
-      <Header
+    <MovieSection className="flex w-full flex-col" cue="shelf">
+      <Heading
         actions={
           <SegmentedControl
             ariaLabel="Video type"
@@ -45,13 +47,13 @@ export function MovieVideos({
         title="Videos"
       />
 
-      <Swap id={type}>
+      <MovieSwap cue="slides" id={type}>
         <Carousel
           arrowClassName={TONE.arrows}
           className="rounded-card"
           itemClassName={visible.length === 1 ? "w-full" : CAROUSEL_WIDE_ITEM}
           label="Videos"
-          radius={RADIUS.card}
+          part="slide"
         >
           {visible.map((video) => (
             <MediaCard
@@ -87,7 +89,7 @@ export function MovieVideos({
             />
           ))}
         </Carousel>
-      </Swap>
-    </Section>
+      </MovieSwap>
+    </MovieSection>
   );
 }

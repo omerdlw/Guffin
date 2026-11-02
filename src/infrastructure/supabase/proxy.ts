@@ -12,7 +12,11 @@ import {
   createNonce,
 } from "@/infrastructure/security/headers";
 import type { Database } from "./database.types";
-import { SESSION_CHECKED_HEADER, isHttpsRequest } from "./session";
+import {
+  AUTH_COOKIE_NAME,
+  SESSION_CHECKED_HEADER,
+  isHttpsRequest,
+} from "./session";
 
 const SESSION_CHECK_TTL_MS = 30_000;
 const SESSION_CHECK_LIMIT = 5_000;
@@ -102,7 +106,7 @@ export async function updateSupabaseSession(
         experimental: { passkey: true },
         flowType: "pkce",
       },
-      cookieOptions: { secure: https },
+      cookieOptions: { name: AUTH_COOKIE_NAME, secure: https },
       cookies: {
         getAll: () => request.cookies.getAll(),
         setAll(cookiesToSet, headers = {}) {

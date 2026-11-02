@@ -140,7 +140,7 @@ function Links({
               <Tooltip position="top" text={link.label}>
                 <a
                   aria-label={`${name} on ${link.label}`}
-                  className="cine-fade center relative z-10 size-9 rounded-full text-ink-body hover:text-ink"
+                  className="cine-fade center relative z-10 size-9 rounded-full text-ink-body hover:text-ink focus-visible:text-ink"
                   href={link.url}
                   onFocus={() => setFocusedLink(link.key)}
                   onPointerEnter={() => setHoveredLink(link.key)}

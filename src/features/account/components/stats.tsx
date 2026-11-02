@@ -16,7 +16,7 @@ function Figure({ count, label }: { count: number; label: string }) {
       <span className="type-title font-semibold text-ink tabular-nums sm:type-heading">
         {count.toLocaleString("en-US")}
       </span>
-      <span className="type-micro font-semibold whitespace-nowrap text-ink-muted uppercase group-hover/stat:text-ink-body min-[400px]:tracking-label">
+      <span className="type-micro font-semibold whitespace-nowrap text-ink-muted uppercase group-hover/stat:text-ink-body group-focus-visible/stat:text-ink-body group-has-focus-visible/stat:text-ink-body min-[400px]:tracking-label">
         {label}
       </span>
     </>

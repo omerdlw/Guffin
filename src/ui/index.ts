@@ -1,7 +1,9 @@
 export { AdaptiveImage } from "./adaptive-image";
 export { Avatar } from "./avatar";
 export { BackdropHero, BackdropHeroSkeleton } from "./backdrop-hero";
+export { ActionButton } from "./action-button";
 export { Button } from "./button";
+export { Carousel, type CarouselProps } from "./carousel";
 export { useDockLinkClick } from "./hooks/use-dock-link";
 export { FactLink } from "./fact-link";
 export { Highlight } from "./highlight";
@@ -55,6 +57,7 @@ export { Spinner } from "./spinner";
 export { StickyAside } from "./sticky-aside";
 export {
   SURFACE_CHECK_ON,
+  SURFACE_DANGER,
   SURFACE_FIELD,
   SURFACE_META,
   SURFACE_PANEL,
@@ -67,6 +70,7 @@ export {
   SURFACE_TILE_END,
   SURFACE_TILE_HOVER,
   SURFACE_TILE_INNER,
+  SURFACE_TILE_LIT,
   SURFACE_TITLE,
   SurfaceProse,
   scrollWithin,
@@ -74,6 +78,7 @@ export {
   surfaceIconButton,
   surfaceRow,
 } from "./surface";
+export { HighlightGroup, useHighlight } from "./highlight-group";
 export { Switch } from "./switch";
 export { Textarea } from "./textarea";
 export { primitivesTheme } from "./theme";

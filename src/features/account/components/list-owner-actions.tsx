@@ -54,7 +54,7 @@ export function EditListButton({
       aria-label={label ? undefined : `Edit ${list?.title ?? "list"}`}
       className={
         className ??
-        "center size-8 cursor-pointer bg-black/70 text-ink-body ring-1 ring-edge-hover backdrop-blur-sm ring-inset hover:bg-black hover:text-ink"
+        "center size-8 cursor-pointer bg-black/60 text-ink-body ring-1 ring-edge-hover backdrop-blur-sm ring-inset hover:bg-black/70 focus-visible:bg-black/70 hover:text-ink focus-visible:text-ink"
       }
       onClick={() =>
         void openSurface(createListFormSurfaceEntry({ list, username }))

@@ -70,7 +70,7 @@ export function AccountSectionTabs({
       ref={navRef}
     >
       <ul
-        className="relative mx-auto flex h-10 w-max shrink-0 items-stretch gap-0.5 rounded-full bg-black/60 p-1 shadow-float ring-1 ring-edge-hover in-data-backdrop:backdrop-blur-xl in-data-backdrop:backdrop-saturate-150 ring-inset inset-shadow-top select-none"
+        className="relative mx-auto flex h-10 w-max shrink-0 items-stretch gap-0.5 rounded-full bg-black/60 p-1 ring-1 ring-edge-hover in-data-backdrop:backdrop-blur-xl in-data-backdrop:backdrop-saturate-150 ring-inset select-none"
         ref={listRef}
       >
         {pill ? (
@@ -92,7 +92,9 @@ export function AccountSectionTabs({
                 aria-current={section.key === active ? "page" : undefined}
                 className={cn(
                   "relative inline-flex items-center rounded-full px-4 type-control font-medium whitespace-nowrap",
-                  isChosen ? "text-ink" : "text-ink-body hover:text-ink",
+                  isChosen
+                    ? "text-ink"
+                    : "text-ink-body hover:text-ink focus-visible:text-ink",
                   isChosen && !pill && "bg-fill-active",
                 )}
                 href={section.key ? `${base}/${section.key}` : base}

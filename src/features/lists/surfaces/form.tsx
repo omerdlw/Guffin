@@ -61,7 +61,7 @@ function TileMark({ icon }: { icon: string }): JSX.Element {
   return (
     <span
       className={cn(
-        "center relative z-10 size-10 shrink-0 bg-fill text-ink-body group-hover:bg-fill-hover group-hover:text-ink-lead",
+        "center relative z-10 size-10 shrink-0 bg-fill text-ink-body group-hover:bg-fill-hover group-focus-visible:bg-fill-hover group-has-focus-visible:bg-fill-hover group-hover:text-ink group-focus-visible:text-ink group-has-focus-visible:text-ink",
         SURFACE_TILE_INNER,
       )}
     >
@@ -120,10 +120,7 @@ function Toggle({
       onPointerEnter={onPointerEnter}
     >
       {highlighted ? (
-        <SlidingHighlight
-          className="rounded-card bg-fill ring-1 ring-edge-hover ring-inset"
-          layoutId="list-form-control-highlight"
-        />
+        <SlidingHighlight layoutId="list-form-control-highlight" />
       ) : null}
       <TileMark icon={icon} />
       <TileText description={description} label={label} />
@@ -277,7 +274,7 @@ function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
                   className={cn(
                     SURFACE_TILE,
                     SURFACE_TILE_END,
-                    "group relative isolate w-full cursor-pointer outline-none focus-visible:ring-edge-focus disabled:cursor-wait",
+                    "group relative isolate w-full cursor-pointer outline-none disabled:cursor-wait",
                   )}
                   disabled={busy !== null}
                   onBlur={() => setFocusedControl(null)}
@@ -294,10 +291,7 @@ function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
                   type="button"
                 >
                   {(hoveredControl ?? focusedControl) === "film-order" ? (
-                    <SlidingHighlight
-                      className="rounded-card bg-fill ring-1 ring-edge-hover ring-inset"
-                      layoutId="list-form-control-highlight"
-                    />
+                    <SlidingHighlight layoutId="list-form-control-highlight" />
                   ) : null}
                   <TileMark icon="solar:sort-vertical-bold" />
                   <TileText
@@ -305,7 +299,7 @@ function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
                     label="Film order"
                   />
                   <Icon
-                    className="center relative z-10 shrink-0 text-ink-muted group-hover:translate-x-0.5 group-hover:text-ink-body"
+                    className="center relative z-10 shrink-0 text-ink-muted group-hover:translate-x-0.5 group-hover:text-ink-body group-focus-visible:text-ink-body group-has-focus-visible:text-ink-body"
                     icon="solar:alt-arrow-right-linear"
                     size={16}
                   />
@@ -320,7 +314,7 @@ function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
                     surfaceButton(false),
                     "min-w-0 flex-1 px-4 disabled:cursor-wait",
                     confirmingDelete &&
-                      "bg-danger/15 text-danger ring-danger/25 hover:bg-danger/20 hover:ring-danger/30",
+                      "bg-danger/15 text-danger ring-danger/25 hover:bg-danger/20 focus-visible:bg-danger/20 hover:ring-danger/30 focus-visible:ring-danger/30",
                   )}
                   disabled={busy !== null}
                   loading={busy === "delete"}

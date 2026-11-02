@@ -1,15 +1,11 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
-import {
-  useDockActionClass,
-  type SurfaceEntry,
-} from "@omerdlw/base-framework/modules/dock";
+import type { SurfaceEntry } from "@omerdlw/base-framework/modules/dock";
 import { useToast } from "@omerdlw/base-framework/modules/notification";
-import { ACTION_TONE_CLASS } from "@omerdlw/base-framework/tokens";
 import { accountHref } from "@/config/routes";
 import { AUTH_INPUT_CLASS, useAuth } from "@/features/auth";
-import { Button, Input } from "@/ui";
+import { Button, Input, SURFACE_PRIMARY } from "@/ui";
 import { updateAccountAction } from "../server/actions";
 
 type SetupResult =
@@ -22,7 +18,6 @@ function AccountSetupSurface({
 }: {
   close?: (result?: { success?: boolean }) => void;
 }) {
-  const actionClass = useDockActionClass();
   const auth = useAuth();
   const toast = useToast();
   const [username, setUsername] = useState("");
@@ -86,7 +81,7 @@ function AccountSetupSurface({
         value={displayName}
       />
       <Button
-        className={actionClass({ variant: ACTION_TONE_CLASS })}
+        className={`${SURFACE_PRIMARY} w-full`}
         disabled={pending || !username.trim()}
         loading={pending}
         type="submit"

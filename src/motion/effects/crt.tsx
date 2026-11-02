@@ -11,8 +11,6 @@ const OFF = { collapse: 0.18, point: 0.26, glow: 0.9 };
 const LINE = 0.004;
 
 const BEAM = "rgb(255 250 242)";
-const POINT_GLOW =
-  "0 0 10px 3px rgb(255 248 236 / 0.75), 0 0 36px 10px rgb(255 236 214 / 0.22)";
 
 function afterglow(box: DOMRect) {
   const point = document.createElement("div");
@@ -20,7 +18,6 @@ function afterglow(box: DOMRect) {
   Object.assign(point.style, {
     background: BEAM,
     borderRadius: "9999px",
-    boxShadow: POINT_GLOW,
     height: "2px",
     left: `${box.left}px`,
     pointerEvents: "none",

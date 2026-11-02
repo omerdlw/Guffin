@@ -16,6 +16,7 @@ import {
   Input,
   Spinner,
   SURFACE_FIELD,
+  SURFACE_PANEL,
   SURFACE_PRIMARY,
   surfaceButton,
 } from "@/ui";
@@ -63,7 +64,7 @@ const PRIMARY_CLASS = `${SURFACE_PRIMARY} w-full disabled:cursor-not-allowed`;
 const SECONDARY_CLASS = `${surfaceButton(false)} w-full px-3`;
 
 const LEGAL_LINK_CLASS =
-  "underline decoration-ink-faint underline-offset-2 hover:text-ink hover:decoration-ink-muted";
+  "underline decoration-ink-faint underline-offset-2 hover:text-ink focus-visible:text-ink hover:decoration-ink-muted focus-visible:decoration-ink-muted";
 
 function showSigningIn(description: string) {
   globalEvents.emit(DOCK_EVENTS.STATUS_SET, {
@@ -190,7 +191,7 @@ function SignInSurface({ close, data = {} }: SignInSurfaceProps) {
 
   if (!auth.isConfigured) {
     return (
-      <p className="rounded-card bg-fill px-4 py-3 type-body text-ink-body ring-1 ring-inset ring-edge">
+      <p className={`${SURFACE_PANEL} px-4 py-3 type-body text-ink-body`}>
         Configure the Supabase variables in .env.local first
       </p>
     );

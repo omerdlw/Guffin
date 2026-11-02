@@ -51,7 +51,7 @@ export function DiaryDeleteButton({
         "center size-8 cursor-pointer rounded-full disabled:cursor-wait",
         confirming
           ? "bg-danger text-black"
-          : "text-ink-muted hover:bg-fill-hover hover:text-ink",
+          : "text-ink-muted hover:bg-fill-hover focus-visible:bg-fill-hover hover:text-ink focus-visible:text-ink",
       )}
       disabled={busy}
       loading={busy}

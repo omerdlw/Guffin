@@ -18,7 +18,10 @@ export function ViewAll({
 }): JSX.Element {
   return (
     <AccountLink
-      className={cn(AFTER, "text-ink-muted hover:text-ink")}
+      className={cn(
+        AFTER,
+        "text-ink-muted hover:text-ink focus-visible:text-ink",
+      )}
       href={href}
     >
       {label}
@@ -66,7 +69,10 @@ export function CountLink({
 }): JSX.Element {
   return (
     <AccountLink
-      className={cn(AFTER, "text-ink-muted hover:text-ink")}
+      className={cn(
+        AFTER,
+        "text-ink-muted hover:text-ink focus-visible:text-ink",
+      )}
       href={href}
     >
       {count.toLocaleString("en-US")}

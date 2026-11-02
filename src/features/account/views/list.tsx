@@ -57,7 +57,7 @@ export async function AccountListView({
       />
       <header className="flex flex-col gap-5">
         <AccountLink
-          className="inline-flex w-fit items-center gap-1.5 type-label font-semibold tracking-label text-ink-muted uppercase hover:text-ink"
+          className="inline-flex w-fit items-center gap-1.5 type-label font-semibold tracking-label text-ink-muted uppercase hover:text-ink focus-visible:text-ink"
           href={lists}
         >
           <Icon icon="solar:alt-arrow-left-linear" size={13} />
@@ -82,7 +82,7 @@ export async function AccountListView({
             <span>
               By{" "}
               <AccountLink
-                className="font-medium text-ink-body hover:text-ink underline decoration-transparent hover:decoration-current"
+                className="font-medium text-ink-body hover:text-ink focus-visible:text-ink underline underline-offset-2 decoration-transparent hover:decoration-current focus-visible:decoration-current"
                 href={accountHref(list.owner.username)}
               >
                 {list.owner.displayName}

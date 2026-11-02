@@ -56,7 +56,7 @@ export function ListComments({
                 </AccountLink>
                 <div className="flex min-w-0 flex-col gap-1">
                   <AccountLink
-                    className="truncate type-base font-semibold text-ink underline decoration-transparent hover:decoration-current"
+                    className="truncate type-base font-semibold text-ink underline underline-offset-2 decoration-transparent hover:decoration-current focus-visible:decoration-current"
                     href={profile}
                   >
                     {comment.author.displayName}

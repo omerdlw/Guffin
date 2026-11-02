@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import type { UserIdentity } from "@supabase/supabase-js";
 import { useToast } from "@omerdlw/base-framework/modules/notification";
-import { ACTION_TONE_CLASS } from "@omerdlw/base-framework/tokens";
 import { cn } from "@/ui/cn";
 import {
   getAuthCallbackUrl,
@@ -14,8 +13,19 @@ import {
   useAuth,
   type OAuthProvider,
 } from "@/features/auth";
-import { Button, Icon } from "@/ui";
-import { ROW_BUTTON_CLASS } from "./form";
+import {
+  Button,
+  HighlightGroup,
+  SURFACE_TEXT,
+  Icon,
+  SURFACE_META,
+  SURFACE_STACK,
+  SURFACE_TILE,
+  SURFACE_TITLE,
+  surfaceRow,
+  useHighlight,
+} from "@/ui";
+import { Mark, rowAction } from "./form";
 
 const PROVIDERS: Record<OAuthProvider, { icon: string; label: string }> = {
   github: { icon: "mdi:github", label: "GitHub" },
@@ -29,6 +39,74 @@ function providerOf(identity: UserIdentity): OAuthProvider | null {
   if (name === "github" || name === "github.com") return "github";
   if (["x", "x.com", "twitter", "twitter.com"].includes(name)) return "x";
   return null;
+}
+
+function ConnectedRow({
+  busy,
+  disabled,
+  onUnlink,
+  provider,
+}: {
+  busy: boolean;
+  disabled: boolean;
+  onUnlink: () => void;
+  provider: OAuthProvider;
+}) {
+  const highlight = useHighlight(provider);
+  return (
+    <div className={cn(SURFACE_TILE, "relative isolate")} {...highlight.props}>
+      {highlight.node}
+      <Mark icon={PROVIDERS[provider].icon} size={18} />
+      <span className={SURFACE_TEXT}>
+        <span className={SURFACE_TITLE}>{PROVIDERS[provider].label}</span>
+        <span className={SURFACE_META}>Connected</span>
+      </span>
+      <Button
+        className={rowAction()}
+        disabled={disabled}
+        loading={busy}
+        onClick={onUnlink}
+      >
+        Disconnect
+      </Button>
+    </div>
+  );
+}
+
+function ConnectRow({
+  busy,
+  disabled,
+  onLink,
+  provider,
+}: {
+  busy: boolean;
+  disabled: boolean;
+  onLink: () => void;
+  provider: OAuthProvider;
+}) {
+  const highlight = useHighlight(provider);
+  return (
+    <Button
+      className={surfaceRow(false)}
+      disabled={disabled}
+      loading={busy}
+      onClick={onLink}
+      {...highlight.props}
+    >
+      {highlight.node}
+      <Mark icon={PROVIDERS[provider].icon} size={18} />
+      <span className={SURFACE_TEXT}>
+        <span className={SURFACE_TITLE}>
+          Connect {PROVIDERS[provider].label}
+        </span>
+      </span>
+      <Icon
+        className="center shrink-0 text-ink-muted group-hover:text-ink group-focus-visible:text-ink group-has-focus-visible:text-ink"
+        icon="solar:link-linear"
+        size={16}
+      />
+    </Button>
+  );
 }
 
 export function ProvidersPanel({
@@ -98,59 +176,27 @@ export function ProvidersPanel({
   }
 
   return (
-    <div className="flex flex-col gap-2.5">
+    <HighlightGroup className={SURFACE_STACK}>
       {[...connected].map(([provider, identity]) => (
-        <div
-          className="flex h-10 w-full items-center justify-between rounded-card bg-fill p-1 pl-4 text-ink ring-1 ring-inset ring-edge"
+        <ConnectedRow
+          busy={unlinking === provider}
+          disabled={Boolean(unlinking)}
           key={provider}
-        >
-          <div className="flex min-w-0 items-center gap-3">
-            <Icon
-              className="shrink-0"
-              icon={PROVIDERS[provider].icon}
-              size={18}
-            />
-            <span className="truncate type-body font-medium text-ink">
-              {PROVIDERS[provider].label}
-            </span>
-          </div>
-          <Button
-            className={cn(ROW_BUTTON_CLASS, "py-0", ACTION_TONE_CLASS)}
-            disabled={Boolean(unlinking)}
-            loading={unlinking === provider}
-            onClick={() => unlink(provider, identity)}
-          >
-            Disconnect
-          </Button>
-        </div>
+          onUnlink={() => unlink(provider, identity)}
+          provider={provider}
+        />
       ))}
       {OAUTH_PROVIDERS.filter((provider) => !connected.has(provider)).map(
         (provider) => (
-          <Button
-            className="group/link flex h-10 w-full items-center justify-between rounded-card bg-fill px-4 text-ink-body ring-1 ring-inset ring-edge hover:bg-fill-hover hover:text-ink hover:ring-edge-hover disabled:cursor-not-allowed disabled:opacity-50"
+          <ConnectRow
+            busy={linking === provider}
             disabled={Boolean(linking)}
             key={provider}
-            loading={linking === provider}
-            onClick={() => link(provider)}
-          >
-            <span className="flex min-w-0 items-center gap-3">
-              <Icon
-                className="ui-glyph center shrink-0 text-ink-body group-hover/link:text-ink"
-                icon={PROVIDERS[provider].icon}
-                size={18}
-              />
-              <span className="truncate type-body font-medium">
-                Connect {PROVIDERS[provider].label}
-              </span>
-            </span>
-            <Icon
-              className="center shrink-0 text-ink-muted group-hover/link:text-ink-body"
-              icon="solar:link-linear"
-              size={16}
-            />
-          </Button>
+            onLink={() => link(provider)}
+            provider={provider}
+          />
         ),
       )}
-    </div>
+    </HighlightGroup>
   );
 }

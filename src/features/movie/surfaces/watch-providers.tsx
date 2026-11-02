@@ -125,7 +125,7 @@ function pickRegion(codes: readonly string[]): string {
   return codes.includes(FALLBACK_REGION) ? FALLBACK_REGION : (codes[0] ?? "");
 }
 
-const TILE = `${SURFACE_TILE} group/tile ${SURFACE_TILE_END} relative isolate text-ink-body hover:text-ink`;
+const TILE = `${SURFACE_TILE} group/tile ${SURFACE_TILE_END} relative isolate text-ink-body hover:text-ink focus-visible:text-ink`;
 
 function ProviderTile({
   categoryBadge,
@@ -160,7 +160,9 @@ function ProviderTile({
       <div className={`${SURFACE_TEXT} relative z-10`}>
         <span className={SURFACE_TITLE}>{provider.name}</span>
         {categoryBadge ? (
-          <span className={`${SURFACE_META} group-hover/tile:text-ink-body`}>
+          <span
+            className={`${SURFACE_META} group-hover/tile:text-ink-body group-focus-visible/tile:text-ink-body group-has-focus-visible/tile:text-ink-body`}
+          >
             {categoryBadge}
           </span>
         ) : null}
@@ -178,10 +180,7 @@ function ProviderTile({
       target="_blank"
     >
       {highlighted ? (
-        <SlidingHighlight
-          className="rounded-card bg-fill ring-1 ring-edge-hover ring-inset"
-          layoutId="watch-provider-highlight"
-        />
+        <SlidingHighlight layoutId="watch-provider-highlight" />
       ) : null}
       {inner}
       <Icon
@@ -193,10 +192,7 @@ function ProviderTile({
   ) : (
     <div className={TILE} onPointerEnter={onPointerEnter}>
       {highlighted ? (
-        <SlidingHighlight
-          className="rounded-card bg-fill ring-1 ring-edge-hover ring-inset"
-          layoutId="watch-provider-highlight"
-        />
+        <SlidingHighlight layoutId="watch-provider-highlight" />
       ) : null}
       {inner}
     </div>
@@ -336,7 +332,7 @@ function WatchProvidersSurface({
                   content: "static mt-0 max-h-52 rounded-card p-1.5",
                   option: "rounded-inset",
                   trigger:
-                    "h-10 rounded-card px-4 py-0 ring-edge hover:ring-edge-hover",
+                    "h-10 rounded-card px-4 py-0 ring-edge hover:ring-edge-hover focus-visible:ring-edge-focus",
                 }}
                 onChange={setSelectedRegion}
                 options={codes.map((code) => ({

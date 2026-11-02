@@ -289,8 +289,6 @@ export function Words({
 const EDGE = 24;
 const BAND = 34;
 const LIGHT = "rgb(255 253 247)";
-const HALATION =
-  "0 0 0.3em rgb(var(--grade) / 0.95), 0 0 0.9em rgb(var(--grade) / 0.55)";
 const GLINT = 0.55;
 
 export function setMask(element: HTMLElement, image: string) {
@@ -472,7 +470,7 @@ export function Expose({
           truncate && "truncate",
         )}
         ref={light}
-        style={{ color: LIGHT, textShadow: HALATION }}
+        style={{ color: LIGHT }}
       >
         {text}
       </span>

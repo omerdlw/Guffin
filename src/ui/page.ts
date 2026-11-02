@@ -75,19 +75,19 @@ export const nested = (outer: number, padding: number) =>
   Math.max(0, outer - padding);
 
 const GLASS =
-  "rounded-full bg-black/60 text-ink shadow-float ring-1 ring-edge-hover ring-inset backdrop-blur-md backdrop-saturate-150 inset-shadow-top";
+  "rounded-full bg-black/60 text-ink ring-1 ring-edge-hover ring-inset backdrop-blur-md backdrop-saturate-150";
 
 const SURFACE =
-  "bg-fill ring-1 ring-edge ring-inset hover:bg-fill-hover hover:ring-edge-hover";
+  "bg-fill ring-1 ring-edge ring-inset hover:bg-fill-hover focus-visible:bg-fill-hover hover:ring-edge-hover focus-visible:ring-edge-focus";
 
 export const TONE = {
-  arrows: `${GLASS} hover:bg-black/70`,
+  arrows: `${GLASS} hover:bg-black/70 focus-visible:bg-black/70`,
   chosen:
-    "bg-grade/15 text-grade ring-1 ring-grade/25 ring-inset hover:bg-grade/20 hover:ring-grade/30",
+    "bg-grade/15 text-grade ring-1 ring-grade/25 ring-inset hover:bg-grade/20 focus-visible:bg-grade/20 hover:ring-grade/30 focus-visible:ring-grade/30",
   glass: GLASS,
   label: "type-label font-semibold tracking-label uppercase",
   link: "cine-fade type-label font-semibold tracking-label uppercase text-ink-muted hover:text-ink focus-visible:text-ink",
-  more: `cine-press center h-10 w-full cursor-pointer gap-2 rounded-full type-control font-medium text-ink-body hover:text-ink ${SURFACE}`,
+  more: `cine-press center h-10 w-full cursor-pointer gap-2 rounded-full type-control font-medium text-ink-body hover:text-ink focus-visible:text-ink ${SURFACE}`,
   rule: "bg-rule",
   rules: "divide-rule",
   select: {
@@ -95,6 +95,6 @@ export const TONE = {
     option: "rounded-card",
     trigger: `rounded-full ${SURFACE}`,
   },
-  surface: `text-ink-body hover:text-ink ${SURFACE}`,
+  surface: `text-ink-body hover:text-ink focus-visible:text-ink ${SURFACE}`,
   tabs: "rounded-full [&_[data-pill]]:rounded-full [&_[role=tab]]:rounded-full",
 } as const;

@@ -1,15 +1,13 @@
 "use client";
 
-import { Count } from "@/motion/stage";
+import { MovieCount } from "../motion";
 import { formatMoney } from "../utils";
 
-export function MoneyCount({ since, value }: { since: number; value: number }) {
+const money = (amount: number) => formatMoney(amount) ?? "$0";
+
+// A sum of money counted up as its fact row comes in, and again on hover.
+export function MoneyCount({ index, value }: { index: number; value: number }) {
   return (
-    <Count
-      since={since}
-      format={(amount) => formatMoney(amount) ?? "$0"}
-      hover
-      value={value}
-    />
+    <MovieCount format={money} hover index={index} part="value" value={value} />
   );
 }

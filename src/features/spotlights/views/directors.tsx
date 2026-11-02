@@ -383,7 +383,9 @@ export function DirectorsView({
                     aria-current={on ? "true" : undefined}
                     className={cn(
                       "cine-fade py-1.5 pr-3 type-control font-medium whitespace-nowrap lg:py-1 lg:pr-0",
-                      on ? "text-ink" : "text-ink-faint hover:text-ink-body",
+                      on
+                        ? "text-ink"
+                        : "text-ink-body hover:text-ink focus-visible:text-ink",
                     )}
                     onClick={() => pick(i)}
                     type="button"

@@ -1,24 +1,31 @@
 "use client";
 
 import { useArtworkPath } from "@/features/artwork";
-import { Flowing } from "@/motion/layout-flow";
 import { Intermission } from "@/motion/effects";
+import { POINTS, step, useWall } from "@/motion/engine";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/images";
 import type { MovieDetails } from "@/infrastructure/tmdb/types";
-import { SCENE } from "../motion";
-import { EASE, useLeaving, useWall } from "@/motion/stage";
+import { useMovieAct } from "../motion";
 import { readable } from "@/motion/gl";
 
 const pictureOf = (src: string | null) => (src ? readable(src) : null);
+
+// A room left alone long enough shows an intermission card: it comes after
+// eleven rungs of stillness, settles in on the plate's rung and drifts slowly.
+const INTERMISSION = {
+  after: step(11),
+  drift: step(9),
+  enter: step(4),
+  leave: step(2),
+};
 
 export function MovieProjection({
   movie,
 }: {
   movie: Pick<MovieDetails, "backdropPath" | "id" | "title">;
 }) {
-  const leaving = useLeaving();
+  const act = useMovieAct();
   const away = (useWall()?.phase ?? "page") !== "page";
-  const { intermission } = SCENE.film;
   const path = useArtworkPath(
     "movie",
     movie.id,
@@ -27,15 +34,12 @@ export function MovieProjection({
   );
 
   return (
-    <>
-      <Flowing ease={EASE.glide} run={SCENE.flow.run} />
-      <Intermission
-        {...intermission}
-        ease={EASE.silk}
-        image={pictureOf(tmdbImageUrl("backdrop", path, "original"))}
-        paused={leaving || away}
-        title={movie.title}
-      />
-    </>
+    <Intermission
+      {...INTERMISSION}
+      ease={POINTS.silk}
+      image={pictureOf(tmdbImageUrl("backdrop", path, "original"))}
+      paused={act === "leaving" || act === "gone" || away}
+      title={movie.title}
+    />
   );
 }

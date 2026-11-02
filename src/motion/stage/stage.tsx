@@ -54,7 +54,7 @@ export const useLeaving = () => useContext(LeavingContext);
 
 const REVEAL_PATIENCE = 2500;
 
-const SEEN = "guffin:seen";
+const SEEN = "GUFFIN_SEEN";
 const SEEN_KEEP = 60;
 
 function seenList(): string[] {

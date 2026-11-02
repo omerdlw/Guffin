@@ -95,7 +95,10 @@ export function Pagination({
               "previous",
               hrefFor(page - 1),
               <Icon icon="solar:alt-arrow-left-linear" size={14} />,
-              cn(step, "text-ink-body ring-edge hover:text-ink"),
+              cn(
+                step,
+                "text-ink-body ring-edge hover:text-ink focus-visible:text-ink",
+              ),
               "Previous page",
             )
           : null}
@@ -113,7 +116,7 @@ export function Pagination({
                 step,
                 entry === page
                   ? "text-ink ring-edge-focus"
-                  : "text-ink-body ring-edge hover:text-ink",
+                  : "text-ink-body ring-edge hover:text-ink focus-visible:text-ink",
               ),
               undefined,
               entry === page ? "page" : undefined,
@@ -126,7 +129,10 @@ export function Pagination({
               "next",
               hrefFor(page + 1),
               <Icon icon="solar:alt-arrow-right-linear" size={14} />,
-              cn(step, "text-ink-body ring-edge hover:text-ink"),
+              cn(
+                step,
+                "text-ink-body ring-edge hover:text-ink focus-visible:text-ink",
+              ),
               "Next page",
             )
           : null}

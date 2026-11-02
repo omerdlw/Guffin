@@ -67,7 +67,7 @@ export function WinnersIndex({
               </div>
               <button
                 aria-label="Close"
-                className="inline-flex size-10 items-center justify-center rounded-full bg-fill text-ink-body ring-1 ring-edge ring-inset hover:bg-fill-hover hover:text-ink"
+                className="inline-flex size-10 items-center justify-center rounded-full bg-fill text-ink-body ring-1 ring-edge ring-inset hover:bg-fill-hover focus-visible:bg-fill-hover hover:text-ink focus-visible:text-ink"
                 onClick={onClose}
                 type="button"
               >
@@ -98,14 +98,14 @@ export function WinnersIndex({
                             "group/winner flex w-full items-center gap-3 py-1.5 text-left",
                             index === current
                               ? "text-award"
-                              : "text-ink-body hover:text-ink",
+                              : "text-ink-body hover:text-ink focus-visible:text-ink",
                           )}
                           onClick={() => onPick(index)}
                           type="button"
                         >
                           <img
                             alt=""
-                            className="h-9 w-6 shrink-0 object-cover opacity-70 group-hover/winner:opacity-100"
+                            className="h-9 w-6 shrink-0 object-cover opacity-70 group-hover/winner:opacity-100 group-focus-visible/winner:opacity-100 group-has-focus-visible/winner:opacity-100"
                             loading="lazy"
                             src={tmdbImageUrl(
                               "poster",

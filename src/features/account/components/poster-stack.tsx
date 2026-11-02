@@ -18,7 +18,7 @@ export function PosterStack({
         const path = paths[index] ?? null;
         return (
           <div
-            className="relative aspect-[2/3] w-[28%] shrink-0 overflow-hidden rounded-thumb bg-plate shadow-stack not-first:-ml-[10%]"
+            className="relative aspect-[2/3] w-[28%] shrink-0 overflow-hidden rounded-thumb bg-plate not-first:-ml-[10%]"
             key={index}
             style={{ zIndex: SLOTS - index }}
           >

@@ -5,41 +5,44 @@ import { FILL, PRIMARY } from "@/config/theme/chrome";
 
 const BUTTON =
   "center relative inline-flex cursor-pointer items-center justify-center gap-2 rounded-card type-control font-medium ring-1 ring-inset select-none outline-none focus-visible:ring-edge-focus disabled:pointer-events-none disabled:opacity-50";
-const IDLE = `text-ink-body hover:text-ink ${FILL}`;
+const IDLE = `text-ink-body hover:text-ink focus-visible:text-ink ${FILL}`;
 const LIT =
-  "bg-grade/15 text-grade ring-grade/25 hover:bg-grade/20 hover:ring-grade/30";
-const ROW_IDLE =
-  "bg-fill text-ink-body ring-edge hover:text-ink hover:ring-edge-hover";
-const ROW_LIT = "bg-grade/15 text-grade ring-grade/25 hover:ring-grade/30";
+  "bg-grade/15 text-grade ring-grade/25 hover:bg-grade/20 focus-visible:bg-grade/20 hover:ring-grade/30 focus-visible:ring-grade/30";
+const ROW_IDLE = "bg-fill text-ink-body hover:text-ink focus-visible:text-ink";
+const ROW_LIT =
+  "bg-grade/15 text-grade ring-1 ring-inset ring-grade/25 hover:ring-grade/30 focus-visible:ring-grade/30";
 
 export const surfaceButton = (lit: boolean) =>
   `${BUTTON} h-10 ${lit ? LIT : IDLE}`;
 
 export const SURFACE_PRIMARY = `${BUTTON} h-10 px-4 ${PRIMARY}`;
 
+export const SURFACE_DANGER = `${BUTTON} h-10 px-4 bg-danger/15 text-danger ring-danger/25 hover:bg-danger/20 focus-visible:bg-danger/20 hover:ring-danger/30 focus-visible:ring-danger/30`;
+
 export const surfaceIconButton = (lit: boolean) =>
   `${BUTTON} size-10 shrink-0 p-0 ${lit ? LIT : IDLE}`;
 
 export const SURFACE_STACK = "flex w-full flex-col gap-2.5";
 
-const TILE_SHAPE =
-  "flex min-w-0 items-center gap-3 rounded-card p-1.5 ring-1 ring-inset";
-export const SURFACE_TILE = `${TILE_SHAPE} bg-fill ring-edge`;
-export const SURFACE_TILE_HOVER = "hover:bg-fill-hover hover:ring-edge-hover";
+const TILE_SHAPE = "flex min-w-0 items-center gap-3 rounded-card p-1.5";
+export const SURFACE_TILE = `${TILE_SHAPE} bg-fill`;
+export const SURFACE_TILE_LIT = "bg-grade/15 ring-1 ring-inset ring-grade/25";
+export const SURFACE_TILE_HOVER =
+  "hover:bg-fill-hover focus-visible:bg-fill-hover";
 export const SURFACE_TILE_INNER = "rounded-inset";
 export const SURFACE_TILE_END = "pr-3.5";
 
 export const SURFACE_POSTER = "h-[60px] w-10 shrink-0 overflow-hidden";
 
 export const SURFACE_TEXT =
-  "flex min-w-0 flex-1 flex-col justify-center gap-1 text-left";
+  "flex min-w-0 flex-1 flex-col justify-center text-left";
 export const SURFACE_TITLE = "truncate type-body font-semibold text-ink";
 export const SURFACE_META = "truncate type-meta text-ink-muted";
 
 export const surfaceRow = (lit: boolean) =>
-  `group relative isolate w-full cursor-pointer ${TILE_SHAPE} ${SURFACE_TILE_END} select-none outline-none focus-visible:ring-edge-focus disabled:cursor-wait ${lit ? ROW_LIT : ROW_IDLE}`;
+  `group relative isolate w-full cursor-pointer ${TILE_SHAPE} ${SURFACE_TILE_END} select-none outline-none disabled:cursor-wait ${lit ? ROW_LIT : ROW_IDLE}`;
 
-export const SURFACE_PANEL = "rounded-card bg-fill ring-1 ring-edge ring-inset";
+export const SURFACE_PANEL = "rounded-card bg-fill";
 
 export const SURFACE_CHECK_ON = "bg-grade text-black ring-grade";
 

@@ -377,7 +377,7 @@ export function WallView({ films }: { films: CanonFilm[] }): JSX.Element {
                   "py-1 [transition:color_0.3s]",
                   filter === option.value
                     ? "text-ink"
-                    : "text-ink-faint hover:text-ink-body",
+                    : "text-ink-body hover:text-ink focus-visible:text-ink",
                 )}
                 key={option.value}
                 onClick={() => setFilter(option.value)}
@@ -501,7 +501,7 @@ function PlainWall({
                 className={cn(
                   "ui-fade block overflow-hidden",
                   watched.has(entry.id)
-                    ? "opacity-90 hover:opacity-100"
+                    ? "opacity-100"
                     : "opacity-70 hover:opacity-100",
                 )}
                 href={movieHref(entry.id)}

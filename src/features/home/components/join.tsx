@@ -2,6 +2,7 @@
 
 import type { JSX } from "react";
 import { useDockActions } from "@omerdlw/base-framework/modules/dock";
+import { PRIMARY } from "@/config/theme/chrome";
 import { createSignInSurfaceEntry, useAuth } from "@/features/auth";
 import { Item, Section } from "@/motion/stage";
 import { Button, HEADLINE_BOX, Icon } from "@/ui";
@@ -50,7 +51,7 @@ export function HomeJoin({ members }: { members: number }): JSX.Element | null {
             It’s free, and it takes a minute.
           </p>
           <Button
-            className="h-11 rounded-full bg-white px-6 type-body font-medium text-black hover:bg-white/90"
+            className={`${PRIMARY} h-11 rounded-full px-6 type-body font-medium`}
             onClick={() =>
               void openSurface(
                 createSignInSurfaceEntry({ next: window.location.pathname }),

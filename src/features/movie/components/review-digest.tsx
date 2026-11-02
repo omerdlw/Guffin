@@ -11,9 +11,9 @@ import {
   type MovieReviewSort,
 } from "@/features/reviews";
 import { TONE } from "@/ui";
-import { SCENE } from "../motion";
-import { Header, Section, Swap } from "@/motion/stage";
+import { MovieSection } from "../motion";
 import { movieReviewsHref } from "@/config/routes";
+import { Heading } from "./heading";
 import { ReviewCard } from "./review-card";
 
 const SHOWN = 4;
@@ -42,8 +42,8 @@ function ReviewsSection({
   viewerId: string | null;
 }): JSX.Element {
   return (
-    <Section className="flex w-full flex-col">
-      <Header
+    <MovieSection className="flex w-full flex-col" cue="digest">
+      <Heading
         actions={
           <AccountLink
             className={TONE.link}
@@ -57,14 +57,10 @@ function ReviewsSection({
         icon={icon}
         title={title}
       />
-      <Swap
-        as="ul"
-        className={`flex flex-col divide-y ${TONE.rules}`}
-        gap={SCENE.items.cards}
-        id={sort}
-      >
-        {reviews.map((review) => (
+      <ul className={`flex flex-col divide-y ${TONE.rules}`}>
+        {reviews.map((review, index) => (
           <ReviewCard
+            index={index}
             key={review.id}
             movieId={movieId}
             review={review}
@@ -72,8 +68,8 @@ function ReviewsSection({
             viewerId={viewerId}
           />
         ))}
-      </Swap>
-    </Section>
+      </ul>
+    </MovieSection>
   );
 }
 

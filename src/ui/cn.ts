@@ -43,7 +43,6 @@ const merge = extendTailwindMerge({
       ],
     },
     theme: {
-      "drop-shadow": ["legible"],
       ease: [
         "out-expo",
         "out-quart",
@@ -54,7 +53,6 @@ const merge = extendTailwindMerge({
         "phosphor",
         "fade",
       ],
-      "inset-shadow": ["top"],
       leading: ["crop"],
       radius: [
         "thumb",
@@ -66,7 +64,6 @@ const merge = extendTailwindMerge({
         "shell",
         "mark",
       ],
-      shadow: ["float", "lift", "knob", "stack", "glow"],
       tracking: ["label", "tagline", "slate"],
     },
   },

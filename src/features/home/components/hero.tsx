@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type JSX } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { PRIMARY } from "@/config/theme/chrome";
 import { cn } from "@/ui/cn";
 import { AvatarStack } from "@/features/social";
 import { Projection } from "@/motion/effects";
@@ -94,7 +95,10 @@ function Synopsis({ film }: { film: Feature }): JSX.Element {
       ) : null}
       <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-4">
         <Link
-          className="inline-flex h-10 items-center gap-2 rounded-full bg-white px-5 type-control font-medium text-black hover:bg-white/90"
+          className={cn(
+            PRIMARY,
+            "inline-flex h-10 items-center gap-2 rounded-full px-5 type-control font-medium",
+          )}
           href={movieHref(film.id)}
         >
           <Icon icon="solar:play-bold" size={14} />
@@ -138,7 +142,7 @@ function Reels({
                   "hidden type-label font-semibold tracking-label tabular-nums lg:inline",
                   on
                     ? "text-ink"
-                    : "text-ink-faint group-hover/reel:text-ink-body",
+                    : "text-ink-faint group-hover/reel:text-ink-body group-focus-visible/reel:text-ink-body group-has-focus-visible/reel:text-ink-body",
                 )}
               >
                 {String(index + 1).padStart(2, "0")}
@@ -148,7 +152,7 @@ function Reels({
                   "hidden min-w-0 truncate type-body font-medium lg:block",
                   on
                     ? "text-ink"
-                    : "text-ink-muted group-hover/reel:text-ink-body",
+                    : "text-ink-muted group-hover/reel:text-ink-body group-focus-visible/reel:text-ink-body group-has-focus-visible/reel:text-ink-body",
                 )}
               >
                 {film.title}

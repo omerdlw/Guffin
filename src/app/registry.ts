@@ -14,6 +14,7 @@ export const APP_REGISTRY_ENTRIES: readonly AppRegistryEntry[] = Object.freeze([
         name: "home",
         title: "Guffin - Home",
         path: "/",
+        stackOrder: -2,
       },
       "/oscars": {
         description: "Every Best Picture winner, cast in gold",
@@ -42,6 +43,7 @@ export const APP_REGISTRY_ENTRIES: readonly AppRegistryEntry[] = Object.freeze([
         name: "account",
         title: "Account",
         path: "/account",
+        stackOrder: -1,
       },
     },
   },

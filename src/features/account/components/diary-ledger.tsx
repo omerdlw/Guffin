@@ -94,7 +94,7 @@ export function DiaryLedger({
                 />
                 <div className="flex min-w-0 flex-col">
                   <AccountLink
-                    className="truncate type-body font-medium text-ink underline decoration-transparent hover:decoration-current"
+                    className="truncate type-body font-medium text-ink underline underline-offset-2 decoration-transparent hover:decoration-current focus-visible:decoration-current"
                     href={href}
                   >
                     {row.title}
@@ -121,7 +121,7 @@ export function DiaryLedger({
                 {row.hasReview ? (
                   <AccountLink
                     aria-label="Read the review"
-                    className="text-ink-body hover:text-ink"
+                    className="text-ink-body hover:text-ink focus-visible:text-ink"
                     href={reviewHref(row.tmdbId, username)}
                   >
                     <Icon icon="solar:document-text-bold" size={16} />

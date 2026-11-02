@@ -3,15 +3,14 @@
 import { useState } from "react";
 import { useToast } from "@omerdlw/base-framework/modules/notification";
 import { getAuthErrorMessage, useAuth } from "@/features/auth";
-import { Button, Input } from "@/ui";
+import { Button, Input, SURFACE_STACK } from "@/ui";
 import { useAccount } from "@/features/account";
-import { INPUT_CLASS, useSubmitClass } from "./form";
+import { INPUT_CLASS, SUBMIT_CLASS } from "./form";
 
 export function EmailForm() {
   const auth = useAuth();
   const { account } = useAccount();
   const toast = useToast();
-  const submitClass = useSubmitClass();
   const currentEmail = account?.email?.trim() ?? "";
   const [email, setEmail] = useState(currentEmail);
   const [pending, setPending] = useState(false);
@@ -31,7 +30,7 @@ export function EmailForm() {
   }
 
   return (
-    <div className="flex flex-col gap-2.5">
+    <div className={SURFACE_STACK}>
       <Input
         aria-label="New email"
         className={INPUT_CLASS}
@@ -42,7 +41,7 @@ export function EmailForm() {
         value={email}
       />
       <Button
-        className={submitClass}
+        className={SUBMIT_CLASS}
         disabled={
           pending ||
           !auth.client ||

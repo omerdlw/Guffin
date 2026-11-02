@@ -29,6 +29,7 @@ import {
   SURFACE_CHECK_ON,
   SURFACE_FIELD,
   SURFACE_META,
+  SURFACE_PRIMARY,
   SURFACE_SCROLL,
   SURFACE_STACK,
   SURFACE_TEXT,
@@ -96,7 +97,7 @@ const ListPreviewStack = memo(function ListPreviewStack({
       className="relative z-10 h-[60px] shrink-0 select-none"
       style={{ width: `${STACK_WIDTH}px` }}
     >
-      {Array.from({ length: STACK }, (_, index) => {
+      {Array.from({ length: Math.max(previews.length, 1) }, (_, index) => {
         const poster = previews[index];
         const imageSrc = poster
           ? tmdbImageUrl("poster", poster, "original")
@@ -107,16 +108,13 @@ const ListPreviewStack = memo(function ListPreviewStack({
           <div
             key={index}
             className={cn(
-              "absolute overflow-hidden ring-1 ring-inset",
+              "absolute overflow-hidden",
               SURFACE_TILE_INNER,
               hasCard
-                ? "bg-black shadow-float ring-edge-hover"
-                : "bg-fill ring-edge",
+                ? "bg-black ring-1 ring-inset ring-edge-hover"
+                : "bg-fill-hover",
             )}
-            style={{
-              ...stackCard(index),
-              opacity: hasCard ? 1 : Math.max(0.2, 0.7 - index * 0.15),
-            }}
+            style={stackCard(index)}
           >
             {hasCard ? (
               imageSrc ? (
@@ -133,11 +131,11 @@ const ListPreviewStack = memo(function ListPreviewStack({
                   <Icon icon="solar:filmstrip-bold" size={14} />
                 </div>
               )
-            ) : index === 0 && previews.length === 0 ? (
-              <div className="center size-full text-ink-faint">
+            ) : (
+              <div className="center size-full text-ink-muted">
                 <Icon icon="solar:folder-bold" size={18} />
               </div>
-            ) : null}
+            )}
           </div>
         );
       })}
@@ -174,10 +172,7 @@ const ListRow = memo(function ListRow({
       onPointerEnter={onPointerEnter}
     >
       {highlighted ? (
-        <SlidingHighlight
-          className="rounded-card bg-fill ring-1 ring-edge-hover ring-inset"
-          layoutId="list-picker-highlight"
-        />
+        <SlidingHighlight layoutId="list-picker-highlight" />
       ) : null}
       <ListPreviewStack list={list} />
 
@@ -205,7 +200,7 @@ const ListRow = memo(function ListRow({
           "center relative z-10 size-6 shrink-0 rounded-full ring-1 ring-inset",
           inList
             ? SURFACE_CHECK_ON
-            : "text-transparent ring-edge-hover group-hover:text-ink-faint group-hover:ring-edge-focus",
+            : "text-transparent ring-edge-hover group-hover:text-ink-faint group-focus-visible:text-ink-faint group-has-focus-visible:text-ink-faint group-hover:ring-edge-focus group-focus-visible:ring-edge-focus group-has-focus-visible:ring-edge-focus",
         )}
       >
         {pending ? (
@@ -400,7 +395,7 @@ function ListPickerSurface({ data }: { data: ListPickerData }): JSX.Element {
             </Button>
             <Button
               aria-label="Create list and add this movie"
-              className={surfaceIconButton(Boolean(title.trim()))}
+              className={cn(SURFACE_PRIMARY, "size-10 shrink-0 px-0")}
               disabled={!title.trim()}
               loading={creating}
               type="submit"

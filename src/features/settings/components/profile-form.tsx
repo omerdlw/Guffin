@@ -5,9 +5,21 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@omerdlw/base-framework/modules/notification";
 import { cn } from "@/ui/cn";
 import { accountHref } from "@/config/routes";
-import { Button, Input, Textarea } from "@/ui";
+import {
+  Button,
+  SURFACE_TEXT,
+  Input,
+  SURFACE_META,
+  SURFACE_STACK,
+  SURFACE_TILE,
+  SURFACE_TILE_END,
+  SURFACE_TILE_HOVER,
+  SURFACE_TITLE,
+  Switch,
+  Textarea,
+} from "@/ui";
 import { updateAccountAction, useAccount } from "@/features/account";
-import { INPUT_CLASS, TEXTAREA_CLASS, useSubmitClass } from "./form";
+import { INPUT_CLASS, Mark, SUBMIT_CLASS, TEXTAREA_CLASS } from "./form";
 
 const USERNAME_PATTERN = /^[a-zA-Z0-9_-]{3,30}$/;
 const USERNAME_ERROR =
@@ -22,7 +34,6 @@ export function ProfileForm({ onSaved }: { onSaved: () => void }) {
   const { account: current, refresh } = useAccount();
   const router = useRouter();
   const toast = useToast();
-  const submitClass = useSubmitClass();
 
   const [displayName, setDisplayName] = useState(current?.displayName ?? "");
   const [username, setUsername] = useState(current?.username ?? "");
@@ -73,7 +84,7 @@ export function ProfileForm({ onSaved }: { onSaved: () => void }) {
   }, [result]);
 
   return (
-    <form action={submit} className="flex flex-col gap-2.5">
+    <form action={submit} className={SURFACE_STACK}>
       <div className="grid gap-2.5 sm:grid-cols-2">
         <Input
           className={INPUT_CLASS}
@@ -108,35 +119,34 @@ export function ProfileForm({ onSaved }: { onSaved: () => void }) {
         rows={4}
         value={bio}
       />
-      <Button
-        aria-checked={isPrivate}
-        className="flex h-10 w-full items-center justify-between rounded-card bg-fill pr-2 pl-4 ring-1 ring-inset ring-edge hover:bg-fill-hover hover:ring-edge-hover"
-        disabled={pending}
-        onClick={() => setIsPrivate(!isPrivate)}
-        role="switch"
+      <label
+        className={cn(
+          SURFACE_TILE,
+          SURFACE_TILE_HOVER,
+          SURFACE_TILE_END,
+          "group cursor-pointer select-none",
+        )}
       >
-        <span className="type-body font-medium text-ink">
-          {isPrivate ? "Private profile" : "Public profile"}
+        <Mark icon={isPrivate ? "solar:lock-keyhole-bold" : "solar:eye-bold"} />
+        <span className={SURFACE_TEXT}>
+          <span className={SURFACE_TITLE}>
+            {isPrivate ? "Private profile" : "Public profile"}
+          </span>
+          <span className={SURFACE_META}>
+            {isPrivate
+              ? "Only people you approve can see your activity"
+              : "Anyone can see your activity"}
+          </span>
         </span>
-        <span
-          aria-hidden="true"
-          className={cn(
-            "flex h-6 w-11 shrink-0 rounded-full p-0.5 ring-1 ring-inset",
-            isPrivate ? "bg-white ring-white" : "bg-fill-hover ring-edge",
-          )}
-        >
-          <span
-            className={cn(
-              "ui-drift size-5 rounded-full",
-              isPrivate
-                ? "translate-x-5 bg-black"
-                : "translate-x-0 bg-ink-body shadow-knob",
-            )}
-          />
-        </span>
-      </Button>
+        <Switch
+          aria-label="Private profile"
+          checked={isPrivate}
+          disabled={pending}
+          onCheckedChange={setIsPrivate}
+        />
+      </label>
       <Button
-        className={submitClass}
+        className={SUBMIT_CLASS}
         disabled={pending}
         loading={pending}
         type="submit"

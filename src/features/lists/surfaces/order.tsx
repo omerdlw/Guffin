@@ -13,6 +13,7 @@ import { report, toUserMessage } from "@omerdlw/base-framework/utils";
 import {
   AdaptiveImage,
   Button,
+  HighlightGroup,
   Icon,
   Loader,
   scrollWithin,
@@ -27,6 +28,7 @@ import {
   SURFACE_TILE_INNER,
   SURFACE_TITLE,
   surfaceButton,
+  useHighlight,
 } from "@/ui";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/images";
 import { Cascade, Item, SURFACE_LEAD, SurfaceScene } from "@/motion/stage";
@@ -63,6 +65,7 @@ const OrderRow = memo(function OrderRow({
   total: number;
 }): JSX.Element {
   const controls = useDragControls();
+  const highlight = useHighlight(String(item.tmdbId));
   const [dragging, setDragging] = useState(false);
   const poster = item.posterPath
     ? tmdbImageUrl("poster", item.posterPath, "w92")
@@ -89,17 +92,17 @@ const OrderRow = memo(function OrderRow({
       as="li"
       className={cn(
         SURFACE_TILE,
-        "relative pr-1.5 transition-[background-color,box-shadow] duration-reveal",
-        dragging
-          ? "z-10 bg-fill-active shadow-float ring-edge-hover"
-          : "hover:bg-fill-hover hover:ring-edge-hover",
+        "relative isolate pr-1.5",
+        dragging && "z-10 bg-fill-active",
       )}
       dragControls={controls}
       dragListener={false}
       onDragEnd={() => setDragging(false)}
       onDragStart={() => setDragging(true)}
       value={item}
+      {...highlight.props}
     >
+      {dragging ? null : highlight.node}
       <span className="w-7 shrink-0 text-center type-meta font-medium text-ink-muted tabular-nums">
         {index + 1}
       </span>
@@ -135,7 +138,7 @@ const OrderRow = memo(function OrderRow({
       <button
         aria-label={`Move ${item.title}, place ${index + 1} of ${total}`}
         className={cn(
-          "center size-10 shrink-0 cursor-grab touch-none text-ink-muted outline-none hover:bg-fill hover:text-ink-body focus-visible:bg-fill-hover focus-visible:text-ink active:cursor-grabbing",
+          "center size-10 shrink-0 cursor-grab touch-none text-ink-body outline-none hover:bg-fill-hover hover:text-ink focus-visible:bg-fill-hover focus-visible:text-ink active:cursor-grabbing",
           SURFACE_TILE_INNER,
         )}
         onKeyDown={onKeyDown}
@@ -235,29 +238,31 @@ function ListOrderSurface({ data }: { data: ListOrderData }): JSX.Element {
     <SurfaceScene>
       <Cascade className={SURFACE_STACK} lead={SURFACE_LEAD}>
         <Item from="up">
-          <Reorder.Group
-            axis="y"
-            className={cn(
-              SURFACE_SCROLL,
-              "flex max-h-[min(56dvh,28rem)] flex-col gap-2.5",
-            )}
-            data-lenis-prevent
-            data-lenis-prevent-wheel
-            layoutScroll
-            onReorder={setOrder}
-            onWheel={scrollWithin}
-            values={order}
-          >
-            {order.map((item, index) => (
-              <OrderRow
-                index={index}
-                item={item}
-                key={item.tmdbId}
-                onMove={move}
-                total={order.length}
-              />
-            ))}
-          </Reorder.Group>
+          <HighlightGroup>
+            <Reorder.Group
+              axis="y"
+              className={cn(
+                SURFACE_SCROLL,
+                "flex max-h-[min(56dvh,28rem)] flex-col gap-2.5",
+              )}
+              data-lenis-prevent
+              data-lenis-prevent-wheel
+              layoutScroll
+              onReorder={setOrder}
+              onWheel={scrollWithin}
+              values={order}
+            >
+              {order.map((item, index) => (
+                <OrderRow
+                  index={index}
+                  item={item}
+                  key={item.tmdbId}
+                  onMove={move}
+                  total={order.length}
+                />
+              ))}
+            </Reorder.Group>
+          </HighlightGroup>
         </Item>
         <Item className="flex items-center gap-2.5" from="up">
           <Button

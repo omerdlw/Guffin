@@ -26,14 +26,14 @@ export function RouteError({
       <p className="mt-2 type-body text-ink-muted">{message}</p>
       <div className="mt-6 flex items-center gap-3">
         <Button
-          className="bg-fill-hover px-4 py-2 type-body font-medium text-ink hover:bg-fill-active"
+          className="bg-fill-hover px-4 py-2 type-body font-medium text-ink hover:bg-fill-active focus-visible:bg-fill-active"
           onClick={reset}
           type="button"
         >
           Try again
         </Button>
         <Link
-          className="bg-fill px-4 py-2 type-body font-medium text-ink-body ring-1 ring-edge-hover hover:bg-fill-hover"
+          className="bg-fill px-4 py-2 type-body font-medium text-ink-body ring-1 ring-edge-hover hover:bg-fill-hover focus-visible:bg-fill-hover"
           href="/"
         >
           Home

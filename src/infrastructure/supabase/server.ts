@@ -8,7 +8,7 @@ import {
   requireSupabaseSecretKey,
 } from "@/infrastructure/env";
 import type { Database } from "./database.types";
-import { isHttpsRequest } from "./session";
+import { AUTH_COOKIE_NAME, isHttpsRequest } from "./session";
 
 export async function createServerSupabaseClient(): Promise<
   SupabaseClient<Database>
@@ -21,7 +21,10 @@ export async function createServerSupabaseClient(): Promise<
       experimental: { passkey: true },
       flowType: "pkce",
     },
-    cookieOptions: { secure: isHttpsRequest(headerList) },
+    cookieOptions: {
+      name: AUTH_COOKIE_NAME,
+      secure: isHttpsRequest(headerList),
+    },
     cookies: {
       getAll() {
         return cookieStore.getAll();

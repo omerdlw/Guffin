@@ -639,7 +639,7 @@ function Reticle() {
         lens,
         "shadow",
         "boxShadow",
-        `inset 0 0 0 1px rgb(255 255 255 / ${fine(glass * 0.3 * (1 - solid))}), 0 0 0 1px rgb(0 0 0 / ${fine((glass + solid) * 0.12)}), 0 8px 28px rgb(0 0 0 / ${fine(solid * 0.22)})`,
+        `inset 0 0 0 1px rgb(255 255 255 / ${fine(glass * 0.3 * (1 - solid))}), 0 0 0 1px rgb(0 0 0 / ${fine((glass + solid) * 0.12)})`,
       );
       put(corners, "brackets", "opacity", fine(unit(weights.bracket.x)));
       put(
@@ -745,7 +745,7 @@ function Reticle() {
           style={{ opacity: 0 }}
         />
         <span
-          className="absolute bottom-full left-0 mb-2.5 flex w-max max-w-[calc(100vw-2rem)] items-center gap-2 tabular-nums type-micro leading-none font-bold tracking-label whitespace-nowrap text-ink uppercase [text-shadow:0_1px_10px_rgb(0_0_0/0.7)]"
+          className="absolute bottom-full left-0 mb-2.5 flex w-max max-w-[calc(100vw-2rem)] items-center gap-2 tabular-nums type-micro leading-none font-bold tracking-label whitespace-nowrap text-ink uppercase"
           ref={slate}
           style={{ opacity: 0 }}
         >

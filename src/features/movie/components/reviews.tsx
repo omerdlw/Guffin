@@ -16,8 +16,8 @@ import {
   type MovieReviewSort,
 } from "@/features/reviews";
 import { Button, Icon, Select, TONE } from "@/ui";
-import { SCENE } from "../motion";
-import { Header, Item, Section, Swap } from "@/motion/stage";
+import { MoviePart, MovieSection, MovieSwap } from "../motion";
+import { Heading } from "./heading";
 import { ReviewCard } from "./review-card";
 
 function Stats({
@@ -75,7 +75,7 @@ function Account({
     >
       <span className="truncate">@{name}</span>
       <Icon
-        className="ui-fade shrink-0 opacity-70 group-hover:opacity-100"
+        className="ui-fade shrink-0 opacity-70 group-hover:opacity-100 group-focus-visible:opacity-100 group-has-focus-visible:opacity-100"
         icon="material-symbols:close-rounded"
         size={14}
       />
@@ -197,14 +197,17 @@ export function MovieReviews({
   };
 
   return (
-    <Section className="flex w-full flex-col">
-      <Header
+    <MovieSection className="flex w-full flex-col" cue="board">
+      <Heading
         actions={page ? <Stats stats={page.stats} /> : null}
         icon="solar:chat-round-line-bold"
         title="Reviews"
       />
 
-      <Item className="mb-6 flex flex-wrap items-center gap-3" from="light">
+      <MoviePart
+        className="mb-6 flex flex-wrap items-center gap-3"
+        name="control"
+      >
         <Select
           ariaLabel="Filter reviews"
           className={CHOICE}
@@ -228,18 +231,19 @@ export function MovieReviews({
           value={sort}
         />
         {username ? <Account name={username} onClear={clearAccount} /> : null}
-      </Item>
+      </MoviePart>
 
       {page ? (
-        <Swap
+        <MovieSwap
           as="ul"
           className={`flex flex-col divide-y ${TONE.rules}`}
-          gap={SCENE.items.cards}
+          cue="reviews"
           id={page.key}
         >
           {page.reviews.length > 0 ? (
-            page.reviews.map((review) => (
+            page.reviews.map((review, index) => (
               <ReviewCard
+                index={index}
                 key={review.id}
                 movieId={movieId}
                 review={review}
@@ -248,23 +252,23 @@ export function MovieReviews({
               />
             ))
           ) : (
-            <Item
+            <MoviePart
               as="li"
               className="py-10 text-center type-body text-ink-muted"
-              from="light"
+              name="review"
             >
               {filter !== "all"
                 ? "No entries match this filter"
                 : username
                   ? "No entry from this account yet"
                   : "No reviews yet. Be the first."}
-            </Item>
+            </MoviePart>
           )}
-        </Swap>
+        </MovieSwap>
       ) : null}
 
       {page && page.reviews.length < page.total ? (
-        <Item className="mt-6" from="light">
+        <MoviePart className="mt-6" name="control">
           <Button
             className={TONE.more}
             disabled={loadingMore}
@@ -276,8 +280,8 @@ export function MovieReviews({
             ) : null}
             More reviews ({page.total - page.reviews.length})
           </Button>
-        </Item>
+        </MoviePart>
       ) : null}
-    </Section>
+    </MovieSection>
   );
 }

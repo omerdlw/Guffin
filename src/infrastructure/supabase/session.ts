@@ -1,3 +1,4 @@
+export const AUTH_COOKIE_NAME = "GUFFIN_AUTH";
 export const SESSION_CHECKED_HEADER = "x-guffin-session-checked";
 
 export function isHttpsRequest(headers: Headers, protocol?: string): boolean {

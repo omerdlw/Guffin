@@ -1,13 +1,14 @@
 "use client";
 
 import { motion, useReducedMotion } from "motion/react";
+import { cn } from "./cn";
 import { SPRING } from "@/motion/stage/tempo";
 
 export function SlidingHighlight({
-  className,
+  className = "-z-10 rounded-card bg-fill",
   layoutId,
 }: {
-  className: string;
+  className?: string;
   layoutId: string;
 }) {
   const reducedMotion = useReducedMotion();
@@ -15,7 +16,7 @@ export function SlidingHighlight({
   return (
     <motion.span
       aria-hidden="true"
-      className={`pointer-events-none absolute inset-0 z-0 ${className}`}
+      className={cn("pointer-events-none absolute inset-0 z-0", className)}
       layoutId={layoutId}
       transition={{
         layout: reducedMotion ? { duration: 0 } : SPRING.follow,

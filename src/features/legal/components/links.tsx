@@ -26,7 +26,7 @@ function LegalLink({
         BASE,
         active
           ? "bg-fill-hover text-ink ring-edge-hover"
-          : "bg-fill text-ink-body ring-edge hover:bg-fill-hover hover:text-ink hover:ring-edge-hover",
+          : "bg-fill text-ink-body ring-edge hover:bg-fill-hover focus-visible:bg-fill-hover hover:text-ink focus-visible:text-ink hover:ring-edge-hover focus-visible:ring-edge-focus",
       )}
       href={href}
       onClick={onClick}
@@ -51,7 +51,7 @@ export function LegalLinks({ active }: { active: string | null }): JSX.Element {
       <a
         className={cn(
           BASE,
-          "bg-fill text-ink-body ring-edge hover:bg-fill-hover hover:text-ink hover:ring-edge-hover",
+          "bg-fill text-ink-body ring-edge hover:bg-fill-hover focus-visible:bg-fill-hover hover:text-ink focus-visible:text-ink hover:ring-edge-hover focus-visible:ring-edge-focus",
         )}
         href={`mailto:${LEGAL_CONTACT_EMAIL}`}
       >

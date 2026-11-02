@@ -82,7 +82,7 @@ function MovieLink({ id, name }: { id: number; name: string }) {
   const handleClick = useDockLinkClick(href);
   return (
     <Link
-      className="cine-fade underline-offset-2 hover:text-ink hover:underline"
+      className="cine-fade underline decoration-transparent underline-offset-2 hover:text-ink hover:decoration-current focus-visible:text-ink focus-visible:decoration-current"
       href={href}
       onClick={handleClick}
       prefetch={false}
@@ -98,7 +98,7 @@ function RecipientLink({ recipient }: { recipient: AwardRecipient }) {
 
   return (
     <Link
-      className="cine-fade underline-offset-2 hover:text-ink hover:underline"
+      className="cine-fade underline decoration-transparent underline-offset-2 hover:text-ink hover:decoration-current focus-visible:text-ink focus-visible:decoration-current"
       href={href}
       onClick={handleClick}
       prefetch={false}

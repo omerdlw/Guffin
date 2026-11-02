@@ -5,7 +5,6 @@ import { useModal } from "@omerdlw/base-framework/modules/modal";
 import { cn } from "@/ui/cn";
 import { artworkTarget } from "@/features/artwork";
 import { Icon, MediaCard, RADIUS, SegmentedControl, TONE, Tooltip } from "@/ui";
-import type { MediaCardAspect } from "@/ui";
 import {
   GRAMMAR,
   Header,
@@ -16,41 +15,12 @@ import {
   useWall,
 } from "@/motion/stage";
 import { ImageModal, type ImageModalData } from "./modals";
+import { GRID, STRETCH, type WallPicture, type WallSet } from "./wall-set";
 
-export interface WallPicture {
-  crossOrigin?: "anonymous";
-  full: string | null;
-  lead: string | null;
-  path: string;
-  sizes?: string;
-  src: string | null;
-  srcSet?: string;
-}
+export { WALL_SIZES, type WallPicture, type WallSet } from "./wall-set";
 
-export interface WallSet {
-  aspect: MediaCardAspect;
-  key: string;
-  label: string;
-  noun: string;
-  pictures: WallPicture[];
-  slot: "backdrop" | "poster";
-}
-
-const STRETCH = 30;
-
-const GRID: Record<MediaCardAspect, string> = {
-  free: "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4",
-  poster: "grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 2xl:grid-cols-8",
-  square: "grid-cols-3 sm:grid-cols-4 lg:grid-cols-6",
-  video: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4",
-};
-
-export const WALL_SIZES: Record<"poster" | "video", string> = {
-  poster:
-    "(min-width: 1536px) 12vw, (min-width: 1024px) 16vw, (min-width: 640px) 25vw, 33vw",
-  video:
-    "(min-width: 1536px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw",
-};
+// The wall for pages still on the old stage (the person page); the film page
+// hangs its own, on the engine, from ./wall.
 
 const CONTROL = `cine-press center h-8 cursor-pointer gap-2 rounded-full ${TONE.surface}`;
 

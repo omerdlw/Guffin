@@ -119,10 +119,10 @@ export const modalThemeConfig = defineTheme(modalTheme, {
     rowEnd: "flex min-w-0 items-center justify-end gap-2.5",
     rowStart: "min-w-0",
     title: "truncate type-copy font-semibold text-ink",
-    closeButton: `ui-iris center relative inline-flex size-8 cursor-pointer rounded-full text-ink-body hover:text-ink ${FILL}`,
+    closeButton: `ui-iris center relative inline-flex size-8 cursor-pointer rounded-full text-ink-body hover:text-ink focus-visible:text-ink ${FILL}`,
 
     switcher: "center shrink-0 gap-2 border-t border-rule bg-fill p-2.5",
-    switcherButton: `flex h-8 cursor-pointer items-center gap-1.5 rounded-full px-3.5 type-meta font-medium text-ink-body *:shrink-0 hover:text-ink ${FILL}`,
+    switcherButton: `flex h-8 cursor-pointer items-center gap-1.5 rounded-full px-3.5 type-meta font-medium text-ink-body *:shrink-0 hover:text-ink focus-visible:text-ink ${FILL}`,
     switcherCurrent:
       "flex h-8 items-center rounded-full bg-fill-active px-3.5 type-meta font-medium ring-1 ring-edge-hover ring-inset",
     switcherDivider: "type-meta text-ink-faint",

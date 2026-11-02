@@ -1,6 +1,7 @@
 import type { JSX } from "react";
 import { AwardsView, STAGE_LOOK } from "@/features/awards";
-import { Beat, Header, Section } from "@/motion/stage";
+import { MoviePart, MovieSection } from "../motion";
+import { Heading } from "./heading";
 import type { Awards } from "@/infrastructure/tmdb/types";
 import { AwardsAction } from "./collection-actions";
 
@@ -18,17 +19,17 @@ export async function MovieAwards({
   if (!hasAwards(resolved)) return null;
 
   return (
-    <Section className="flex w-full flex-col">
-      <Header icon="solar:cup-star-bold" title="Awards" />
-      <Beat from="light">
+    <MovieSection className="flex w-full flex-col" cue="awards">
+      <Heading icon="solar:cup-star-bold" title="Awards" />
+      <MoviePart name="awards">
         <AwardsView
           awards={resolved}
           groupings={["organizations", "timeline"]}
           look={STAGE_LOOK}
           showRecipients
         />
-      </Beat>
-    </Section>
+      </MoviePart>
+    </MovieSection>
   );
 }
 

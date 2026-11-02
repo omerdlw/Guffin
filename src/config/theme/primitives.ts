@@ -52,11 +52,11 @@ export const primitivesThemeConfig = defineTheme(primitivesTheme, {
     selectPlaceholder: "truncate text-ink-muted",
     selectRoot: "relative inline-flex w-full flex-col gap-1.5",
     selectText: "truncate",
-    selectTrigger: `cine-fade group flex w-full items-center justify-between gap-2 bg-fill px-3.5 py-2.5 text-left type-body text-ink ring-1 ring-edge ring-inset hover:bg-fill-hover hover:ring-edge-hover aria-expanded:bg-fill-hover aria-expanded:ring-edge-focus ${DISABLED}`,
+    selectTrigger: `cine-fade group flex w-full items-center justify-between gap-2 bg-fill px-3.5 py-2.5 text-left type-body text-ink ring-1 ring-edge ring-inset hover:bg-fill-hover focus-visible:bg-fill-hover hover:ring-edge-hover focus-visible:ring-edge-focus aria-expanded:bg-fill-hover aria-expanded:ring-edge-focus ${DISABLED}`,
     selectTriggerContent: "flex min-w-0 items-center gap-2 truncate",
 
-    switch: `group/switch ui-still relative inline-flex h-6 w-10 shrink-0 cursor-pointer items-center rounded-full bg-fill-hover p-0.5 ring-1 ring-edge ring-inset transition-[background-color,box-shadow,outline-color,outline-offset] duration-reveal ease-out-cream hover:bg-fill-active hover:ring-edge-hover data-[state=checked]:bg-white data-[state=checked]:ring-white data-[state=checked]:hover:bg-white/90 ${DISABLED}`,
-    switchThumb: `pointer-events-none block h-5 w-5 translate-x-0 rounded-full bg-ink-body shadow-knob transition-[translate,width,background-color] duration-reveal ease-out-cream group-hover/switch:bg-ink-lead group-active/switch:w-6 data-[state=checked]:translate-x-4 data-[state=checked]:bg-black group-active/switch:data-[state=checked]:translate-x-3`,
+    switch: `group/switch ui-still relative inline-flex h-6 w-10 shrink-0 cursor-pointer items-center rounded-full bg-fill-hover p-0.5 ring-1 ring-edge ring-inset transition-[background-color,box-shadow,outline-color,outline-offset] duration-reveal ease-out-cream hover:bg-fill-active focus-visible:bg-fill-active hover:ring-edge-hover focus-visible:ring-edge-focus data-[state=checked]:bg-white data-[state=checked]:ring-white data-[state=checked]:hover:bg-white/90 data-[state=checked]:focus-visible:bg-white/90 ${DISABLED}`,
+    switchThumb: `pointer-events-none block h-5 w-5 translate-x-0 rounded-full bg-ink-body transition-[translate,width,background-color] duration-reveal ease-out-cream group-hover/switch:bg-ink-lead group-focus-visible/switch:bg-ink-lead group-has-focus-visible/switch:bg-ink-lead group-active/switch:w-6 data-[state=checked]:translate-x-4 data-[state=checked]:bg-black group-active/switch:data-[state=checked]:translate-x-3`,
 
     tooltip: "tooltip-content pointer-events-none select-none",
   },

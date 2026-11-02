@@ -127,10 +127,7 @@ export function SegmentedControl<K extends string>({
       {pill ? (
         <SlidingPill
           box={pill}
-          className={cn(
-            "inset-y-0.5 bg-fill-active shadow-knob",
-            round && "rounded-full",
-          )}
+          className={cn("inset-y-0.5 bg-fill-active", round && "rounded-full")}
         />
       ) : null}
       {items.map((item) => {

@@ -128,7 +128,11 @@ export function ActivityCalendar({
                 {week.days.map((day, weekday) =>
                   day ? (
                     <span
-                      className={cn(CELL, LEVELS[day.level], " hover:bg-white")}
+                      className={cn(
+                        CELL,
+                        LEVELS[day.level],
+                        "hover:bg-ink focus-visible:bg-ink",
+                      )}
                       data-day={weekday}
                       data-week={index}
                       key={weekday}

@@ -2,8 +2,9 @@ import type { JSX } from "react";
 import type { MovieDetails } from "@/infrastructure/tmdb/types";
 import { getRecommendations } from "../utils";
 import { MoviePosterLink } from "./poster-link";
-import { Carousel, Header, Section } from "@/motion/stage";
-import { CAROUSEL_ITEM, RADIUS, TONE } from "@/ui";
+import { CAROUSEL_ITEM, Carousel, RADIUS, TONE } from "@/ui";
+import { MovieSection } from "../motion";
+import { Heading } from "./heading";
 
 export function MovieRecommendations({
   movie,
@@ -14,14 +15,14 @@ export function MovieRecommendations({
   if (recommendations.length === 0) return null;
 
   return (
-    <Section className="flex w-full flex-col">
-      <Header icon="solar:stars-minimalistic-bold" title="More like this" />
+    <MovieSection className="flex w-full flex-col" cue="row">
+      <Heading icon="solar:stars-minimalistic-bold" title="More like this" />
       <Carousel
         arrowClassName={TONE.arrows}
         className="rounded-card"
         itemClassName={CAROUSEL_ITEM}
         label="More like this"
-        radius={RADIUS.card}
+        part="slide"
       >
         {recommendations.map((item) => (
           <MoviePosterLink
@@ -38,6 +39,6 @@ export function MovieRecommendations({
           />
         ))}
       </Carousel>
-    </Section>
+    </MovieSection>
   );
 }

@@ -64,8 +64,9 @@ export const contextMenuThemeConfig = defineTheme(contextMenuTheme, {
     headerTitle: "truncate type-body font-semibold text-ink",
     headerDescription: "type-meta text-ink-body",
     separator: "mx-3 my-1.5 h-px bg-rule",
-    item: "group flex h-10 w-full items-center gap-2.5 rounded-card px-3 text-left type-body font-medium text-ink-body hover:bg-fill-hover hover:text-ink data-[active=true]:bg-fill-hover data-[active=true]:text-ink disabled:pointer-events-none disabled:opacity-50",
-    itemIcon: "ui-glyph shrink-0 text-ink-muted group-hover:text-ink-body",
+    item: "group flex h-10 w-full items-center gap-2.5 rounded-card px-3 text-left type-body font-medium text-ink-body hover:bg-fill-hover focus-visible:bg-fill-hover hover:text-ink focus-visible:text-ink data-[active=true]:bg-fill-hover data-[active=true]:text-ink disabled:pointer-events-none disabled:opacity-50",
+    itemIcon:
+      "ui-glyph shrink-0 text-ink-muted group-hover:text-ink-body group-focus-visible:text-ink-body group-has-focus-visible:text-ink-body",
     itemLabel: "grow truncate",
     itemShortcut:
       "ml-2 shrink-0 rounded-full bg-fill px-2 py-0.5 type-label text-ink-muted uppercase ring-1 ring-edge ring-inset",

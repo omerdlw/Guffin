@@ -14,12 +14,11 @@ import { DockCardBanner } from "@omerdlw/base-framework/modules/dock";
 import { useToast } from "@omerdlw/base-framework/modules/notification";
 import { SHELL } from "@/config/theme/chrome";
 import { cn } from "@/ui/cn";
-import { AdaptiveImage, Button, Icon, Input } from "@/ui";
+import { AdaptiveImage, Button, Icon, Input, SURFACE_FIELD } from "@/ui";
 import { updateAccountAction, useAccount } from "@/features/account";
-import { useSubmitClass } from "./form";
+import { SUBMIT_CLASS } from "./form";
 
 const DEFAULT_BANNER_POSITION = "center 45%";
-const PREVIEW_SHADOW = "drop-shadow-legible";
 
 type SaveResult = { success: true } | { error: string; success: false } | null;
 
@@ -49,7 +48,8 @@ function UrlInput({
     <div className="relative flex w-full items-center">
       <Input
         className={cn(
-          "h-10 w-full rounded-card bg-fill pl-4 type-body text-ink ring-1 ring-inset ring-edge placeholder:text-ink-muted hover:bg-fill-hover focus:bg-fill-hover focus:ring-edge-focus focus:outline-none",
+          SURFACE_FIELD,
+          "h-10 w-full pl-4 type-body",
           value ? "pr-9" : "pr-4",
         )}
         disabled={disabled}
@@ -61,7 +61,7 @@ function UrlInput({
       {value ? (
         <Button
           aria-label="Clear input"
-          className="center absolute right-1 size-8 cursor-pointer rounded-tile p-0 text-ink-muted hover:bg-fill-hover hover:text-ink"
+          className="center absolute right-1 size-8 cursor-pointer rounded-tile p-0 text-ink-muted hover:bg-fill-hover focus-visible:bg-fill-hover hover:text-ink focus-visible:text-ink"
           disabled={disabled}
           onClick={() => onChange("")}
         >
@@ -126,7 +126,7 @@ function BannerSlider({
       aria-valuemin={0}
       aria-valuenow={value}
       className={cn(
-        "group/slider flex w-10 shrink-0 cursor-ns-resize flex-col items-center justify-between self-stretch rounded-card bg-fill py-3 ring-1 ring-inset ring-edge select-none touch-none hover:bg-fill-hover",
+        "group/slider flex w-10 shrink-0 cursor-ns-resize flex-col items-center justify-between self-stretch rounded-card bg-fill py-3 ring-1 ring-inset ring-edge select-none touch-none hover:bg-fill-hover focus-visible:bg-fill-hover",
         disabled && "pointer-events-none opacity-50",
       )}
       data-no-surface-drag="true"
@@ -137,7 +137,7 @@ function BannerSlider({
       tabIndex={disabled ? -1 : 0}
     >
       <Icon
-        className="shrink-0 text-ink-muted group-hover/slider:text-ink-body"
+        className="shrink-0 text-ink-muted group-hover/slider:text-ink-body group-focus-visible/slider:text-ink-body group-has-focus-visible/slider:text-ink-body"
         icon="solar:alt-arrow-up-linear"
         size={12}
       />
@@ -150,12 +150,12 @@ function BannerSlider({
           style={{ transform: `scaleY(${value / 100})` }}
         />
         <div
-          className="ui-glyph absolute left-1/2 size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-knob group-hover/slider:scale-110 group-active/slider:scale-125"
+          className="ui-glyph absolute left-1/2 size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white group-hover/slider:scale-110 group-active/slider:scale-125"
           style={{ top: `${value}%` }}
         />
       </div>
       <Icon
-        className="shrink-0 text-ink-muted group-hover/slider:text-ink-body"
+        className="shrink-0 text-ink-muted group-hover/slider:text-ink-body group-focus-visible/slider:text-ink-body group-has-focus-visible/slider:text-ink-body"
         icon="solar:alt-arrow-down-linear"
         size={12}
       />
@@ -202,13 +202,11 @@ function DockPreview({
           </div>
           <div className="flex min-w-0 flex-col justify-center gap-0.5">
             <span
-              className={`truncate type-copy leading-5 font-semibold text-ink ${PREVIEW_SHADOW}`}
+              className={`truncate type-copy leading-5 font-semibold text-ink`}
             >
               {displayName || "Your Name"}
             </span>
-            <span
-              className={`truncate type-body text-ink-body ${PREVIEW_SHADOW}`}
-            >
+            <span className={`truncate type-body text-ink-body`}>
               @{username || "username"}
             </span>
           </div>
@@ -220,7 +218,7 @@ function DockPreview({
             "solar:bell-bold",
           ].map((icon) => (
             <div
-              className={`center size-9 rounded-full text-ink-body ${PREVIEW_SHADOW}`}
+              className={`center size-9 rounded-full text-ink-body`}
               key={icon}
             >
               <Icon icon={icon} size={16} />
@@ -236,7 +234,6 @@ export function MediaForm({ onSaved }: { onSaved: () => void }) {
   const { account: current, refresh } = useAccount();
   const router = useRouter();
   const toast = useToast();
-  const submitClass = useSubmitClass();
 
   const [avatarUrl, setAvatarUrl] = useState(current?.avatarUrl ?? "");
   const [bannerUrl, setBannerUrl] = useState(current?.bannerUrl ?? "");
@@ -355,7 +352,7 @@ export function MediaForm({ onSaved }: { onSaved: () => void }) {
       </div>
 
       <Button
-        className={submitClass}
+        className={SUBMIT_CLASS}
         disabled={pending}
         loading={pending}
         type="submit"

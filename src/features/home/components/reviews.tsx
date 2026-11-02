@@ -18,7 +18,7 @@ function ReviewCard({ review }: { review: HomeReview }): JSX.Element {
       <article className="flex min-w-0 flex-1 flex-col gap-2.5">
         <h3 className="flex min-w-0 items-baseline gap-2">
           <AccountLink
-            className="truncate type-base font-semibold text-ink underline decoration-transparent hover:decoration-current"
+            className="truncate type-base font-semibold text-ink underline underline-offset-2 decoration-transparent hover:decoration-current focus-visible:decoration-current"
             href={movieHref(film.id)}
           >
             {film.title}
@@ -31,7 +31,7 @@ function ReviewCard({ review }: { review: HomeReview }): JSX.Element {
         </h3>
         <div className="flex min-w-0 items-center gap-2.5 type-control">
           <AccountLink
-            className="flex min-w-0 items-center gap-2 font-semibold text-ink-body hover:text-ink"
+            className="flex min-w-0 items-center gap-2 font-semibold text-ink-body hover:text-ink focus-visible:text-ink"
             href={accountHref(author.username)}
           >
             <Avatar
@@ -63,7 +63,7 @@ function ReviewCard({ review }: { review: HomeReview }): JSX.Element {
             {compact(review.likes)} {review.likes === 1 ? "like" : "likes"}
           </span>
           <AccountLink
-            className="text-ink-body underline decoration-transparent hover:text-ink hover:decoration-current"
+            className="text-ink-body underline underline-offset-2 decoration-transparent hover:text-ink focus-visible:text-ink hover:decoration-current focus-visible:decoration-current"
             href={reviewHref(film.id, author.username)}
           >
             Read review

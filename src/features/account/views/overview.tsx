@@ -97,7 +97,7 @@ export async function AccountOverviewView({
                       <li key={`slot-${index}`}>
                         <AccountLink
                           aria-label="Pin a favorite from your likes"
-                          className="center aspect-[2/3] rounded-card border border-dashed border-edge-focus text-ink-faint hover:border-ink-faint hover:text-ink-body"
+                          className="center aspect-[2/3] rounded-card border border-dashed border-edge-focus text-ink-faint hover:border-ink-faint hover:text-ink focus-visible:text-ink"
                           href={`${base}/likes`}
                         >
                           <Icon icon="solar:add-circle-linear" size={20} />

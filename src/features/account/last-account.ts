@@ -2,7 +2,7 @@ import type { User } from "@supabase/supabase-js";
 import { isImageIconSource } from "@omerdlw/base-framework/utils";
 import type { CurrentAccount } from "./types";
 
-const STORAGE_KEY = "dock_last_known_account_v2";
+const STORAGE_KEY = "GUFFIN_LAST_ACCOUNT";
 
 interface KnownAccount {
   avatarUrl: string | null;

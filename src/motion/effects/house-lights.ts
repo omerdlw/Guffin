@@ -1,29 +1,17 @@
 "use client";
 
 import { useEffect, useSyncExternalStore } from "react";
+import { house, houseDown, show } from "@/motion/engine/kit/house";
 
-let showing = 0;
-const listeners = new Set<() => void>();
+// The engine's house lights, for pages that are still on the old stage: one
+// count of what stands in front of the page, whichever system shows it.
 
-const subscribe = (listener: () => void) => {
-  listeners.add(listener);
-  return () => void listeners.delete(listener);
-};
-const notify = () => listeners.forEach((listener) => listener());
-
-export const houseIsDown = () => showing > 0;
+export const houseIsDown = houseDown;
 
 export function useHouseDown() {
-  return useSyncExternalStore(subscribe, houseIsDown, () => false);
+  return useSyncExternalStore(house.subscribe, houseDown, () => false);
 }
 
 export function useShowing() {
-  useEffect(() => {
-    showing += 1;
-    notify();
-    return () => {
-      showing -= 1;
-      notify();
-    };
-  }, []);
+  useEffect(() => show(), []);
 }

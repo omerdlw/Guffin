@@ -9,7 +9,7 @@ import {
 } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/ui/cn";
-import { Button, Icon, Input, Select, TONE } from "@/ui";
+import { Button, Icon, Input, SURFACE_FIELD, Select, TONE } from "@/ui";
 
 interface FilterField {
   allLabel?: string;
@@ -24,10 +24,9 @@ const SEARCH_SETTLE_MS = 280;
 
 const LOOK = {
   form: "relative col-span-full min-w-0 md:flex-1",
-  input:
-    "h-10 w-full rounded-full bg-fill pr-3 pl-10 type-body text-ink ring-1 ring-edge ring-inset placeholder:text-ink-muted hover:bg-fill-hover focus:bg-fill-hover focus:outline-none",
+  input: cn(SURFACE_FIELD, "h-10 w-full rounded-full pr-3 pl-10 type-body"),
   reset:
-    "col-span-full inline-flex h-10 cursor-pointer items-center justify-center gap-1.5 rounded-full px-3 type-meta font-semibold text-ink-body uppercase hover:bg-fill-hover hover:text-ink md:justify-start",
+    "col-span-full inline-flex h-10 cursor-pointer items-center justify-center gap-1.5 rounded-full px-3 type-meta font-semibold text-ink-body uppercase hover:bg-fill-hover focus-visible:bg-fill-hover hover:text-ink focus-visible:text-ink md:justify-start",
   root: "mb-5 grid grid-cols-2 gap-2 md:flex md:flex-wrap md:items-center",
   select: "min-w-0 md:w-44 md:flex-none lg:w-48",
   share: "md:w-auto md:flex-1 lg:w-48 lg:flex-none",
