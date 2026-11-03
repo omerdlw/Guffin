@@ -39,9 +39,9 @@ export function PersonBackdropHero({
   person,
 }: {
   fallback: string | null;
-  person: Pick<PersonDetails, "id">;
+  person: Pick<PersonDetails, "id" | "name">;
 }) {
   const path = useArtworkPath("person", person.id, "backdrop", fallback);
   const image = tmdbImageUrl("backdrop", path, "original");
-  return image ? <DetailBackdrop src={image} /> : null;
+  return image ? <DetailBackdrop src={image} title={person.name} /> : null;
 }

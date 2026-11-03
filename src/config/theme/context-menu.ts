@@ -4,7 +4,8 @@ import { contextMenuTheme } from "@omerdlw/base-framework/modules/context-menu";
 import { TONE } from "@/ui/page";
 import { SHELL } from "./chrome";
 import type { ContextMenuMotion } from "@omerdlw/base-framework/modules/context-menu";
-import { motion, tween } from "./motion";
+import { step } from "@/motion/engine/ladder";
+import { SHARP, hazy, motion, tween } from "./motion";
 
 const { durations: time, easings: ease, springs } = motion;
 
@@ -18,7 +19,7 @@ export const contextMenuMotion: ContextMenuMotion = {
   pop: {
     hidden: {
       opacity: 0,
-      transform: "translate3d(0px, 0px, 0) scale(0.98)",
+      transform: "translate3d(0px, 0px, 0) scale(0.96)",
       transformOrigin: ORIGIN,
     },
     visible: {
@@ -26,26 +27,26 @@ export const contextMenuMotion: ContextMenuMotion = {
       transform: "translate3d(0px, 0px, 0) scale(1)",
       transformOrigin: ORIGIN,
       transition: {
-        transform: tween(time.reveal, ease.pour),
-        opacity: tween(time.light, ease.fade),
+        transform: tween(step(1), ease.silk),
+        opacity: tween(step(0), ease.fade),
       },
     },
     exit: {
       opacity: 0,
-      transform: "translate3d(0px, 0px, 0) scale(1)",
+      transform: "translate3d(0px, 0px, 0) scale(0.98)",
       transformOrigin: ORIGIN,
       transition: leave,
     },
   },
   content: {
     hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: tween(time.light, ease.fade) },
+    visible: { opacity: 1, transition: tween(time.reveal, ease.fade) },
   },
   item: {
-    hidden: { opacity: 0 },
+    hidden: hazy(2),
     visible: (index: unknown = 0) => ({
-      opacity: 1,
-      transition: tween(time.light, ease.fade, rowDelay(index)),
+      ...SHARP,
+      transition: tween(step(0), ease.silk, rowDelay(index)),
     }),
   },
   itemTap: { transform: "translate3d(0px, 0px, 0) scale(1)" },

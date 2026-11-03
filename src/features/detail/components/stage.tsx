@@ -1,7 +1,6 @@
 "use client";
 
 import { createContext, use, useMemo, useState, type ReactNode } from "react";
-import { usePathname } from "next/navigation";
 import { Room } from "@/motion/engine";
 import { DetailStageRoot } from "../motion";
 
@@ -28,14 +27,15 @@ export function DetailStage({
   children: ReactNode;
   picture: string | null;
 }) {
-  const pathname = usePathname();
   const [lead, setLead] = useState<string | null>(null);
   const [set, choose] = useState<string | null>(null);
   const wall = useMemo(() => ({ set, choose }), [set]);
 
   return (
-    <DetailStageRoot grade={lead ?? picture} memory={pathname}>
-      <Room />
+    <DetailStageRoot grade={lead ?? picture}>
+      {/* The grain is the projection's own (its shader carries it), so it
+          sits on the picture alone and the page under it stays clean. */}
+      <Room grain={false} />
       <LeadContext value={setLead}>
         <WallSetContext value={wall}>{children}</WallSetContext>
       </LeadContext>

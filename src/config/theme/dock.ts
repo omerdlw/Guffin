@@ -5,7 +5,7 @@ import { dockTheme } from "@omerdlw/base-framework/modules/dock";
 import { BACKDROP, FILL, FLOAT, GLASS, PRIMARY, SHELL, TIP } from "./chrome";
 import { RADIUS } from "@/ui/page";
 import type { DockMotion } from "@omerdlw/base-framework/modules/dock";
-import { motion, tween } from "./motion";
+import { SHARP, hazy, motion, tween } from "./motion";
 
 const { durations: time, easings: ease, springs } = motion;
 
@@ -23,6 +23,17 @@ const lightSet = (
   hidden: DARK,
   visible: { ...LIT, transition: enter },
   exit: { ...DARK, transition: exit },
+});
+
+// Content (text, icons) that changes inside the dock comes out of the soft
+// and leaves into it; the glass itself never carries a filter.
+const softSet = (
+  enter: ReturnType<typeof tween>,
+  exit: ReturnType<typeof tween> = leave,
+) => ({
+  hidden: hazy(2),
+  visible: { ...SHARP, transition: enter },
+  exit: { ...hazy(2), transition: exit },
 });
 
 const resizeFor = (distancePx: number) => {
@@ -86,14 +97,15 @@ export const dockMotion: DockMotion = {
   },
   variants: {
     fade: lightSet(tween(time.light, ease.fade, time.step)),
-    textCrossfade: lightSet(tween(time.reveal, ease.fade)),
+    textCrossfade: softSet(tween(time.reveal, ease.silk)),
     description: (opacity = 0.7) => ({
-      hidden: DARK,
+      hidden: hazy(2),
       visible: {
         opacity,
-        transition: tween(time.light, ease.fade, time.step),
+        filter: "none",
+        transition: tween(time.reveal, ease.silk, time.step),
       },
-      exit: { ...DARK, transition: leave },
+      exit: { ...hazy(2), transition: leave },
     }),
     headerSwap: {
       hidden: DARK,
@@ -119,7 +131,7 @@ export const dockMotion: DockMotion = {
       }),
       exit: { ...DARK, transition: touchLeave },
     },
-    icon: lightSet(tween(time.light, ease.fade)),
+    icon: softSet(tween(time.reveal, ease.silk)),
     badge: {
       hidden: { opacity: 0, transform: gpuTransform(0, 0.6) },
       visible: {
@@ -166,7 +178,7 @@ export const dockMotion: DockMotion = {
       tap: { scale: 1 },
     },
     mediaVolumeThumb: { idle: { scale: 1 }, dragging: { scale: 1.15 } },
-    cardContent: { hidden: DARK, visible: LIT },
+    cardContent: { hidden: hazy(3), visible: SHARP },
   },
   deck: {
     elevation: {

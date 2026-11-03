@@ -76,12 +76,12 @@
 
   --ease-*: initial;
   --ease-out-expo: var(--curve-expo);
-  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-quart: cubic-bezier(0.3, 0.7, 0.4, 1);
   --ease-out-quint: var(--curve-silk);
   --ease-in-out-cubic: var(--curve-glide);
   --ease-in-cubic: cubic-bezier(0.5, 0, 1, 1);
-  --ease-out-cream: cubic-bezier(0.3, 0.85, 0.3, 1);
-  --ease-phosphor: cubic-bezier(0.06, 0.62, 0.2, 1);
+  --ease-out-cream: cubic-bezier(0.25, 0.55, 0.2, 1);
+  --ease-phosphor: cubic-bezier(0.2, 0.45, 0.2, 1);
   --ease-fade: var(--curve-fade);
 
   --default-transition-duration: var(--step-n2);
@@ -113,7 +113,7 @@
 
 @utility tempo-quick {
   --touch-in: var(--step-n1);
-  --touch-out: var(--step-n2);
+  --touch-out: var(--step-n1);
 }
 @utility duration-flick {
   transition-duration: var(--step-n4);
@@ -368,8 +368,24 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
     img.cine-zoom {
     scale: 1.04;
   }
-  .ui-motion .cine-card img.cine-zoom {
-    transition: scale var(--step-3) var(--ease-out-cream);
+  /* A cinematic page's pictures already carry a transition of their own
+     (`img[data-state]`) that has no `filter` in it, so it has to be listed
+     here, on every page a card can be on: otherwise the blur below snaps. */
+  :is([data-cinematic], .ui-motion, .ui-scene) .cine-card img.cine-zoom {
+    transition:
+      opacity var(--step-2) var(--ease-fade),
+      transform var(--step-3) var(--ease-out-cream),
+      scale var(--step-3) var(--ease-out-cream),
+      filter var(--step-2) var(--ease-fade);
+  }
+  /* Rack focus: while one card in a row is pointed at, its neighbours fall
+     out of focus, so the eye is handed to the one that is lit. The focus
+     is pulled over the length of a rung and given back the same way. */
+  :is([data-cinematic], .ui-motion, .ui-scene)
+    [data-rack]:has(.cine-card:is(:hover, :focus-visible))
+    .cine-card:not(:is(:hover, :focus-visible))
+    img.cine-zoom {
+    filter: blur(var(--haze-2));
   }
 
   html:has([data-cinematic]) {
@@ -440,13 +456,15 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
       text-decoration-color var(--touch-out) var(--ease-phosphor),
       outline-color var(--touch-out) var(--ease-phosphor),
       outline-offset var(--touch-out) var(--ease-out-cream),
-      scale var(--press-t) var(--ease-out-cream);
+      scale var(--press-t) var(--ease-out-cream),
+      filter var(--press-t) var(--ease-out-cream);
   }
   [data-cinematic] .cine-fade:is(:hover, :focus-visible),
   [data-cinematic] .cine-card:is(:hover, :focus-visible) .cine-fade {
     transition-duration:
       var(--touch-in), var(--touch-in), var(--touch-in), var(--touch-in),
-      var(--touch-in), var(--touch-in), var(--touch-in), var(--press-t);
+      var(--touch-in), var(--touch-in), var(--touch-in), var(--press-t),
+      var(--press-t);
     transition-timing-function: var(--ease-out-cream);
   }
   :is([data-cinematic], .ui-motion, .ui-scene) .cine-afterglow {
@@ -466,10 +484,6 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
     transition-duration: var(--step-1);
     transition-timing-function: var(--ease-out-cream);
   }
-  [data-cinematic] [data-pill] {
-    background-color: rgb(var(--grade) / 0.15);
-    box-shadow: inset 0 0 0 1px rgb(var(--grade) / 0.25);
-  }
   [data-cinematic] .cine-press {
     transition:
       background-color var(--touch-out) var(--ease-phosphor),
@@ -477,16 +491,18 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
       box-shadow var(--touch-out) var(--ease-phosphor),
       transform var(--press-out) var(--ease-out-cream),
       outline-color var(--touch-out) var(--ease-phosphor),
-      outline-offset var(--touch-out) var(--ease-out-cream);
+      outline-offset var(--touch-out) var(--ease-out-cream),
+      filter var(--press-out) var(--ease-out-cream);
   }
   [data-cinematic] .cine-press:is(:hover, :focus-visible) {
     transform: translateY(-2px);
     transition-duration:
       var(--touch-in), var(--touch-in), var(--touch-in), var(--press-out),
-      var(--touch-in), var(--touch-in);
+      var(--touch-in), var(--touch-in), var(--press-out);
     transition-timing-function: var(--ease-out-cream);
   }
   [data-cinematic] .cine-press:active {
+    filter: blur(var(--haze-n1));
     transform: scale(var(--press));
     transition-duration: var(--press-in);
   }
@@ -630,7 +646,8 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
       stroke var(--touch-t) var(--touch-e),
       outline-color var(--touch-t) var(--touch-e),
       outline-offset var(--touch-t) var(--ease-out-cream),
-      scale var(--press-t) var(--ease-out-cream);
+      scale var(--press-t) var(--ease-out-cream),
+      filter var(--press-t) var(--ease-out-cream);
   }
   :where(.ui-motion, .ui-scene)
     :where(
@@ -657,6 +674,7 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
       )
     ):active {
     --press-t: var(--press-in);
+    filter: blur(var(--haze-n1));
     scale: var(--press);
   }
   :where(.ui-scene) :where(a[href]) {
@@ -675,7 +693,8 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
       text-decoration-color var(--touch-t) var(--touch-e),
       outline-color var(--touch-t) var(--touch-e),
       outline-offset var(--touch-t) var(--ease-out-cream),
-      scale var(--press-t) var(--ease-out-cream);
+      scale var(--press-t) var(--ease-out-cream),
+      filter var(--press-t) var(--ease-out-cream);
   }
 
   :where(.ui-motion, .ui-scene)
@@ -919,6 +938,39 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
     }
   }
 
+  .ui-scan {
+    isolation: isolate;
+    overflow: clip;
+    position: relative;
+  }
+  .ui-scan::after {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgb(var(--grade, var(--white-rgb)) / 0.15),
+      transparent
+    );
+    content: "";
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    transition: opacity var(--step-0) var(--ease-fade);
+    width: 50%;
+  }
+  @keyframes ui-scan {
+    from {
+      translate: -100% 0;
+    }
+    to {
+      translate: 300% 0;
+    }
+  }
+  .ui-scan[data-busy]::after {
+    animation: ui-scan var(--step-3) var(--ease-in-out-cubic) infinite;
+    opacity: 1;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     :root {
       --press: 1;
@@ -934,9 +986,13 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
       scale: none !important;
     }
     .ui-sheen::after,
+    .ui-scan::after,
     .ui-develop,
     .ui-caret {
       animation: none !important;
+    }
+    .ui-scan[data-busy]::after {
+      opacity: 0;
     }
   }
 }

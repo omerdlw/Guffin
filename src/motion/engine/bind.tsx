@@ -1,10 +1,12 @@
 "use client";
 
 import type { JSX } from "react";
+import { Bloom, type BloomProps } from "./kit/bloom";
 import { Count, type CountProps } from "./kit/count";
 import { Deck, type DeckProps } from "./kit/deck";
 import { Expose, type ExposeProps } from "./kit/expose";
 import { Header, type HeaderProps } from "./kit/header";
+import { Marquee, type MarqueeProps } from "./kit/marquee";
 import { Swap, type SwapProps } from "./kit/swap";
 import { WallStage, type WallStageProps } from "./kit/wall";
 import { bindStage } from "./react";
@@ -20,6 +22,8 @@ export function bindScore<P extends string, S extends string = never>(
   return {
     ...bindStage(score),
     Header: Header as (props: Named<HeaderProps, "part", P>) => JSX.Element,
+    Bloom: Bloom as (props: Named<BloomProps, "part", P>) => JSX.Element,
+    Marquee: Marquee as (props: Named<MarqueeProps, "part", P>) => JSX.Element,
     Expose: Expose as (props: Named<ExposeProps, "part", P>) => JSX.Element,
     Count: Count as (props: Named<CountProps, "part", P>) => JSX.Element,
     Swap: Swap as (props: Named<SwapProps, "cue", S>) => JSX.Element,

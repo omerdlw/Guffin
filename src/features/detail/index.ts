@@ -1,8 +1,10 @@
 export {
   DetailCount,
   DetailDeck,
+  DetailBloom,
   DetailExpose,
   DetailHeader,
+  DetailMarquee,
   DetailPart,
   DetailSection,
   DetailStageRoot,

@@ -52,7 +52,6 @@ export function FilmRow({
         {films.map((film, index) => (
           <MoviePosterLink
             caption={caption?.(film, index)}
-            carried
             key={film.id}
             movie={film}
             radius={RADIUS.card}
@@ -112,7 +111,6 @@ export function FriendsRow({
       >
         {logs.map((log) => (
           <MoviePosterLink
-            carried
             caption={
               <span className={CAPTION}>
                 <Avatar

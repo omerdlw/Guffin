@@ -6,13 +6,12 @@ import type {
   ModalMotion,
   ModalPositionMotion,
 } from "@omerdlw/base-framework/modules/modal";
-import { motion, tween } from "./motion";
+import { step } from "@/motion/engine/ladder";
+import { SHARP, hazy, motion, tween } from "./motion";
 
 const { durations: time, easings: ease } = motion;
 
 const REST = "translate3d(0px, 0px, 0) scale(1)";
-
-const leave = tween(time.leave, ease.fade);
 
 const sheet = (offset: string): ModalPositionMotion => ({
   variants: {
@@ -36,35 +35,47 @@ const sheet = (offset: string): ModalPositionMotion => ({
   },
 });
 
-const still = { hidden: { opacity: 1 }, visible: { opacity: 1 } };
+// What is written in a modal comes into focus a beat after the glass has
+// opened, one rung of blur softer than the dock's own.
+const focusing = {
+  hidden: hazy(3),
+  visible: {
+    ...SHARP,
+    transition: tween(step(0), ease.silk, step(-3)),
+  },
+};
 
 export const modalMotion: ModalMotion = {
   backdrop: {
     hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: tween(time.move, ease.fade) },
+    visible: { opacity: 1, transition: tween(step(1), ease.fade) },
     exit: { opacity: 0, transition: tween(time.reveal, ease.fade) },
   },
-  content: still,
-  header: still,
-  footer: still,
+  content: focusing,
+  header: focusing,
+  footer: focusing,
   positions: {
     center: {
       variants: {
         hidden: {
           opacity: 0,
-          transform: "translate3d(0px, 0px, 0) scale(0.98)",
+          transform: "translate3d(0px, 0px, 0) scale(0.96)",
         },
         visible: {
           opacity: 1,
           transform: REST,
           transition: {
-            transform: tween(time.move, ease.pour),
-            opacity: tween(time.light, ease.fade),
+            transform: tween(step(1), ease.silk),
+            opacity: tween(step(0), ease.fade),
           },
         },
-        exit: { opacity: 0, transform: REST, transition: leave },
+        exit: {
+          opacity: 0,
+          transform: "translate3d(0px, 0px, 0) scale(0.98)",
+          transition: tween(time.reveal, ease.fade),
+        },
       },
-      transition: tween(time.move, ease.pour),
+      transition: tween(step(1), ease.silk),
     },
     top: sheet("translate3d(0px, -100%, 0) scale(1)"),
     right: sheet("translate3d(100%, 0px, 0) scale(1)"),

@@ -60,23 +60,25 @@ export function Swap({
   // What was on screen when the id last matched: the content that leaves.
   const [held, setHeld] = useState<ReactNode>(children);
   const swapping = useRef(false);
-  const latest = useRef({ id, children, previous: children });
+  const latest = useRef({ id, children });
   const turns = useRef(0);
   const settle = useRef<Value | null>(null);
   const first = `${base}0`;
 
   useEffect(() => {
-    latest.current = {
-      id,
-      children,
-      previous: id === shown.id ? children : latest.current.previous,
-    };
+    latest.current = { id, children };
+  });
+
+  // Kept current as each render commits, so the render that first sees a new
+  // id still holds the content that is on screen and not one from an earlier
+  // swap, which would flash back in before it leaves.
+  useLayoutEffect(() => {
+    if (id === shown.id && held !== children) setHeld(children);
   });
 
   useEffect(() => {
     if (id === shown.id || swapping.current) return;
     swapping.current = true;
-    setHeld(latest.current.previous);
     const el = box.current;
     if (el) {
       el.style.height = `${el.offsetHeight}px`;

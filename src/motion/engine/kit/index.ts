@@ -1,3 +1,4 @@
+export { Bloom, type BloomProps } from "./bloom";
 export { Count, RECOUNT_RUNG, type CountProps } from "./count";
 export { Deck, type DeckProps } from "./deck";
 export {
@@ -21,6 +22,13 @@ export {
   type RoomProps,
 } from "./room";
 export { Header, type HeaderProps } from "./header";
+export {
+  Marquee,
+  marqueeHold,
+  marqueePatience,
+  type Edges,
+  type MarqueeProps,
+} from "./marquee";
 export { house, houseDown, show } from "./house";
 export { SETTLE_RUNG, Swap, type SwapProps } from "./swap";
 export {

@@ -8,6 +8,3 @@ export const MOVIE_WRITER_LIMIT = 10;
 export const MOVIE_CERTIFICATION_REGION = "US";
 
 export const MOVIE_FALLBACK_ICON = "solar:clapperboard-play-bold";
-
-// The key a film's poster is carried across pages under.
-export const posterCarry = (id: number) => `movie-poster:${id}`;

@@ -1,7 +1,6 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { usePathname } from "next/navigation";
 import { MotionConfig } from "motion/react";
 import { Room, bindScore, defineScore } from "@/motion/engine";
 
@@ -34,10 +33,8 @@ export function SalonStage({
   children: ReactNode;
   className: string;
 }) {
-  const pathname = usePathname();
-
   return (
-    <SalonStageRoot grade={null} memory={pathname}>
+    <SalonStageRoot grade={null}>
       <Room black />
       <MotionConfig reducedMotion="user">
         <main

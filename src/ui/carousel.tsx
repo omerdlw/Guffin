@@ -236,6 +236,7 @@ export function Carousel({
           className,
         )}
         data-cursor="drag"
+        data-rack=""
         onDragStart={(event) => event.preventDefault()}
         onPointerDown={stopGlide}
         onScroll={sync}

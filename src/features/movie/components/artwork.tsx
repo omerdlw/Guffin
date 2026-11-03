@@ -7,7 +7,6 @@ import { Icon, TONE } from "@/ui";
 import { POINTS, step } from "@/motion/engine";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/images";
 import type { Awards, MovieDetails } from "@/infrastructure/tmdb/types";
-import { posterCarry } from "../constants";
 import {
   DetailBackdrop,
   ImageModal,
@@ -33,7 +32,6 @@ export function MoviePoster({
     <ArtworkPrint
       alt={`${movie.title} poster`}
       awards={awards}
-      carry={posterCarry(movie.id)}
       className="@container w-full shrink-0"
       fallbackIcon="solar:clapperboard-play-bold"
       frameClassName="h-[round(150cqw,1px)]"
@@ -102,7 +100,7 @@ export function MovieBackdropHero({ movie }: { movie: Artwork }) {
   if (!image) return null;
 
   return (
-    <DetailBackdrop src={image} still={still}>
+    <DetailBackdrop src={image} still={still} title={movie.title}>
       <Slate title={movie.title} />
     </DetailBackdrop>
   );

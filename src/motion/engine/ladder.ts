@@ -4,9 +4,15 @@
 export const PHI = (1 + Math.sqrt(5)) / 2;
 export const BEAT = 0.5;
 export const TRAVEL = 24;
-export const TEMPO_RANGE = 2;
+export const TEMPO_RANGE = 3;
 
 export const step = (rung: number) => BEAT * PHI ** rung;
+
+// Softness is on the ladder too: `haze(n) = φⁿ` px of blur. The most any part
+// is allowed to be out of focus at once is HAZE_CAP, however many forces add
+// up, so depth stays a look and never becomes a cost.
+export const haze = (rung: number) => PHI ** rung;
+export const HAZE_CAP = haze(6);
 
 export const rungOf = (seconds: number) =>
   Math.log(seconds / BEAT) / Math.log(PHI);

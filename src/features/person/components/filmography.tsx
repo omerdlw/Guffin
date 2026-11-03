@@ -99,7 +99,6 @@ export function PersonFilmography({
                 <MoviePosterLink
                   detail={credit.role}
                   radius={RADIUS.card}
-                  carried
                   movie={{
                     id: credit.id,
                     posterPath: credit.posterPath,

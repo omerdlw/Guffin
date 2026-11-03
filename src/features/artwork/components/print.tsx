@@ -8,14 +8,12 @@ import { StagePart } from "@/motion/engine";
 import { AdaptiveImage, Icon } from "@/ui";
 import { artworkTarget } from "../hooks";
 
-// A poster as a part of the page's score: it arrives by the part's own verb
-// (or lands as the picture carried over from the page before), and once in
-// the hand it leans toward the pointer. A film that won the Academy Award
-// catches the light in foil.
+// A poster as a part of the page's score: it arrives by the part's own verb,
+// and once in the hand it leans toward the pointer. A film that won the
+// Academy Award catches the light in foil.
 export function ArtworkPrint({
   alt,
   awards,
-  carry,
   className = "w-full shrink-0",
   fallbackIcon,
   frameClassName,
@@ -25,7 +23,6 @@ export function ArtworkPrint({
 }: {
   alt: string;
   awards?: Promise<Awards | null>;
-  carry?: string;
   className?: string;
   fallbackIcon: string;
   frameClassName: string;
@@ -40,7 +37,6 @@ export function ArtworkPrint({
     >
       {(light) => (
         <StagePart
-          carry={carry}
           className="absolute inset-0 overflow-hidden rounded-[inherit]"
           name={part}
         >

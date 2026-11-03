@@ -32,6 +32,9 @@ import {
 import { pointerFromCentre, pointerSample, watchPointer } from "../pointer";
 
 const STREAK_GAIN = 2.5;
+// How far out of focus the picture falls away from the lens (a share of the
+// way to the second blur level): the lens pools light and the rest is soft.
+const AWAY_SOFT = 0.32;
 
 // The engine's scroll as a motion value: the same frame the page moves on,
 // with a velocity for the streaks.
@@ -81,6 +84,7 @@ out vec4 outColor;
 
 const float OVERSCAN = 1.07;
 const float DRAIN = 0.94;
+const float AWAY_SOFT = ${AWAY_SOFT.toFixed(2)};
 const float STREAK_GAIN = ${STREAK_GAIN.toFixed(1)};
 
 vec2 cover(vec2 uv, vec2 imageSize) {
@@ -148,10 +152,10 @@ void main() {
     ? length(here - trail * clamp(dot(here, trail) / run, 0.0, 1.0))
     : reach;
   float away = smoothstep(0.1, 0.6, reach) * uRack;
-  float pool = (1.0 - smoothstep(0.0, 0.5, caught)) * uRack
+  float pool = (1.0 - smoothstep(0.0, 0.58, caught)) * uRack
     / (1.0 + sqrt(run) * 1.5);
 
-  float focus = uDefocus + away * 0.2;
+  float focus = uDefocus + away * AWAY_SOFT;
 
   vec2 motion = st - cover(framed(uParallax - uMotion), uImageSize);
   float smear = length(motion / max(abs(vec2(slopeX.x, slopeY.y)), vec2(1e-6)));
@@ -195,7 +199,7 @@ void main() {
   }
 
   float grey = dot(color, vec3(0.299, 0.587, 0.114));
-  color = mix(color, vec3(grey), uDefocus * DRAIN + away * 0.12);
+  color = mix(color, vec3(grey), uDefocus * DRAIN + away * 0.16);
 
   float lift = pool * pool;
   color *= 1.0 + lift * 0.2 - (uRack - pool) * 0.07;
@@ -331,7 +335,7 @@ function pull(
 
 const FRAME_MS = 1000 / 24;
 const CAMERA = { damping: 8.6, stiffness: 48 };
-const LENS = { damping: 21.5, stiffness: 160 };
+const LENS = { damping: 20.4, stiffness: 104 };
 const LINGER = 4000;
 const EXPOSURE = 0.58;
 const EXPOSURE_MAX = 1.6;
@@ -669,7 +673,7 @@ function project(
       }
       const nextRack =
         rack +
-        ((alive ? 1 : 0) - rack) * (1 - Math.exp(-dt * (alive ? 5 : 1.6)));
+        ((alive ? 1 : 0) - rack) * (1 - Math.exp(-dt * (alive ? 3.4 : 1.1)));
       const nowScrolled = scrollY.get();
       if (
         Math.abs(nextRack - rack) > 5e-4 ||

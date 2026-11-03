@@ -127,7 +127,7 @@ export function SegmentedControl<K extends string>({
       {pill ? (
         <SlidingPill
           box={pill}
-          className={cn("inset-y-0.5 bg-fill-active", round && "rounded-full")}
+          className={cn("inset-y-0.5 bg-grade/15", round && "rounded-full")}
         />
       ) : null}
       {items.map((item) => {
@@ -143,7 +143,7 @@ export function SegmentedControl<K extends string>({
               active
                 ? "text-ink"
                 : "text-ink-body hover:text-ink focus-visible:text-ink",
-              active && !pill && "bg-fill-active",
+              active && !pill && "bg-grade/15",
             )}
             key={item.key}
             onClick={() => onChange(item.key)}

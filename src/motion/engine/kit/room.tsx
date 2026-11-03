@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useSyncExternalStore } from "react";
+import { preload } from "react-dom";
 import { CURVE } from "../curve";
 import { PHI, step } from "../ladder";
 import { useEngine } from "../react";
@@ -30,8 +31,6 @@ const GLASS = [
 // The house goes down to φ⁻¹ dark, on the rung a panel arrives on.
 export const HOUSE_LEVEL = 1 / PHI;
 export const HOUSE_RUNG = 1;
-
-const GRAIN = 0.06;
 
 export function useHouseDown() {
   return useSyncExternalStore(house.subscribe, houseDown, () => false);
@@ -72,44 +71,27 @@ function HouseLights() {
   );
 }
 
-// Screen grain: one dot of noise per device pixel, drawn once per size.
-export function Grain({ className }: { className?: string }) {
-  const canvas = useRef<HTMLCanvasElement>(null);
+// Screen grain: one dot of noise per device pixel, tiled. The tile is a file
+// of its own, preloaded with the document and laid in the layer from its first
+// render, so the grain is there with the page's first paint and on every page
+// after it, and never arrives after the page has. (Inside a cinematic scope
+// the engine owns all motion, so a CSS fade would not run: it is not faded.)
+const GRAIN_TILE = "/grain.png";
 
-  useEffect(() => {
-    const el = canvas.current;
-    const context = el?.getContext("2d");
-    if (!el || !context) return;
-    const draw = () => {
-      const ratio = Math.min(window.devicePixelRatio || 1, 2);
-      const width = Math.max(1, Math.round(el.clientWidth * ratio));
-      const height = Math.max(1, Math.round(el.clientHeight * ratio));
-      el.width = width;
-      el.height = height;
-      const image = context.createImageData(width, height);
-      const pixels = image.data;
-      for (let i = 0; i < pixels.length; i += 4) {
-        const n = Math.random() - 0.5;
-        const a = Math.abs(n) * 2 * GRAIN * 255;
-        const v = n > 0 ? 255 : 0;
-        pixels[i] = v;
-        pixels[i + 1] = v;
-        pixels[i + 2] = v;
-        pixels[i + 3] = a;
-      }
-      context.putImageData(image, 0, 0);
-    };
-    draw();
-    const observer = new ResizeObserver(draw);
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
+// The tile is drawn for two device pixels to the point.
+const TILE = 512;
+
+export function Grain({ className }: { className?: string }) {
+  preload(GRAIN_TILE, { as: "image", fetchPriority: "high" });
 
   return (
-    <canvas
+    <div
       aria-hidden="true"
       className={className ?? "pointer-events-none fixed inset-0 z-0 size-full"}
-      ref={canvas}
+      style={{
+        backgroundImage: `url(${GRAIN_TILE})`,
+        backgroundSize: `${TILE / 2}px`,
+      }}
     />
   );
 }

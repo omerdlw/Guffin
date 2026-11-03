@@ -1,5 +1,5 @@
 import type { Engine } from "./engine";
-import { PHI, reach } from "./ladder";
+import { PHI, haze, reach } from "./ladder";
 import { blend, css, neutral, type Shade } from "./look";
 import { MATTER, response, type Matter, type MatterName } from "./matter";
 import { Value } from "./value";
@@ -13,18 +13,23 @@ export interface Force {
 
 // How a part answers a hand. Hover and press are two springs of the part's own
 // matter; a press answers one rung faster than a hover, and lets go at the
-// speed of the hover.
+// speed of the hover. A press is a breath taken in: the part sinks a little
+// and softens (haze(0), one pixel at most), then comes back into focus as the
+// hand lets go.
 export const TOUCH = {
   press: (_hover: number, press: number): Shade => ({
     scale: 1 - press * PHI ** -7,
+    blur: press * haze(0),
   }),
   lift: (hover: number, press: number): Shade => ({
     y: -hover * reach(-3),
     scale: (1 + hover * PHI ** -8) * (1 - press * PHI ** -7),
+    blur: press * haze(0),
   }),
   glow: (hover: number, press: number): Shade => ({
     brightness: 1 + hover * PHI ** -4,
     scale: 1 - press * PHI ** -7,
+    blur: press * haze(0),
   }),
 } as const;
 

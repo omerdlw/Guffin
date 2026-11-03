@@ -11,6 +11,10 @@ export const SCROLL_RUNG = 1;
 
 const LINE = 40;
 const LATCH = 160;
+// How long what the browser says about an element's overflow, or about a page
+// held still, is believed. Neither changes between two wheel steps.
+const STYLE_TTL = 1000;
+const LOCK_TTL = 100;
 const SCROLLING = "data-scrolling";
 
 export interface ScrollTarget {
@@ -24,7 +28,19 @@ function wheelPixels(event: WheelEvent) {
   return event.deltaY;
 }
 
-function scrollsInside(target: EventTarget | null, delta: number) {
+const overflows = new WeakMap<HTMLElement, { at: number; scrolls: boolean }>();
+
+function scrollsOverflow(element: HTMLElement, now: number) {
+  const known = overflows.get(element);
+  if (known && now - known.at < STYLE_TTL) return known.scrolls;
+  const { overflowY } = getComputedStyle(element);
+  const scrolls =
+    overflowY === "auto" || overflowY === "scroll" || overflowY === "overlay";
+  overflows.set(element, { at: now, scrolls });
+  return scrolls;
+}
+
+function scrollsInside(target: EventTarget | null, delta: number, now: number) {
   let element = target instanceof Element ? target : null;
   while (
     element &&
@@ -33,12 +49,10 @@ function scrollsInside(target: EventTarget | null, delta: number) {
   ) {
     if (element instanceof HTMLElement) {
       if (element.hasAttribute("data-scroll-native")) return true;
-      const { overflowY } = getComputedStyle(element);
-      const scrolls =
-        overflowY === "auto" ||
-        overflowY === "scroll" ||
-        overflowY === "overlay";
-      if (scrolls && element.scrollHeight > element.clientHeight + 1) {
+      if (
+        scrollsOverflow(element, now) &&
+        element.scrollHeight > element.clientHeight + 1
+      ) {
         const atTop = element.scrollTop <= 0;
         const atEnd =
           element.scrollTop + element.clientHeight >= element.scrollHeight - 1;
@@ -50,10 +64,15 @@ function scrollsInside(target: EventTarget | null, delta: number) {
   return false;
 }
 
-function locked() {
+const lock = { at: -Infinity, held: false };
+
+function locked(now: number) {
+  if (now - lock.at < LOCK_TTL) return lock.held;
   const root = getComputedStyle(document.documentElement).overflowY;
   const body = getComputedStyle(document.body).overflowY;
-  return root === "hidden" || root === "clip" || body === "hidden";
+  lock.held = root === "hidden" || root === "clip" || body === "hidden";
+  lock.at = now;
+  return lock.held;
 }
 
 export class ScrollDriver {
@@ -61,7 +80,8 @@ export class ScrollDriver {
   private tempo = 0;
   private written = 0;
   private started = false;
-  private resting: (() => void) | null = null;
+  private resting: ReturnType<typeof setTimeout> | null = null;
+  private movedAt = 0;
   private latch = {
     at: 0,
     inside: false,
@@ -168,15 +188,25 @@ export class ScrollDriver {
     this.scrolling();
   }
 
+  // One timer stands for the whole run of frames: each frame only notes when
+  // it moved, and the timer, when it fires, waits out whatever is left.
   private scrolling() {
-    if (!this.resting) document.documentElement.setAttribute(SCROLLING, "");
-    this.resting?.();
-    const timer = setTimeout(() => this.rest(), step(-2) * 1000);
-    this.resting = () => clearTimeout(timer);
+    this.movedAt = performance.now();
+    if (this.resting !== null) return;
+    document.documentElement.setAttribute(SCROLLING, "");
+    this.wait(step(-2) * 1000);
+  }
+
+  private wait(ms: number) {
+    this.resting = setTimeout(() => {
+      const left = step(-2) * 1000 - (performance.now() - this.movedAt);
+      if (left > 1) this.wait(left);
+      else this.rest();
+    }, ms);
   }
 
   private rest() {
-    this.resting?.();
+    if (this.resting !== null) clearTimeout(this.resting);
     this.resting = null;
     document.documentElement.removeAttribute(SCROLLING);
   }
@@ -189,7 +219,7 @@ export class ScrollDriver {
       latch.sign !== sign ||
       event.timeStamp - latch.at > LATCH
     ) {
-      latch.inside = scrollsInside(event.target, event.deltaY);
+      latch.inside = scrollsInside(event.target, event.deltaY, event.timeStamp);
       latch.sign = sign;
       latch.target = event.target;
     }
@@ -201,7 +231,7 @@ export class ScrollDriver {
     if (event.defaultPrevented || event.ctrlKey || event.metaKey) return;
     if (event.shiftKey || event.deltaY === 0) return;
     if (Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
-    if (this.quiet() || this.inside(event) || locked()) return;
+    if (this.quiet() || this.inside(event) || locked(event.timeStamp)) return;
     event.preventDefault();
     const from = this.moving ? this.position.target : this.position.current;
     const y = clamp(from + wheelPixels(event), 0, this.limit());

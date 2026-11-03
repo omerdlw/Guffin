@@ -52,7 +52,7 @@ export function MoviePeople({ cast, crew }: MoviePeopleProps) {
   };
 
   return (
-    <DetailSection className="flex w-full flex-col" cue="shelf">
+    <DetailSection className="flex w-full flex-col" cue="shelf" now>
       <Heading
         actions={
           <SegmentedControl
@@ -67,7 +67,7 @@ export function MoviePeople({ cast, crew }: MoviePeopleProps) {
         title="Cast & Crew"
       />
 
-      <DetailSwap className="flex flex-col gap-3" cue="cast" id={tab}>
+      <DetailSwap className="flex flex-col gap-3" cue="cast" id={tab} now>
         <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {featured.map((person, index) => (
             <DetailPart

@@ -77,6 +77,11 @@ values, so changing the system means changing one line.
 - **One answer to a touch.** Every control reacts in the same two beats: light
   arriving fast, decaying slowly. Consistency is the polish.
 - **One scale.** 5% opacity steps, a 4px corner grid, a golden-ratio time scale.
+- **Slow, soft, in focus.** Nothing is hurried and nothing cuts in. A part comes
+  out of the soft (blur, scale, opacity together) and takes its edge last, so
+  the eye follows every movement from its first frame to its last.
+- **The same every time.** A page opens with the same sequence, at the same
+  times, in the same rhythm, on every visit (section 6.3).
 
 ## 3. Foundations
 
@@ -254,10 +259,36 @@ are powers of φ. The default transition is `leave` on `out-quart`.
 | `out-quart`    | -                       | The default for anything unnamed        |
 | `in-cubic`     | -                       | Leaving                                 |
 
+Every curve starts gently and keeps moving to the end. As the share of its time
+a curve has used when it reaches 50% / 90% of the way: `fade` 35 / 63, `silk`
+34 / 61, `pour` 31 / 59, `expo` 27 / 58, `fall` 50 / 77. (The curves these
+replaced reached 90% after a third of their time, which is why a 1.3 s arrival
+looked finished in half a second.) New curves are measured the same way: no
+curve may reach 90% before half of its time.
+
 The engine also owns `pour`, `dolly` and `fall`, reached as `--curve-<name>` in
 CSS. The CSS names that have an engine curve are aliases of its `--curve-*`
 variable, so there is one definition of each. In motion's API, pass a curve as
 `[...POINTS.expo]` and a duration as `step(n)`; never a number of seconds.
+
+#### Focus
+
+Blur is a rung like time: `haze(n) = φⁿ` px, in CSS `--haze-n1 … --haze-6`
+(0.6 px … 17.9 px). It is a force of the same standing as opacity, scale and
+travel, and the engine caps what one part may carry at once (`HAZE_CAP`,
+`haze(6)`).
+
+- Entering and leaving verbs carry it: opacity lands first, then scale and blur
+  finish with the movement, so the last thing seen is the part coming into
+  focus.
+- A press softens the control by `haze(-1)` and lets it back into focus; a card
+  in a row that is pointed at puts its neighbours out of focus by `haze(1)`
+  (`data-rack`).
+- **Glass never carries a filter.** A filter on an element takes the backdrop
+  away from every `backdrop-filter` below it, so layers (`SHELL`, `FLOAT`, the
+  dock card) animate by opacity and scale; what is written inside them (text,
+  icons, rows) comes out of the soft.
+- Reduced motion removes blur with the rest of the movement.
 
 Transitions are off by default in `globals.css` and exist inside `.ui-motion`,
 `.ui-scene` and `[data-cinematic]`; a component that animates lives inside one.
@@ -438,15 +469,14 @@ seems to need one, the page is missing a matter, a verb or a rung (section 6.9).
 ### 6.1 Time: one ladder, one tempo
 
 Every duration is a rung of the ladder in section 3.6. A page chooses only its
-**tempo** (-2 to +2): how many rungs to slide the whole ladder. Because the
+**tempo** (-3 to +3): how many rungs to slide the whole ladder. Because the
 ladder is geometric, tempo scales every duration by the same factor.
 
-| Surface                             | Tempo | Why                                               |
-| ----------------------------------- | ----- | ------------------------------------------------- |
-| Legal pages                         | -1    | Reading, not a scene                              |
-| Film, person, home, account, salons | 0     | The default pace                                  |
-| Dock surfaces                       | -2    | A tool in the hand, two rungs quicker than a page |
-| Revisited page                      | -1    | A page already seen plays one rung quicker        |
+| Surface                             | Tempo | Why                                                 |
+| ----------------------------------- | ----- | --------------------------------------------------- |
+| Legal pages                         | -1    | Reading, not a scene                                |
+| Film, person, home, account, salons | 0     | The default pace                                    |
+| Dock surfaces                       | -3    | A tool in the hand, three rungs quicker than a page |
 
 In CSS, `StageRoot` and `SurfaceRoot` set `data-tempo` and `--tempo` on their
 own root, and the `--step-*` tokens are declared on `:root,[data-tempo]` so they
@@ -460,12 +490,21 @@ and its entering and leaving verbs.
 
 | Matter  | Rung | Arrives | Enters    | Leaves | For                      |
 | ------- | ---- | ------- | --------- | ------ | ------------------------ |
-| `light` | 1    | 0.81 s  | `glow`    | `fade` | Labels, facts, figures   |
-| `glass` | 1    | 0.81 s  | `clear`   | `fog`  | Panels, buttons, notes   |
-| `ink`   | 2    | 1.31 s  | `rise`    | `fade` | Titles, text             |
-| `paper` | 2    | 1.31 s  | `lift`    | `sink` | Cards, posters, rows     |
-| `metal` | 3    | 2.12 s  | `settle`  | `sink` | A heavy object           |
+| `light` | 2    | 1.31 s  | `glow`    | `fade` | Labels, facts, figures   |
+| `glass` | 2    | 1.31 s  | `clear`   | `fog`  | Panels, buttons, notes   |
+| `ink`   | 3    | 2.12 s  | `rise`    | `fade` | Titles, text             |
+| `paper` | 3    | 2.12 s  | `lift`    | `sink` | Cards, posters, rows     |
+| `metal` | 4    | 3.43 s  | `settle`  | `sink` | A heavy object           |
 | `plate` | 4    | 3.43 s  | `develop` | `cool` | A backdrop, a photograph |
+
+Prose enters with `read` (word by word, a wave of light blur and a few pixels
+of travel); a staircase step enters with `descend` (from above and a little
+behind). Nothing is a block: text is split into words or letters, a heading
+into lamp, letters, rule and actions, a sidebar into its rows.
+
+Display type enters with `focus` (`{ matter: "ink", enter: "focus" }`): out of
+a blur of `haze(5)`, a little larger and a little low, into its edge. Nothing
+arrives in less than a second and a quarter.
 
 - **Leaving** takes two rungs less than arriving and never more than `step(2)`.
   A page lets go faster than it arrived.
@@ -477,18 +516,34 @@ and its entering and leaving verbs.
 
 ### 6.3 Attention: one queue
 
-- One beat asks for attention at a time. The next beat starts **two rungs
+- One beat asks for attention at a time. The next beat starts **three rungs
   inside** the previous one (`CUE_LEAD`): when the eye finds it, not when the
-  last one lands.
-- Copies of one part (list rows, words) arrive on a golden `trail`; however many
+  last one lands. Matters arrive one rung slower than they once did and the
+  lead is one rung longer, so beats start when they always did and every part
+  overlaps the one before it by more.
+- Copies of one part follow each other by their `cadence`: rows and cards on a
+  golden `trail` (each gap φ⁻¹ of the one before); words, letters and lines at
+  an **even** gap, paced like speech, never bunched at the end; a column of
+  rows or buttons on **stairs**: one step after another, top to bottom, the
+  whole flight no longer than one arrival. A score may cast a cadence
+  (`{ matter: "light", enter: "descend", cadence: "stairs" }`). However many
   there are, they fit in a window one rung below the part.
+- **The opening is a fixed piece of time.** The curtain stays down until the
+  opening's parts are ready (the picture, the fonts) or `PATIENCE` has run out;
+  then the whole opening is laid on the clock at once, every beat at its own
+  place on the score's timeline (`stage.timeline`), counted from the frame the
+  curtain rose. What comes before the curtain is waiting; what comes after is
+  always the same sequence at the same times. It does not depend on frame
+  rate, scroll, a backlog, the order parts mounted in, or an earlier visit
+  (there is no faster revisit). A part that mounts late takes its place on the
+  timeline.
 - A section scrolled into view joins the same queue, when its top edge reaches
   φ⁻¹ of the screen. Waiting cues shorten the gap by a rung, at most two
   (`HURRY_CAP`): a fast scroller never waits for an animation.
 - A part in the cast that no beat calls plays with the last beat of the
   opening. Nothing stays in the dark.
 - A part that must wait for its picture says `usePart(name, { ready: false })`;
-  the beat holds for it, no longer than `step(3)`.
+  the curtain holds for it, no longer than `step(3)`.
 - A section that is the direct continuation of the opening but lives in its own
   scope is `Section now` / `Swap now`. Dock surfaces use `now` throughout.
 
@@ -506,7 +561,7 @@ and its entering and leaving verbs.
 ### 6.5 Touch: the same matter at the speed of a hand
 
 Hover, focus and press enter a part as a **force** and are blended with the
-fields. The verbs are `press` (shrinks by φ⁻⁷), `lift` (rises `reach(-3)`) and
+fields. The verbs are `press` (shrinks by φ⁻⁷ and softens by `haze(-1)`), `lift` (rises `reach(-3)`) and
 `glow` (brightens by φ⁻⁴). `:focus-visible` counts as hover and Enter as press.
 A part takes `usePart(name, { touch: "lift" })`; a button that is not a part
 takes `useTouch({ verb, matter })`, which writes only `transform` and `filter`.
@@ -530,8 +585,8 @@ the CSS half.
   link, never `router.push`, which skips the hold.
 - **Hand-over.** `usePart("poster", { carry: "poster" })` lets a pressed picture
   fly to its twin on the next page, for `step(min(rung + tempo - 1, 2))` on
-  `glide`. Poster rows carry `posterCarry(id)`; small pictures (reviews,
-  rising members) do not.
+  `glide`. No page uses it for posters now: film and person pages always open
+  on the title card (`Marquee`), so no picture flies in under it.
 - **Reduced motion.** Everything arrives at once, over `step(-1)`, by opacity
   alone: no movement, depth, drift or wheel driving. The clock sleeps when
   nothing moves, caps a frame at 1/20 s, and writes `will-change` only while
@@ -547,30 +602,34 @@ light in a different colour. It crosses the hue circle by the short way over
 and `--grade` (the channels behind `bg-grade/15` and `text-grade`). The colour
 is handed over between pages, and stays until the next page reads its own
 picture. `Room` paints the light (wash, grain, lens glass, house lights) and has
-no motion; `useShowing` dims the house by φ⁻¹ while a modal stands in front.
+no motion; the grain is a file of its own (`/grain.png`), preloaded with the
+document and laid from the first render, so it is there at the first paint and
+is never faded in. `useShowing` dims the house by φ⁻¹ while a modal stands in front.
 
 ### 6.8 The kit and the recipes
 
 Build with the kit in `src/motion/engine/kit/` (bound to the page's score by
 `bindScore`) before writing anything of your own.
 
-| Need                                                 | Use                                                            |
-| ---------------------------------------------------- | -------------------------------------------------------------- |
-| A page, and its parts and sections                   | `StageRoot`, `Part` / `usePart`, `Section`                     |
-| A headline or text that arrives by words or lines    | `Text` (`by="line"`, `mask`)                                   |
-| A section heading (lamp, name, rule, actions)        | `Header` cast as `{ matter: "ink", enter: "still" }`           |
-| A printed line of text that exposes and burns away   | `Expose` (`hover` replays the band)                            |
-| A number that counts up                              | `Count`                                                        |
-| Content that changes in place (filter, tab, page)    | `Swap`                                                         |
-| Views kept alive while hidden                        | `Deck` (with `cue`, or as columns of sections)                 |
-| A gallery wall hung in front of the page             | `WallStage`, `useWall`                                         |
-| The light of the room                                | `Room`                                                         |
-| A canvas or WebGL scene                              | `useScene` / `mountScene`: frames come from the engine's clock |
-| A poster with tilt, glare and a hand-over            | `ArtworkPrint part carry`                                      |
-| A carousel                                           | `Carousel part="…"`, each slide a part                         |
-| An action button that belongs to the stage           | `ActionButton` with the page's `Part`                          |
-| A dock surface (fields, rows, loaders, empty states) | `SurfaceStage`, `SurfacePart`, `SurfaceSwap`                   |
-| A canvas that is not a scene                         | Do not. Mount it as a `useScene` part                          |
+| Need                                                       | Use                                                            |
+| ---------------------------------------------------------- | -------------------------------------------------------------- |
+| A page, and its parts and sections                         | `StageRoot`, `Part` / `usePart`, `Section`                     |
+| A headline or text that arrives by words or letters        | `Text` (`by="word"` `"char"` `"line"` `"block"`)               |
+| A section heading (lamp, name, rule, actions)              | `Header` cast as `{ matter: "ink", enter: "still" }`           |
+| A printed line of text that exposes and burns away         | `Expose` (`hover` replays the band)                            |
+| A film's or person's name: lit from the left, then focused | `Bloom` cast as `{ matter: "ink", enter: "still" }`            |
+| A page that opens on its title, picture cut into the name  | `Marquee` cast as `{ matter: "plate", enter: "still" }`        |
+| A number that counts up                                    | `Count`                                                        |
+| Content that changes in place (filter, tab, page)          | `Swap`                                                         |
+| Views kept alive while hidden                              | `Deck` (with `cue`, or as columns of sections)                 |
+| A gallery wall hung in front of the page                   | `WallStage`, `useWall`                                         |
+| The light of the room                                      | `Room`                                                         |
+| A canvas or WebGL scene                                    | `useScene` / `mountScene`: frames come from the engine's clock |
+| A poster with tilt and glare                               | `ArtworkPrint part`                                            |
+| A carousel                                                 | `Carousel part="…"`, each slide a part                         |
+| An action button that belongs to the stage                 | `ActionButton` with the page's `Part`                          |
+| A dock surface (fields, rows, loaders, empty states)       | `SurfaceStage`, `SurfacePart`, `SurfaceSwap`                   |
+| A canvas that is not a scene                               | Do not. Mount it as a `useScene` part                          |
 
 Rules of use:
 
@@ -622,7 +681,7 @@ places the rules above bend:
   lens springs may sit below the 5% step and use raw white or black.
 - **The idle screen's CRT** (switch-off collapse, beam) keeps its own curves and
   timings; it imitates a device, not the interface.
-- **The kit's exposure light** (`Expose`, `Header`, `Room`) is a warm white near
+- **The kit's exposure light** (`Expose`, `Header`, `Bloom`, `Room`) is a warm white near
   `#fcfcfb` and may use raw rgb, because it is light on the picture.
 - **A member's backdrop** washed behind a notification: 25, 40 on hover.
 - **Pointer followers** (the reticle's cursor loop, `layout-flow`'s FLIP

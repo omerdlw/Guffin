@@ -5,12 +5,13 @@ import { bindScore, defineScore } from "@/motion/engine";
 import { cn } from "./cn";
 
 // A dock surface: a short rest while the dock opens its panel, then the
-// surface's fields and rows, one after another. Two rungs quicker than a
-// page; it is a tool in the hand, not a scene. Content that changes in place
+// surface's fields and rows, one after another. It is a tool in the hand, not
+// a scene, so it runs three rungs quicker than a page: the same matter that
+// takes a page 2.1 s takes a surface 0.5 s. Content that changes in place
 // (a loaded list, another tab) is a swap: what was there leaves, the new rows
 // come up from the dark.
 const SURFACE = defineScore({
-  tempo: -2,
+  tempo: -3,
   cast: {
     item: "paper",
     row: "paper",

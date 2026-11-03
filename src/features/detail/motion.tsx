@@ -9,18 +9,28 @@ import { bindScore, defineScore } from "@/motion/engine";
 // one of them has is folded into a beat the other already plays.
 const DETAIL = defineScore({
   cast: {
+    // The title card the page opens on: the name alone in the middle, the
+    // picture showing through its letters, then the dive into it (`Marquee`).
+    // It holds the curtain, and only its arrival (the dive) is a movement.
+    marquee: { matter: "plate", enter: "still", leave: "still" },
     // The projected still, a step behind the page.
     backdrop: { matter: "plate", depth: 1 },
-    title: "ink",
+    // A film's name or a person's: lit from the left by a sweep of light and
+    // pulled into focus behind it (`Bloom`), so only the bloom moves.
+    title: { matter: "ink", enter: "still" },
     rule: { matter: "ink", enter: "wipe", leave: "fade" },
     tagline: "light",
     // A person's trade, set by the rule where a film has its tagline.
     role: "light",
-    overview: { matter: "ink", leave: "fade" },
+    // Prose is read as a wave, word after word.
+    overview: { matter: "ink", enter: "read", leave: "fade" },
     poster: { matter: "plate", enter: "door" },
-    stat: "light",
-    action: "glass",
-    proof: "glass",
+    // The sidebar is a staircase: each step comes down from above, one after
+    // another, from the poster to the last fact.
+    stat: { matter: "light", enter: "descend", cadence: "stairs" },
+    action: { matter: "glass", enter: "descend", cadence: "stairs" },
+    proof: { matter: "glass", enter: "descend", cadence: "stairs" },
+    row: { matter: "light", enter: "descend", cadence: "stairs" },
     // A person's profiles, and the way to the whole biography.
     link: "glass",
     label: "light",
@@ -50,14 +60,20 @@ const DETAIL = defineScore({
   },
   // The poster comes in with the overview, so the words under the title are
   // not held back by the plate's longer settle.
+  // The picture develops behind the letters as the camera dives into them;
+  // the page's own title is set once they have gone by. A page without a card
+  // does not take that pause.
   opening: [
-    "backdrop",
+    ["marquee", "backdrop"],
+    { rest: 1, with: "marquee" },
     "title",
     "rule",
     ["tagline", "role"],
-    ["overview", "poster", "stat"],
-    ["action", "proof", "link"],
-    ["label", "value", "line"],
+    ["overview", "poster"],
+    "stat",
+    "action",
+    ["proof", "link"],
+    ["row", "label", "value", "line"],
   ],
   sections: {
     // A heading whose content is swapped in place below it.
@@ -86,6 +102,8 @@ export const DetailPart = bound.Part;
 export const DetailSection = bound.Section;
 export const DetailText = bound.Text;
 export const DetailHeader = bound.Header;
+export const DetailBloom = bound.Bloom;
+export const DetailMarquee = bound.Marquee;
 export const DetailExpose = bound.Expose;
 export const DetailCount = bound.Count;
 export const DetailSwap = bound.Swap;

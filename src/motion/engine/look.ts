@@ -1,3 +1,5 @@
+import { HAZE_CAP } from "./ladder";
+
 // What a part looks like this frame. Every force (arriving, leaving, depth,
 // drift) adds a shade; shades blend into one look and are written once.
 
@@ -73,7 +75,8 @@ export function css(look: Look): Css {
     transform.push(`rotate(${round(look.rotate)}deg)`);
 
   const filter: string[] = [];
-  if (look.blur > 0.05) filter.push(`blur(${round(look.blur)}px)`);
+  const blur = Math.min(look.blur, HAZE_CAP);
+  if (blur > 0.05) filter.push(`blur(${round(blur)}px)`);
   if (round(look.brightness) !== 1)
     filter.push(`brightness(${round(look.brightness)})`);
   if (round(look.saturate) !== 1)

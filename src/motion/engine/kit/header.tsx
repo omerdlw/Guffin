@@ -1,33 +1,113 @@
 "use client";
 
-import { useEffect, useRef, type ReactNode } from "react";
-import { CURVE } from "../curve";
-import { clamp, reach } from "../ladder";
+import { useRef, type ReactNode } from "react";
+import { CURVE, elapsed } from "../curve";
+import { PHI, clamp, haze, reach } from "../ladder";
 import { useAnyStage, usePartOf } from "../react";
-import {
-  clearMask,
-  expose,
-  ExposureLayers,
-  setMask,
-  useExposure,
-} from "./expose";
+import { letters, words } from "../text";
+import { clearMask, setMask } from "./expose";
 
-// A section's heading lit by one head of light crossing the bar: the lamp
-// comes on as the head reaches it, the name is printed under it, the rule is
-// drawn behind it with a spark at its tip, the actions are wiped in last.
-// The crossing is the part's own arrival; cast the part with `enter: "still"`
-// so only the light moves, while leaving and depth still apply.
+// A section's heading, taken apart and put together again piece by piece: the
+// lamp comes on, the name is spelled out letter by letter, the rule is drawn
+// out of it, and the actions step in one after another. The pieces are not one
+// band of light crossing a bar; each has its own place in the part's arrival,
+// they overlap like beats of a score, and each comes out of the soft by its own
+// blur, travel and opacity.
+//
+// The whole heading is one part and its arrival is the clock: every piece
+// reads its own window of that arrival, so nothing here measures the page, and
+// the same heading always plays the same sequence. Cast the part with
+// `enter: "still"` so only the pieces move, while leaving and depth still
+// apply.
 
-// The lamp warms over a little more than its own width.
-const FEATHER = reach(0);
-// The name is printed over a little more than its width, so it trails.
-const PRINT_SPAN = 1.24;
-const SOFT = 14;
-const UNWIPED = `linear-gradient(90deg, #000 ${-SOFT}%, transparent 0%)`;
+// Where each piece plays in the arrival, as shares of it (0 → 1). They
+// overlap: the name starts spelling while the lamp is still coming on.
+const LAMP = [0, 0.3] as const;
+const NAME = [0.1, 0.65] as const;
+const RULE = [0.3, 0.85] as const;
+const ACTIONS = [0.5, 1] as const;
+// The wipe that opens the actions' block leads the pieces, and it is laid on
+// the clock (not on the part's eased progress, which is front-loaded). Its soft
+// edge is this wide, in % of the block.
+const WIPE = [0.25, 0.85] as const;
+const WIPE_EDGE = 32;
+// The wipe's mask clips to the block's box, so the block has room all round
+// (taken back in its margin) for the pieces' blur and shadows to spill into.
+const ROOM = "0.5rem";
 
-interface Place {
-  left: number;
-  width: number;
+// The share of its window each letter (or action) takes to come in; the rest
+// of the window is the wait for the ones after it.
+const LETTER_SHARE = 0.45;
+const ACTION_SHARE = 0.5;
+
+const TAKES_A_HAND =
+  'button, a[href], [role="tab"], [role="combobox"], [role="switch"]';
+
+type Window = readonly [from: number, to: number];
+
+const within = (progress: number, [from, to]: Window) =>
+  clamp((progress - from) / (to - from), 0, 1);
+
+// The i-th of n pieces within a window: they start evenly across it, and each
+// takes `share` of it.
+function staggered(
+  progress: number,
+  window: Window,
+  i: number,
+  n: number,
+  share: number,
+) {
+  const [from, to] = window;
+  const span = to - from;
+  const run = span * share;
+  const start = from + (n > 1 ? i / (n - 1) : 0) * (span - run);
+  return clamp((progress - start) / run, 0, 1);
+}
+
+// The actions' block is wiped open from left to right, a little ahead of the
+// pieces, so a control's track and pill (which are not pieces) are never seen
+// bare before their tabs: whatever the wipe has not reached is not there.
+function wipe(host: HTMLElement, reached: number) {
+  if (reached <= 0) {
+    clearMask(host);
+    host.style.opacity = "0";
+    return;
+  }
+  host.style.removeProperty("opacity");
+  if (reached >= 1) {
+    clearMask(host);
+    return;
+  }
+  const edge = (100 + WIPE_EDGE) * reached;
+  setMask(
+    host,
+    `linear-gradient(90deg, #000 ${edge - WIPE_EDGE}%, transparent ${edge}%)`,
+  );
+}
+
+// A piece that comes out of the soft: opacity lands first, travel and blur
+// finish with the movement.
+function come(el: HTMLElement, t: number, rung: number, travel: number) {
+  if (t >= 1) {
+    el.style.removeProperty("opacity");
+    el.style.removeProperty("filter");
+    el.style.removeProperty("transform");
+    return;
+  }
+  const eased = CURVE.silk(t);
+  el.style.opacity = clamp(eased * PHI, 0, 1).toFixed(3);
+  el.style.filter = `blur(${((1 - eased) * haze(rung)).toFixed(2)}px)`;
+  el.style.transform = `translate3d(0, ${((1 - eased) * travel).toFixed(2)}px, 0)`;
+}
+
+// What a heading's actions are made of: its buttons, tabs and links, not the
+// elements around them.
+function handsOf(host: HTMLElement) {
+  const found = Array.from(host.querySelectorAll<HTMLElement>(TAKES_A_HAND));
+  const own = found.filter(
+    (el) => !found.some((other) => other !== el && other.contains(el)),
+  );
+  return own.length > 0 ? own : [host];
 }
 
 export interface HeaderProps {
@@ -48,64 +128,29 @@ export function Header({
   nameClassName,
 }: HeaderProps) {
   const stage = useAnyStage();
-  const bar = useRef<HTMLDivElement>(null);
   const lamp = useRef<HTMLSpanElement>(null);
   const name = useRef<HTMLHeadingElement>(null);
-  const rule = useRef<HTMLDivElement>(null);
   const line = useRef<HTMLDivElement>(null);
   const spark = useRef<HTMLDivElement>(null);
-  const wipe = useRef<HTMLDivElement>(null);
-  const layers = useExposure();
-  const places = useRef<Map<HTMLElement, Place> | null>(null);
-  const head = useRef(0);
+  const hands = useRef<HTMLDivElement>(null);
 
-  const placeOf = (el: HTMLElement | null): Place | null => {
-    const host = bar.current;
-    if (!el || !host) return null;
-    places.current ??= new Map();
-    let place = places.current.get(el);
-    if (!place) {
-      const outer = host.getBoundingClientRect();
-      const inner = el.getBoundingClientRect();
-      place = { left: inner.left - outer.left, width: inner.width };
-      places.current.set(el, place);
-    }
-    return place;
-  };
+  const play = (progress: number) => {
+    if (lamp.current) come(lamp.current, within(progress, LAMP), 3, reach(-3));
 
-  // How far the head has crossed an element, given how wide its light is.
-  const reached = (el: HTMLElement | null, span: (width: number) => number) => {
-    const place = placeOf(el);
-    if (!place) return 1;
-    return clamp(
-      (head.current - place.left) / Math.max(1, span(place.width)),
-      0,
-      1,
-    );
-  };
-
-  const light = (progress: number) => {
-    const width = bar.current?.clientWidth ?? 0;
-    head.current = progress * width;
-
-    const lit = CURVE.fade(reached(lamp.current, (w) => w + FEATHER));
-    if (lamp.current) {
-      lamp.current.style.opacity = lit.toFixed(3);
-      lamp.current.style.filter =
-        lit >= 1 ? "none" : `blur(${((1 - lit) * 6).toFixed(2)}px)`;
-    }
-
-    const exposure = layers.get();
-    if (exposure)
-      expose(
-        exposure,
-        reached(name.current, (w) => w * PRINT_SPAN),
-        {
-          linear: true,
-        },
+    if (name.current) {
+      const spelled =
+        name.current.querySelectorAll<HTMLElement>("[data-letter]");
+      spelled.forEach((letter, i) =>
+        come(
+          letter,
+          staggered(progress, NAME, i, spelled.length, LETTER_SHARE),
+          3,
+          reach(-3),
+        ),
       );
+    }
 
-    const drawn = reached(rule.current, (w) => w);
+    const drawn = CURVE.silk(within(progress, RULE));
     if (line.current)
       line.current.style.transform = `scaleX(${drawn.toFixed(4)})`;
     if (spark.current) {
@@ -115,39 +160,33 @@ export function Header({
       spark.current.style.transform = `translateX(${(drawn * 100).toFixed(3)}%)`;
     }
 
-    const wiped = reached(wipe.current, (w) => w);
-    if (wipe.current) {
-      if (wiped >= 1) clearMask(wipe.current);
-      else {
-        const edge = wiped * (100 + SOFT);
-        setMask(
-          wipe.current,
-          `linear-gradient(90deg, #000 ${edge - SOFT}%, transparent ${edge}%)`,
-        );
-      }
+    const host = hands.current;
+    if (host) {
+      wipe(host, CURVE.glide(within(elapsed(CURVE.silk, progress), WIPE)));
+      const pieces = handsOf(host);
+      pieces.forEach((piece, i) =>
+        come(
+          piece,
+          staggered(progress, ACTIONS, i, pieces.length, ACTION_SHARE),
+          2,
+          reach(-3),
+        ),
+      );
     }
   };
 
   const props = usePartOf(stage, part, {
     css: true,
     render: (_look, state) => {
-      light(state.quiet ? (state.enter > 0 ? 1 : 0) : state.enter);
+      play(state.quiet ? (state.enter > 0 ? 1 : 0) : state.enter);
     },
   });
 
-  useEffect(() => {
-    const host = bar.current;
-    if (!host) return;
-    const forget = new ResizeObserver(() => {
-      places.current = null;
-    });
-    forget.observe(host);
-    return () => forget.disconnect();
-  }, []);
+  const spoken = words(title);
 
   return (
     <div {...props} className={className ?? "relative z-10 mb-4"}>
-      <div className="flex min-h-8 w-full items-center gap-4" ref={bar}>
+      <div className="flex min-h-8 w-full items-center gap-4">
         <div className="flex min-w-0 shrink-0 items-center gap-2.5">
           {icon ? (
             <span
@@ -160,22 +199,31 @@ export function Header({
             </span>
           ) : null}
           <h2
+            aria-label={title}
             className={nameClassName}
             ref={name}
             style={{ position: "relative" }}
           >
-            <ExposureLayers
-              text={title}
-              print={layers.print}
-              light={layers.light}
-            />
+            {spoken.map((word, i) => (
+              <span aria-hidden="true" key={i}>
+                <span style={{ display: "inline-block", whiteSpace: "nowrap" }}>
+                  {letters(word).map((letter, j) => (
+                    <span
+                      data-letter=""
+                      data-print=""
+                      key={j}
+                      style={{ display: "inline-block", opacity: 0 }}
+                    >
+                      {letter}
+                    </span>
+                  ))}
+                </span>
+                {i < spoken.length - 1 ? " " : null}
+              </span>
+            ))}
           </h2>
         </div>
-        <div
-          aria-hidden="true"
-          className="relative h-2 min-w-6 flex-1"
-          ref={rule}
-        >
+        <div aria-hidden="true" className="relative h-2 min-w-6 flex-1">
           <div className="absolute inset-x-0 top-1/2 h-px">
             <div
               className="absolute inset-0 origin-left"
@@ -206,8 +254,8 @@ export function Header({
           <div
             className="min-w-0"
             data-print=""
-            ref={wipe}
-            style={{ maskImage: UNWIPED, WebkitMaskImage: UNWIPED }}
+            ref={hands}
+            style={{ margin: `-${ROOM}`, opacity: 0, padding: ROOM }}
           >
             {actions}
           </div>

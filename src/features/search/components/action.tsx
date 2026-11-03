@@ -24,6 +24,7 @@ import {
   SegmentedControl,
   SkeletonBlock,
   SURFACE_FIELD,
+  TONE,
 } from "@/ui";
 import { SlidingHighlight } from "@/ui/sliding-highlight";
 import {
@@ -36,6 +37,7 @@ import {
   SEARCH_SCOPE_ITEMS,
 } from "../constants";
 import { useSearch } from "../hooks";
+import { SearchPart, SearchStage, SearchSwap } from "../motion";
 import { arrange, hrefsOf, type SearchSection } from "../overview";
 import type { SearchScope } from "../types";
 import { ListResultRow } from "./list-result-row";
@@ -48,20 +50,22 @@ const ROW_LIST = "flex flex-col gap-1";
 function Option({
   active,
   children,
-  className,
+  halo = false,
   id,
+  index,
   onPointerEnter,
 }: {
   active: boolean;
   children: ReactNode;
-  className?: string;
+  halo?: boolean;
   id: string;
+  index: number;
   onPointerEnter: () => void;
 }) {
   return (
     <li
       aria-selected={active}
-      className={cn("relative isolate min-w-0", className)}
+      className="relative isolate min-w-0"
       data-active={active ? "" : undefined}
       id={id}
       onPointerEnter={onPointerEnter}
@@ -69,11 +73,21 @@ function Option({
     >
       {active ? (
         <SlidingHighlight
-          className="rounded-card bg-fill-hover"
+          className={
+            halo
+              ? "z-20 rounded-tile ring-1 ring-grade/50 ring-inset"
+              : "rounded-card bg-grade/15 ring-1 ring-grade/25 ring-inset"
+          }
           layoutId="search-result-highlight"
         />
       ) : null}
-      <span className="relative z-10 block min-w-0">{children}</span>
+      <SearchPart
+        className="relative z-10 block min-w-0"
+        index={index}
+        name={halo ? "tile" : "row"}
+      >
+        {children}
+      </SearchPart>
     </li>
   );
 }
@@ -138,6 +152,7 @@ function rowsOf(
 
 function Section({
   active,
+  lead,
   onNavigated,
   onOptionPointerEnter,
   optionId,
@@ -145,8 +160,11 @@ function Section({
   section,
   spacers,
   start,
+  titled,
+  total,
 }: {
   active: number;
+  lead: number;
   onNavigated: () => void;
   onOptionPointerEnter: (index: number) => void;
   optionId: (index: number) => string;
@@ -154,16 +172,21 @@ function Section({
   section: SearchSection;
   spacers: number;
   start: number;
+  titled: boolean;
+  total: number;
 }) {
   const label = SEARCH_GROUP_LABELS[section.kind];
   const option = (
     offset: number,
     children: ReactNode,
     key: string | number,
+    halo = false,
   ) => (
     <Option
       active={start + offset === active}
+      halo={halo}
       id={optionId(start + offset)}
+      index={lead + 1 + offset}
       key={key}
       onPointerEnter={() => onOptionPointerEnter(start + offset)}
     >
@@ -171,8 +194,8 @@ function Section({
     </Option>
   );
 
-  if (section.kind === "movies") {
-    return (
+  const list =
+    section.kind === "movies" ? (
       <ul aria-label={label} className={POSTER_GRID} role="group">
         {section.hits.map((hit, offset) =>
           option(
@@ -185,22 +208,36 @@ function Section({
               sizes="110px"
             />,
             hit.id,
+            true,
           ),
         )}
         <Spacers count={spacers} kind="poster" />
       </ul>
+    ) : (
+      <ul aria-label={label} className={ROW_LIST} role="group">
+        {rowsOf(section, onNavigated, query).map(({ key, node }, offset) =>
+          option(offset, node, key),
+        )}
+        <Spacers count={spacers} kind="row" />
+      </ul>
     );
-  }
 
-  const rows = rowsOf(section, onNavigated, query).map(
-    ({ key, node }, offset) => option(offset, node, key),
-  );
+  if (!titled) return list;
 
   return (
-    <ul aria-label={label} className={ROW_LIST} role="group">
-      {rows}
-      <Spacers count={spacers} kind="row" />
-    </ul>
+    <div className="flex flex-col gap-2">
+      <div aria-hidden="true">
+        <SearchPart
+          className="flex h-4 items-center justify-between px-1 text-ink-muted"
+          index={lead}
+          name="row"
+        >
+          <span className={TONE.label}>{label}</span>
+          <span className="type-label font-semibold tabular-nums">{total}</span>
+        </SearchPart>
+      </div>
+      {list}
+    </div>
   );
 }
 
@@ -305,8 +342,6 @@ export function SearchAction({
 
   const showSkeleton = isLoading && hitCount === 0;
   const showEmpty = !isLoading && !failure && query !== "" && hitCount === 0;
-  const hasOutput =
-    showSkeleton || hitCount > 0 || showEmpty || Boolean(failure);
 
   const handleInput = (value: string) => {
     setInput(value);
@@ -368,10 +403,12 @@ export function SearchAction({
       .slice(0, index)
       .reduce((count, section) => count + section.hits.length, 0),
   );
+  const titled = scope === "all";
   const sections = view.sections.map((section, index) => (
     <Section
       active={active}
       key={section.kind}
+      lead={starts[index] + index}
       onNavigated={handleClear}
       onOptionPointerEnter={(index) =>
         setCursor({ index, key: viewKey, source: "pointer" })
@@ -381,149 +418,196 @@ export function SearchAction({
       section={section}
       spacers={hasPager ? view.perPage - section.hits.length : 0}
       start={starts[index]}
+      titled={titled}
+      total={results?.[section.kind].length ?? section.hits.length}
     />
   ));
 
-  return (
-    <div className="flex w-full flex-col">
-      <form className="relative w-full" onSubmit={handleSubmit} role="search">
-        <Icon
-          className={cn(
-            "pointer-events-none absolute top-1/2 left-4 -translate-y-1/2",
-            input ? "text-ink" : "text-ink-muted",
-          )}
-          icon="solar:magnifer-linear"
-          size={16}
-        />
-        <Input
-          aria-activedescendant={active >= 0 ? optionId(active) : undefined}
-          aria-autocomplete="list"
-          aria-controls={listId}
-          aria-expanded={hitCount > 0}
-          aria-label="Search movies, people, users, lists and reviews"
-          autoFocus={autoFocus}
-          autoCapitalize="off"
-          autoComplete="off"
-          autoCorrect="off"
-          className={cn(SURFACE_FIELD, "h-10 pr-10 pl-11 type-body")}
-          enterKeyHint="search"
-          maxLength={SEARCH_MAX_QUERY_LENGTH}
-          name="search"
-          onChange={(event) => handleInput(event.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Search movies, people, users, lists…"
-          role="combobox"
-          spellCheck={false}
-          type="text"
-          value={input}
-        />
-        <div className="absolute top-1/2 right-2 -translate-y-1/2">
-          {isLoading ? (
-            <Icon
-              aria-label="Searching"
-              className="text-ink-body"
-              icon="line-md:loading-loop"
-              size={16}
-            />
-          ) : input ? (
-            <Button
-              aria-label="Clear search"
-              className="ui-iris center relative size-6 cursor-pointer rounded-full text-ink-muted hover:text-ink focus-visible:text-ink"
-              onClick={handleClear}
-            >
-              <Icon icon="material-symbols:close-rounded" size={16} />
-            </Button>
-          ) : null}
-        </div>
-      </form>
+  // What is on screen, not what was asked: typing over a stale list keeps
+  // the list until the answer lands, and only then does it swap.
+  const shown = `${scope}:${view.page}:${hrefs.join("|")}`;
+  const swapId = failure
+    ? "failure"
+    : hitCount > 0
+      ? shown
+      : showSkeleton
+        ? `loading:${scope}`
+        : showEmpty
+          ? `empty:${scope}:${query}`
+          : "idle";
 
-      {query ? (
-        <SegmentedControl
-          ariaLabel="Search for"
-          className="mt-2.5"
-          round
-          fill
-          items={SEARCH_SCOPE_ITEMS}
-          onChange={handleScope}
-          value={scope}
-        />
-      ) : null}
+  return (
+    <SearchStage className="flex flex-col">
+      <SearchPart name="item">
+        <form
+          className="ui-scan group/field relative w-full rounded-full"
+          data-busy={isLoading ? "" : undefined}
+          onSubmit={handleSubmit}
+          role="search"
+        >
+          <Icon
+            className={cn(
+              "cine-fade pointer-events-none absolute top-1/2 left-4 -translate-y-1/2",
+              input
+                ? "text-grade"
+                : "text-ink-muted group-focus-within/field:text-ink",
+            )}
+            icon="solar:magnifer-linear"
+            size={16}
+          />
+          <Input
+            aria-activedescendant={active >= 0 ? optionId(active) : undefined}
+            aria-autocomplete="list"
+            aria-controls={listId}
+            aria-expanded={hitCount > 0}
+            aria-label="Search movies, people, users, lists and reviews"
+            autoFocus={autoFocus}
+            autoCapitalize="off"
+            autoComplete="off"
+            autoCorrect="off"
+            className={cn(
+              SURFACE_FIELD,
+              "h-11 rounded-full pr-12 pl-11 type-body focus:ring-grade/30",
+            )}
+            enterKeyHint="search"
+            maxLength={SEARCH_MAX_QUERY_LENGTH}
+            name="search"
+            onChange={(event) => handleInput(event.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Search movies, people, users, lists…"
+            role="combobox"
+            spellCheck={false}
+            type="text"
+            value={input}
+          />
+          <div className="absolute top-1/2 right-2 -translate-y-1/2">
+            {input ? (
+              <Button
+                aria-label="Clear search"
+                className="ui-iris center relative size-7 cursor-pointer rounded-full text-ink-muted hover:text-ink focus-visible:text-ink"
+                onClick={handleClear}
+              >
+                <Icon icon="material-symbols:close-rounded" size={16} />
+              </Button>
+            ) : (
+              <kbd className="pointer-events-none mr-2 hidden items-center rounded-full px-2 py-0.5 type-micro font-semibold tracking-label text-ink-muted uppercase ring-1 ring-edge ring-inset [@media(hover:hover)]:flex">
+                esc
+              </kbd>
+            )}
+          </div>
+        </form>
+      </SearchPart>
 
       <div
-        aria-live="polite"
-        className={cn("flex flex-col gap-2.5", hasOutput && "mt-2.5")}
+        className={cn(
+          "grid transition-[grid-template-rows,opacity] duration-move ease-out-quint",
+          query ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+        )}
+        inert={!query}
       >
-        {showSkeleton ? <ResultsSkeleton scope={scope} /> : null}
-
-        {hitCount > 0 ? (
-          <div
-            aria-label="Search results"
-            className="flex flex-col gap-2.5"
-            id={listId}
-            key={viewKey}
-            onPointerLeave={() => {
-              setCursor((current) =>
-                current?.source === "pointer" ? null : current,
-              );
-            }}
-            role="listbox"
-          >
-            <LayoutGroup id={`search-results-${listId}`}>
-              {sections}
-            </LayoutGroup>
-          </div>
-        ) : null}
-
-        {hasPager && hitCount > 0 ? (
-          <div className="flex h-8 items-center justify-between pl-1">
-            <span className="type-meta text-ink-muted tabular-nums">
-              {from}–{to} of {view.total}
-            </span>
-            <span className="flex items-center gap-1">
-              <PagerButton
-                direction="previous"
-                disabled={view.page === 0}
-                onClick={() => setPage(view.page - 1)}
-              />
-              <PagerButton
-                direction="next"
-                disabled={view.page >= view.pages - 1}
-                onClick={() => setPage(view.page + 1)}
-              />
-            </span>
-          </div>
-        ) : null}
-
-        {showEmpty ? (
-          <div className="flex flex-col items-center gap-1 px-1 py-3 text-center">
-            <p className="type-body text-ink-body">
-              No {SEARCH_NOUNS[scope]} for “{query}”
-            </p>
-            <p className="type-meta text-ink-muted">
-              {SEARCH_EMPTY_HINTS[scope]}
-            </p>
-          </div>
-        ) : null}
-
-        {failure ? (
-          <div className="flex flex-col items-center gap-2.5">
-            <p className="px-1 py-2 text-center type-body text-ink-muted">
-              {failure.message}
-            </p>
-            {failure.code !== "invalid_query" ? (
-              <Button
-                className={actionClass({
-                  className: "h-10",
-                  variant: ACTION_TONE_CLASS,
-                })}
-                onClick={retry}
-              >
-                Try again
-              </Button>
-            ) : null}
-          </div>
-        ) : null}
+        <div className="min-h-0 overflow-hidden">
+          <SearchPart className="pt-2.5" name="item">
+            <SegmentedControl
+              ariaLabel="Search for"
+              round
+              fill
+              items={SEARCH_SCOPE_ITEMS}
+              onChange={handleScope}
+              value={scope}
+            />
+          </SearchPart>
+        </div>
       </div>
-    </div>
+
+      <div aria-live="polite">
+        <SearchSwap
+          className="flex flex-col gap-2.5 pt-2.5 empty:hidden"
+          cue="rows"
+          id={swapId}
+          now
+        >
+          {failure ? (
+            <SearchPart
+              className="flex flex-col items-center gap-2.5"
+              name="note"
+            >
+              <p className="px-1 py-2 text-center type-body text-ink-muted">
+                {failure.message}
+              </p>
+              {failure.code !== "invalid_query" ? (
+                <Button
+                  className={actionClass({
+                    className: "h-10",
+                    variant: ACTION_TONE_CLASS,
+                  })}
+                  onClick={retry}
+                >
+                  Try again
+                </Button>
+              ) : null}
+            </SearchPart>
+          ) : hitCount > 0 ? (
+            <>
+              <div
+                aria-label="Search results"
+                className="flex flex-col gap-4"
+                id={listId}
+                key={viewKey}
+                onPointerLeave={() => {
+                  setCursor((current) =>
+                    current?.source === "pointer" ? null : current,
+                  );
+                }}
+                role="listbox"
+              >
+                <LayoutGroup id={`search-results-${listId}`}>
+                  {sections}
+                </LayoutGroup>
+              </div>
+
+              {hasPager ? (
+                <SearchPart
+                  className="flex h-8 items-center justify-between pl-1"
+                  index={hitCount + view.sections.length + 1}
+                  name="row"
+                >
+                  <span className="type-meta text-ink-muted tabular-nums">
+                    {from}–{to} of {view.total}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <PagerButton
+                      direction="previous"
+                      disabled={view.page === 0}
+                      onClick={() => setPage(view.page - 1)}
+                    />
+                    <PagerButton
+                      direction="next"
+                      disabled={view.page >= view.pages - 1}
+                      onClick={() => setPage(view.page + 1)}
+                    />
+                  </span>
+                </SearchPart>
+              ) : null}
+            </>
+          ) : showSkeleton ? (
+            <SearchPart name="note">
+              <ResultsSkeleton scope={scope} />
+            </SearchPart>
+          ) : showEmpty ? (
+            <SearchPart
+              className="flex flex-col items-center gap-1 px-1 py-3 text-center"
+              name="note"
+            >
+              <p className="type-body text-ink-body">
+                No {SEARCH_NOUNS[scope]} for “{query}”
+              </p>
+              <p className="type-meta text-ink-muted">
+                {SEARCH_EMPTY_HINTS[scope]}
+              </p>
+            </SearchPart>
+          ) : null}
+        </SearchSwap>
+      </div>
+    </SearchStage>
   );
 }

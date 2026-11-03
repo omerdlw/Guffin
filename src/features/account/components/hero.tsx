@@ -343,7 +343,6 @@ export function AccountLayout({
     <AccountStageRoot
       grade={backdropUrl || account?.avatarUrl || null}
       leaves={leavesAccount(scope)}
-      memory={scope}
     >
       <Room />
       <main

@@ -2,7 +2,7 @@ import { carrierOf } from "./carry";
 import { CURVE } from "./curve";
 import type { Engine } from "./engine";
 import { depthShade, driftReach, type Placement } from "./fields";
-import { PHI, step, trail } from "./ladder";
+import { PHI, step } from "./ladder";
 import {
   blank,
   blend,
@@ -16,7 +16,10 @@ import { arrival, departure, response } from "./matter";
 import {
   lead,
   leaveLength,
-  trailWindow,
+  plan,
+  spacing,
+  type Cadence,
+  type Plan,
   type Role,
   type Score,
   type Step,
@@ -24,17 +27,28 @@ import {
 import { Signal } from "./signal";
 import { Touch, type Force, type TouchVerb } from "./touch";
 import { Value } from "./value";
-import { ENTER, LEAVE } from "./verbs";
+import { ENTER, LEAVE, QUIET } from "./verbs";
 
 // The stage runs one page's score. It owns the page's whole life:
 //   waiting → arriving → present → leaving → gone
-// Attention is one queue: a beat plays when the one before has been found by
-// the eye and its parts are ready (or have run out of patience). Sections cued
-// by the scroll join the same queue, and a backlog makes the gaps shorter.
+//
+// The opening is a fixed piece of time. The curtain stays down until what the
+// opening needs is ready (the picture, the fonts), or has run out of patience;
+// then the whole opening is laid on the clock at once, every beat at its place
+// on the score's own timeline, measured from the frame the curtain rose. What
+// happens before the curtain rises is waiting; what happens after is always
+// the same sequence, at the same times, in the same rhythm: nothing about it
+// depends on the frame rate, the scroll, a backlog or a visit before.
+//
+// Everything after the opening is one queue of attention: a section reached by
+// the scroll joins it when the one before has been found by the eye, and a
+// backlog makes the gaps shorter.
 
 export type Act = "waiting" | "arriving" | "present" | "leaving" | "gone";
 
 export interface StageOptions {
+  // Rungs the whole page is moved along the ladder by. Fixed for the page's
+  // life: the same page, the same pace, the same opening.
   pace?: number;
 }
 
@@ -51,6 +65,11 @@ export interface PartOptions {
   // scope plays only the parts in that scope.
   scope?: string;
   ready?: boolean;
+  // How long the curtain waits for this part to be ready, where it is not the
+  // usual `PATIENCE`: a part that holds the curtain on purpose (a title card).
+  patience?: number;
+  // How the copies of this part follow each other (see `spacing`).
+  cadence?: Cadence;
   // Claims (and offers onward) the picture carried across with this key.
   carry?: string;
   forces?: readonly Force[];
@@ -67,8 +86,6 @@ export interface Handle {
   index(index: number): void;
   dispose(): void;
 }
-
-const OPENING = "";
 
 // How long a beat waits for its parts (images, data) before it plays anyway.
 export const PATIENCE = step(3);
@@ -89,8 +106,10 @@ interface Actor {
   scope: string | null;
   role: Role;
   index: number;
+  cadence: Cadence;
   el: HTMLElement;
   ready: boolean;
+  patience: number;
   enter: Value;
   leave: Value;
   drift: { x: Value; y: Value } | null;
@@ -129,6 +148,22 @@ export const inScope = (scope: string | null, outer: string | null) =>
     : scope !== null &&
       (scope === outer || scope.startsWith(outer + SCOPE_SEPARATOR));
 
+// What a part asks the compositor to keep ready. A part in motion lifts its
+// transform and opacity; a part placed at a depth is moved and softened by
+// every frame of the scroll, so it stays on its own layer for as long as the
+// page stands, and each frame is a compositor update instead of a repaint of
+// whatever it holds (a canvas, a masked picture).
+function liftOf(
+  depth: number,
+  moving: boolean,
+  quiet: boolean,
+  softened: boolean,
+) {
+  if (depth !== 0 && !quiet) return "transform, opacity, filter";
+  if (!moving) return "";
+  return softened ? "transform, opacity, filter" : "transform, opacity";
+}
+
 // Layout position, untouched by the transforms the engine itself writes.
 function place(el: HTMLElement): Placement {
   let top = 0;
@@ -147,6 +182,11 @@ function place(el: HTMLElement): Placement {
 export class Stage<P extends string, S extends string = never> {
   readonly act = new Signal<Act>("waiting");
   readonly tempo: number;
+  private readonly pace: number;
+  // The opening on paper: when each beat starts and when the last part lands.
+  // It is a function of the score, the pace and which parts are on stage; the
+  // curtain settles the last when it rises.
+  timeline: Plan<P>;
 
   private cast = new Map<string, Set<Actor>>();
   private queue: Queued<P>[] = [];
@@ -154,6 +194,15 @@ export class Stage<P extends string, S extends string = never> {
   private cued: { section: S; scope: string | null }[] = [];
   private nextAt = 0;
   private headSince: number | null = null;
+  // The curtain: when the stage started waiting for the opening's parts, when
+  // the opening was released (the frame its timeline is measured from), when
+  // its last part lands, and where each opening part starts on that timeline.
+  private since = 0;
+  private openedAt: number | null = null;
+  private openingEnd = 0;
+  private starts = new Map<string, number>();
+  private fonts = true;
+  private run = 0;
   private dirty = new Set<Actor>();
   private flushing = false;
   private stopScheduler: (() => void) | null = null;
@@ -170,6 +219,8 @@ export class Stage<P extends string, S extends string = never> {
     { pace = 0 }: StageOptions = {},
   ) {
     this.tempo = score.tempo + pace;
+    this.pace = pace;
+    this.timeline = plan(score, score.opening, pace);
   }
 
   get leaveLength() {
@@ -194,8 +245,10 @@ export class Stage<P extends string, S extends string = never> {
       scope: options.scope ?? null,
       role,
       index: options.index ?? 0,
+      cadence: options.cadence ?? role.cadence,
       el,
       ready: options.ready ?? true,
+      patience: options.patience ?? PATIENCE,
       enter: new Value(clock),
       leave: new Value(clock),
       drift:
@@ -270,6 +323,15 @@ export class Stage<P extends string, S extends string = never> {
       !inScope(actor.scope, this.receding)
     )
       actor.leave.set(1);
+    else if (this.openedAt !== null && this.starts.has(name) && !actor.scope)
+      // A copy that mounts after the curtain rose takes its place on the
+      // timeline: if its beat has not started yet, it waits for it.
+      this.arrive(
+        actor,
+        0,
+        1,
+        Math.max(0, (this.starts.get(name) ?? 0) - this.clock.time),
+      );
     else if (this.played.has(keyOf(name, actor.scope))) this.arrive(actor, 0);
 
     if (role.depth !== 0) this.clock.once("read", () => this.measure(actor));
@@ -294,18 +356,29 @@ export class Stage<P extends string, S extends string = never> {
     if (this.started) return;
     this.started = true;
     this.listen();
-    this.queue = [
-      ...this.score.opening.map((step) => ({
-        step,
-        cue: OPENING,
-        scope: null,
-      })),
-      ...this.cued.flatMap(({ section, scope }) => this.steps(section, scope)),
-    ];
+    // Sections cued before the stage started wait behind the opening.
+    this.queue = this.cued.flatMap(({ section, scope }) =>
+      this.steps(section, scope),
+    );
     this.nextAt = this.clock.time;
     this.headSince = null;
+    this.since = this.clock.time;
+    this.openedAt = null;
+    this.waitForFonts();
     this.act.set("arriving");
     this.schedule();
+  }
+
+  // Display type is measured and split by the words it has; the curtain does
+  // not rise on a face that is still on its way.
+  private waitForFonts() {
+    const fonts = typeof document === "undefined" ? undefined : document.fonts;
+    this.fonts = !fonts || fonts.status === "loaded";
+    if (this.fonts || !fonts) return;
+    const run = ++this.run;
+    void fonts.ready.then(() => {
+      if (this.run === run) this.fonts = true;
+    });
   }
 
   cue(section: S, scope: string | null = null) {
@@ -458,6 +531,10 @@ export class Stage<P extends string, S extends string = never> {
     this.queue = [];
     this.cued = [];
     this.played.clear();
+    this.starts.clear();
+    this.openedAt = null;
+    this.openingEnd = 0;
+    this.run += 1;
     this.receding = undefined;
     for (const actor of this.actors()) {
       actor.enter.set(0);
@@ -488,6 +565,11 @@ export class Stage<P extends string, S extends string = never> {
   private conduct(time: number) {
     const quiet = this.quiet;
 
+    if (this.openedAt === null) {
+      if (!this.curtainReady(time)) return;
+      this.release(time);
+    }
+
     while (this.queue.length > 0 && time >= this.nextAt) {
       const head = this.queue[0];
 
@@ -515,15 +597,15 @@ export class Stage<P extends string, S extends string = never> {
       for (const name of parts) {
         this.played.add(keyOf(name, head.scope));
         const role = this.score.roles[name];
-        this.ranked(name, head.scope).forEach((actor, rank) =>
-          this.arrive(actor, rank),
-        );
+        const group = this.ranked(name, head.scope);
+        group.forEach((actor, rank) => this.arrive(actor, rank, group.length));
         if (!quiet) gap = Math.max(gap, lead(role, this.tempo) / PHI ** hurry);
       }
       this.nextAt = time + gap;
     }
 
-    if (this.act.get() === "arriving" && this.landed()) this.act.set("present");
+    if (this.act.get() === "arriving" && time >= this.openingEnd)
+      this.act.set("present");
 
     if (this.queue.length === 0 && this.act.get() !== "arriving") {
       this.stopScheduler?.();
@@ -531,27 +613,76 @@ export class Stage<P extends string, S extends string = never> {
     }
   }
 
-  private landed() {
-    if (this.queue.some((item) => item.cue === OPENING)) return false;
-    for (const item of this.score.opening)
-      if ("parts" in item)
-        for (const name of item.parts)
-          for (const actor of this.ranked(name, null))
-            if (actor.enter.moving) return false;
+  // The curtain rises when what the opening needs is there: the fonts, and
+  // every part of the opening that asked to wait for its picture. A part that
+  // takes too long is left behind after its patience (PATIENCE unless it asked
+  // for more).
+  private curtainReady(time: number) {
+    const waited = time - this.since;
+    if (!this.fonts && waited < PATIENCE) return false;
+    const opening = this.openers();
+    for (const actor of this.actors())
+      if (
+        !actor.ready &&
+        actor.scope === null &&
+        opening.has(actor.name) &&
+        waited < actor.patience
+      )
+        return false;
     return true;
   }
 
-  private arrive(actor: Actor, rank: number) {
+  private openers() {
+    const names = new Set<string>();
+    for (const item of this.score.opening)
+      if ("parts" in item) for (const name of item.parts) names.add(name);
+    return names;
+  }
+
+  // The opening, laid on the clock in one go. Each beat is placed at its own
+  // time on the score's timeline, counted from this frame; the stage does no
+  // more deciding until it is over, so no frame, however late, moves a part.
+  private release(time: number) {
+    this.openedAt = time;
+    let end = time;
+    this.timeline = plan(
+      this.score,
+      this.score.opening,
+      this.pace,
+      (part) => (this.cast.get(part)?.size ?? 0) > 0,
+    );
+    for (const cue of this.timeline.cues) {
+      for (const name of cue.parts) {
+        this.played.add(keyOf(name, null));
+        this.starts.set(name, time + cue.at);
+        const group = this.ranked(name, null);
+        group.forEach((actor, rank) => {
+          end = Math.max(end, this.arrive(actor, rank, group.length, cue.at));
+        });
+      }
+    }
+    this.openingEnd = end;
+    this.nextAt = time + (this.quiet ? 0 : this.timeline.after);
+  }
+
+  // Starts a part's arrival, `offset` seconds from now, and says when it will
+  // have landed.
+  private arrive(actor: Actor, rank: number, count = 1, offset = 0) {
     const { matter } = actor.role;
+    const now = this.clock.time;
     if (this.quiet) {
       void actor.enter.to(1, { tween: step(QUIET_RUNG), curve: CURVE.fade });
-      return;
+      return now + step(QUIET_RUNG);
     }
+    const delay =
+      offset + spacing(actor.role, this.tempo, rank, count, actor.cadence);
+    const tween = arrival(matter, this.tempo);
     void actor.enter.to(1, {
-      tween: arrival(matter, this.tempo),
+      tween,
       curve: CURVE[matter.curve],
-      delay: trail(rank, trailWindow(actor.role, this.tempo)),
+      delay,
     });
+    return now + delay + tween;
   }
 
   private listen() {
@@ -614,8 +745,8 @@ export class Stage<P extends string, S extends string = never> {
     const { role } = actor;
     const quiet = this.quiet;
     const look = neutral();
-    blend(look, (quiet ? ENTER.glow : ENTER[role.enter])(actor.enter.current));
-    blend(look, (quiet ? LEAVE.fade : LEAVE[role.leave])(actor.leave.current));
+    blend(look, (quiet ? QUIET.enter : ENTER[role.enter])(actor.enter.current));
+    blend(look, (quiet ? QUIET.leave : LEAVE[role.leave])(actor.leave.current));
     if (!quiet) {
       if (role.depth !== 0)
         blend(
@@ -641,7 +772,10 @@ export class Stage<P extends string, S extends string = never> {
     if (actor.css)
       actor.written = paint(
         actor.el,
-        { ...css(look), willChange: moving ? "transform, opacity" : "" },
+        {
+          ...css(look),
+          willChange: liftOf(role.depth, moving, quiet, look.blur > 0.05),
+        },
         actor.written,
       );
   }

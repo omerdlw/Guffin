@@ -8,7 +8,12 @@ import type {
   MovieImages,
 } from "@/infrastructure/tmdb/types";
 import { AFTER_TAGLINE, TAGLINE_CLASS, titleClass } from "../styles";
-import { DetailLayout, DetailPart, DetailText } from "@/features/detail";
+import {
+  DetailBloom,
+  DetailLayout,
+  DetailPart,
+  DetailText,
+} from "@/features/detail";
 import type { FilmStats, PersonEntry } from "../types";
 import type { MovieReviewSort } from "@/features/reviews";
 import { AccountLink } from "@/features/account";
@@ -70,10 +75,9 @@ export function MovieView({
   }));
 
   const title = (
-    <DetailText
+    <DetailBloom
       as="h1"
       className={titleClass(movie.title)}
-      mask
       part="title"
       text={movie.title}
     />
@@ -93,7 +97,11 @@ export function MovieView({
               </>
             ) : null
           }
-          backdrop={backdrop ? <MovieBackdropHero movie={movie} /> : null}
+          backdrop={
+            backdrop ? (
+              <MovieBackdropHero movie={movie} />
+            ) : null
+          }
           className="movie-page"
           header={
             <>
@@ -116,6 +124,7 @@ export function MovieView({
               {movie.tagline ? (
                 <DetailText
                   as="p"
+                  by="char"
                   className={`${TAGLINE_CLASS} opacity-90`}
                   part="tagline"
                   text={movie.tagline}
@@ -124,7 +133,6 @@ export function MovieView({
               {movie.overview ? (
                 <DetailText
                   as="p"
-                  by="line"
                   className={cn(
                     PROSE_CLASS,
                     "opacity-70",

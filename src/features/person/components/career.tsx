@@ -10,7 +10,7 @@ export function PersonCareer({ career }: { career: CareerData }) {
   const { openTimeline } = usePersonView();
 
   return (
-    <DetailSection className="flex w-full flex-col" cue="career">
+    <DetailSection className="flex w-full flex-col" cue="career" now>
       <Heading
         actions={
           <button

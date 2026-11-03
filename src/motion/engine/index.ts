@@ -33,10 +33,12 @@ export {
 } from "./fields";
 export {
   BEAT,
+  HAZE_CAP,
   PHI,
   TEMPO_RANGE,
   TRAVEL,
   clamp,
+  haze,
   reach,
   rungOf,
   step,
@@ -68,7 +70,6 @@ export {
 export {
   EngineProvider,
   OwnedScope,
-  REVISIT_PACE,
   ScopeGeneration,
   ScopeProvider,
   StagePart,
@@ -100,11 +101,15 @@ export {
 } from "./scene";
 export {
   CUE_LEAD,
+  EVEN_DROP,
+  STAIRS_DROP,
   TRAIL_DROP,
   defineScore,
   leaveLength,
   plan,
+  spacing,
   type Beat,
+  type Cadence,
   type Casting,
   type Cue,
   type Plan,
@@ -137,7 +142,7 @@ export {
   type PartState,
   type StageOptions,
 } from "./stage";
-export { WORD, lines, mountText, words, type Split } from "./text";
+export { WORD, letters, lines, mountText, words, type Split } from "./text";
 export {
   Grade,
   TINT_CHROMA,
@@ -163,6 +168,7 @@ export { Value, type Drive } from "./value";
 export {
   ENTER,
   LEAVE,
+  QUIET,
   type EnterVerb,
   type LeaveVerb,
   type Verb,

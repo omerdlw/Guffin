@@ -80,7 +80,6 @@ export function HomeShowing({
           {films.map((film) => (
             <MoviePosterLink
               caption={<Caption film={film} shelf={shelf} />}
-              carried
               key={film.id}
               movie={film}
               radius={RADIUS.card}

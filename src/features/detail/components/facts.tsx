@@ -2,8 +2,8 @@ import type { ReactNode } from "react";
 import { FACT_ROW_TYPE, FactLink, TONE, Tooltip } from "@/ui";
 import { DetailExpose, DetailPart } from "../motion";
 
-// A fact is one row: its label, its value and the rule under it are three
-// parts at the row's place, so the rows come in one after another.
+// A fact is one row: the row steps down the staircase, and its label, its
+// value and the rule under it are printed at the row's place.
 function Row({
   children,
   index,
@@ -14,7 +14,11 @@ function Row({
   label: string;
 }) {
   return (
-    <div className="group/row relative flex py-3 first:pt-0 last:pb-0 sm:max-lg:grow-2 sm:max-lg:items-center sm:max-lg:first:grow sm:max-lg:first:items-start sm:max-lg:last:grow sm:max-lg:last:items-end">
+    <DetailPart
+      className="group/row relative flex py-3 first:pt-0 last:pb-0 sm:max-lg:grow-2 sm:max-lg:items-center sm:max-lg:first:grow sm:max-lg:first:items-start sm:max-lg:last:grow sm:max-lg:last:items-end"
+      index={index}
+      name="row"
+    >
       <div className="flex w-full items-baseline justify-between gap-6">
         <dt className={`shrink-0 ${TONE.label} text-ink-muted`}>
           <DetailExpose hover index={index} part="label" text={label} />
@@ -30,7 +34,7 @@ function Row({
         index={index}
         name="line"
       />
-    </div>
+    </DetailPart>
   );
 }
 

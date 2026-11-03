@@ -10,7 +10,7 @@ const alphaColor = (color: string, percent: number): string =>
     ? color
     : `color-mix(in srgb, ${color} ${percent}%, transparent)`;
 
-const SIDE_COVER: readonly [number, number][] = [
+export const SIDE_COVER: readonly [number, number][] = [
   [0, 100],
   [2, 97],
   [5, 90],
@@ -23,7 +23,7 @@ const SIDE_COVER: readonly [number, number][] = [
   [30, 0],
 ];
 
-const BOTTOM_COVER: readonly [number, number][] = [
+export const BOTTOM_COVER: readonly [number, number][] = [
   [0, 0],
   [28, 0],
   [38, 3],

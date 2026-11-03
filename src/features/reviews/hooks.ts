@@ -1,6 +1,6 @@
 "use client";
 
-import { useOptimistic, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useDockActions } from "@omerdlw/base-framework/modules/dock";
 import { useToast } from "@omerdlw/base-framework/modules/notification";
@@ -24,10 +24,20 @@ export function useLikeToggle({
   const toast = useToast();
   const { openSurface } = useDockActions();
   const [busy, startTransition] = useTransition();
-  const [{ count, liked }, setOptimistic] = useOptimistic(
-    { count: initialCount, liked: initialLiked },
-    (_, next: { count: number; liked: boolean }) => next,
-  );
+  // Kept here and not as an optimistic overlay on the props: a review's likes
+  // are fetched on the client, so no refresh hands down new props and an
+  // overlay would fall back to the old count once the transition ends. When
+  // new props do arrive they replace whatever is held.
+  const [seen, setSeen] = useState({
+    count: initialCount,
+    liked: initialLiked,
+  });
+  const [{ count, liked }, setState] = useState(seen);
+  if (seen.count !== initialCount || seen.liked !== initialLiked) {
+    const props = { count: initialCount, liked: initialLiked };
+    setSeen(props);
+    setState(props);
+  }
 
   const toggle = () => {
     if (!signedIn) {
@@ -38,17 +48,16 @@ export function useLikeToggle({
       );
       return;
     }
+    const previous = { count, liked };
     const next = !liked;
+    setState({ count: Math.max(0, count + (next ? 1 : -1)), liked: next });
     startTransition(async () => {
-      setOptimistic({
-        count: Math.max(0, count + (next ? 1 : -1)),
-        liked: next,
-      });
       try {
         const result = await save(next);
         if (!result.success) throw new Error(result.error);
         router.refresh();
       } catch (error) {
+        setState(previous);
         report(name, error);
         toast(toUserMessage(error, { fallback: "Could not update your like" }));
       }

@@ -28,7 +28,7 @@ export interface TiltLight {
 }
 
 const SPRING = springForce({
-  ...response(MATTER.paper, 0),
+  ...response(MATTER.paper, -1),
   period: step(1),
 });
 const LEAN = 9;

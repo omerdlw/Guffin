@@ -33,7 +33,7 @@ import {
   type Handle,
   type PartOptions,
 } from "./stage";
-import { WORD, mountText, words, type Split } from "./text";
+import { WORD, letters, mountText, words, type Split } from "./text";
 import { gradeOf, sampleTint, type Tint } from "./tint";
 import { tempoScale, tokenSheet } from "./tokens";
 import { touch, type TouchOptions } from "./touch";
@@ -76,27 +76,6 @@ export function EngineProvider({
 
 export const useEngine = () => useContext(EngineContext) ?? sharedEngine();
 
-// A page seen before in this tab plays one rung faster.
-export const REVISIT_PACE = -1;
-
-const SEEN = "guffin:engine:seen";
-
-function seenList(): string[] {
-  try {
-    return JSON.parse(sessionStorage.getItem(SEEN) ?? "[]");
-  } catch {
-    return [];
-  }
-}
-
-function remember(memory: string) {
-  const seen = seenList();
-  if (seen.includes(memory)) return;
-  try {
-    sessionStorage.setItem(SEEN, JSON.stringify([...seen, memory]));
-  } catch {}
-}
-
 // Without JavaScript nothing would ever arrive, so everything is simply there.
 const UNSTAGED =
   "[data-part],[data-print]{opacity:1!important;transform:none!important;filter:none!important;clip-path:none!important;visibility:visible!important;-webkit-mask-image:none!important;mask-image:none!important}";
@@ -126,8 +105,9 @@ export interface PartProps {
 export type Grading = string | Tint | null;
 
 export interface StageRootProps {
+  // Rungs the page is moved along the ladder by, for good. A page opens the
+  // same way every time it is opened, so there is no pace for a revisit.
   pace?: number;
-  memory?: string;
   // The room's color: a picture to read it from, a tint, or null for dark.
   // Left out, the room keeps the color it had.
   grade?: Grading;
@@ -347,13 +327,15 @@ export function StageSection({
   const owned = useContext(OwnedContext);
   const trigger = useSectionOf(stage, cue, scope);
   // Cued before the stage starts, it is queued behind the opening's beats.
+  // The scroll still watches it (a cue is only taken once), so a section put
+  // back in the dark by its view is played again as it is reached.
   useLayoutEffect(() => {
     if (now && !owned) stage.cue(cue, scope);
   }, [now, owned, stage, cue, scope]);
   if (owned) return <Tag className={className}>{children}</Tag>;
   return (
     <ScopeContext value={scope}>
-      <Tag ref={now ? undefined : trigger} className={className}>
+      <Tag ref={trigger} className={className}>
         {children}
       </Tag>
     </ScopeContext>
@@ -382,26 +364,14 @@ export function bindStage<P extends string, S extends string = never>(
     stage as unknown as Stage<string, string>;
 
   function StageRoot({
-    pace,
-    memory,
+    pace = 0,
     grade,
     leaves = changesPage,
     children,
   }: StageRootProps) {
     const engine = useEngine();
     const navigation = useOptionalNavigation();
-    const [stage] = useState(
-      () =>
-        new Stage(engine, score, {
-          pace:
-            pace ??
-            (memory &&
-            typeof window !== "undefined" &&
-            seenList().includes(memory)
-              ? REVISIT_PACE
-              : 0),
-        }),
-    );
+    const [stage] = useState(() => new Stage(engine, score, { pace }));
     const leavesRef = useRef(leaves);
 
     useEffect(() => {
@@ -410,7 +380,6 @@ export function bindStage<P extends string, S extends string = never>(
 
     useEffect(() => {
       stage.start();
-      if (memory) remember(memory);
       const untune = driverOf(engine).tune(stage.tempo);
       return () => {
         untune();
@@ -525,7 +494,23 @@ export function bindStage<P extends string, S extends string = never>(
     };
   }
 
-  function Text({
+  // The whole text is the part: it arrives as one.
+  function BlockText({
+    part,
+    text,
+    as: Tag = "span",
+    className,
+    options,
+  }: TextProps<P>) {
+    const props = usePartOf(loose(useStage()), part, options);
+    return (
+      <Tag {...props} className={className}>
+        {text}
+      </Tag>
+    );
+  }
+
+  function SplitText({
     part,
     text,
     by = "word",
@@ -551,27 +536,51 @@ export function bindStage<P extends string, S extends string = never>(
       [stage, part, by, text, scope],
     );
     const style = styles[part];
+    const piece = (content: string, key?: number) => (
+      <span
+        {...{ [WORD]: "" }}
+        aria-hidden="true"
+        data-part={part}
+        key={key}
+        style={{ ...style, display: "inline-block" }}
+      >
+        {content}
+      </span>
+    );
+    const all = words(text);
     return (
       <Tag ref={ref} className={className} aria-label={text}>
-        {words(text).map((word, i) => {
-          const span = (
-            <span
-              {...{ [WORD]: "" }}
-              aria-hidden="true"
-              data-part={part}
-              style={{ ...style, display: "inline-block" }}
-            >
-              {word}
-            </span>
-          );
+        {all.map((word, i) => {
+          const set =
+            by === "char" ? (
+              // A word never breaks inside itself: only its letters move.
+              <span
+                aria-hidden="true"
+                style={{ display: "inline-block", whiteSpace: "nowrap" }}
+              >
+                {letters(word).map((letter, j) => piece(letter, j))}
+              </span>
+            ) : mask ? (
+              <span style={MASK}>{piece(word)}</span>
+            ) : (
+              piece(word)
+            );
           return (
             <span key={i}>
-              {mask ? <span style={MASK}>{span}</span> : span}
-              {i < words(text).length - 1 ? " " : null}
+              {set}
+              {i < all.length - 1 ? " " : null}
             </span>
           );
         })}
       </Tag>
+    );
+  }
+
+  function Text(props: TextProps<P>) {
+    return props.by === "block" ? (
+      <BlockText {...props} />
+    ) : (
+      <SplitText {...props} />
     );
   }
 

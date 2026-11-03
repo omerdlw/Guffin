@@ -6,7 +6,12 @@ import { useDockActions } from "@omerdlw/base-framework/modules/dock";
 import { cn } from "@/ui/cn";
 import { Button, Icon, PROSE_CLASS, RULE_GAP, TONE, Tooltip } from "@/ui";
 import { SlidingHighlight } from "@/ui/sliding-highlight";
-import { DetailExpose, DetailPart, DetailText } from "@/features/detail";
+import {
+  DetailBloom,
+  DetailExpose,
+  DetailPart,
+  DetailText,
+} from "@/features/detail";
 import { LINKS_CLASS, nameClass } from "../styles";
 import type { SocialLink } from "../types";
 import { createPersonBioSurfaceEntry } from "../surfaces/bio";
@@ -114,7 +119,6 @@ function Bio({
     <div className="flex flex-col items-start gap-3">
       <DetailText
         as="p"
-        by="line"
         className={cn(PROSE_CLASS, "opacity-70")}
         part="overview"
         text={excerpt}
@@ -154,10 +158,9 @@ export function PersonHeader({
 }) {
   return (
     <>
-      <DetailText
+      <DetailBloom
         as="h1"
         className={nameClass(name)}
-        mask
         part="title"
         text={name}
       />

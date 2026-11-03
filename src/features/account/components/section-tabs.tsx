@@ -76,7 +76,7 @@ export function AccountSectionTabs({
         {pill ? (
           <SlidingPill
             box={pill}
-            className="inset-y-1 rounded-full bg-fill-active"
+            className="inset-y-1 rounded-full bg-grade/15"
           />
         ) : null}
         {SECTIONS.map((section) => {
@@ -95,7 +95,7 @@ export function AccountSectionTabs({
                   isChosen
                     ? "text-ink"
                     : "text-ink-body hover:text-ink focus-visible:text-ink",
-                  isChosen && !pill && "bg-fill-active",
+                  isChosen && !pill && "bg-grade/15",
                 )}
                 href={section.key ? `${base}/${section.key}` : base}
               >

@@ -269,12 +269,7 @@ export function EngineLab({ variant }: { variant: Variant }): JSX.Element {
 
   return (
     <EngineProvider drive>
-      <StageRoot
-        key={`${pace}:${take}`}
-        pace={pace}
-        grade={page.tint}
-        memory={`lab:${variant}`}
-      >
+      <StageRoot key={`${pace}:${take}`} pace={pace} grade={page.tint}>
         <Scene variant={variant} />
         <Controls
           pace={pace}

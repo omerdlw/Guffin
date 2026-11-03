@@ -14,9 +14,14 @@ export interface Matter {
   leave: LeaveVerb;
 }
 
+// Weight is time, and cinema is unhurried: nothing arrives in less than a
+// second and a quarter, and what the eye should read (text) takes two. The
+// next beat still starts as early as it always did (CUE_LEAD is one rung
+// longer to match), so the page keeps its rhythm while every part gets longer,
+// softer travel and overlaps the one before it.
 export const MATTER = {
   light: {
-    rung: 1,
+    rung: 2,
     mass: PHI ** -2,
     damping: 1,
     curve: "fade",
@@ -24,7 +29,7 @@ export const MATTER = {
     leave: "fade",
   },
   ink: {
-    rung: 2,
+    rung: 3,
     mass: PHI ** -1,
     damping: 0.9,
     curve: "silk",
@@ -32,7 +37,7 @@ export const MATTER = {
     leave: "fade",
   },
   paper: {
-    rung: 2,
+    rung: 3,
     mass: 1,
     damping: 0.86,
     curve: "pour",
@@ -40,7 +45,7 @@ export const MATTER = {
     leave: "sink",
   },
   glass: {
-    rung: 1,
+    rung: 2,
     mass: PHI ** -1,
     damping: 1,
     curve: "expo",
@@ -56,7 +61,7 @@ export const MATTER = {
     leave: "cool",
   },
   metal: {
-    rung: 3,
+    rung: 4,
     mass: PHI ** 3,
     damping: 0.72,
     curve: "expo",

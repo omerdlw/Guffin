@@ -7,7 +7,7 @@ import { MATTER, response } from "../engine/matter";
 import { springForce } from "../engine/spring";
 
 // The pointer pulls a control's glyph the way a hand moves ink.
-const SPRING = springForce(response(MATTER.ink, 1));
+const SPRING = springForce(response(MATTER.ink, 0));
 
 export function Magnet({
   children,

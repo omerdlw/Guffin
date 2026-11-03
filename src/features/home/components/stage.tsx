@@ -1,7 +1,6 @@
 "use client";
 
 import { createContext, use, useState, type ReactNode } from "react";
-import { usePathname } from "next/navigation";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/images";
 import { Room } from "@/motion/engine";
 import { HomeStageRoot } from "../motion";
@@ -23,11 +22,10 @@ export function HomeStage({
   backdrop: string | null;
   children: ReactNode;
 }) {
-  const pathname = usePathname();
   const [lead, setLead] = useState<string | null>(null);
 
   return (
-    <HomeStageRoot grade={lead ?? roomOf(backdrop)} memory={pathname}>
+    <HomeStageRoot grade={lead ?? roomOf(backdrop)}>
       <Room />
       <LeadContext value={setLead}>{children}</LeadContext>
     </HomeStageRoot>
