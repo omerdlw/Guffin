@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
   useSyncExternalStore,
@@ -145,6 +146,9 @@ export interface SectionProps<S extends string> {
   cue: S;
   as?: ElementType;
   className?: string;
+  // Plays as soon as it is mounted, right behind the opening, instead of
+  // when it is reached: a section the opening leads straight into.
+  now?: boolean;
   children?: ReactNode;
 }
 
@@ -334,6 +338,7 @@ export function StageSection({
   cue,
   as: Tag = "section",
   className,
+  now = false,
   children,
 }: SectionProps<string>) {
   const stage = useAnyStage();
@@ -341,10 +346,14 @@ export function StageSection({
   const scope = childScope(parent, useId());
   const owned = useContext(OwnedContext);
   const trigger = useSectionOf(stage, cue, scope);
+  // Cued before the stage starts, it is queued behind the opening's beats.
+  useLayoutEffect(() => {
+    if (now && !owned) stage.cue(cue, scope);
+  }, [now, owned, stage, cue, scope]);
   if (owned) return <Tag className={className}>{children}</Tag>;
   return (
     <ScopeContext value={scope}>
-      <Tag ref={trigger} className={className}>
+      <Tag ref={now ? undefined : trigger} className={className}>
         {children}
       </Tag>
     </ScopeContext>
@@ -430,6 +439,42 @@ export function bindStage<P extends string, S extends string = never>(
           <style>{UNSTAGED}</style>
         </noscript>
         <div
+          data-tempo=""
+          style={
+            {
+              display: "contents",
+              "--tempo": String(tempoScale(stage.tempo)),
+            } as CSSProperties
+          }
+        >
+          {children}
+        </div>
+      </StageAnyContext>
+    );
+  }
+
+  // A stage over the page instead of a page: a dock surface. It plays its
+  // opening once mounted and goes with its panel; the wheel, the room's color
+  // and navigation stay the page's.
+  function SurfaceRoot({
+    pace = 0,
+    children,
+  }: {
+    pace?: number;
+    children: ReactNode;
+  }) {
+    const engine = useEngine();
+    const [stage] = useState(() => new Stage(engine, score, { pace }));
+
+    useEffect(() => {
+      stage.start();
+      return () => stage.halt();
+    }, [stage]);
+
+    return (
+      <StageAnyContext value={loose(stage)}>
+        <div
+          data-tempo=""
           style={
             {
               display: "contents",
@@ -541,6 +586,7 @@ export function bindStage<P extends string, S extends string = never>(
 
   return {
     StageRoot,
+    SurfaceRoot,
     usePart,
     useSection,
     useScene,

@@ -2,8 +2,7 @@
 
 import type { JSX } from "react";
 import type { SurfaceEntry } from "@omerdlw/base-framework/modules/dock";
-import { SurfaceProse } from "@/ui";
-import { Cascade, Item, SURFACE_LEAD, SurfaceScene } from "@/motion/stage";
+import { SurfacePart, SurfaceProse, SurfaceStage } from "@/ui";
 
 interface PersonBioData {
   biography: string;
@@ -25,12 +24,10 @@ export function createPersonBioSurfaceEntry(data: PersonBioData): SurfaceEntry {
 
 function PersonBioSurface({ data }: { data: PersonBioData }): JSX.Element {
   return (
-    <SurfaceScene>
-      <Cascade className="flex w-full flex-col" lead={SURFACE_LEAD}>
-        <Item from="up">
-          <SurfaceProse text={data.biography} />
-        </Item>
-      </Cascade>
-    </SurfaceScene>
+    <SurfaceStage className="flex flex-col">
+      <SurfacePart name="item">
+        <SurfaceProse text={data.biography} />
+      </SurfacePart>
+    </SurfaceStage>
   );
 }

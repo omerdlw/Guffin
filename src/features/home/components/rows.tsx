@@ -2,8 +2,9 @@ import type { JSX, ReactNode } from "react";
 import { MoviePosterLink } from "@/features/movie";
 import { RatingStars } from "@/features/reviews";
 import { AvatarStack } from "@/features/social";
-import { Carousel, Header, Section } from "@/motion/stage";
-import { Avatar, CAROUSEL_ITEM, Icon, RADIUS, TONE } from "@/ui";
+import { Avatar, CAROUSEL_ITEM, Carousel, Icon, RADIUS, TONE } from "@/ui";
+import { HomeSection } from "../motion";
+import { Heading } from "./heading";
 import { compact } from "../format";
 import type {
   FriendLog,
@@ -39,18 +40,19 @@ export function FilmRow({
 }): JSX.Element | null {
   if (films.length === 0) return null;
   return (
-    <Section className="flex w-full flex-col">
-      <Header actions={actions} icon={icon} title={title} />
+    <HomeSection className="flex w-full flex-col" cue="row">
+      <Heading actions={actions} icon={icon} title={title} />
       <Carousel
         arrowClassName={TONE.arrows}
         className="rounded-card"
         itemClassName={wide ? ROW_ITEM : CAROUSEL_ITEM}
         label={title}
-        radius={RADIUS.card}
+        part="slide"
       >
         {films.map((film, index) => (
           <MoviePosterLink
             caption={caption?.(film, index)}
+            carried
             key={film.id}
             movie={film}
             radius={RADIUS.card}
@@ -58,7 +60,7 @@ export function FilmRow({
           />
         ))}
       </Carousel>
-    </Section>
+    </HomeSection>
   );
 }
 
@@ -99,17 +101,18 @@ export function FriendsRow({
 }): JSX.Element | null {
   if (logs.length === 0) return null;
   return (
-    <Section className="flex w-full flex-col">
-      <Header icon="solar:users-group-rounded-bold" title="New from friends" />
+    <HomeSection className="flex w-full flex-col" cue="row">
+      <Heading icon="solar:users-group-rounded-bold" title="New from friends" />
       <Carousel
         arrowClassName={TONE.arrows}
         className="rounded-card"
         itemClassName={ROW_ITEM}
         label="New from friends"
-        radius={RADIUS.card}
+        part="slide"
       >
         {logs.map((log) => (
           <MoviePosterLink
+            carried
             caption={
               <span className={CAPTION}>
                 <Avatar
@@ -157,7 +160,7 @@ export function FriendsRow({
           />
         ))}
       </Carousel>
-    </Section>
+    </HomeSection>
   );
 }
 

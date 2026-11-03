@@ -141,7 +141,7 @@ export function PeopleGrid({
           <Tooltip text={person.displayName}>
             <AccountLink
               aria-label={person.displayName}
-              className="block aspect-square overflow-hidden rounded-full ring-1 ring-edge-hover ui-fade hover:opacity-80"
+              className="block aspect-square overflow-hidden rounded-full ring-1 ring-edge-hover ui-fade hover:opacity-80 focus-visible:opacity-80"
               href={accountHref(person.username)}
             >
               <Avatar

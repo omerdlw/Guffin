@@ -12,11 +12,12 @@ import {
   unfollowUserAction,
 } from "@/features/account";
 import { createSignInSurfaceEntry, useAuth } from "@/features/auth";
-import { Header, Item, Section } from "@/motion/stage";
 import { Avatar, Button, TONE } from "@/ui";
 import { accountHref } from "@/config/routes";
 import { compact } from "../format";
 import type { HomeMember } from "../types";
+import { HomePart, HomeSection } from "../motion";
+import { Heading } from "./heading";
 
 type Status = "accepted" | "pending" | null;
 
@@ -69,15 +70,25 @@ function FollowButton({ member }: { member: HomeMember }): JSX.Element {
   );
 }
 
-function MemberCard({ member }: { member: HomeMember }): JSX.Element {
+function MemberCard({
+  index,
+  member,
+}: {
+  index: number;
+  member: HomeMember;
+}): JSX.Element {
   const href = accountHref(member.username);
   return (
-    <Item
+    <HomePart
       as="li"
       className="flex min-w-0 flex-col items-center gap-3 text-center"
-      from="light"
+      index={index}
+      name="member"
     >
-      <AccountLink className="flex ui-fade hover:opacity-80" href={href}>
+      <AccountLink
+        className="flex ui-fade hover:opacity-80 focus-visible:opacity-80"
+        href={href}
+      >
         <Avatar
           className="rounded-full"
           name={member.displayName}
@@ -105,7 +116,7 @@ function MemberCard({ member }: { member: HomeMember }): JSX.Element {
       <div className="mt-auto w-full max-w-36">
         <FollowButton member={member} />
       </div>
-    </Item>
+    </HomePart>
   );
 }
 
@@ -118,13 +129,13 @@ export function HomeMembers({
 }): JSX.Element | null {
   if (members.length === 0) return null;
   return (
-    <Section className="flex w-full flex-col">
-      <Header icon="solar:user-plus-bold" title={title} />
+    <HomeSection className="flex w-full flex-col" cue="members">
+      <Heading icon="solar:user-plus-bold" title={title} />
       <ul className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:grid-cols-6">
-        {members.map((member) => (
-          <MemberCard key={member.id} member={member} />
+        {members.map((member, index) => (
+          <MemberCard index={index} key={member.id} member={member} />
         ))}
       </ul>
-    </Section>
+    </HomeSection>
   );
 }

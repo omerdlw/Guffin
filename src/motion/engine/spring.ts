@@ -48,3 +48,15 @@ export function springAt(
   const e2 = Math.exp(r2 * t);
   return [c1 * e1 + c2 * e2, r1 * c1 * e1 + r2 * c2 * e2];
 }
+
+// The same spring for libraries that take stiffness and damping (motion's
+// layout animations): ω = 2π / period, k = m·ω², c = 2·ζ·m·ω.
+export function springForce({ period, damping, mass }: Spring) {
+  const omega = (2 * Math.PI) / period;
+  return {
+    type: "spring",
+    stiffness: mass * omega ** 2,
+    damping: 2 * damping * mass * omega,
+    mass,
+  } as const;
+}

@@ -27,7 +27,12 @@ export interface Renderer {
   dispose?(): void;
 }
 
-export type SceneSetup = (canvas: HTMLCanvasElement) => Renderer | null;
+// `wake` asks for one more draw: a renderer whose own state changed (a
+// picture loaded, a new one chosen) calls it to be drawn again.
+export type SceneSetup = (
+  canvas: HTMLCanvasElement,
+  wake: () => void,
+) => Renderer | null;
 
 export interface SceneOptions extends Omit<PartOptions, "render"> {
   pixelRatio?: number;
@@ -42,7 +47,11 @@ export function mountScene<P extends string, S extends string>(
 ) {
   const { engine } = stage;
   const { clock } = engine;
-  const renderer = setup(canvas);
+  let woken = false;
+  let wake = () => {
+    woken = true;
+  };
+  const renderer = setup(canvas, () => wake());
   if (!renderer) {
     const handle = stage.register(name, canvas, part);
     return () => handle.dispose();
@@ -89,6 +98,7 @@ export function mountScene<P extends string, S extends string>(
     queued = true;
     clock.once("render", draw);
   };
+  wake = request;
 
   const fit = () => {
     ratio = Math.min(window.devicePixelRatio || 1, pixelRatio);
@@ -104,6 +114,7 @@ export function mountScene<P extends string, S extends string>(
   };
 
   fit();
+  if (woken) request();
   const sizing = new ResizeObserver(fit);
   sizing.observe(canvas);
   const sight = new IntersectionObserver(([entry]) => {

@@ -99,7 +99,7 @@ export function MovieView({
             <>
               {page.kind === "reviews" ? (
                 <AccountLink
-                  className="ui-fade hover:opacity-80"
+                  className="ui-fade hover:opacity-80 focus-visible:opacity-80"
                   href={movieHref(movie.id)}
                 >
                   {title}

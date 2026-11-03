@@ -23,7 +23,7 @@ import { cn } from "@/ui/cn";
 import { Icon } from "./icon";
 import { primitivesTheme } from "./theme";
 import { SlidingHighlight } from "./sliding-highlight";
-import { EASE, size as tempo } from "@/motion/stage/tempo";
+import { POINTS, step } from "@/motion/engine";
 
 interface SelectOption<T extends string = string> {
   description?: ReactNode;
@@ -256,7 +256,7 @@ export function Select<T extends string = string>({
           exit={{
             opacity: 0,
             scale: 0.97,
-            transition: { duration: tempo(-2), ease: EASE.glide },
+            transition: { duration: step(-2), ease: POINTS.glide },
             y: rise * -6,
           }}
           id={listboxId}
@@ -292,7 +292,7 @@ export function Select<T extends string = string>({
                 : null),
             transformOrigin: floating && anchor.up ? "bottom" : "top",
           }}
-          transition={{ duration: tempo(0), ease: EASE.expo }}
+          transition={{ duration: step(0), ease: POINTS.expo }}
           className={cn(
             theme.slots.selectContent,
             compact && COMPACT.content,
@@ -314,9 +314,9 @@ export function Select<T extends string = string>({
                     key={option.value}
                     role="option"
                     transition={{
-                      delay: tempo(-5) * (1 + Math.min(index, 5)),
-                      duration: tempo(-1),
-                      ease: EASE.expo,
+                      delay: step(-5) * (1 + Math.min(index, 5)),
+                      duration: step(-1),
+                      ease: POINTS.expo,
                     }}
                     aria-selected={isSelected}
                     aria-disabled={option.disabled}

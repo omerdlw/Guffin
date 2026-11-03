@@ -2,7 +2,7 @@
 
 import { motion, useReducedMotion } from "motion/react";
 import { cn } from "./cn";
-import { SPRING } from "@/motion/stage/tempo";
+import { SPRING } from "@/config/theme/motion";
 
 export function SlidingHighlight({
   className = "-z-10 rounded-card bg-fill",

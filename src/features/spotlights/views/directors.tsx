@@ -14,16 +14,17 @@ import {
 } from "react";
 import { useReducedMotion } from "motion/react";
 import { cn } from "@/ui/cn";
-import { Stage, size } from "@/motion/stage";
-import { imagesReady } from "@/motion/stage/images-ready";
+import { step, useAnyStage } from "@/motion/engine";
 import { tmdbImageSrcSet, tmdbImageUrl } from "@/infrastructure/tmdb/images";
 import { DIRECTORS_HREF, movieHref, personHref } from "@/config/routes";
 import { Portrait, type Box } from "../gl/portrait/renderer";
 import { MediaCard } from "@/ui";
 import type { Director } from "../types";
 import { useGestureStep } from "../hooks";
-import { SPOTLIGHT_OPENING } from "../opening";
 import { SpotlightDock } from "../components/dock";
+import { imagesReady } from "../images-ready";
+import { SalonStage, useSalonPart } from "../motion";
+import { mountSpotlight } from "../scene";
 
 const life = (director: Director) =>
   director.died ? `${director.born}–${director.died}` : `Born ${director.born}`;
@@ -39,16 +40,16 @@ const AIR = 96;
 
 type Act = "wait" | "print" | "pour" | "rest" | "leave" | "arrive" | "enter";
 
-const PRINT_WINDOW_S = size(3);
-const PRINT_STEP_S = size(-2);
-const PRINT_S = size(2);
-const DRAIN_S = size(3);
-const LEAVE_S = size(0);
-const ENTER_S = size(2);
-const LOAD_PATIENCE_S = size(3);
-const SWAP_PATIENCE_S = size(0);
-const SWARM_PATIENCE_S = size(5);
-const NAMES_PATIENCE_S = size(5);
+const PRINT_WINDOW_S = step(3);
+const PRINT_STEP_S = step(-2);
+const PRINT_S = step(2);
+const DRAIN_S = step(3);
+const LEAVE_S = step(0);
+const ENTER_S = step(2);
+const LOAD_PATIENCE_S = step(3);
+const SWAP_PATIENCE_S = step(0);
+const SWARM_PATIENCE_S = step(5);
+const NAMES_PATIENCE_S = step(5);
 
 const diagonals = (count: number, columns: number) =>
   Math.max(1, Math.ceil(count / columns) + columns - 2);
@@ -164,7 +165,7 @@ const Filmography = memo(function Filmography({
   );
 });
 
-export function DirectorsView({
+function Directors({
   directors,
   initial,
 }: {
@@ -172,6 +173,8 @@ export function DirectorsView({
   initial: number;
 }): JSX.Element {
   const reduced = Boolean(useReducedMotion());
+  const stage = useAnyStage();
+  const chrome = useSalonPart("chrome");
   const canvas = useRef<HTMLCanvasElement>(null);
   const face = useRef<HTMLDivElement>(null);
   const shelf = useRef<HTMLElement>(null);
@@ -231,13 +234,22 @@ export function DirectorsView({
     const element = canvas.current;
     if (!element) return;
     const columns = matchMedia("(min-width: 768px)").matches ? 200 : 120;
-    const scene = Portrait.create(element, directors, columns, {
-      formed: (at) => formed(at),
-      swapped: (to) => swapped(to),
-    });
+    const { renderer: scene, dispose } = mountSpotlight(
+      stage,
+      element,
+      (canvas, loop) =>
+        Portrait.create(
+          canvas,
+          directors,
+          columns,
+          { formed: (at) => formed(at), swapped: (to) => swapped(to) },
+          loop,
+        ),
+      1.75,
+    );
     if (!scene) {
       setFailed(true);
-      return;
+      return dispose;
     }
     portrait.current = scene;
     place();
@@ -246,10 +258,10 @@ export function DirectorsView({
     if (face.current) observer.observe(face.current);
     return () => {
       observer.disconnect();
-      scene.dispose();
+      dispose();
       portrait.current = null;
     };
-  }, [directors, place]);
+  }, [directors, place, stage]);
 
   useEffect(() => {
     if (act !== "wait" && act !== "arrive") return;
@@ -329,11 +341,7 @@ export function DirectorsView({
   }, [directors, index]);
 
   return (
-    <Stage
-      className="directors-page relative h-dvh overflow-hidden"
-      opening={SPOTLIGHT_OPENING}
-      black
-    >
+    <>
       <SpotlightDock
         action={{ icon: "solar:user-rounded-bold", label: "Open profile" }}
         description={[life(director), director.place]
@@ -354,10 +362,12 @@ export function DirectorsView({
       </h1>
 
       <div
+        {...chrome}
         className="relative z-10 mx-auto grid h-dvh w-full max-w-[100rem] grid-cols-1 grid-rows-[auto_minmax(0,1fr)_auto] gap-x-12 px-4 pt-5 pb-[calc(var(--dock-h,6rem)+0.75rem)] sm:px-8 sm:pt-8 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:grid-rows-1 lg:pb-[calc(var(--dock-h,6rem)+1.5rem)]"
         data-act={act}
         style={
           {
+            ...chrome.style,
             "--drain": `${DRAIN_S}s`,
             "--enter": `${ENTER_S}s`,
             "--leave": `${LEAVE_S}s`,
@@ -429,6 +439,18 @@ export function DirectorsView({
           />
         </aside>
       </div>
-    </Stage>
+    </>
+  );
+}
+
+// The page's hooks reach the salon's stage from inside it.
+export function DirectorsView(props: {
+  directors: Director[];
+  initial: number;
+}): JSX.Element {
+  return (
+    <SalonStage className="directors-page relative h-dvh overflow-hidden">
+      <Directors {...props} />
+    </SalonStage>
   );
 }

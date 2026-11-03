@@ -11,14 +11,16 @@ import {
   cancelFrame,
   frame,
   motion,
+  motionValue,
   useReducedMotion,
   useTransform,
+  type MotionValue,
 } from "motion/react";
 import { useTheme } from "@omerdlw/base-framework/theme";
 import { cn } from "@/ui/cn";
 import { BACKDROP_HERO_MASK } from "../../ui/backdrop-hero";
 import { primitivesTheme } from "../../ui/theme";
-import { useScrollY } from "../scroll";
+import { useEngine } from "../engine/react";
 import {
   bindFullscreen,
   createProgram,
@@ -30,6 +32,18 @@ import {
 import { pointerFromCentre, pointerSample, watchPointer } from "../pointer";
 
 const STREAK_GAIN = 2.5;
+
+// The engine's scroll as a motion value: the same frame the page moves on,
+// with a velocity for the streaks.
+function useScrollY(): MotionValue<number> {
+  const engine = useEngine();
+  const [value] = useState(() => motionValue(engine.scroll.get()));
+  useEffect(() => {
+    value.set(engine.scroll.get());
+    return engine.scroll.subscribe((y) => value.set(y));
+  }, [engine, value]);
+  return value;
+}
 
 const FRAGMENT = `#version 300 es
 precision highp float;

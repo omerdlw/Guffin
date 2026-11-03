@@ -4,9 +4,9 @@ import type { JSX } from "react";
 import { useDockActions } from "@omerdlw/base-framework/modules/dock";
 import { PRIMARY } from "@/config/theme/chrome";
 import { createSignInSurfaceEntry, useAuth } from "@/features/auth";
-import { Item, Section } from "@/motion/stage";
 import { Button, HEADLINE_BOX, Icon } from "@/ui";
 import { whole } from "../format";
+import { HomePart, HomeSection } from "../motion";
 
 const POINTS = [
   {
@@ -33,12 +33,10 @@ export function HomeJoin({ members }: { members: number }): JSX.Element | null {
   if (auth.isAuthenticated) return null;
 
   return (
-    <Section className="flex w-full flex-col">
-      <Item
-        className="grid grid-cols-1 gap-10 border-t border-rule pt-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-16"
-        from="light"
-      >
-        <div className="flex flex-col items-start gap-6">
+    <HomeSection className="flex w-full flex-col" cue="join">
+      <HomePart className="h-px w-full bg-rule" name="rule" />
+      <div className="grid grid-cols-1 gap-10 pt-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-16">
+        <HomePart className="flex flex-col items-start gap-6" name="pitch">
           <h2
             className={`${HEADLINE_BOX} font-zuume type-display-md leading-none font-bold text-balance uppercase sm:type-display-lg`}
           >
@@ -60,18 +58,24 @@ export function HomeJoin({ members }: { members: number }): JSX.Element | null {
           >
             Create your account
           </Button>
-        </div>
+        </HomePart>
         <ul className="grid grid-cols-1 gap-5 self-center sm:grid-cols-2">
-          {POINTS.map((point) => (
-            <li className="flex items-start gap-3" key={point.text}>
+          {POINTS.map((point, index) => (
+            <HomePart
+              as="li"
+              className="flex items-start gap-3"
+              index={index}
+              key={point.text}
+              name="point"
+            >
               <span className="center mt-0.5 size-8 shrink-0 rounded-full bg-fill text-ink-body">
                 <Icon icon={point.icon} size={16} />
               </span>
               <span className="type-copy text-ink-body">{point.text}</span>
-            </li>
+            </HomePart>
           ))}
         </ul>
-      </Item>
-    </Section>
+      </div>
+    </HomeSection>
   );
 }

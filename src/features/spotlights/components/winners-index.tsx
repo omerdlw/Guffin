@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, type JSX } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/ui/cn";
-import { EASE, size } from "@/motion/stage";
+import { POINTS, step } from "@/motion/engine";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/images";
 import { Icon, TONE } from "@/ui";
 import type { Laureate } from "../types";
@@ -55,7 +55,7 @@ export function WinnersIndex({
           initial={{ opacity: 0 }}
           ref={panel}
           role="dialog"
-          transition={{ duration: size(1), ease: EASE.fade }}
+          transition={{ duration: step(1), ease: POINTS.fade }}
         >
           <div className="mx-auto w-full max-w-[96rem] px-4 pt-6 pb-[calc(var(--dock-h,6rem)+2rem)] sm:px-8 sm:pt-8">
             <div className="flex items-start justify-between gap-6">
@@ -81,9 +81,9 @@ export function WinnersIndex({
                   initial={{ opacity: 0 }}
                   key={decade}
                   transition={{
-                    delay: 0.1 + column * 0.04,
-                    duration: size(1),
-                    ease: EASE.fade,
+                    delay: step(-3) + column * step(-5),
+                    duration: step(1),
+                    ease: POINTS.fade,
                   }}
                 >
                   <h3 className="font-zuume type-display-xs leading-none font-bold text-award/70">

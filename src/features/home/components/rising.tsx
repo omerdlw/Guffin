@@ -1,10 +1,11 @@
 import type { JSX } from "react";
 import { AccountLink } from "@/features/account";
 import { MoviePosterLink } from "@/features/movie";
-import { Header, Item, Section } from "@/motion/stage";
 import { RADIUS, TONE } from "@/ui";
 import { movieHref } from "@/config/routes";
 import type { RisingFilm } from "../types";
+import { HomePart, HomeSection } from "../motion";
+import { Heading } from "./heading";
 
 export function HomeRising({
   films,
@@ -13,17 +14,18 @@ export function HomeRising({
 }): JSX.Element | null {
   if (films.length === 0) return null;
   return (
-    <Section className="flex w-full flex-col">
-      <Header icon="solar:graph-up-bold" title="Rising on Guffin" />
+    <HomeSection className="flex w-full flex-col" cue="rising">
+      <Heading icon="solar:graph-up-bold" title="Rising on Guffin" />
       <ol
         className={`-my-4 grid grid-cols-1 gap-x-12 divide-y ${TONE.rules} sm:grid-cols-2 sm:divide-y-0 sm:[&>li]:border-b sm:[&>li]:border-rule sm:[&>li:nth-last-child(-n+2)]:border-b-0`}
       >
         {films.map((film, index) => (
-          <Item
+          <HomePart
             as="li"
             className="flex items-center gap-4 py-4"
-            from="light"
+            index={index}
             key={film.id}
+            name="entry"
           >
             <span className="font-zuume w-9 shrink-0 text-right type-display-xs leading-none font-bold text-ink-faint tabular-nums">
               {index + 1}
@@ -54,9 +56,9 @@ export function HomeRising({
             >
               {film.lift.toFixed(1)}×
             </span>
-          </Item>
+          </HomePart>
         ))}
       </ol>
-    </Section>
+    </HomeSection>
   );
 }

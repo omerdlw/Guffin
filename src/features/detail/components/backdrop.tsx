@@ -18,7 +18,8 @@ const HALATION = 0.55;
 
 // The page's picture, projected behind the title. The opening waits for it.
 // A still can be cut in over it; what is laid over the picture comes as
-// children.
+// children. Any page whose score casts a `backdrop` projects with it; the
+// front page does.
 export function DetailBackdrop({
   children,
   src,

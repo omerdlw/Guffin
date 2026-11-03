@@ -78,7 +78,7 @@ export function MovieVideos({
                   <div className="cine-play center pointer-events-none absolute inset-0 text-ink">
                     <Icon icon="solar:play-circle-bold" size={48} />
                   </div>
-                  <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/60 to-transparent p-3 text-left">
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-3 text-left">
                     <h3 className="truncate type-body font-semibold text-ink">
                       {video.name}
                     </h3>

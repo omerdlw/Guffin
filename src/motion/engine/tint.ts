@@ -101,7 +101,11 @@ export function tintOf(pixels: ArrayLike<number>): Tint | null {
   return { l: TINT_LIGHTNESS, c: TINT_CHROMA, h };
 }
 
-export function sampleTint(src: string): Promise<Tint | null> {
+// A picture the page is also showing without CORS can come back from the
+// cache without its header; it is read once more under an address of its own.
+const uncached = (src: string) => `${src}${src.includes("?") ? "&" : "?"}tint`;
+
+export function sampleTint(src: string, retry = true): Promise<Tint | null> {
   return new Promise((resolve) => {
     const image = new Image();
     image.crossOrigin = "anonymous";
@@ -124,7 +128,10 @@ export function sampleTint(src: string): Promise<Tint | null> {
         resolve(null);
       }
     };
-    image.onerror = () => resolve(null);
+    image.onerror = () =>
+      resolve(
+        retry && /^https?:/.test(src) ? sampleTint(uncached(src), false) : null,
+      );
     image.src = src;
   });
 }

@@ -10,7 +10,6 @@ import {
   type KeyboardEvent,
 } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useReducedMotion } from "motion/react";
 import {
   useDockActionClass,
@@ -19,7 +18,7 @@ import {
 import { useToast } from "@omerdlw/base-framework/modules/notification";
 import { cn } from "@/ui/cn";
 import { report, toUserMessage } from "@omerdlw/base-framework/utils";
-import { Stage } from "@/motion/stage";
+import { useAnyStage } from "@/motion/engine";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/images";
 import { CANON_HREF, movieHref } from "@/config/routes";
 import {
@@ -33,8 +32,9 @@ import { Button, Icon } from "@/ui";
 import type { CanonFilm } from "../types";
 import { COLUMNS } from "../gl/wall/geometry";
 import { Wall, type FilmMarks } from "../gl/wall/renderer";
-import { SPOTLIGHT_OPENING } from "../opening";
 import { SpotlightDock } from "../components/dock";
+import { SalonPart, SalonStage } from "../motion";
+import { mountSpotlight } from "../scene";
 
 type Filter = "all" | "seen" | "unseen";
 
@@ -59,12 +59,13 @@ const KEYS: Record<string, number> = {
   ArrowUp: -COLUMNS,
 };
 
-export function WallView({ films }: { films: CanonFilm[] }): JSX.Element {
+function Canon({ films }: { films: CanonFilm[] }): JSX.Element {
   const reduced = Boolean(useReducedMotion());
-  const router = useRouter();
+  const stage = useAnyStage();
   const auth = useAuth();
   const toast = useToast();
-  const { openSurface } = useDockActions();
+  // Through the framework, so the page leaves before the film arrives.
+  const { navigate, openSurface } = useDockActions();
   const canvas = useRef<HTMLCanvasElement>(null);
   const tip = useRef<HTMLDivElement>(null);
   const wall = useRef<Wall | null>(null);
@@ -102,14 +103,22 @@ export function WallView({ films }: { films: CanonFilm[] }): JSX.Element {
   useEffect(() => {
     const element = canvas.current;
     if (!element) return;
-    const scene = Wall.create(element, films, {
-      hovered: setHovered,
-      opened: () => setOpened(true),
-    });
+    const { renderer: scene, dispose } = mountSpotlight(
+      stage,
+      element,
+      (canvas, loop) =>
+        Wall.create(
+          canvas,
+          films,
+          { hovered: setHovered, opened: () => setOpened(true) },
+          loop,
+        ),
+      2,
+    );
     if (!scene) {
       setFailed(true);
       setOpened(true);
-      return;
+      return dispose;
     }
     wall.current = scene;
     scene.select(selectedRef.current, false);
@@ -145,7 +154,7 @@ export function WallView({ films }: { films: CanonFilm[] }): JSX.Element {
       const index = scene.filmAt(event.clientX, event.clientY);
       if (index < 0) return;
       if (index === selectedRef.current)
-        router.push(movieHref(films[index]!.id));
+        void navigate(movieHref(films[index]!.id));
       else pick(index);
     };
     const cancel = (event: PointerEvent) => {
@@ -176,10 +185,10 @@ export function WallView({ films }: { films: CanonFilm[] }): JSX.Element {
       element.removeEventListener("pointercancel", cancel);
       element.removeEventListener("pointerleave", leave);
       element.removeEventListener("wheel", wheel);
-      scene.dispose();
+      dispose();
       wall.current = null;
     };
-  }, [films, pick, router]);
+  }, [films, navigate, pick, stage]);
 
   useEffect(() => wall.current?.setReduced(reduced), [reduced]);
 
@@ -286,7 +295,7 @@ export function WallView({ films }: { films: CanonFilm[] }): JSX.Element {
       pick((((selected + KEYS[event.key]!) % count) + count) % count);
     } else if (event.key === "Enter") {
       event.preventDefault();
-      router.push(movieHref(film.id));
+      void navigate(movieHref(film.id));
     }
   };
 
@@ -295,7 +304,7 @@ export function WallView({ films }: { films: CanonFilm[] }): JSX.Element {
       <WallAction
         disabled={!auth.isReady || pending || (account !== null && !known)}
         listed={listed.has(film.id)}
-        onOpen={() => router.push(movieHref(film.id))}
+        onOpen={() => void navigate(movieHref(film.id))}
         onToggle={(kind) => void toggle(film, kind)}
         seen={watched.has(film.id)}
         title={film.title}
@@ -307,19 +316,15 @@ export function WallView({ films }: { films: CanonFilm[] }): JSX.Element {
       film,
       known,
       listed,
+      navigate,
       pending,
-      router,
       toggle,
       watched,
     ],
   );
 
   return (
-    <Stage
-      className="wall-page relative h-dvh overflow-hidden"
-      opening={SPOTLIGHT_OPENING}
-      black
-    >
+    <>
       <SpotlightDock
         control={control}
         description={[`No. ${film.rank}`, film.year, film.genres[0]]
@@ -339,57 +344,59 @@ export function WallView({ films }: { films: CanonFilm[] }): JSX.Element {
       />
       <h1 className="sr-only">The IMDb Top 100</h1>
 
-      {failed ? <PlainWall films={films} watched={watched} /> : null}
+      <SalonPart name="chrome">
+        {failed ? <PlainWall films={films} watched={watched} /> : null}
 
-      {known ? (
-        <div
-          className={cn(
-            "fixed top-[clamp(1.25rem,4.5svh,2.5rem)] right-4 z-10 flex flex-col items-end gap-3 [transition:opacity_1.2s] sm:right-8",
-            opened ? "opacity-100" : "pointer-events-none opacity-0",
-          )}
-        >
-          <p className="flex items-end gap-2.5 text-ink">
-            <span className="font-zuume type-display-sm leading-crop lg:type-display-md font-bold tabular-nums">
-              {seenCount}
-            </span>
-            <span className="pb-1 type-meta leading-none text-ink-muted">
-              of {films.length} seen
-            </span>
-          </p>
-          <span
-            aria-hidden="true"
-            className="relative block h-px w-36 bg-fill-active"
-          >
-            <span
-              className="absolute inset-y-0 left-0 bg-ink-body transition-[width] duration-settle ease-out-quint"
-              style={{ width: `${(seenCount / films.length) * 100}%` }}
-            />
-          </span>
+        {known ? (
           <div
-            aria-label="Show"
-            className="flex gap-4 type-meta"
-            role="radiogroup"
+            className={cn(
+              "fixed top-[clamp(1.25rem,4.5svh,2.5rem)] right-4 z-10 flex flex-col items-end gap-3 [transition:opacity_1.2s] sm:right-8",
+              opened ? "opacity-100" : "pointer-events-none opacity-0",
+            )}
           >
-            {FILTERS.map((option) => (
-              <button
-                aria-checked={filter === option.value}
-                className={cn(
-                  "py-1 [transition:color_0.3s]",
-                  filter === option.value
-                    ? "text-ink"
-                    : "text-ink-body hover:text-ink focus-visible:text-ink",
-                )}
-                key={option.value}
-                onClick={() => setFilter(option.value)}
-                role="radio"
-                type="button"
-              >
-                {option.label}
-              </button>
-            ))}
+            <p className="flex items-end gap-2.5 text-ink">
+              <span className="font-zuume type-display-sm leading-crop lg:type-display-md font-bold tabular-nums">
+                {seenCount}
+              </span>
+              <span className="pb-1 type-meta leading-none text-ink-muted">
+                of {films.length} seen
+              </span>
+            </p>
+            <span
+              aria-hidden="true"
+              className="relative block h-px w-36 bg-fill-active"
+            >
+              <span
+                className="absolute inset-y-0 left-0 bg-ink-body transition-[width] duration-settle ease-out-quint"
+                style={{ width: `${(seenCount / films.length) * 100}%` }}
+              />
+            </span>
+            <div
+              aria-label="Show"
+              className="flex gap-4 type-meta"
+              role="radiogroup"
+            >
+              {FILTERS.map((option) => (
+                <button
+                  aria-checked={filter === option.value}
+                  className={cn(
+                    "py-1 [transition:color_0.3s]",
+                    filter === option.value
+                      ? "text-ink"
+                      : "text-ink-body hover:text-ink focus-visible:text-ink",
+                  )}
+                  key={option.value}
+                  onClick={() => setFilter(option.value)}
+                  role="radio"
+                  type="button"
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-      ) : null}
+        ) : null}
+      </SalonPart>
 
       <div
         aria-hidden="true"
@@ -418,7 +425,7 @@ export function WallView({ films }: { films: CanonFilm[] }): JSX.Element {
           </li>
         ))}
       </ol>
-    </Stage>
+    </>
   );
 }
 
@@ -502,7 +509,7 @@ function PlainWall({
                   "ui-fade block overflow-hidden",
                   watched.has(entry.id)
                     ? "opacity-100"
-                    : "opacity-70 hover:opacity-100",
+                    : "opacity-70 hover:opacity-100 focus-visible:opacity-100",
                 )}
                 href={movieHref(entry.id)}
               >
@@ -520,5 +527,14 @@ function PlainWall({
         })}
       </ol>
     </div>
+  );
+}
+
+// The page's hooks reach the salon's stage from inside it.
+export function WallView(props: { films: CanonFilm[] }): JSX.Element {
+  return (
+    <SalonStage className="wall-page relative h-dvh overflow-hidden">
+      <Canon {...props} />
+    </SalonStage>
   );
 }

@@ -3,7 +3,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { DockSurfaceExtension } from "@omerdlw/base-framework/modules/dock";
-import { SPRING } from "@/motion/stage/tempo";
+import { SPRING } from "@/config/theme/motion";
 import { cn } from "@/ui/cn";
 import { Button } from "./button";
 import { Icon } from "./icon";

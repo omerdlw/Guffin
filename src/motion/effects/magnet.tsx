@@ -3,6 +3,11 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { motion, useMotionValue, useSpring } from "motion/react";
 import { cn } from "@/ui/cn";
+import { MATTER, response } from "../engine/matter";
+import { springForce } from "../engine/spring";
+
+// The pointer pulls a control's glyph the way a hand moves ink.
+const SPRING = springForce(response(MATTER.ink, 1));
 
 export function Magnet({
   children,
@@ -16,9 +21,9 @@ export function Magnet({
   const ref = useRef<HTMLSpanElement>(null);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
-  const spring = { damping: 17, mass: 0.8, stiffness: 110 };
-  const sx = useSpring(x, spring);
-  const sy = useSpring(y, spring);
+
+  const sx = useSpring(x, SPRING);
+  const sy = useSpring(y, SPRING);
 
   useEffect(() => {
     const own = ref.current;

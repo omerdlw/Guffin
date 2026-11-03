@@ -8,7 +8,7 @@ import {
 import { clamp } from "@/motion/math";
 import { Bloom } from "../bloom";
 import { loadBitmap } from "../bitmap";
-import { approach, createLoop, type Loop } from "../loop";
+import { approach, createLoop, type Loop, type LoopFactory } from "../loop";
 import { FOUNDRY_FRAGMENT } from "./shader";
 
 const NAMES = [
@@ -88,6 +88,7 @@ export class Foundry {
     canvas: HTMLCanvasElement,
     font: string,
     events: FoundryEvents,
+    loop: LoopFactory = createLoop,
   ): Foundry | null {
     const gl = canvas.getContext("webgl2", {
       alpha: false,
@@ -98,7 +99,7 @@ export class Foundry {
     const program = createProgram(gl, FOUNDRY_FRAGMENT);
     const bloom = Bloom.create(gl);
     if (!program || !bloom) return null;
-    return new Foundry(canvas, gl, program, bloom, font, events);
+    return new Foundry(canvas, gl, program, bloom, font, events, loop);
   }
 
   private constructor(
@@ -108,6 +109,7 @@ export class Foundry {
     bloom: Bloom,
     private readonly font: string,
     private readonly events: FoundryEvents,
+    loop: LoopFactory,
   ) {
     this.bloom = bloom;
     bindFullscreen(gl, program, ...bloom.programs);
@@ -136,7 +138,7 @@ export class Foundry {
       gl.UNSIGNED_BYTE,
       new Uint8Array([0, 0, 0, 255]),
     );
-    this.loop = createLoop((now, dt) => this.frame(now, dt));
+    this.loop = loop((now, dt) => this.frame(now, dt));
   }
 
   setReduced(reduced: boolean): void {

@@ -23,6 +23,8 @@ import {
   SURFACE_PRIMARY,
   SURFACE_SCROLL,
   SURFACE_STACK,
+  SurfacePart,
+  SurfaceStage,
   SURFACE_TEXT,
   SURFACE_TILE,
   SURFACE_TILE_INNER,
@@ -31,7 +33,6 @@ import {
   useHighlight,
 } from "@/ui";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/images";
-import { Cascade, Item, SURFACE_LEAD, SurfaceScene } from "@/motion/stage";
 import {
   getListOrderAction,
   reorderListAction,
@@ -235,9 +236,9 @@ function ListOrderSurface({ data }: { data: ListOrderData }): JSX.Element {
   }
 
   return (
-    <SurfaceScene>
-      <Cascade className={SURFACE_STACK} lead={SURFACE_LEAD}>
-        <Item from="up">
+    <SurfaceStage>
+      <div className={SURFACE_STACK}>
+        <SurfacePart name="item">
           <HighlightGroup>
             <Reorder.Group
               axis="y"
@@ -245,8 +246,7 @@ function ListOrderSurface({ data }: { data: ListOrderData }): JSX.Element {
                 SURFACE_SCROLL,
                 "flex max-h-[min(56dvh,28rem)] flex-col gap-2.5",
               )}
-              data-lenis-prevent
-              data-lenis-prevent-wheel
+              data-scroll-native
               layoutScroll
               onReorder={setOrder}
               onWheel={scrollWithin}
@@ -263,8 +263,8 @@ function ListOrderSurface({ data }: { data: ListOrderData }): JSX.Element {
               ))}
             </Reorder.Group>
           </HighlightGroup>
-        </Item>
-        <Item className="flex items-center gap-2.5" from="up">
+        </SurfacePart>
+        <SurfacePart className="flex items-center gap-2.5" name="item">
           <Button
             className={cn(surfaceButton(false), "min-w-0 flex-1 px-4")}
             disabled={!changed || saving}
@@ -281,8 +281,8 @@ function ListOrderSurface({ data }: { data: ListOrderData }): JSX.Element {
           >
             Save order
           </Button>
-        </Item>
-      </Cascade>
-    </SurfaceScene>
+        </SurfacePart>
+      </div>
+    </SurfaceStage>
   );
 }

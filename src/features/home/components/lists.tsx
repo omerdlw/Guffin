@@ -1,18 +1,30 @@
 import type { JSX } from "react";
 import { AccountLink, PosterStack } from "@/features/account";
-import { Header, Item, Section } from "@/motion/stage";
 import { Avatar, Icon } from "@/ui";
 import { accountHref, listHref } from "@/config/routes";
 import { compact } from "../format";
 import type { HomeList } from "../types";
+import { HomePart, HomeSection } from "../motion";
+import { Heading } from "./heading";
 
-function ListCard({ list }: { list: HomeList }): JSX.Element {
+function ListCard({
+  index,
+  list,
+}: {
+  index: number;
+  list: HomeList;
+}): JSX.Element {
   const href = listHref(list.owner.username, list.slug);
   return (
-    <Item as="li" className="flex min-w-0 flex-col gap-3" from="light">
+    <HomePart
+      as="li"
+      className="flex min-w-0 flex-col gap-3"
+      index={index}
+      name="list"
+    >
       <AccountLink
         aria-label={list.title}
-        className="block ui-fade hover:opacity-80"
+        className="block ui-fade hover:opacity-80 focus-visible:opacity-80"
         href={href}
       >
         <PosterStack paths={list.previews} />
@@ -44,7 +56,7 @@ function ListCard({ list }: { list: HomeList }): JSX.Element {
           {compact(list.likes)}
         </span>
       </div>
-    </Item>
+    </HomePart>
   );
 }
 
@@ -55,13 +67,13 @@ export function HomeLists({
 }): JSX.Element | null {
   if (lists.length === 0) return null;
   return (
-    <Section className="flex w-full flex-col">
-      <Header icon="solar:widget-bold" title="Popular lists" />
+    <HomeSection className="flex w-full flex-col" cue="lists">
+      <Heading icon="solar:widget-bold" title="Popular lists" />
       <ul className="grid grid-cols-1 gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
-        {lists.map((list) => (
-          <ListCard key={list.id} list={list} />
+        {lists.map((list, index) => (
+          <ListCard index={index} key={list.id} list={list} />
         ))}
       </ul>
-    </Section>
+    </HomeSection>
   );
 }

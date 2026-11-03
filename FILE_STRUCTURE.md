@@ -23,7 +23,7 @@ Guffin projesi, modern bir **özellik tabanlı (feature-driven)** ve **katmanlı
 1. **`src/app/`**: Next.js App Router yapısı; sayfa rotaları, hata yakalama (`error.tsx`), yükleme durumları (`loading.tsx`), route grupları ve API uç noktaları (`api/`).
 2. **`src/features/`**: İş mantığı, veri sorguları, görünümler ve özelliğe özel bileşenleri barındıran modüller (ör. `account`, `movie`, `reviews`, `search`, `social`).
 3. **`src/infrastructure/`**: Harici servisler (Supabase, TMDB, Upstash Redis), HTTP istemcileri ve güvenlik katmanları.
-4. **`src/motion/`**: Sayfa koreografisi (`stage`), görsel efektler (`effects`), profil hero sahnesi (`scene`) ve smooth scroll motoru (`scroll`).
+4. **`src/motion/`**: Tek hareket motoru (`engine`: zaman merdiveni, madde, fiil, partisyon, kuvvetler, scroll sürücüsü, kit) ve görsel efektler (`effects`). Sayfa partisyonları ilgili özelliğin `motion.tsx` dosyasındadır.
 5. **`src/ui/`**: Proje genelinde paylaşılan atomik tasarım bileşenleri (`button`, `input`, `avatar`, `surface`, `media-card` vb.).
 6. **`src/config/`**: Proje rotaları, tema tokenları ve sabit tanımlamalar.
 7. **`supabase/`**: PostgreSQL veritabanı şeması ve migration dosyaları.
@@ -38,6 +38,9 @@ guffin/
 ├── .env
 ├── .gitignore
 ├── DESIGN.md
+├── docs
+│   ├── motion-analysis.md
+│   └── motion-engine.md
 ├── eslint.config.mjs
 ├── FILE_STRUCTURE.md
 ├── LICENSE
@@ -73,10 +76,12 @@ guffin/
 │       ├── README.md
 │       └── run.mjs
 ├── src
+│   ├── .DS_Store
 │   ├── app
 │   │   ├── (home)
 │   │   │   ├── loading.tsx
 │   │   │   └── page.tsx
+│   │   ├── .DS_Store
 │   │   ├── account
 │   │   │   ├── [username]
 │   │   │   │   ├── activity
@@ -158,6 +163,15 @@ guffin/
 │   │   │       └── Zuume-Bold.woff2
 │   │   ├── globals.css
 │   │   ├── icon.svg
+│   │   ├── lab
+│   │   │   ├── engine
+│   │   │   │   ├── b
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── page.tsx
+│   │   │   │   └── view.tsx
+│   │   │   └── kit
+│   │   │       ├── page.tsx
+│   │   │       └── view.tsx
 │   │   ├── layout.tsx
 │   │   ├── loading.tsx
 │   │   ├── movie
@@ -239,13 +253,14 @@ guffin/
 │   │   │   │   ├── shell.tsx
 │   │   │   │   ├── sidebar.tsx
 │   │   │   │   ├── stats.tsx
-│   │   │   │   └── tile-actions.tsx
+│   │   │   │   ├── tile-actions.tsx
+│   │   │   │   └── view.tsx
 │   │   │   ├── constants.ts
 │   │   │   ├── dates.ts
 │   │   │   ├── index.ts
 │   │   │   ├── last-account.ts
 │   │   │   ├── library.ts
-│   │   │   ├── motion.ts
+│   │   │   ├── motion.tsx
 │   │   │   ├── normalize.ts
 │   │   │   ├── poster.ts
 │   │   │   ├── provider.tsx
@@ -282,7 +297,7 @@ guffin/
 │   │   │   ├── components
 │   │   │   │   ├── picture-foresight.tsx
 │   │   │   │   ├── poster-thumb.tsx
-│   │   │   │   └── poster.tsx
+│   │   │   │   └── print.tsx
 │   │   │   ├── constants.ts
 │   │   │   ├── entries.ts
 │   │   │   ├── hooks.ts
@@ -314,9 +329,26 @@ guffin/
 │   │   │   ├── types.ts
 │   │   │   ├── utils.ts
 │   │   │   └── view.tsx
+│   │   ├── detail
+│   │   │   ├── components
+│   │   │   │   ├── action.tsx
+│   │   │   │   ├── awards.tsx
+│   │   │   │   ├── backdrop.tsx
+│   │   │   │   ├── facts.tsx
+│   │   │   │   ├── heading.tsx
+│   │   │   │   ├── image-modal.tsx
+│   │   │   │   ├── intermission.tsx
+│   │   │   │   ├── layout.tsx
+│   │   │   │   ├── stage.tsx
+│   │   │   │   ├── views.tsx
+│   │   │   │   ├── wall-set.ts
+│   │   │   │   └── wall.tsx
+│   │   │   ├── index.ts
+│   │   │   └── motion.tsx
 │   │   ├── home
 │   │   │   ├── components
 │   │   │   │   ├── film-dock.tsx
+│   │   │   │   ├── heading.tsx
 │   │   │   │   ├── hero.tsx
 │   │   │   │   ├── join.tsx
 │   │   │   │   ├── lists.tsx
@@ -325,9 +357,11 @@ guffin/
 │   │   │   │   ├── reviews.tsx
 │   │   │   │   ├── rising.tsx
 │   │   │   │   ├── rows.tsx
-│   │   │   │   └── showing.tsx
+│   │   │   │   ├── showing.tsx
+│   │   │   │   └── stage.tsx
 │   │   │   ├── format.ts
 │   │   │   ├── index.ts
+│   │   │   ├── motion.tsx
 │   │   │   ├── rank.ts
 │   │   │   ├── server
 │   │   │   │   ├── feed.ts
@@ -342,6 +376,7 @@ guffin/
 │   │   │   ├── constants.ts
 │   │   │   ├── content.ts
 │   │   │   ├── index.ts
+│   │   │   ├── motion.tsx
 │   │   │   ├── types.ts
 │   │   │   └── view.tsx
 │   │   ├── lists
@@ -365,7 +400,6 @@ guffin/
 │   │   │   │   ├── awards.tsx
 │   │   │   │   ├── chrome.tsx
 │   │   │   │   ├── collection-actions.tsx
-│   │   │   │   ├── gallery-wall.tsx
 │   │   │   │   ├── gallery.tsx
 │   │   │   │   ├── layout.tsx
 │   │   │   │   ├── modals.tsx
@@ -380,12 +414,12 @@ guffin/
 │   │   │   │   ├── review-digest.tsx
 │   │   │   │   ├── reviews.tsx
 │   │   │   │   ├── sidebar.tsx
+│   │   │   │   ├── stage.tsx
 │   │   │   │   ├── stats.tsx
 │   │   │   │   ├── videos.tsx
 │   │   │   │   └── view-switcher.tsx
 │   │   │   ├── constants.ts
 │   │   │   ├── index.ts
-│   │   │   ├── motion.ts
 │   │   │   ├── server
 │   │   │   │   ├── index.ts
 │   │   │   │   ├── stats.ts
@@ -400,17 +434,17 @@ guffin/
 │   │   │   └── watch-providers.ts
 │   │   ├── person
 │   │   │   ├── components
+│   │   │   │   ├── age-count.tsx
 │   │   │   │   ├── artwork.tsx
-│   │   │   │   ├── awards.tsx
 │   │   │   │   ├── career-chart.tsx
 │   │   │   │   ├── career.tsx
 │   │   │   │   ├── chrome.tsx
-│   │   │   │   ├── facts.tsx
 │   │   │   │   ├── filmography.tsx
 │   │   │   │   ├── gallery.tsx
 │   │   │   │   ├── header.tsx
 │   │   │   │   ├── projection.tsx
 │   │   │   │   ├── sidebar.tsx
+│   │   │   │   ├── stage.tsx
 │   │   │   │   ├── timeline.tsx
 │   │   │   │   ├── view-actions.tsx
 │   │   │   │   ├── view-state.tsx
@@ -419,7 +453,6 @@ guffin/
 │   │   │   ├── credits.ts
 │   │   │   ├── images.ts
 │   │   │   ├── index.ts
-│   │   │   ├── motion.ts
 │   │   │   ├── profile.ts
 │   │   │   ├── skeleton.tsx
 │   │   │   ├── styles.ts
@@ -520,8 +553,10 @@ guffin/
 │   │       │       ├── renderer.ts
 │   │       │       └── shader.ts
 │   │       ├── hooks.ts
+│   │       ├── images-ready.ts
 │   │       ├── index.ts
-│   │       ├── opening.ts
+│   │       ├── motion.tsx
+│   │       ├── scene.ts
 │   │       ├── server
 │   │       │   ├── cache.ts
 │   │       │   ├── canon.ts
@@ -576,70 +611,66 @@ guffin/
 │   │   └── uuid.ts
 │   ├── motion
 │   │   ├── effects
-│   │   │   ├── crossfade-backdrop.tsx
 │   │   │   ├── crt.tsx
 │   │   │   ├── cursor.tsx
 │   │   │   ├── foil.tsx
-│   │   │   ├── grain.tsx
-│   │   │   ├── house-lights.ts
 │   │   │   ├── idle-screen.tsx
 │   │   │   ├── index.ts
 │   │   │   ├── magnet.tsx
-│   │   │   ├── pointer-light.ts
 │   │   │   ├── projection.tsx
-│   │   │   ├── shared-image.tsx
+│   │   │   ├── tilt.tsx
 │   │   │   └── tinted-favicon.ts
+│   │   ├── engine
+│   │   │   ├── bind.tsx
+│   │   │   ├── carry.ts
+│   │   │   ├── clock.ts
+│   │   │   ├── curve.ts
+│   │   │   ├── engine.ts
+│   │   │   ├── fields.ts
+│   │   │   ├── index.ts
+│   │   │   ├── kit
+│   │   │   │   ├── count.tsx
+│   │   │   │   ├── deck.tsx
+│   │   │   │   ├── expose.tsx
+│   │   │   │   ├── header.tsx
+│   │   │   │   ├── house.ts
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── room.tsx
+│   │   │   │   ├── swap.tsx
+│   │   │   │   └── wall.tsx
+│   │   │   ├── ladder.ts
+│   │   │   ├── look.ts
+│   │   │   ├── matter.ts
+│   │   │   ├── react.tsx
+│   │   │   ├── scene.ts
+│   │   │   ├── score.ts
+│   │   │   ├── scroll.ts
+│   │   │   ├── signal.ts
+│   │   │   ├── spring.ts
+│   │   │   ├── stage.ts
+│   │   │   ├── text.ts
+│   │   │   ├── tint.ts
+│   │   │   ├── tokens.ts
+│   │   │   ├── touch.ts
+│   │   │   ├── value.ts
+│   │   │   └── verbs.ts
 │   │   ├── gl.ts
 │   │   ├── layout-flow.tsx
 │   │   ├── math.ts
-│   │   ├── optical-inset.ts
 │   │   ├── page-handoff.tsx
 │   │   ├── pointer.ts
-│   │   ├── reduced-motion.ts
-│   │   ├── scene
-│   │   │   ├── index.ts
-│   │   │   ├── scene.tsx
-│   │   │   └── score.ts
-│   │   ├── scroll
-│   │   │   ├── engine.ts
-│   │   │   ├── index.ts
-│   │   │   ├── provider.tsx
-│   │   │   └── steady.ts
-│   │   └── stage
-│   │       ├── action.tsx
-│   │       ├── ambient.tsx
-│   │       ├── animate.ts
-│   │       ├── arrival.ts
-│   │       ├── carousel.tsx
-│   │       ├── choreography.ts
-│   │       ├── clock.tsx
-│   │       ├── color-grade.tsx
-│   │       ├── cue.ts
-│   │       ├── develop.tsx
-│   │       ├── images-ready.ts
-│   │       ├── index.ts
-│   │       ├── layer.tsx
-│   │       ├── lead-image.ts
-│   │       ├── lines.tsx
-│   │       ├── picture.tsx
-│   │       ├── section.tsx
-│   │       ├── sequence.tsx
-│   │       ├── stage.tsx
-│   │       ├── surface-scene.tsx
-│   │       ├── tempo.ts
-│   │       ├── text.tsx
-│   │       ├── timeline.ts
-│   │       ├── tone.ts
-│   │       ├── view-deck.tsx
-│   │       └── wall.tsx
+│   │   └── reduced-motion.ts
 │   ├── proxy.ts
 │   └── ui
+│       ├── action-button.tsx
 │       ├── adaptive-image.tsx
 │       ├── avatar.tsx
 │       ├── backdrop-hero.tsx
 │       ├── button.tsx
+│       ├── carousel.tsx
 │       ├── cn.ts
 │       ├── fact-link.tsx
+│       ├── highlight-group.tsx
 │       ├── highlight.tsx
 │       ├── hooks
 │       │   ├── use-confirm-step.ts
@@ -659,6 +690,7 @@ guffin/
 │       ├── sliding-highlight.tsx
 │       ├── spinner.tsx
 │       ├── sticky-aside.tsx
+│       ├── surface-stage.tsx
 │       ├── surface.tsx
 │       ├── switch.tsx
 │       ├── textarea.tsx
@@ -684,7 +716,9 @@ guffin/
 ## 🔍 Temel Dizin ve Modül Açıklamaları
 
 ### 1. `src/app/` (Next.js App Router)
+
 Next.js App Router standartlarına uygun yönlendirme ve API rotalarını içerir:
+
 - **`(home)/`**: Ana sayfa (`page.tsx`) ve yalnızca ana sayfaya ait yükleme iskeleti (`loading.tsx`); grup, bu iskeletin diğer sayfalara sızmasını engeller.
 - **`account/`**: Kullanıcı profil sayfaları:
   - `[username]/`: Kullanıcı genel bakış profili
@@ -715,6 +749,7 @@ Next.js App Router standartlarına uygun yönlendirme ve API rotalarını içeri
 ---
 
 ### 2. `src/features/` (Özellik Modülleri)
+
 Uygulamanın ana fonksiyonları bağımsız modüllere ayrılmıştır. Her modül aynı şablonu izler; olmayan parça atlanır:
 
 ```text
@@ -729,6 +764,7 @@ features/<ad>/
 ```
 
 Modüller:
+
 - **`account`**: Oturum açmış hesabın durumu ve profil sayfaları (genel bakış, günlük, koleksiyonlar, aktivite), takip ve bildirimler.
 - **`artwork`**: Film ve kişi görsellerinin işlenmesi, optimizasyonu ve renk analizi.
 - **`auth`**: Giriş / kayıt modal pencereleri, oturum kontrolü ve yetkilendirme akışları.
@@ -747,6 +783,7 @@ Modüller:
 ---
 
 ### 3. `src/infrastructure/` (Altyapı & Harici Entegrasyonlar)
+
 - **`supabase/`**:
   - `client.ts`: Tarayıcı tarafı Supabase istemcisi.
   - `server.ts`: Next.js Server Components ve Server Actions için Supabase SSR istemcisi.
@@ -762,19 +799,21 @@ Modüller:
 ---
 
 ### 4. `src/motion/` (Hareket & Sinematik Görsel Motoru)
-- **`stage/`**: Sayfa koreografisi — sahne (`stage.tsx`), bölümler (`section.tsx`), zamanlama (`tempo.ts`, `choreography.ts`, `timeline.ts`, `clock.tsx`, `cue.ts`), varış dalgası (`arrival.ts`), metin animasyonları (`text.tsx`), renk derecelendirme (`color-grade.tsx`, `tone.ts`).
-- **`effects/`**: Görsel efektler — projeksiyon (`projection.tsx`), film greni (`grain.tsx`), özel imleç (`cursor.tsx`), CRT geçişi (`crt.tsx`), boşta ekranı (`idle-screen.tsx`), sayfalar arası görsel taşıma (`shared-image.tsx`), salon ışıkları durumu (`house-lights.ts`).
-- **`scene/`**: Profil hero sahnesi (`scene.tsx`) ve zamanlama partisyonu (`score.ts`).
-- **`scroll/`**: Smooth scroll motoru (`engine.ts`, `steady.ts`, `provider.tsx`).
-- Kök: `layout-flow.tsx` (layout kaymalarını yumuşatır), `page-handoff.tsx` (film sayfalarına geçiş), `gl.ts` (WebGL yardımcıları), `pointer.ts`, `reduced-motion.ts`, `optical-inset.ts`, `math.ts`.
+
+- **`engine/`**: Guffin'in tek motion motoru. Zaman merdiveni (`ladder.ts`), eğriler (`curve.ts`), yaylar (`spring.ts`), madde ve fiil (`matter.ts`, `verbs.ts`), partisyon ve sahne (`score.ts`, `stage.ts`, `bind.tsx`, `react.tsx`), kuvvetler (`fields.ts`, `touch.ts`), scroll sürücüsü (`scroll.ts`), sayfalar arası devir (`carry.ts`), oda rengi (`tint.ts`), canvas sahnesi (`scene.ts`) ve CSS değişkenleri (`tokens.ts`). `kit/` içinde `Header`, `Expose`, `Count`, `Swap`, `Deck`, `WallStage`, `Room`. Ayrıntı: `docs/motion-engine.md`, sözleşme: `DESIGN.md` bölüm 6.
+- **`effects/`**: Motorun üstünde duran görsel efektler: projeksiyon (`projection.tsx`), özel imleç (`cursor.tsx`), CRT geçişi (`crt.tsx`), boşta ekranı (`idle-screen.tsx`), afiş eğilmesi ve folyo (`tilt.tsx`, `foil.tsx`), `magnet.tsx`, favicon boyası (`tinted-favicon.ts`).
+- Kök: `layout-flow.tsx` (layout kaymalarını yumuşatır), `page-handoff.tsx` (film sayfalarına geçiş), `gl.ts` (WebGL yardımcıları), `pointer.ts`, `reduced-motion.ts`, `math.ts`.
+- Sayfa partisyonları: `features/{detail,home,account,legal,spotlights}/motion.tsx`; dock yüzeyleri için `ui/surface-stage.tsx`.
+- Laboratuvar (yalnızca geliştirme): `app/lab/engine`, `app/lab/kit`.
 
 ---
 
 ### 5. `src/ui/` (Tasarım Sistemi & Temel Bileşenler)
+
 - **Form Elemanları**: `button.tsx`, `input.tsx`, `select.tsx`, `switch.tsx`, `textarea.tsx`, `segmented-control.tsx`.
 - **Medya & Sunum**: `adaptive-image.tsx`, `backdrop-hero.tsx`, `media-card.tsx`, `avatar.tsx`, `logo.tsx`.
 - **Geri Bildirim & Durum**: `loader.tsx`, `spinner.tsx`, `skeleton.tsx`, `route-error.tsx`, `tooltip.tsx`.
-- **Yardımcılar**: `cn.ts` (Tailwind class merging), `theme.ts`, `page.ts` (sayfa düzeni sınıfları), `highlight.tsx`, `sticky-aside.tsx`.
+- **Yardımcılar**: `cn.ts` (Tailwind class merging), `theme.ts`, `page.ts` (sayfa düzeni sınıfları), `highlight.tsx`, `sticky-aside.tsx`, `surface.tsx` (yüzey kiti), `surface-stage.tsx` (dock yüzeyi sahnesi).
 - **Hook'lar**: `hooks/use-confirm-step.ts`, `hooks/use-dock-link.ts`.
 
 `src/config/theme/` her framework modülü için tek dosya tutar (`dock.ts`, `modal.ts` …); bileşenin hem görünüm hem hareket tokenları aynı dosyadadır, ortak hareket ölçeği `motion.ts`'tedir.
@@ -782,7 +821,9 @@ Modüller:
 ---
 
 ### 6. `supabase/migrations/` (Veritabanı Şemaları)
+
 PostgreSQL üzerinde çalışan migration dosyaları:
+
 - Kullanıcı hesapları ve profil tabloları
 - Film istatistikleri ve aktivite günlüğü
 - Liste, yorum ve beğeni yapıları (RLS güvenlik politikaları ile)
@@ -791,6 +832,7 @@ PostgreSQL üzerinde çalışan migration dosyaları:
 ---
 
 ### 7. `scripts/seed/` (Veri Hazırlama & Tohumlama Araçları)
+
 - `catalog.mjs`: TMDB API üzerinden filmleri çekip yerel önbelleğe (`.cache/catalog.json`) kaydeder.
 - `run.mjs` & `load.mjs`: Önbellekteki film kataloğunu ve örnek kullanıcı hesaplarını Supabase veritabanına aktarır.
 - `clean.mjs`: Veritabanındaki test verilerini temizler.

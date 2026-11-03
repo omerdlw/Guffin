@@ -78,6 +78,7 @@ export {
   surfaceIconButton,
   surfaceRow,
 } from "./surface";
+export { SurfacePart, SurfaceStage, SurfaceSwap } from "./surface-stage";
 export { HighlightGroup, useHighlight } from "./highlight-group";
 export { Switch } from "./switch";
 export { Textarea } from "./textarea";

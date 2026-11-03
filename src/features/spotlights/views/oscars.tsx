@@ -3,14 +3,15 @@
 import { useCallback, useEffect, useRef, useState, type JSX } from "react";
 import Link from "next/link";
 import { useReducedMotion } from "motion/react";
-import { Stage } from "@/motion/stage";
+import { useAnyStage } from "@/motion/engine";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/images";
 import { OSCARS_HREF, movieHref } from "@/config/routes";
 import { ordinal } from "../data/best-picture";
 import { Foundry } from "../gl/foundry/renderer";
 import type { Laureate } from "../types";
 import { useGestureStep } from "../hooks";
-import { SPOTLIGHT_OPENING } from "../opening";
+import { SalonPart, SalonStage } from "../motion";
+import { mountSpotlight } from "../scene";
 import { SpotlightDock } from "../components/dock";
 import { WinnersIndex } from "../components/winners-index";
 import { YearDial } from "../components/year-dial";
@@ -18,7 +19,7 @@ import { YearDial } from "../components/year-dial";
 const poster = (film: Laureate) =>
   tmdbImageUrl("poster", film.posterPath, "w780")!;
 
-export function OscarsView({
+function Oscars({
   initial,
   laureates,
 }: {
@@ -26,6 +27,7 @@ export function OscarsView({
   laureates: Laureate[];
 }): JSX.Element {
   const reduced = Boolean(useReducedMotion());
+  const stage = useAnyStage();
   const canvas = useRef<HTMLCanvasElement>(null);
   const plate = useRef<HTMLAnchorElement>(null);
   const foundry = useRef<Foundry | null>(null);
@@ -48,15 +50,18 @@ export function OscarsView({
   useEffect(() => {
     const element = canvas.current;
     if (!element) return;
-    const scene = Foundry.create(
+    const font = getComputedStyle(plate.current ?? element).fontFamily;
+    const { renderer: scene, dispose } = mountSpotlight(
+      stage,
       element,
-      getComputedStyle(plate.current ?? element).fontFamily,
-      { opened: () => setOpened(true) },
+      (canvas, loop) =>
+        Foundry.create(canvas, font, { opened: () => setOpened(true) }, loop),
+      1.5,
     );
     if (!scene) {
       setFailed(true);
       setOpened(true);
-      return;
+      return dispose;
     }
     foundry.current = scene;
     const place = () => {
@@ -87,10 +92,10 @@ export function OscarsView({
       observer.disconnect();
       window.removeEventListener("pointermove", onMove);
       document.documentElement.removeEventListener("pointerleave", onLeave);
-      scene.dispose();
+      dispose();
       foundry.current = null;
     };
-  }, []);
+  }, [stage]);
 
   useEffect(() => foundry.current?.setReduced(reduced), [reduced]);
 
@@ -109,11 +114,7 @@ export function OscarsView({
   }, [film, index, laureates]);
 
   return (
-    <Stage
-      className="oscars-page relative h-dvh overflow-hidden"
-      opening={SPOTLIGHT_OPENING}
-      black
-    >
+    <>
       <SpotlightDock
         action={{
           icon: "solar:list-bold",
@@ -132,7 +133,10 @@ export function OscarsView({
       />
       <h1 className="sr-only">Best Picture winners of the Academy Awards</h1>
 
-      <div className="relative z-10 mx-auto grid h-dvh w-full max-w-[96rem] grid-rows-[minmax(0,1fr)_auto] px-4 pt-8 pb-[calc(var(--dock-h,6rem)+0.5rem)] sm:px-8 sm:pt-12">
+      <SalonPart
+        className="relative z-10 mx-auto grid h-dvh w-full max-w-[96rem] grid-rows-[minmax(0,1fr)_auto] px-4 pt-8 pb-[calc(var(--dock-h,6rem)+0.5rem)] sm:px-8 sm:pt-12"
+        name="chrome"
+      >
         <div className="flex min-h-0 items-center justify-center py-6">
           <Link
             aria-label={`${film.title}, Best Picture at the ${ordinal(film.ceremony)} Academy Awards (${film.ceremonyYear})`}
@@ -158,7 +162,7 @@ export function OscarsView({
             shown={opened}
           />
         </div>
-      </div>
+      </SalonPart>
 
       <WinnersIndex
         current={index}
@@ -170,6 +174,18 @@ export function OscarsView({
         }}
         open={browsing}
       />
-    </Stage>
+    </>
+  );
+}
+
+// The page's hooks reach the salon's stage from inside it.
+export function OscarsView(props: {
+  initial: number;
+  laureates: Laureate[];
+}): JSX.Element {
+  return (
+    <SalonStage className="oscars-page relative h-dvh overflow-hidden">
+      <Oscars {...props} />
+    </SalonStage>
   );
 }

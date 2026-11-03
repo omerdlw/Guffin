@@ -18,6 +18,8 @@ import {
   SURFACE_META,
   SURFACE_PRIMARY,
   SURFACE_STACK,
+  SurfacePart,
+  SurfaceStage,
   SURFACE_TEXT,
   SURFACE_TILE,
   SURFACE_TILE_END,
@@ -28,7 +30,6 @@ import {
   Textarea,
 } from "@/ui";
 import { SlidingHighlight } from "@/ui/sliding-highlight";
-import { Cascade, Item, SURFACE_LEAD, SurfaceScene } from "@/motion/stage";
 import { LIST_DESCRIPTION_MAX, LIST_TITLE_MAX } from "../types";
 import { deleteListAction, saveListAction } from "../server/actions";
 import { createListOrderSurfaceEntry } from "./order";
@@ -207,11 +208,11 @@ function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
   const canOrder = list !== undefined && (list.itemsCount ?? 0) > 1;
 
   return (
-    <SurfaceScene>
+    <SurfaceStage>
       <form onPointerLeave={() => setHoveredControl(null)} onSubmit={save}>
         <LayoutGroup id={`list-form-${highlightGroupId}`}>
-          <Cascade className={SURFACE_STACK} lead={SURFACE_LEAD}>
-            <Item from="up">
+          <div className={SURFACE_STACK}>
+            <SurfacePart name="item">
               <Input
                 aria-label="List name"
                 className={cn(SURFACE_FIELD, "h-10 w-full px-4 type-body")}
@@ -222,8 +223,8 @@ function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
                 placeholder="List name"
                 value={title}
               />
-            </Item>
-            <Item from="up">
+            </SurfacePart>
+            <SurfacePart name="item">
               <Textarea
                 aria-label="Description"
                 className={cn(
@@ -239,8 +240,8 @@ function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
                 placeholder="What is this list about? (optional)"
                 value={description}
               />
-            </Item>
-            <Item from="up">
+            </SurfacePart>
+            <SurfacePart name="item">
               <Toggle
                 checked={isRanked}
                 description="Number the films in the order you keep them"
@@ -253,8 +254,8 @@ function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
                 onFocus={() => setFocusedControl("ranked")}
                 onPointerEnter={() => setHoveredControl("ranked")}
               />
-            </Item>
-            <Item from="up">
+            </SurfacePart>
+            <SurfacePart name="item">
               <Toggle
                 checked={isPrivate}
                 description="Only you see it, and it stays out of your activity"
@@ -267,9 +268,9 @@ function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
                 onFocus={() => setFocusedControl("private")}
                 onPointerEnter={() => setHoveredControl("private")}
               />
-            </Item>
+            </SurfacePart>
             {canOrder ? (
-              <Item from="up">
+              <SurfacePart name="item">
                 <button
                   className={cn(
                     SURFACE_TILE,
@@ -304,10 +305,10 @@ function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
                     size={16}
                   />
                 </button>
-              </Item>
+              </SurfacePart>
             ) : null}
 
-            <Item className="flex items-center gap-2.5" from="up">
+            <SurfacePart className="flex items-center gap-2.5" name="item">
               {list ? (
                 <Button
                   className={cn(
@@ -334,10 +335,10 @@ function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
               >
                 {list ? "Save" : "Create list"}
               </Button>
-            </Item>
-          </Cascade>
+            </SurfacePart>
+          </div>
         </LayoutGroup>
       </form>
-    </SurfaceScene>
+    </SurfaceStage>
   );
 }

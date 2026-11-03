@@ -75,26 +75,16 @@
   --color-award: #e9c46a;
 
   --ease-*: initial;
-  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-expo: var(--curve-expo);
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
-  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-in-out-cubic: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-out-quint: var(--curve-silk);
+  --ease-in-out-cubic: var(--curve-glide);
   --ease-in-cubic: cubic-bezier(0.5, 0, 1, 1);
   --ease-out-cream: cubic-bezier(0.3, 0.85, 0.3, 1);
   --ease-phosphor: cubic-bezier(0.06, 0.62, 0.2, 1);
-  --ease-fade: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-fade: var(--curve-fade);
 
-  --duration-ripple: 30ms; /* size(-6): a stagger across many marks */
-  --duration-flick: 75ms; /* size(-4): a stagger between siblings */
-  --duration-touch: 120ms; /* size(-3): a press going down */
-  --duration-leave: 190ms; /* size(-2): something closing */
-  --duration-light: 310ms; /* size(-1): a small light coming up */
-  --duration-reveal: 500ms; /* size(0): a hover arriving */
-  --duration-move: 810ms; /* size(1): a press coming back, a turn */
-  --duration-settle: 1310ms; /* size(2): a hover fading out */
-  --duration-linger: 2120ms; /* size(3): long glows and image settles */
-
-  --default-transition-duration: var(--duration-leave);
+  --default-transition-duration: var(--step-n2);
   --default-transition-timing-function: var(--ease-out-quart);
 }
 
@@ -122,32 +112,32 @@
 }
 
 @utility tempo-quick {
-  --touch-in: var(--duration-light);
-  --touch-out: var(--duration-leave);
+  --touch-in: var(--step-n1);
+  --touch-out: var(--step-n2);
 }
 @utility duration-flick {
-  transition-duration: var(--duration-flick);
+  transition-duration: var(--step-n4);
 }
 @utility duration-touch {
-  transition-duration: var(--duration-touch);
+  transition-duration: var(--step-n3);
 }
 @utility duration-leave {
-  transition-duration: var(--duration-leave);
+  transition-duration: var(--step-n2);
 }
 @utility duration-light {
-  transition-duration: var(--duration-light);
+  transition-duration: var(--step-n1);
 }
 @utility duration-reveal {
-  transition-duration: var(--duration-reveal);
+  transition-duration: var(--step-0);
 }
 @utility duration-move {
-  transition-duration: var(--duration-move);
+  transition-duration: var(--step-1);
 }
 @utility duration-settle {
-  transition-duration: var(--duration-settle);
+  transition-duration: var(--step-2);
 }
 @utility duration-linger {
-  transition-duration: var(--duration-linger);
+  transition-duration: var(--step-3);
 }
 
 @utility type-micro {
@@ -314,11 +304,13 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
   outline: 1.5px solid rgb(var(--white-rgb) / 0.2);
   outline-offset: 2px;
 }
-:where(.movie-page, .person-page)
+:where(.account-page, .home-page, .movie-page, .person-page)
   :focus-visible:not(input, textarea, [contenteditable], [data-own-focus]) {
   outline-color: rgb(var(--grade, var(--white-rgb)) / 0.4);
 }
-:where(.movie-page, .person-page) .cine-slide :focus-visible {
+:where(.account-page, .home-page, .movie-page, .person-page)
+  .cine-slide
+  :focus-visible {
   outline-offset: -1.5px;
 }
 
@@ -342,18 +334,6 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
   :where(.skeleton-block, .skeleton-block-soft) {
     position: relative;
   }
-
-  .film-beam {
-    -webkit-background-clip: text;
-    background-clip: text;
-    background-image: radial-gradient(
-      22rem circle at calc(var(--bx, -9999px) - var(--ox, 0px))
-        calc(var(--by, -9999px) - var(--oy, 0px)),
-      color-mix(in srgb, rgb(var(--grade, var(--white-rgb))) 70%, var(--white)),
-      var(--white) 70%
-    );
-    color: transparent;
-  }
 }
 
 @keyframes skeleton-pulse {
@@ -367,16 +347,15 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
 }
 
 .animate-skeleton-pulse {
-  animation: skeleton-pulse var(--duration-linger) var(--ease-in-out-cubic)
-    infinite;
+  animation: skeleton-pulse var(--step-3) var(--ease-in-out-cubic) infinite;
 }
 
 @layer components {
   [data-cinematic] img[data-state] {
     transition:
-      opacity var(--duration-settle) var(--ease-fade),
-      transform var(--duration-linger) var(--ease-out-cream),
-      scale var(--duration-linger) var(--ease-out-cream);
+      opacity var(--step-2) var(--ease-fade),
+      transform var(--step-3) var(--ease-out-cream),
+      scale var(--step-3) var(--ease-out-cream);
   }
   [data-cinematic] img[data-state="loading"] {
     transform: scale(1.08);
@@ -390,25 +369,7 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
     scale: 1.04;
   }
   .ui-motion .cine-card img.cine-zoom {
-    transition: scale var(--duration-linger) var(--ease-out-cream);
-  }
-
-  @keyframes cine-exit {
-    to {
-      opacity: 0.15;
-    }
-  }
-  @media (prefers-reduced-motion: no-preference) {
-    @supports (animation-timeline: view()) {
-      [data-cinematic] [data-exit] > * {
-        animation: cine-exit linear forwards;
-        animation-timeline: view();
-        animation-range: exit 0% exit 100%;
-      }
-      [data-cinematic] [data-exit="lead"] > * {
-        animation-range: exit -120px exit 100%;
-      }
-    }
+    transition: scale var(--step-3) var(--ease-out-cream);
   }
 
   html:has([data-cinematic]) {
@@ -416,10 +377,10 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
   }
 
   .home-ticker-in {
-    animation: home-ticker-in var(--duration-reveal) var(--ease-out-quint) both;
+    animation: home-ticker-in var(--step-0) var(--ease-out-quint) both;
   }
   .home-ticker-out {
-    animation: home-ticker-out var(--duration-light) var(--ease-in-cubic) both;
+    animation: home-ticker-out var(--step-n1) var(--ease-in-cubic) both;
   }
   @keyframes home-ticker-in {
     from {
@@ -496,13 +457,13 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
     opacity: 0;
     pointer-events: none;
     position: absolute;
-    transition: opacity var(--duration-linger) var(--ease-phosphor);
+    transition: opacity var(--step-3) var(--ease-phosphor);
   }
   :is([data-cinematic], .ui-motion, .ui-scene)
     :is(.cine-card:is(:hover, :focus-visible), [data-active] .cine-card)
     .cine-afterglow {
     opacity: 0.55;
-    transition-duration: var(--duration-move);
+    transition-duration: var(--step-1);
     transition-timing-function: var(--ease-out-cream);
   }
   [data-cinematic] [data-pill] {
@@ -531,27 +492,14 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
   }
   [data-cinematic] .cine-turn {
     transition:
-      color var(--duration-move) var(--ease-out-cream),
-      transform var(--duration-move) var(--ease-out-cream);
+      color var(--step-1) var(--ease-out-cream),
+      transform var(--step-1) var(--ease-out-cream);
   }
   [data-cinematic] .cine-play {
     transition: transform var(--touch-out) var(--ease-out-cream);
   }
   [data-cinematic] .cine-card:is(:hover, :focus-visible) .cine-play {
     transform: scale(1.14);
-  }
-
-  @keyframes film-drift {
-    from {
-      transform: scale(1.04) translate3d(0, 0, 0);
-    }
-    to {
-      transform: scale(1.16) translate3d(-2.5%, -1.5%, 0);
-    }
-  }
-  .film-drift {
-    animation: film-drift 32s var(--ease-in-out-cubic) infinite alternate;
-    will-change: transform;
   }
 
   [data-cinematic] ::selection {
@@ -578,8 +526,7 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
   }
   @media (prefers-reduced-motion: no-preference) {
     .skeleton-block::after {
-      animation: cine-shimmer var(--duration-linger) var(--ease-in-out-cubic)
-        infinite;
+      animation: cine-shimmer var(--step-3) var(--ease-in-out-cubic) infinite;
     }
   }
 
@@ -595,10 +542,10 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
 
 @layer components {
   :root {
-    --touch-in: var(--duration-reveal);
-    --touch-out: var(--duration-settle);
-    --press-in: var(--duration-touch);
-    --press-out: var(--duration-move);
+    --touch-in: var(--step-0);
+    --touch-out: var(--step-2);
+    --press-in: var(--step-n3);
+    --press-out: var(--step-1);
     --touch-t: var(--touch-out);
     --touch-e: var(--ease-phosphor);
     --press-t: var(--press-out);
@@ -730,13 +677,6 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
       outline-offset var(--touch-t) var(--ease-out-cream),
       scale var(--press-t) var(--ease-out-cream);
   }
-  .ui-drift {
-    transition:
-      translate var(--touch-t) var(--ease-out-cream),
-      color var(--touch-t) var(--touch-e),
-      background-color var(--touch-t) var(--touch-e),
-      box-shadow var(--touch-t) var(--touch-e);
-  }
 
   :where(.ui-motion, .ui-scene)
     :where(button, a[href], [role="button"], [role="menuitem"], [role="tab"])
@@ -836,7 +776,7 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
     }
   }
   .ui-develop {
-    animation: ui-develop var(--duration-reveal) var(--ease-out-cream) both;
+    animation: ui-develop var(--step-0) var(--ease-out-cream) both;
   }
   @keyframes directors-print {
     from {
@@ -857,11 +797,11 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
   }
   .directors-frame {
     opacity: 0.3;
-    transition: opacity var(--duration-settle) var(--ease-phosphor);
+    transition: opacity var(--step-2) var(--ease-phosphor);
   }
   .directors-print .cine-card:is(:hover, :focus-visible) .directors-frame {
     opacity: 1;
-    transition-duration: var(--duration-reveal);
+    transition-duration: var(--step-0);
     transition-timing-function: var(--ease-out-cream);
   }
   @media (prefers-reduced-motion: no-preference) {
@@ -886,10 +826,10 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
     }
     .directors-name {
       transition:
-        opacity var(--duration-settle) var(--ease-fade),
-        translate var(--duration-linger) var(--ease-out-quint),
-        filter var(--duration-settle) var(--ease-out-quint);
-      transition-delay: calc(var(--i, 0) * var(--duration-touch));
+        opacity var(--step-2) var(--ease-fade),
+        translate var(--step-3) var(--ease-out-quint),
+        filter var(--step-2) var(--ease-out-quint);
+      transition-delay: calc(var(--i, 0) * var(--step-n3));
     }
     nav:not([data-named]) .directors-name {
       filter: blur(6px);
@@ -917,19 +857,15 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
       opacity: 0;
     }
     .oscars-dial[data-shown] .oscars-needle {
-      animation: oscars-rise var(--duration-move) var(--ease-out-quint) both;
+      animation: oscars-rise var(--step-1) var(--ease-out-quint) both;
     }
     .oscars-dial[data-shown] .oscars-tick {
-      animation: oscars-rise var(--duration-move) var(--ease-out-quint) both;
-      animation-delay: calc(
-        var(--duration-light) + var(--d, 0) * var(--duration-ripple)
-      );
+      animation: oscars-rise var(--step-1) var(--ease-out-quint) both;
+      animation-delay: calc(var(--step-n1) + var(--d, 0) * var(--step-n6));
     }
     .oscars-dial[data-shown] .oscars-decade {
-      animation: oscars-fade var(--duration-move) var(--ease-phosphor) both;
-      animation-delay: calc(
-        var(--duration-move) + var(--d, 0) * var(--duration-ripple)
-      );
+      animation: oscars-fade var(--step-1) var(--ease-phosphor) both;
+      animation-delay: calc(var(--step-1) + var(--d, 0) * var(--step-n6));
     }
   }
   @keyframes ui-caret {
@@ -941,7 +877,7 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
     }
   }
   .ui-caret {
-    animation: ui-caret var(--duration-move) var(--ease-in-out-cubic) infinite
+    animation: ui-caret var(--step-1) var(--ease-in-out-cubic) infinite
       alternate;
   }
 
@@ -979,7 +915,7 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
   }
   @media (hover: hover) {
     .ui-sheen:not(:disabled):hover::after {
-      animation: ui-sheen var(--duration-settle) var(--ease-in-out-cubic) both;
+      animation: ui-sheen var(--step-2) var(--ease-in-out-cubic) both;
     }
   }
 
@@ -996,9 +932,6 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
     :is(.ui-motion, .ui-scene) iconify-icon,
     .ui-glyph {
       scale: none !important;
-    }
-    .ui-drift {
-      translate: none !important;
     }
     .ui-sheen::after,
     .ui-develop,
@@ -1039,14 +972,14 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
   }
   .tooltip-content[data-state="delayed-open"],
   .tooltip-content[data-state="instant-open"] {
-    animation: tooltip-in var(--duration-light) var(--ease-out-cream) both;
+    animation: tooltip-in var(--step-n1) var(--ease-out-cream) both;
   }
   .tooltip-content:is([data-state="delayed-open"], [data-state="instant-open"])
     .tooltip-ink {
-    animation: tooltip-light var(--duration-reveal) var(--ease-out-cream) both;
+    animation: tooltip-light var(--step-0) var(--ease-out-cream) both;
   }
   .tooltip-content[data-state="closed"] {
-    animation: tooltip-out var(--duration-touch) var(--ease-in-cubic) both;
+    animation: tooltip-out var(--step-n3) var(--ease-in-cubic) both;
   }
   .dock-tooltip {
     z-index: 200;

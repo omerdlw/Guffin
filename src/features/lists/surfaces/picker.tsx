@@ -37,12 +37,14 @@ import {
   SURFACE_TILE_END,
   SURFACE_TILE_INNER,
   SURFACE_TITLE,
+  SurfacePart,
+  SurfaceStage,
+  SurfaceSwap,
   surfaceIconButton,
   surfaceRow,
   scrollWithin,
 } from "@/ui";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/images";
-import { Cascade, Item, SURFACE_LEAD, SurfaceScene } from "@/motion/stage";
 import { SlidingHighlight } from "@/ui/sliding-highlight";
 
 interface ListPickerData {
@@ -303,6 +305,10 @@ function ListPickerSurface({ data }: { data: ListPickerData }): JSX.Element {
     };
   }, [movieId, toast]);
 
+  // What the shelf shows; a change swaps it.
+  const shelf =
+    status !== "ready" ? status : lists.length === 0 ? "empty" : "rows";
+
   const mark = (listId: string, on: boolean) =>
     setPending((current) => {
       const next = new Set(current);
@@ -367,9 +373,9 @@ function ListPickerSurface({ data }: { data: ListPickerData }): JSX.Element {
   }
 
   return (
-    <SurfaceScene>
-      <Cascade className={SURFACE_STACK} lead={SURFACE_LEAD}>
-        <Item from="up">
+    <SurfaceStage>
+      <div className={SURFACE_STACK}>
+        <SurfacePart name="item">
           <form className="flex items-center gap-2.5" onSubmit={create}>
             <Input
               aria-label="New list name"
@@ -403,15 +409,14 @@ function ListPickerSurface({ data }: { data: ListPickerData }): JSX.Element {
               <Icon icon="solar:add-circle-bold" size={18} />
             </Button>
           </form>
-        </Item>
+        </SurfacePart>
 
         <div
           className={cn(
             SURFACE_SCROLL,
             "flex max-h-[min(56dvh,26rem)] flex-col",
           )}
-          data-lenis-prevent
-          data-lenis-prevent-wheel
+          data-scroll-native
           onBlurCapture={(event) => {
             if (
               !event.currentTarget.contains(event.relatedTarget as Node | null)
@@ -422,56 +427,62 @@ function ListPickerSurface({ data }: { data: ListPickerData }): JSX.Element {
           onPointerLeave={() => setHoveredList(null)}
           onWheel={scrollWithin}
         >
-          {status === "loading" ? (
-            <LoadingListSkeleton />
-          ) : status === "error" ? (
-            <div className="center min-h-40 flex-col gap-1.5 text-center">
-              <div className="center size-10 rounded-full bg-fill text-ink-muted">
-                <Icon icon="solar:danger-circle-bold" size={20} />
-              </div>
-              <p className="type-body text-ink-body">
-                Your lists could not be loaded
-              </p>
-            </div>
-          ) : lists.length === 0 ? (
-            <div className="center min-h-40 flex-col gap-2 py-6 text-center">
-              <div className="center size-12 rounded-full bg-fill text-ink-faint ring-1 ring-edge-hover ring-inset">
-                <Icon icon="solar:folder-open-bold" size={22} />
-              </div>
-              <div className="flex flex-col gap-0.5">
-                <p className="type-body font-medium text-ink-body">
-                  No lists yet
-                </p>
-                <p className="type-meta text-ink-muted">
-                  Name one above to start it with this movie
-                </p>
-              </div>
-            </div>
-          ) : (
-            <LayoutGroup id={`list-picker-${highlightGroupId}`}>
-              <Cascade
-                className="flex flex-col gap-2.5"
-                key="rows"
-                lead={SURFACE_LEAD}
+          <SurfaceSwap cue="rows" id={shelf} now>
+            {shelf === "loading" ? (
+              <SurfacePart name="note">
+                <LoadingListSkeleton />
+              </SurfacePart>
+            ) : shelf === "error" ? (
+              <SurfacePart
+                className="center min-h-40 flex-col gap-1.5 text-center"
+                name="note"
               >
-                {lists.map((list) => (
-                  <Item from="up" key={list.id}>
-                    <ListRow
-                      highlighted={activeList === list.id}
-                      inList={inLists.has(list.id)}
-                      list={list}
-                      onFocus={() => setFocusedList(list.id)}
-                      onPointerEnter={() => setHoveredList(list.id)}
-                      onToggle={() => void toggle(list)}
-                      pending={pending.has(list.id)}
-                    />
-                  </Item>
-                ))}
-              </Cascade>
-            </LayoutGroup>
-          )}
+                <div className="center size-10 rounded-full bg-fill text-ink-muted">
+                  <Icon icon="solar:danger-circle-bold" size={20} />
+                </div>
+                <p className="type-body text-ink-body">
+                  Your lists could not be loaded
+                </p>
+              </SurfacePart>
+            ) : shelf === "empty" ? (
+              <SurfacePart
+                className="center min-h-40 flex-col gap-2 py-6 text-center"
+                name="note"
+              >
+                <div className="center size-12 rounded-full bg-fill text-ink-faint ring-1 ring-edge-hover ring-inset">
+                  <Icon icon="solar:folder-open-bold" size={22} />
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <p className="type-body font-medium text-ink-body">
+                    No lists yet
+                  </p>
+                  <p className="type-meta text-ink-muted">
+                    Name one above to start it with this movie
+                  </p>
+                </div>
+              </SurfacePart>
+            ) : (
+              <LayoutGroup id={`list-picker-${highlightGroupId}`}>
+                <div className="flex flex-col gap-2.5">
+                  {lists.map((list, index) => (
+                    <SurfacePart index={index} key={list.id} name="row">
+                      <ListRow
+                        highlighted={activeList === list.id}
+                        inList={inLists.has(list.id)}
+                        list={list}
+                        onFocus={() => setFocusedList(list.id)}
+                        onPointerEnter={() => setHoveredList(list.id)}
+                        onToggle={() => void toggle(list)}
+                        pending={pending.has(list.id)}
+                      />
+                    </SurfacePart>
+                  ))}
+                </div>
+              </LayoutGroup>
+            )}
+          </SurfaceSwap>
         </div>
-      </Cascade>
-    </SurfaceScene>
+      </div>
+    </SurfaceStage>
   );
 }

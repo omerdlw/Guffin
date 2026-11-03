@@ -8,13 +8,14 @@ import {
 } from "@omerdlw/base-framework/modules/dock";
 import { useToast } from "@omerdlw/base-framework/modules/notification";
 import { report, toUserMessage } from "@omerdlw/base-framework/utils";
-import { Cascade, Item, SURFACE_LEAD, SurfaceScene } from "@/motion/stage";
 import {
   Button,
   Icon,
   SURFACE_FIELD,
   SURFACE_STACK,
   SURFACE_PRIMARY,
+  SurfacePart,
+  SurfaceStage,
   surfaceButton,
   Textarea,
 } from "@/ui";
@@ -137,20 +138,20 @@ function ReviewEditorSurface({
   }
 
   return (
-    <SurfaceScene>
+    <SurfaceStage>
       <form onSubmit={submit}>
-        <Cascade className={SURFACE_STACK} lead={SURFACE_LEAD}>
+        <div className={SURFACE_STACK}>
           {!isList ? (
-            <Item className="flex w-full justify-center" from="scale">
+            <SurfacePart className="flex w-full justify-center" name="item">
               <RatingSelector
                 disabled={saving}
                 onChange={setRating}
                 value={rating}
               />
-            </Item>
+            </SurfacePart>
           ) : null}
 
-          <Item className="relative w-full" from="up">
+          <SurfacePart className="relative w-full" name="item">
             <Textarea
               aria-label={isList ? "Comment" : "Review"}
               className={`${SURFACE_FIELD} min-h-[130px] w-full p-4 pb-9 type-body`}
@@ -178,11 +179,11 @@ function ReviewEditorSurface({
                 </span>
               ) : null}
             </div>
-          </Item>
+          </SurfacePart>
 
           <div className="flex w-full gap-2.5">
             {!isList ? (
-              <Item className="min-w-0 flex-1" from="left">
+              <SurfacePart className="min-w-0 flex-1" name="item">
                 <Button
                   aria-checked={isSpoiler}
                   className={`${surfaceButton(Boolean(isSpoiler && text))} w-full`}
@@ -193,9 +194,9 @@ function ReviewEditorSurface({
                   <Icon icon="solar:eye-closed-linear" size={15} />
                   {isSpoiler && text ? "Contains Spoilers" : "Mark as Spoiler"}
                 </Button>
-              </Item>
+              </SurfacePart>
             ) : null}
-            <Item className="min-w-0 flex-1" from="right">
+            <SurfacePart className="min-w-0 flex-1" name="item">
               <Button
                 className={`${SURFACE_PRIMARY} w-full`}
                 disabled={Boolean(problem)}
@@ -208,10 +209,10 @@ function ReviewEditorSurface({
                   ratingOnly: rating !== null && !text,
                 })}
               </Button>
-            </Item>
+            </SurfacePart>
           </div>
-        </Cascade>
+        </div>
       </form>
-    </SurfaceScene>
+    </SurfaceStage>
   );
 }

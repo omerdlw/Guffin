@@ -12,10 +12,11 @@ import {
   SURFACE_STACK,
   SURFACE_TEXT,
   SURFACE_TITLE,
+  SurfacePart,
+  SurfaceStage,
   surfaceRow,
   useHighlight,
 } from "@/ui";
-import { Cascade, Item, SURFACE_LEAD, SurfaceScene } from "@/motion/stage";
 import { DeletePanel } from "./components/delete-panel";
 import { EmailForm } from "./components/email-form";
 import { Mark } from "./components/form";
@@ -110,13 +111,13 @@ function Overview() {
     void openSurface(createAccountSettingsSurfaceEntry(section));
   return (
     <HighlightGroup>
-      <Cascade className={SURFACE_STACK} lead={SURFACE_LEAD}>
-        {(Object.keys(SECTIONS) as Section[]).map((section) => (
-          <Item from="up" key={section}>
+      <div className={SURFACE_STACK}>
+        {(Object.keys(SECTIONS) as Section[]).map((section, index) => (
+          <SurfacePart index={index} key={section} name="item">
             <OverviewRow onOpen={open} section={section} />
-          </Item>
+          </SurfacePart>
         ))}
-      </Cascade>
+      </div>
     </HighlightGroup>
   );
 }
@@ -132,9 +133,9 @@ function AccountSettingsSurface({
   const done = () => close?.();
 
   return (
-    <SurfaceScene>
+    <SurfaceStage>
       <Panel done={done} section={section} security={security} />
-    </SurfaceScene>
+    </SurfaceStage>
   );
 }
 

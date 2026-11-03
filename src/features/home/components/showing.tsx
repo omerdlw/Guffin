@@ -2,8 +2,9 @@
 
 import { useState, type JSX } from "react";
 import { MoviePosterLink } from "@/features/movie";
-import { Carousel, Header, Section, Swap } from "@/motion/stage";
-import { Icon, RADIUS, SegmentedControl, TONE } from "@/ui";
+import { Carousel, Icon, RADIUS, SegmentedControl, TONE } from "@/ui";
+import { HomeSection, HomeSwap } from "../motion";
+import { Heading } from "./heading";
 import { compact, releaseDay } from "../format";
 import type { ShowingFilm } from "../types";
 
@@ -52,8 +53,8 @@ export function HomeShowing({
   ];
 
   return (
-    <Section className="flex w-full flex-col">
-      <Header
+    <HomeSection className="flex w-full flex-col" cue="shelf">
+      <Heading
         actions={
           items.length > 1 ? (
             <SegmentedControl
@@ -68,17 +69,18 @@ export function HomeShowing({
         icon="solar:clapperboard-play-bold"
         title="At the cinema"
       />
-      <Swap id={shelf}>
+      <HomeSwap cue="slides" id={shelf}>
         <Carousel
           arrowClassName={TONE.arrows}
           className="rounded-card"
           itemClassName={ITEM}
           label={shelf === "theatres" ? "In theatres" : "Coming soon"}
-          radius={RADIUS.card}
+          part="slide"
         >
           {films.map((film) => (
             <MoviePosterLink
               caption={<Caption film={film} shelf={shelf} />}
+              carried
               key={film.id}
               movie={film}
               radius={RADIUS.card}
@@ -86,7 +88,7 @@ export function HomeShowing({
             />
           ))}
         </Carousel>
-      </Swap>
-    </Section>
+      </HomeSwap>
+    </HomeSection>
   );
 }

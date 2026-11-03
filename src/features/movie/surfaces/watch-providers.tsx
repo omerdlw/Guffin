@@ -25,17 +25,13 @@ import {
   SURFACE_TILE,
   SURFACE_TILE_END,
   SURFACE_TITLE,
+  SurfacePart,
   SurfaceSegmentedControl,
+  SurfaceStage,
+  SurfaceSwap,
 } from "@/ui";
 import { SlidingHighlight } from "@/ui/sliding-highlight";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/images";
-import {
-  Cascade,
-  Item,
-  size,
-  SURFACE_LEAD,
-  SurfaceScene,
-} from "@/motion/stage";
 import type { ProviderEntry, RegionProviders } from "../watch-providers";
 import { getWatchProvidersAction } from "../server/watch-providers-actions";
 
@@ -286,10 +282,16 @@ function WatchProvidersSurface({
 
   const activeProviders = region ? (region[activeCategory] ?? []) : [];
 
-  const status = error ? "error" : !regions ? "loading" : "ready";
+  const status = error
+    ? "error"
+    : !regions
+      ? "loading"
+      : !region || counts.total === 0
+        ? "empty"
+        : "ready";
 
   return (
-    <SurfaceScene>
+    <SurfaceStage>
       <SurfaceSegmentedControl
         ariaLabel="Kind of availability"
         id="watch-providers-categories"
@@ -303,28 +305,28 @@ function WatchProvidersSurface({
         value={activeCategory}
       />
 
-      <Cascade className={SURFACE_STACK} key={status} lead={SURFACE_LEAD}>
+      <SurfaceSwap className={SURFACE_STACK} cue="items" id={status} now>
         {status === "error" ? (
-          <Item className="center min-h-40" from="scale">
+          <SurfacePart className="center min-h-40" name="note">
             <p className="type-body text-ink-body">{error}</p>
-          </Item>
+          </SurfacePart>
         ) : status === "loading" ? (
-          <Item className="center min-h-40" from="scale">
+          <SurfacePart className="center min-h-40" name="note">
             <Loader />
-          </Item>
-        ) : !region || counts.total === 0 ? (
-          <Item
+          </SurfacePart>
+        ) : !region || status === "empty" ? (
+          <SurfacePart
             className="center min-h-40 flex-col gap-1.5 text-center"
-            from="scale"
+            name="note"
           >
             <p className="type-body font-medium text-ink-body">Not available</p>
             <p className="type-body text-ink-body">
               No service lists this movie right now
             </p>
-          </Item>
+          </SurfacePart>
         ) : (
           <>
-            <Item from="up">
+            <SurfacePart name="item">
               <Select
                 ariaLabel="Region"
                 placement="inline"
@@ -341,13 +343,12 @@ function WatchProvidersSurface({
                 }))}
                 value={selectedRegion}
               />
-            </Item>
+            </SurfacePart>
 
-            <Item from="up">
+            <SurfacePart name="item">
               <div
                 className={`${SURFACE_SCROLL} flex max-h-[min(52dvh,24rem)] flex-col`}
-                data-lenis-prevent
-                data-lenis-prevent-wheel
+                data-scroll-native
                 onBlur={(event: FocusEvent<HTMLDivElement>) => {
                   if (
                     !(event.relatedTarget instanceof Node) ||
@@ -363,13 +364,14 @@ function WatchProvidersSurface({
                   <LayoutGroup
                     id={`watch-providers-${highlightGroupId}-${selectedRegion}-${activeCategory}`}
                   >
-                    <Cascade
+                    <SurfaceSwap
                       className="flex flex-col gap-2.5"
-                      key={`${selectedRegion}-${activeCategory}`}
-                      lead={size(-2)}
+                      cue="rows"
+                      id={`${selectedRegion}-${activeCategory}`}
+                      now
                     >
-                      {activeProviders.map((provider) => (
-                        <Item from="up" key={provider.id}>
+                      {activeProviders.map((provider, index) => (
+                        <SurfacePart index={index} key={provider.id} name="row">
                           <ProviderTile
                             highlighted={
                               (hoveredProviderId ?? focusedProviderId) ===
@@ -382,9 +384,9 @@ function WatchProvidersSurface({
                             }
                             provider={provider}
                           />
-                        </Item>
+                        </SurfacePart>
                       ))}
-                    </Cascade>
+                    </SurfaceSwap>
                   </LayoutGroup>
                 ) : (
                   <p className="py-6 text-center type-meta text-ink-muted">
@@ -392,10 +394,10 @@ function WatchProvidersSurface({
                   </p>
                 )}
               </div>
-            </Item>
+            </SurfacePart>
           </>
         )}
-      </Cascade>
-    </SurfaceScene>
+      </SurfaceSwap>
+    </SurfaceStage>
   );
 }

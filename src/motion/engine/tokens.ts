@@ -10,7 +10,9 @@ import {
 
 // The ladder as CSS, so a hover written in a stylesheet keeps the same time as
 // the engine. Every duration is multiplied by --tempo, which a stage sets to
-// φ^tempo on its subtree: a slow page's CSS is slow too.
+// φ^tempo on its subtree: a slow page's CSS is slow too. A custom property is
+// resolved where it is declared, so the tokens are declared again on every
+// stage's root ([data-tempo]) to pick up its tempo.
 
 export const RUNGS = [-6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6] as const;
 
@@ -37,6 +39,6 @@ export function tokens(): Record<string, string> {
 }
 
 export const tokenSheet = () =>
-  `:root{${Object.entries(tokens())
+  `:root,[data-tempo]{${Object.entries(tokens())
     .map(([key, value]) => `${key}:${value}`)
     .join(";")}}`;

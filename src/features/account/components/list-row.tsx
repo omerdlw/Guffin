@@ -23,7 +23,7 @@ function ListRow({
     <li className="flex flex-col gap-4 py-6 first:pt-0 last:pb-0 sm:flex-row sm:items-start sm:gap-6">
       <AccountLink
         aria-label={list.title}
-        className="block w-full shrink-0 ui-fade hover:opacity-80 sm:w-60"
+        className="block w-full shrink-0 ui-fade hover:opacity-80 focus-visible:opacity-80 sm:w-60"
         href={href}
       >
         <PosterStack paths={list.previews} />

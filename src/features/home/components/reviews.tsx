@@ -2,16 +2,28 @@ import type { JSX } from "react";
 import { AccountLink } from "@/features/account";
 import { MoviePosterLink } from "@/features/movie";
 import { RatingStars } from "@/features/reviews";
-import { Header, Item, Section } from "@/motion/stage";
 import { Avatar, Icon, RADIUS, TONE } from "@/ui";
 import { accountHref, movieHref, reviewHref } from "@/config/routes";
 import { ago, compact } from "../format";
 import type { HomeReview } from "../types";
+import { HomePart, HomeSection } from "../motion";
+import { Heading } from "./heading";
 
-function ReviewCard({ review }: { review: HomeReview }): JSX.Element {
+function ReviewCard({
+  index,
+  review,
+}: {
+  index: number;
+  review: HomeReview;
+}): JSX.Element {
   const { author, film } = review;
   return (
-    <Item as="li" className="flex gap-4 py-6 sm:gap-5" from="light">
+    <HomePart
+      as="li"
+      className="flex gap-4 py-6 sm:gap-5"
+      index={index}
+      name="review"
+    >
       <div className="w-16 shrink-0 sm:w-20">
         <MoviePosterLink movie={film} radius={RADIUS.tile} sizes="80px" />
       </div>
@@ -70,7 +82,7 @@ function ReviewCard({ review }: { review: HomeReview }): JSX.Element {
           </AccountLink>
         </div>
       </article>
-    </Item>
+    </HomePart>
   );
 }
 
@@ -81,18 +93,18 @@ export function HomeReviews({
 }): JSX.Element | null {
   if (reviews.length === 0) return null;
   return (
-    <Section className="flex w-full flex-col">
-      <Header
+    <HomeSection className="flex w-full flex-col" cue="reviews">
+      <Heading
         icon="solar:chat-square-like-bold"
         title="Reviews worth reading"
       />
       <ul
         className={`-my-6 grid grid-cols-1 gap-x-12 divide-y ${TONE.rules} lg:grid-cols-2 lg:divide-y-0 lg:[&>li]:border-b lg:[&>li]:border-rule lg:[&>li:nth-last-child(-n+2)]:border-b-0`}
       >
-        {reviews.map((review) => (
-          <ReviewCard key={review.id} review={review} />
+        {reviews.map((review, index) => (
+          <ReviewCard index={index} key={review.id} review={review} />
         ))}
       </ul>
-    </Section>
+    </HomeSection>
   );
 }

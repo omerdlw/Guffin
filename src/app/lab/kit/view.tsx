@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, type JSX } from "react";
+import { HEADLINE_TYPE, TONE, surfaceButton } from "@/ui";
+import { cn } from "@/ui/cn";
 import {
   Room,
   bindScore,
@@ -56,8 +58,7 @@ const PEOPLE = {
 
 const STILLS = ["#6b4a2b", "#3a2a1c", "#8a6440", "#2b1d12"];
 
-const BUTTON =
-  "rounded bg-fill px-3 py-1.5 text-sm text-ink-body hover:bg-fill-hover";
+const NAME = cn(TONE.label, "text-ink-body");
 
 function Dot() {
   return <span className="block size-3 rounded-full bg-current" />;
@@ -72,7 +73,7 @@ function Cards({ names }: { names: string[] }) {
           index={index}
           key={name}
           touch="lift"
-          className="rounded-lg bg-fill px-4 py-6 text-ink-body"
+          className="rounded-card bg-fill px-4 py-6 text-ink-body"
         >
           {name}
         </Part>
@@ -89,7 +90,7 @@ function Shelf() {
         part="header"
         title="Cast"
         icon={<Dot />}
-        nameClassName="text-sm tracking-widest text-ink-body uppercase"
+        nameClassName={NAME}
         actions={
           <div className="flex gap-1">
             {(Object.keys(PEOPLE) as (keyof typeof PEOPLE)[]).map((key) => (
@@ -97,7 +98,7 @@ function Shelf() {
                 key={key}
                 type="button"
                 aria-pressed={key === filter}
-                className={`${BUTTON} aria-pressed:bg-fill-active`}
+                className={cn(surfaceButton(key === filter), "px-4")}
                 onClick={() => setFilter(key)}
               >
                 {key}
@@ -121,11 +122,11 @@ function Gallery() {
         part="header"
         title="Stills"
         icon={<Dot />}
-        nameClassName="text-sm tracking-widest text-ink-body uppercase"
+        nameClassName={NAME}
         actions={
           <button
             type="button"
-            className={BUTTON}
+            className={cn(surfaceButton(false), "px-4")}
             onClick={(event) => wall?.open(event.currentTarget)}
           >
             See all
@@ -134,7 +135,10 @@ function Gallery() {
       />
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {STILLS.map((color, index) => (
-          <div className="aspect-video overflow-hidden rounded-lg" key={color}>
+          <div
+            className="aspect-video overflow-hidden rounded-card"
+            key={color}
+          >
             <Part
               name="still"
               index={index}
@@ -165,7 +169,7 @@ function Views() {
             key={key}
             type="button"
             aria-pressed={key === shown}
-            className={`${BUTTON} aria-pressed:bg-fill-active`}
+            className={cn(surfaceButton(key === shown), "px-4")}
             onClick={() => setShown(key)}
           >
             {key}
@@ -200,7 +204,7 @@ function Columns() {
             key={key}
             type="button"
             aria-pressed={key === shown}
-            className={`${BUTTON} aria-pressed:bg-fill-active`}
+            className={cn(surfaceButton(key === shown), "px-4")}
             onClick={() => setShown(key)}
           >
             {key}
@@ -231,11 +235,11 @@ function Wall() {
         part="header"
         title="All stills"
         icon={<Dot />}
-        nameClassName="text-sm tracking-widest text-ink-body uppercase"
+        nameClassName={NAME}
         actions={
           <button
             type="button"
-            className={BUTTON}
+            className={cn(surfaceButton(false), "px-4")}
             onClick={() => wall?.close()}
           >
             Close
@@ -248,10 +252,10 @@ function Wall() {
             name="tile"
             index={index}
             key={index}
-            className="aspect-square rounded-lg"
+            className="aspect-square rounded-card"
           >
             <div
-              className="size-full rounded-lg"
+              className="size-full rounded-card"
               style={{
                 background: `linear-gradient(135deg, ${STILLS[index % 4]}, #000)`,
               }}
@@ -269,7 +273,7 @@ function House() {
   return (
     <button
       type="button"
-      className={`${BUTTON} fixed right-4 bottom-4 z-20`}
+      className={cn(surfaceButton(on), "fixed right-4 bottom-4 z-20 px-4")}
       onClick={() => setOn((value) => !value)}
     >
       House {on ? "up" : "down"}
@@ -288,7 +292,7 @@ export function KitLab(): JSX.Element {
             text="The Godfather"
             as="h1"
             mask
-            className="font-zuume text-[clamp(4rem,12vw,9rem)] leading-[0.9] uppercase"
+            className={HEADLINE_TYPE}
           />
           <div className="mt-6 flex flex-wrap items-baseline gap-6 text-ink-body">
             <Expose part="fact" index={0} text="Crime" hover />

@@ -2,7 +2,7 @@ import { createProgram, createTexture, fitCanvas, uniforms } from "@/motion/gl";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/images";
 import { Bloom } from "../bloom";
 import { loadBitmap } from "../bitmap";
-import { createLoop, type Loop } from "../loop";
+import { createLoop, type Loop, type LoopFactory } from "../loop";
 import { MAX_FILMS, type Director } from "../../types";
 import {
   PHOTO_FRAGMENT,
@@ -103,6 +103,7 @@ export class Portrait {
     directors: readonly Director[],
     columns: number,
     events: PortraitEvents,
+    loop: LoopFactory = createLoop,
   ): Portrait | null {
     const gl = canvas.getContext("webgl2", {
       alpha: false,
@@ -122,6 +123,7 @@ export class Portrait {
       directors,
       columns,
       events,
+      loop,
     );
   }
 
@@ -133,6 +135,7 @@ export class Portrait {
     private readonly directors: readonly Director[],
     private readonly columns: number,
     private readonly events: PortraitEvents,
+    loop: LoopFactory,
   ) {
     this.bloom = bloom;
     this.u = uniforms(gl, programs[0], NAMES);
@@ -176,7 +179,7 @@ export class Portrait {
         this.jobs.clear();
       };
     }
-    this.loop = createLoop((now, dt) => this.frame(now, dt));
+    this.loop = loop((now, dt) => this.frame(now, dt));
   }
 
   setReduced(reduced: boolean): void {

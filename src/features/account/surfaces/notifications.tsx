@@ -459,8 +459,7 @@ export function AccountNotificationsSurface({ close }: { close?: () => void }) {
     body = (
       <div
         className={`${SURFACE_SCROLL} max-h-[min(56dvh,26rem)] w-full touch-pan-y`}
-        data-lenis-prevent
-        data-lenis-prevent-wheel
+        data-scroll-native
         key={filter}
         onWheel={scrollWithin}
       >

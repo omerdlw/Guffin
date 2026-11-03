@@ -7,7 +7,8 @@ import {
   type ModalContainerProps,
 } from "@omerdlw/base-framework/modules/modal";
 import { RADIUS, SegmentedControl } from "@/ui";
-import { Tube, useShowing } from "@/motion/effects";
+import { Tube } from "@/motion/effects";
+import { useShowing } from "@/motion/engine";
 import type { PersonEntry } from "../types";
 import { PersonCard } from "./person-card";
 

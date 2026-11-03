@@ -189,8 +189,7 @@ function SocialProofSurface({
       <LayoutGroup id={`social-proof-${highlightGroupId}`}>
         <ul
           className={`${SURFACE_SCROLL} flex max-h-[min(56dvh,26rem)] flex-col gap-2.5`}
-          data-lenis-prevent
-          data-lenis-prevent-wheel
+          data-scroll-native
           onBlurCapture={(event) => {
             if (
               !(event.relatedTarget instanceof Node) ||

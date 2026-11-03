@@ -25,7 +25,7 @@ import { tmdbImageUrl } from "@/infrastructure/tmdb/images";
 import type { AwardRecipient, Awards } from "@/infrastructure/tmdb/types";
 import type { AwardGroup, AwardItem, AwardsGrouping } from "./types";
 import { filterAwards, flattenAwards, groupAwards } from "./utils";
-import { EASE, size } from "@/motion/stage";
+import { POINTS, step } from "@/motion/engine";
 
 const GROUPING_LABELS: Record<AwardsGrouping, string> = {
   organizations: "By organization",
@@ -53,17 +53,17 @@ export const STAGE_LOOK: AwardsLook = {
 const LIST: Variants = {
   exit: {
     opacity: 0,
-    transition: { duration: size(-2), ease: EASE.expo },
+    transition: { duration: step(-2), ease: POINTS.expo },
     y: -8,
   },
   hidden: {},
-  visible: { transition: { staggerChildren: size(-4) } },
+  visible: { transition: { staggerChildren: step(-4) } },
 };
 const GROUP: Variants = {
   hidden: { opacity: 0, y: 16 },
   visible: {
     opacity: 1,
-    transition: { duration: size(0), ease: EASE.expo },
+    transition: { duration: step(0), ease: POINTS.expo },
     y: 0,
   },
 };

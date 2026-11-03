@@ -1,16 +1,9 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
-
+import { useEffect, useState, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import { AdaptiveImage, BackdropHero, Icon } from "@/ui";
-import {
-  CinemaTitle,
-  HeroStage,
-  Reveal,
-  RowItem,
-  Scene,
-  SceneBody,
-} from "@/motion/scene";
+import { Room } from "@/motion/engine";
 import {
   applyAvatarFallback,
   getInitial,
@@ -19,15 +12,20 @@ import {
 } from "../avatar";
 import { SOCIAL_EVENTS } from "../constants";
 import type { PublicAccount } from "../types";
-import { SCENE } from "../motion";
+import { AccountPart, AccountStageRoot, AccountText } from "../motion";
 import { AvatarStage } from "./avatar";
+import { AccountView } from "./view";
 import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
 import { useDockActions } from "@omerdlw/base-framework/modules/dock";
 import {
   useAmbientTheme,
   type AmbientPalette,
 } from "@omerdlw/base-framework/modules/ambient";
-import { useNavigationPayload } from "@omerdlw/base-framework/modules/navigation";
+import {
+  pathOf,
+  useNavigationPayload,
+  type NavigationTrip,
+} from "@omerdlw/base-framework/modules/navigation";
 import { createAccountSocialSurfaceEntry } from "../surfaces/social";
 import { ProfileStatButton, ProfileStatRow } from "./stats";
 import { accountHref } from "@/config/routes";
@@ -59,6 +57,14 @@ function resolveAccountBackdropUrl(
   if (!background) return null;
   return /^(https?:\/\/|\/|data:image\/)/.test(background) ? background : null;
 }
+
+// A trip to another of the member's tabs changes the page in place; only a
+// trip away from the member leaves it.
+const leavesAccount = (base?: string) => (trip: NavigationTrip) => {
+  if (!base) return pathOf(trip.to) !== pathOf(trip.from);
+  const to = pathOf(trip.to).replace(/\/+$/, "") || "/";
+  return to !== base && !to.startsWith(`${base}/`);
+};
 
 function getAccountDisplayName(account?: AccountData | null): string {
   return account?.displayName || account?.username || DEFAULT_DISPLAY_NAME;
@@ -111,15 +117,28 @@ interface AccountBackdropHeroProps {
   image?: string | null;
 }
 
+// The background is projected once it has loaded; the opening waits for it.
 function AccountBackdropHero({ image }: AccountBackdropHeroProps) {
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    if (!image) return;
+    const picture = new Image();
+    picture.onload = picture.onerror = () => setReady(true);
+    picture.src = image;
+    if (picture.complete) setReady(true);
+  }, [image]);
+
   return (
-    <HeroStage>
-      <BackdropHero
-        image={image}
-        position="center 25%"
-        className="lg:h-[clamp(28rem,40vw,34rem)] xl:h-[clamp(30rem,42vw,36rem)]"
-      />
-    </HeroStage>
+    <div className="relative">
+      <AccountPart name="backdrop" ready={ready}>
+        <BackdropHero
+          image={image}
+          position="center 25%"
+          className="lg:h-[clamp(28rem,40vw,34rem)] xl:h-[clamp(30rem,42vw,36rem)]"
+        />
+      </AccountPart>
+    </div>
   );
 }
 
@@ -208,7 +227,7 @@ function AccountHero({
     <>
       {backdropUrl && <AccountBackdropHero image={backdropUrl} />}
 
-      <SceneBody className={`relative z-10 w-full ${paddingClass}`}>
+      <div className={`relative z-10 w-full ${paddingClass}`}>
         <div className="relative z-10 flex min-w-0 flex-col gap-6 lg:flex-row lg:items-end lg:justify-between lg:gap-10">
           <div className="flex min-w-0 flex-1 items-center gap-4 sm:gap-6">
             <AvatarStage
@@ -230,41 +249,40 @@ function AccountHero({
             </AvatarStage>
 
             <div className="flex min-w-0 flex-1 flex-col">
-              <CinemaTitle
-                drift={false}
+              <AccountText
+                as="h1"
                 className="font-zuume max-w-full type-display-xs leading-none font-bold text-ink uppercase [overflow-wrap:anywhere] sm:type-display-sm lg:type-display-md"
-              >
-                {displayName}
-              </CinemaTitle>
+                mask
+                part="name"
+                text={displayName}
+              />
 
               <div className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 type-control text-ink-muted sm:type-body">
                 {meta.map((item, index) => (
-                  <RowItem
+                  <AccountPart
                     as="div"
                     className="inline-flex items-center gap-x-2.5"
-                    count={meta.length}
                     index={index}
-                    intro={SCENE.stats.delay}
                     key={item.key}
-                    total={SCENE.stats.spread}
+                    name="meta"
                   >
                     {index > 0 ? (
                       <span className="text-ink-faint">•</span>
                     ) : null}
                     {item.node}
-                  </RowItem>
+                  </AccountPart>
                 ))}
               </div>
 
               {proofSlot ? (
-                <Reveal className="mt-3 flex" intro={SCENE.bio.delay}>
+                <AccountPart className="mt-3 flex" name="proof">
                   {proofSlot}
-                </Reveal>
+                </AccountPart>
               ) : null}
             </div>
           </div>
 
-          <Reveal className="shrink-0" intro={SCENE.bio.delay}>
+          <AccountPart className="shrink-0" name="stats">
             <ProfileStatRow>
               {statsSlot}
               <ProfileStatButton
@@ -278,9 +296,9 @@ function AccountHero({
                 onClick={() => openSocial("followers")}
               />
             </ProfileStatRow>
-          </Reveal>
+          </AccountPart>
         </div>
-      </SceneBody>
+      </div>
     </>
   );
 }
@@ -316,56 +334,47 @@ export function AccountLayout({
     initialIsFollower,
   );
 
+  const pathname = usePathname();
   const isPrivateLocked = account?.isPrivate && !isOwner && !isFollower;
   const scope = account?.username ? accountHref(account.username) : undefined;
+  const backdropUrl = resolveAccountBackdropUrl(account);
 
   return (
-    <Scene
-      className="min-h-screen pb-[calc(var(--dock-h,6rem)+3rem)]"
-      scope={scope}
-      score={SCENE}
+    <AccountStageRoot
+      grade={backdropUrl || account?.avatarUrl || null}
+      leaves={leavesAccount(scope)}
+      memory={scope}
     >
-      <div className="relative z-10 w-full [overflow-anchor:none]">
-        {tabsSlot && !isPrivateLocked ? (
-          <Reveal
-            blurPx={0}
-            className="absolute inset-x-0 top-0 z-20"
-            intro={SCENE.rule.delay}
-            offset={0}
-          >
-            <div
-              data-backdrop={
-                resolveAccountBackdropUrl(account) ? "" : undefined
-              }
-            >
-              {tabsSlot}
-            </div>
-          </Reveal>
-        ) : null}
+      <Room />
+      <main
+        className="account-page ui-scene min-h-screen overflow-x-clip pb-[calc(var(--dock-h,6rem)+3rem)]"
+        data-cinematic=""
+      >
+        <div className="relative z-10 w-full [overflow-anchor:none]">
+          {tabsSlot && !isPrivateLocked ? (
+            <AccountPart className="absolute inset-x-0 top-0 z-20" name="tabs">
+              <div data-backdrop={backdropUrl ? "" : undefined}>{tabsSlot}</div>
+            </AccountPart>
+          ) : null}
 
-        <div className={CONTAINER}>
-          <AccountHero
-            account={account}
-            followersCount={followersCount}
-            followingCount={followingCount}
-            palette={palette}
-            proofSlot={proofSlot}
-            statsSlot={isPrivateLocked ? null : statsSlot}
-          />
-        </div>
-
-        <SceneBody>
           <div className={CONTAINER}>
-            <Reveal
-              as="section"
-              className="w-full pt-8 sm:pt-10"
-              intro={SCENE.firstSection}
-            >
-              {isPrivateLocked ? <PrivateLockedView /> : children}
-            </Reveal>
+            <AccountHero
+              account={account}
+              followersCount={followersCount}
+              followingCount={followingCount}
+              palette={palette}
+              proofSlot={proofSlot}
+              statsSlot={isPrivateLocked ? null : statsSlot}
+            />
           </div>
-        </SceneBody>
-      </div>
-    </Scene>
+
+          <div className={CONTAINER}>
+            <AccountView id={isPrivateLocked ? "locked" : pathname}>
+              {isPrivateLocked ? <PrivateLockedView /> : children}
+            </AccountView>
+          </div>
+        </div>
+      </main>
+    </AccountStageRoot>
   );
 }

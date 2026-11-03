@@ -36,7 +36,7 @@ export function ResultRow({
         <span className="truncate type-body font-semibold text-ink">
           {title}
         </span>
-        <span className="flex min-w-0 items-center gap-1.5 type-meta text-ink-muted group-hover:text-ink-body group-focus-visible:text-ink-body in-data-active:text-ink-body">
+        <span className="flex min-w-0 items-center gap-1.5 type-meta text-ink-muted group-hover:text-ink-body group-focus-visible:text-ink-body group-has-focus-visible:text-ink-body in-data-active:text-ink-body">
           {meta}
         </span>
       </span>

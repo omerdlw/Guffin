@@ -36,6 +36,9 @@ export interface SwapProps {
   cue: string;
   as?: ElementType;
   className?: string;
+  // The first instance plays right behind the opening instead of when it
+  // is reached.
+  now?: boolean;
   children: ReactNode;
 }
 
@@ -44,6 +47,7 @@ export function Swap({
   cue,
   as: Tag = "div",
   className,
+  now = false,
   children,
 }: SwapProps) {
   const stage = useAnyStage();
@@ -88,9 +92,13 @@ export function Swap({
   }, [id, shown.id]);
 
   // A new instance plays at once: the eye is already on it. The first one,
-  // or one put back in the dark, plays when it is reached.
+  // or one put back in the dark, plays when it is reached, or behind the
+  // opening when the swap is `now`.
   useLayoutEffect(() => {
-    if (shown.scope === first) return;
+    if (shown.scope === first) {
+      if (now) stage.cue(cue, first);
+      return;
+    }
     stage.cue(cue, shown.scope);
     const el = box.current;
     if (!el) return;

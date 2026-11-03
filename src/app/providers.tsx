@@ -22,9 +22,8 @@ import {
 } from "@/features/account";
 import { PictureForesight } from "@/features/artwork";
 import { SearchDockCommand } from "@/features/search";
-import { SmoothScrollProvider } from "@/motion/scroll";
 import { EngineProvider } from "@/motion/engine";
-import { Carry, Cursor } from "@/motion/effects";
+import { Cursor, TintedFavicon } from "@/motion/effects";
 import { isFilmPage } from "@/motion/page-handoff";
 import { motion, themes } from "@/config";
 import { APP_REGISTRY_ENTRIES } from "./registry";
@@ -59,10 +58,10 @@ export function Providers({ children }: { children: ReactNode }): JSX.Element {
       <SearchDockCommand />
       <SocialRealtimeSync />
       <PictureForesight />
-      <EngineProvider>
-        <SmoothScrollProvider>{children}</SmoothScrollProvider>
+      <EngineProvider drive>
+        {children}
+        <TintedFavicon />
       </EngineProvider>
-      <Carry />
       <Cursor />
     </Compose>
   );

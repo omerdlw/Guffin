@@ -13,6 +13,8 @@ import {
 import { cn } from "@/ui/cn";
 import { POINTS } from "../engine/curve";
 import { step } from "../engine/ladder";
+import { MATTER, response } from "../engine/matter";
+import { springForce } from "../engine/spring";
 
 // A print held in the hand: it leans toward the pointer and catches a glare
 // where the pointer is. Only the hand moves it, so it composes with any
@@ -25,7 +27,10 @@ export interface TiltLight {
   y: MotionValue<number>;
 }
 
-const SPRING = { damping: 17, mass: 1, stiffness: 52 };
+const SPRING = springForce({
+  ...response(MATTER.paper, 0),
+  period: step(1),
+});
 const LEAN = 9;
 
 export function Tilt({

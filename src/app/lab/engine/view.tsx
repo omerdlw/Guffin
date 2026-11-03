@@ -12,6 +12,9 @@ import {
   type Renderer,
   type Tint,
 } from "@/motion/engine";
+import { FLOAT } from "@/config/theme/chrome";
+import { HEADLINE_TYPE, surfaceButton } from "@/ui";
+import { cn } from "@/ui/cn";
 import { useDockLinkClick } from "@/ui/hooks/use-dock-link";
 
 const score = defineScore({
@@ -105,7 +108,7 @@ function Scene({ variant }: { variant: Variant }): JSX.Element {
           by="line"
           mask
           as="h1"
-          className="font-zuume text-[clamp(4rem,12vw,9rem)] leading-[0.9] uppercase"
+          className={HEADLINE_TYPE}
         />
         <div {...usePart("rule")} className="mt-6 h-px w-full bg-ink-muted" />
         <ul className="mt-6 flex flex-wrap gap-6 text-ink-body">
@@ -125,8 +128,8 @@ function Scene({ variant }: { variant: Variant }): JSX.Element {
               {...usePart("poster", { carry: "poster", touch: "lift" })}
               className={
                 variant === "a"
-                  ? "aspect-[2/3] w-44 rounded-lg bg-[linear-gradient(160deg,#a67c52,#2b1d12)]"
-                  : "aspect-[2/3] w-72 rounded-2xl bg-[linear-gradient(160deg,#a67c52,#2b1d12)]"
+                  ? "aspect-[2/3] w-44 rounded-card bg-[linear-gradient(160deg,#a67c52,#2b1d12)]"
+                  : "aspect-[2/3] w-72 rounded-sheet bg-[linear-gradient(160deg,#a67c52,#2b1d12)]"
               }
             />
           </a>
@@ -147,7 +150,7 @@ function Scene({ variant }: { variant: Variant }): JSX.Element {
 
 function Fact({ index, text }: { index: number; text: string }) {
   return (
-    <li {...usePart("facts", { index })} className="text-lg">
+    <li {...usePart("facts", { index })} className="type-copy">
       {text}
     </li>
   );
@@ -157,7 +160,7 @@ function Row({ index, text }: { index: number; text: string }) {
   return (
     <div
       {...usePart("row", { index, touch: "press" })}
-      className="rounded-lg bg-fill px-5 py-4 text-ink-body"
+      className="rounded-card bg-fill px-5 py-4 text-ink-body"
     >
       {text}
     </div>
@@ -192,7 +195,7 @@ function Readout({ pace }: { pace: number }) {
       </span>
       <button
         type="button"
-        className="self-start rounded bg-fill-hover px-3 py-1"
+        className={cn(surfaceButton(false), "self-start px-4")}
         onClick={() => void stage.leave()}
       >
         Leave
@@ -214,7 +217,9 @@ function Controls({
   const [rate, setRate] = useState(1);
   const touch = useTouch({ verb: "press", matter: "light" });
   return (
-    <aside className="fixed right-4 bottom-4 z-20 flex max-w-sm flex-col gap-2 rounded-xl bg-black/80 p-4 font-mono text-xs text-ink-body">
+    <aside
+      className={`fixed right-4 bottom-4 z-20 flex max-w-sm flex-col gap-2 rounded-panel p-4 type-meta text-ink-body tabular-nums ${FLOAT}`}
+    >
       <Readout pace={pace} />
       <div className="flex flex-wrap gap-1">
         {PACES.map((value) => (
@@ -222,7 +227,7 @@ function Controls({
             key={value}
             type="button"
             aria-pressed={value === pace}
-            className="rounded bg-fill px-2 py-1 aria-pressed:bg-fill-active"
+            className={cn(surfaceButton(value === pace), "px-3")}
             onClick={() => setPace(value)}
           >
             tempo {value > 0 ? `+${value}` : value}
@@ -235,7 +240,7 @@ function Controls({
             key={value}
             type="button"
             aria-pressed={value === rate}
-            className="rounded bg-fill px-2 py-1 aria-pressed:bg-fill-active"
+            className={cn(surfaceButton(value === rate), "px-3")}
             onClick={() => {
               engine.clock.rate = value;
               setRate(value);
@@ -247,7 +252,7 @@ function Controls({
         <button
           ref={touch}
           type="button"
-          className="rounded bg-fill px-2 py-1"
+          className={cn(surfaceButton(false), "px-3")}
           onClick={replay}
         >
           Replay

@@ -2,34 +2,21 @@
 
 import { useEffect, useRef, useState, type JSX } from "react";
 import Link from "next/link";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { useReducedMotion } from "motion/react";
 import { PRIMARY } from "@/config/theme/chrome";
 import { cn } from "@/ui/cn";
+import { DetailBackdrop } from "@/features/detail";
 import { AvatarStack } from "@/features/social";
-import { Projection } from "@/motion/effects";
-import {
-  Ambient,
-  Backdrop,
-  Body,
-  EASE,
-  GRAMMAR,
-  Grade,
-  ease,
-  size,
-  unit,
-} from "@/motion/stage";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/images";
 import { movieHref } from "@/config/routes";
 import { Icon, PROSE_CLASS, TONE, headlineClass, pageBodyClass } from "@/ui";
 import type { Feature } from "../types";
+import { HomePart, HomeSection, HomeSwap, HomeText } from "../motion";
 import { FilmDock } from "./film-dock";
+import { roomOf, useHomeLead } from "./stage";
 
 const CYCLE_MS = 9000;
-const SWAP = size(2);
 const REEL = "w1280";
-
-const [FROM, TO] = GRAMMAR.scrub.defocus.range;
-const defocusAt = (y: number) => ease.glide(unit((y - FROM) / (TO - FROM)));
 
 const titleClass = (title: string) => headlineClass(title, [22, 32, 44]);
 
@@ -51,7 +38,10 @@ function SocialLine({ film }: { film: Feature }): JSX.Element | null {
   if (!film.social) return null;
   const { faces, rating, watchers } = film.social;
   return (
-    <div className="flex items-center gap-3 type-control text-ink-body tabular-nums">
+    <HomePart
+      className="flex items-center gap-3 type-control text-ink-body tabular-nums"
+      name="social"
+    >
       {faces.length > 0 ? (
         <AvatarStack
           people={faces.map((face) => ({ ...face, id: face.username }))}
@@ -71,7 +61,7 @@ function SocialLine({ film }: { film: Feature }): JSX.Element | null {
           {rating.toFixed(1)}
         </span>
       ) : null}
-    </div>
+    </HomePart>
   );
 }
 
@@ -81,29 +71,48 @@ function Synopsis({ film }: { film: Feature }): JSX.Element {
     .join(" · ");
   return (
     <div className="flex flex-col">
-      <p className={`${TONE.label} text-grade`}>{reasonOf(film)}</p>
+      <HomePart as="p" className={`${TONE.label} text-grade`} name="reason">
+        {reasonOf(film)}
+      </HomePart>
       <h2 className={cn(titleClass(film.title), "mt-4")}>
-        <Link className="ui-fade hover:opacity-80" href={movieHref(film.id)}>
-          {film.title}
+        <Link
+          className="ui-fade hover:opacity-80 focus-visible:opacity-80"
+          href={movieHref(film.id)}
+        >
+          <HomeText as="span" mask part="title" text={film.title} />
         </Link>
       </h2>
       {facts ? (
-        <p className="mt-4 type-body font-medium text-ink-body">{facts}</p>
+        <HomePart
+          as="p"
+          className="mt-4 type-body font-medium text-ink-body"
+          name="facts"
+        >
+          {facts}
+        </HomePart>
       ) : null}
       {film.logline ? (
-        <p className={cn(PROSE_CLASS, "mt-5 text-ink-body")}>{film.logline}</p>
+        <HomePart
+          as="p"
+          className={cn(PROSE_CLASS, "mt-5 text-ink-body")}
+          name="logline"
+        >
+          {film.logline}
+        </HomePart>
       ) : null}
       <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-4">
-        <Link
-          className={cn(
-            PRIMARY,
-            "inline-flex h-10 items-center gap-2 rounded-full px-5 type-control font-medium",
-          )}
-          href={movieHref(film.id)}
-        >
-          <Icon icon="solar:play-bold" size={14} />
-          Open film
-        </Link>
+        <HomePart name="open">
+          <Link
+            className={cn(
+              PRIMARY,
+              "inline-flex h-10 items-center gap-2 rounded-full px-5 type-control font-medium",
+            )}
+            href={movieHref(film.id)}
+          >
+            <Icon icon="solar:play-bold" size={14} />
+            Open film
+          </Link>
+        </HomePart>
         <SocialLine film={film} />
       </div>
     </div>
@@ -122,61 +131,63 @@ function Reels({
   paused: boolean;
 }): JSX.Element {
   return (
-    <ol
-      aria-label="Featured films"
-      className="grid grid-cols-5 gap-2 lg:flex lg:flex-col lg:gap-0"
-    >
-      {features.map((film, index) => {
-        const on = index === active;
-        return (
-          <li key={film.id}>
-            <button
-              aria-current={on ? "true" : undefined}
-              aria-label={`Show ${film.title}`}
-              className="group/reel relative flex w-full cursor-pointer flex-col py-3 text-left lg:flex-row lg:items-baseline lg:gap-4 lg:py-3.5"
-              onClick={() => onPick(index)}
-              type="button"
-            >
-              <span
-                className={cn(
-                  "hidden type-label font-semibold tracking-label tabular-nums lg:inline",
-                  on
-                    ? "text-ink"
-                    : "text-ink-faint group-hover/reel:text-ink-body group-focus-visible/reel:text-ink-body group-has-focus-visible/reel:text-ink-body",
-                )}
+    <HomeSection as="div" cue="reels" now>
+      <ol
+        aria-label="Featured films"
+        className="grid grid-cols-5 gap-2 lg:flex lg:flex-col lg:gap-0"
+      >
+        {features.map((film, index) => {
+          const on = index === active;
+          return (
+            <HomePart as="li" index={index} key={film.id} name="reel">
+              <button
+                aria-current={on ? "true" : undefined}
+                aria-label={`Show ${film.title}`}
+                className="group/reel relative flex w-full cursor-pointer flex-col py-3 text-left lg:flex-row lg:items-baseline lg:gap-4 lg:py-3.5"
+                onClick={() => onPick(index)}
+                type="button"
               >
-                {String(index + 1).padStart(2, "0")}
-              </span>
-              <span
-                className={cn(
-                  "hidden min-w-0 truncate type-body font-medium lg:block",
-                  on
-                    ? "text-ink"
-                    : "text-ink-muted group-hover/reel:text-ink-body group-focus-visible/reel:text-ink-body group-has-focus-visible/reel:text-ink-body",
-                )}
-              >
-                {film.title}
-              </span>
-              <span
-                aria-hidden="true"
-                className="absolute inset-x-0 bottom-0 h-0.5 overflow-hidden bg-fill-active lg:h-px lg:bg-fill"
-              >
-                {on ? (
-                  <span
-                    className="home-reel absolute inset-0 origin-left bg-ink-body"
-                    key={film.id}
-                    style={{
-                      animationDuration: `${CYCLE_MS}ms`,
-                      animationPlayState: paused ? "paused" : "running",
-                    }}
-                  />
-                ) : null}
-              </span>
-            </button>
-          </li>
-        );
-      })}
-    </ol>
+                <span
+                  className={cn(
+                    "hidden type-label font-semibold tracking-label tabular-nums lg:inline",
+                    on
+                      ? "text-ink"
+                      : "text-ink-faint group-hover/reel:text-ink-body group-focus-visible/reel:text-ink-body group-has-focus-visible/reel:text-ink-body",
+                  )}
+                >
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <span
+                  className={cn(
+                    "hidden min-w-0 truncate type-body font-medium lg:block",
+                    on
+                      ? "text-ink"
+                      : "text-ink-muted group-hover/reel:text-ink-body group-focus-visible/reel:text-ink-body group-has-focus-visible/reel:text-ink-body",
+                  )}
+                >
+                  {film.title}
+                </span>
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-x-0 bottom-0 h-0.5 overflow-hidden bg-fill-active lg:h-px lg:bg-fill"
+                >
+                  {on ? (
+                    <span
+                      className="home-reel absolute inset-0 origin-left bg-ink-body"
+                      key={film.id}
+                      style={{
+                        animationDuration: `${CYCLE_MS}ms`,
+                        animationPlayState: paused ? "paused" : "running",
+                      }}
+                    />
+                  ) : null}
+                </span>
+              </button>
+            </HomePart>
+          );
+        })}
+      </ol>
+    </HomeSection>
   );
 }
 
@@ -186,6 +197,7 @@ export function HomeHero({
   features: Feature[];
 }): JSX.Element | null {
   const reduced = Boolean(useReducedMotion());
+  const setLead = useHomeLead();
   const root = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
   const [hovered, setHovered] = useState(false);
@@ -236,35 +248,23 @@ export function HomeHero({
     image.src = src;
   }, [active, features]);
 
+  // The room follows the film on screen.
+  useEffect(() => {
+    if (film) setLead(roomOf(film.backdropPath));
+  }, [film, setLead]);
+
   if (!film) return null;
   const first = features[0]!;
   const src = tmdbImageUrl("backdrop", first.backdropPath, "original")!;
   const reel =
     active === 0 ? null : tmdbImageUrl("backdrop", film.backdropPath, REEL);
-  const room = tmdbImageUrl("backdrop", film.backdropPath, "w300");
 
   return (
     <div ref={root}>
       <FilmDock film={film} shown={inView} />
-      {room ? <Ambient rises={false} source={room} /> : null}
-      <Backdrop>
-        {(reveal) => (
-          <>
-            <Grade source={room} />
-            <Projection
-              cut={GRAMMAR.film.cut}
-              defocusAt={defocusAt}
-              halation={GRAMMAR.film.halation}
-              onReady={reveal}
-              position="center 25%"
-              reel={reel}
-              src={src}
-            />
-          </>
-        )}
-      </Backdrop>
+      <DetailBackdrop src={src} still={reel} />
 
-      <Body className={pageBodyClass(true)}>
+      <div className={pageBodyClass(true)}>
         <div
           className="grid w-full grid-cols-1 items-end gap-x-12 gap-y-8 lg:grid-cols-[minmax(0,1fr)_17rem]"
           onBlur={() => setHovered(false)}
@@ -272,56 +272,19 @@ export function HomeHero({
           onPointerEnter={() => setHovered(true)}
           onPointerLeave={() => setHovered(false)}
         >
-          <motion.div
-            animate={{ opacity: 1 }}
-            className="grid min-w-0"
-            initial={{ opacity: 0 }}
-            transition={{
-              delay: GRAMMAR.title.at,
-              duration: GRAMMAR.title.run,
-              ease: EASE.fade,
-            }}
-          >
-            <AnimatePresence initial={false}>
-              <motion.div
-                animate={{ opacity: 1 }}
-                className="[grid-area:1/1]"
-                exit={{
-                  opacity: 0,
-                  transition: { duration: SWAP / 2, ease: EASE.fade },
-                }}
-                initial={{ opacity: 0 }}
-                key={film.id}
-                transition={{
-                  delay: SWAP / 3,
-                  duration: SWAP,
-                  ease: EASE.pour,
-                }}
-              >
-                <Synopsis film={film} />
-              </motion.div>
-            </AnimatePresence>
-          </motion.div>
+          <HomeSwap className="min-w-0" cue="feature" id={String(film.id)} now>
+            <Synopsis film={film} />
+          </HomeSwap>
           {features.length > 1 ? (
-            <motion.div
-              animate={{ opacity: 1 }}
-              initial={{ opacity: 0 }}
-              transition={{
-                delay: GRAMMAR.title.at + size(1),
-                duration: GRAMMAR.title.run,
-                ease: EASE.fade,
-              }}
-            >
-              <Reels
-                active={active}
-                features={features}
-                onPick={setActive}
-                paused={paused}
-              />
-            </motion.div>
+            <Reels
+              active={active}
+              features={features}
+              onPick={setActive}
+              paused={paused}
+            />
           ) : null}
         </div>
-      </Body>
+      </div>
     </div>
   );
 }

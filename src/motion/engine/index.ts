@@ -120,7 +120,7 @@ export {
   type ScrollTarget,
 } from "./scroll";
 export { Signal, type Source } from "./signal";
-export { springAt, type Spring } from "./spring";
+export { springAt, springForce, type Spring } from "./spring";
 export {
   CARRY_CAP,
   CARRY_DROP,

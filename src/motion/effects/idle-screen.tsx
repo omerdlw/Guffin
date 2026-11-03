@@ -8,8 +8,8 @@ import {
   type TargetAndTransition,
 } from "motion/react";
 import { Z_INDEX } from "@omerdlw/base-framework/tokens";
-import { EASE } from "../stage/tempo";
-import { houseIsDown } from "./house-lights";
+import { POINTS } from "../engine/curve";
+import { houseDown } from "../engine/kit/house";
 
 const WAKE = [
   "pointermove",
@@ -38,7 +38,7 @@ function passThrough(run: number): TargetAndTransition {
     transition: {
       duration: run,
       opacity: { duration: run, ease: DIM },
-      scale: { duration: run, ease: EASE.dolly },
+      scale: { duration: run, ease: POINTS.dolly },
     },
   };
 }
@@ -92,12 +92,7 @@ export function Intermission({
     const arm = () => {
       clearTimeout(timer);
       timer = setTimeout(() => {
-        if (
-          document.hidden ||
-          houseIsDown() ||
-          dialogOpen() ||
-          readingBelow()
-        ) {
+        if (document.hidden || houseDown() || dialogOpen() || readingBelow()) {
           return arm();
         }
         setResting(true);

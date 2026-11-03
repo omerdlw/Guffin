@@ -63,7 +63,7 @@ export function ActionButton({
             {label}
           </span>
           {hoverLabel ? (
-            <span className="cine-fade absolute inset-0 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100">
+            <span className="cine-fade absolute inset-0 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 group-has-focus-visible:opacity-100">
               {hoverLabel}
             </span>
           ) : null}

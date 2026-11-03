@@ -8,7 +8,7 @@ import {
 } from "@/motion/gl";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/images";
 import { loadBitmap } from "../bitmap";
-import { approach, createLoop, type Loop } from "../loop";
+import { approach, createLoop, type Loop, type LoopFactory } from "../loop";
 import type { CanonFilm } from "../../types";
 import {
   filmAt,
@@ -135,6 +135,7 @@ export class Wall {
     canvas: HTMLCanvasElement,
     films: readonly CanonFilm[],
     events: WallEvents,
+    loop: LoopFactory = createLoop,
   ): Wall | null {
     const gl = canvas.getContext("webgl2", {
       alpha: false,
@@ -146,7 +147,7 @@ export class Wall {
     if (!gl) return null;
     const program = createProgram(gl, WALL_FRAGMENT);
     if (!program) return null;
-    return new Wall(canvas, gl, program, films, events);
+    return new Wall(canvas, gl, program, films, events, loop);
   }
 
   private constructor(
@@ -155,6 +156,7 @@ export class Wall {
     private readonly program: WebGLProgram,
     private readonly films: readonly CanonFilm[],
     private readonly events: WallEvents,
+    loop: LoopFactory,
   ) {
     this.count = Math.min(MAX_PRINTS, films.length);
     gl.useProgram(program);
@@ -219,7 +221,7 @@ export class Wall {
     this.looks = films.map(() => ({ lift: 0, match: 1, seen: 0 }));
     this.queue = Array.from({ length: this.count }, (_, i) => i);
     this.pump();
-    this.loop = createLoop((now, dt) => this.frame(now, dt));
+    this.loop = loop((now, dt) => this.frame(now, dt));
   }
 
   setReduced(reduced: boolean): void {

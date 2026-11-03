@@ -48,7 +48,7 @@ export function RatingSelector({
                 <rect
                   height="24"
                   style={{
-                    transition: `width var(--duration-reveal) var(--ease-out-cream) calc(var(--duration-ripple) * ${star - 1})`,
+                    transition: `width var(--step-0) var(--ease-out-cream) calc(var(--step-n6) * ${star - 1})`,
                     width: fillOf(star, shown),
                   }}
                   x="0"

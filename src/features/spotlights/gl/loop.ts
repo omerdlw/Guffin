@@ -3,7 +3,11 @@ export interface Loop {
   wake(): void;
 }
 
-export function createLoop(step: (now: number, dt: number) => boolean): Loop {
+// Makes the loop a renderer runs on: its own frames by default, or a clock
+// that drives it (the motion engine's, through a scene).
+export type LoopFactory = (step: (now: number, dt: number) => boolean) => Loop;
+
+export const createLoop: LoopFactory = (step) => {
   let frame = 0;
   let last = 0;
   let disposed = false;
@@ -33,7 +37,7 @@ export function createLoop(step: (now: number, dt: number) => boolean): Loop {
     },
     wake,
   };
-}
+};
 
 export const approach = (from: number, to: number, time: number, dt: number) =>
   to + (from - to) * Math.exp(-dt / Math.max(1e-4, time / 4));

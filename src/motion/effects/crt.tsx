@@ -4,7 +4,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 import { motion, useIsPresent, useReducedMotion } from "motion/react";
 import { cn } from "@/ui/cn";
 import { Z_INDEX } from "@omerdlw/base-framework/tokens";
-import { EASE } from "../stage/tempo";
+import { POINTS } from "../engine/curve";
 
 const ON = { line: 0.3, run: 0.95 };
 const OFF = { collapse: 0.18, point: 0.26, glow: 0.9 };
@@ -96,7 +96,7 @@ export function Tube({
           opacity: [1, 1, 0],
           transition: {
             duration: ON.run,
-            ease: EASE.fade,
+            ease: POINTS.fade,
             times: [0, line * 1.2, 1],
           },
         }}

@@ -69,8 +69,7 @@ export function SurfaceProse({ text }: { text: string }) {
   return (
     <div
       className={`${SURFACE_PANEL} ${SURFACE_SCROLL} max-h-[min(52dvh,24rem)] p-4`}
-      data-lenis-prevent
-      data-lenis-prevent-wheel
+      data-scroll-native
       onWheel={scrollWithin}
     >
       <div className="flex flex-col gap-3 type-body leading-6 text-pretty [overflow-wrap:anywhere] text-ink-body select-text">

@@ -14,7 +14,7 @@ import {
   useReducedMotion,
 } from "motion/react";
 import { cn } from "@/ui/cn";
-import { EASE, size } from "@/motion/stage";
+import { POINTS, step } from "@/motion/engine";
 import type { Laureate } from "../types";
 
 const STEP = 14;
@@ -61,8 +61,8 @@ export function YearDial({
       return;
     }
     const controls = animate(x, at(index), {
-      duration: size(1),
-      ease: EASE.dolly,
+      duration: step(1),
+      ease: POINTS.dolly,
     });
     return () => controls.stop();
   }, [index, reduced, width]);
@@ -103,7 +103,7 @@ export function YearDial({
         }}
         onPointerCancel={() => {
           drag.current = null;
-          animate(x, at(index), { duration: size(1), ease: EASE.dolly });
+          animate(x, at(index), { duration: step(1), ease: POINTS.dolly });
         }}
         onPointerDown={(event) => {
           event.currentTarget.setPointerCapture(event.pointerId);
@@ -131,7 +131,7 @@ export function YearDial({
             next = nearest(x.get() - (event.clientX - box.left - width / 2));
           }
           onPick(next);
-          animate(x, at(next), { duration: size(1), ease: EASE.dolly });
+          animate(x, at(next), { duration: step(1), ease: POINTS.dolly });
         }}
         ref={root}
         role="slider"

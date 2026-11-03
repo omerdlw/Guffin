@@ -27,7 +27,7 @@ function ListRow({
     >
       <AccountLink
         aria-label={list.title}
-        className="block w-full shrink-0 ui-fade hover:opacity-80 sm:w-60"
+        className="block w-full shrink-0 ui-fade hover:opacity-80 focus-visible:opacity-80 sm:w-60"
         href={href}
       >
         <PosterStack paths={list.previews} />

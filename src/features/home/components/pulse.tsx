@@ -1,8 +1,10 @@
+"use client";
+
 import type { JSX } from "react";
-import { Item, Section } from "@/motion/stage";
 import { TONE } from "@/ui";
 import { whole } from "../format";
 import type { Pulse } from "../types";
+import { HomeCount, HomePart, HomeSection } from "../motion";
 
 export function HomePulse({
   greeting,
@@ -19,8 +21,8 @@ export function HomePulse({
     { label: "Members", value: pulse.members },
   ];
   return (
-    <Section className="flex w-full flex-col gap-5">
-      <Item className="flex flex-col gap-1" from="light">
+    <HomeSection className="flex w-full flex-col gap-5" cue="pulse">
+      <HomePart className="flex flex-col gap-1" name="greeting">
         <h2 className="type-title font-semibold text-ink">
           {greeting ?? "This week on Guffin"}
         </h2>
@@ -29,23 +31,31 @@ export function HomePulse({
             ? "Here’s what your circle and the community have been watching."
             : "A film diary for people who love them. Here’s the last seven days."}
         </p>
-      </Item>
-      <Item
-        as="div"
+      </HomePart>
+      <div
         className={`grid grid-cols-2 divide-rule sm:grid-cols-4 sm:divide-x [&>div]:py-3 sm:[&>div]:px-6 sm:[&>div:first-child]:pl-0`}
-        from="light"
       >
-        {figures.map((figure) => (
+        {figures.map((figure, index) => (
           <div className="flex flex-col gap-1.5" key={figure.label}>
-            <span className={`${TONE.label} text-ink-muted`}>
+            <HomePart
+              as="span"
+              className={`${TONE.label} text-ink-muted`}
+              index={index}
+              name="figure"
+            >
               {figure.label}
-            </span>
-            <span className="font-zuume type-display-xs leading-none font-bold text-ink tabular-nums sm:type-display-sm">
-              {whole(figure.value)}
-            </span>
+            </HomePart>
+            <HomeCount
+              className="font-zuume type-display-xs leading-none font-bold text-ink tabular-nums sm:type-display-sm"
+              format={whole}
+              hover
+              index={index}
+              part="count"
+              value={figure.value}
+            />
           </div>
         ))}
-      </Item>
-    </Section>
+      </div>
+    </HomeSection>
   );
 }
