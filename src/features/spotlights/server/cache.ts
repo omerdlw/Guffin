@@ -1,5 +1,6 @@
 import "server-only";
 
+import { unstable_rethrow } from "next/navigation";
 import { after } from "next/server";
 import { report } from "@omerdlw/base-framework/utils";
 import { getRedisClient } from "@/infrastructure/redis";
@@ -24,7 +25,10 @@ function build<T>(key: string, make: () => Promise<T>): Promise<T> {
         const entry: Kept<T> = { at: Date.now(), value };
         await redis
           .set(key, entry, { ex: KEEP_SECONDS })
-          .catch((error: unknown) => report(`Spotlight ${key} write`, error));
+          .catch((error: unknown) => {
+            unstable_rethrow(error);
+            report(`Spotlight ${key} write`, error);
+          });
       }
       return value;
     })
@@ -49,6 +53,7 @@ export async function kept<T>(key: string, make: () => Promise<T>): Promise<T> {
         return entry.value;
       }
     } catch (error) {
+      unstable_rethrow(error);
       report(`Spotlight ${key} read`, error);
     }
   }

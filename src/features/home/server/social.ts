@@ -1,5 +1,6 @@
 import "server-only";
 
+import { unstable_rethrow } from "next/navigation";
 import { after } from "next/server";
 import { report } from "@omerdlw/base-framework/utils";
 import { getOptionalUser } from "@/features/auth/server";
@@ -126,7 +127,10 @@ async function recount(): Promise<PulseRow> {
     const entry: CachedPulse = { at: Date.now(), pulse };
     await redis
       .set(PULSE_KEY, entry, { ex: PULSE_KEEP_SECONDS })
-      .catch((error: unknown) => report("Home pulse cache write", error));
+      .catch((error: unknown) => {
+        unstable_rethrow(error);
+        report("Home pulse cache write", error);
+      });
   }
   return pulse;
 }
@@ -147,6 +151,7 @@ export async function getPulse(): Promise<PulseRow> {
         return cached.pulse;
       }
     } catch (error) {
+      unstable_rethrow(error);
       report("Home pulse cache read", error);
     }
   }
@@ -154,6 +159,7 @@ export async function getPulse(): Promise<PulseRow> {
   try {
     return await recount();
   } catch (error) {
+    unstable_rethrow(error);
     report("Home pulse read", error);
     return EMPTY_PULSE;
   }
@@ -167,6 +173,7 @@ export async function getCircle(): Promise<CircleRow | null> {
     if (error) throw error;
     return (data as unknown as CircleRow | null) ?? null;
   } catch (error) {
+    unstable_rethrow(error);
     report("Home circle read", error);
     return null;
   }
@@ -184,6 +191,7 @@ export async function getWaiting(ids: number[]): Promise<Map<number, number>> {
     if (error) throw error;
     for (const row of data ?? []) waiting.set(row.tmdb_id, row.watchlist_count);
   } catch (error) {
+    unstable_rethrow(error);
     report("Home film stats read", error);
   }
   return waiting;
