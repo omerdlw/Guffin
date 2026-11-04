@@ -388,6 +388,36 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
     filter: blur(var(--haze-2));
   }
 
+  /* The foot of a cast card goes out of focus (`CastCard`): each layer blurs
+     what is behind it, through a mask that overlaps its neighbours. */
+  .cast-blur {
+    -webkit-backdrop-filter: blur(var(--blur));
+    backdrop-filter: blur(var(--blur));
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      transparent var(--m0),
+      #000 var(--m1),
+      #000 var(--m2),
+      transparent var(--m3)
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      transparent var(--m0),
+      #000 var(--m1),
+      #000 var(--m2),
+      transparent var(--m3)
+    );
+  }
+  .cast-sheen {
+    background: linear-gradient(
+      to top,
+      rgb(0 0 0 / 0.42),
+      rgb(0 0 0 / 0.14) 34%,
+      transparent 50%
+    );
+    border-radius: inherit;
+  }
+
   html:has([data-cinematic]) {
     overflow-anchor: none;
   }

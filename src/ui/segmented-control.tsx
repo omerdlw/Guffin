@@ -87,18 +87,11 @@ export function SegmentedControl<K extends string>({
   round = false,
   value,
 }: SegmentedControlProps<K>) {
-  const [hoveredKey, setHoveredKey] = useState<K | null>(null);
-  const [focusedKey, setFocusedKey] = useState<K | null>(null);
-  const hovered = items.some((item) => item.key === hoveredKey)
-    ? hoveredKey
-    : null;
-  const focused = items.some((item) => item.key === focusedKey)
-    ? focusedKey
-    : null;
-  const pillKey = hovered ?? focused ?? value;
+  // The pill rests on the chosen segment only: the pointer has its own cursor
+  // and the keyboard its focus ring, so the pill does not follow either.
   const { box: pill, ref: listRef } = useSlidingPill<HTMLDivElement>(
     "[data-pill-target]",
-    pillKey,
+    value,
   );
 
   if (items.length === 0) return null;
@@ -112,15 +105,6 @@ export function SegmentedControl<K extends string>({
         round && "rounded-full",
         className,
       )}
-      onBlurCapture={(event) => {
-        if (
-          !(event.relatedTarget instanceof Node) ||
-          !event.currentTarget.contains(event.relatedTarget)
-        ) {
-          setFocusedKey(null);
-        }
-      }}
-      onPointerLeave={() => setHoveredKey(null)}
       ref={listRef}
       role="tablist"
     >
@@ -135,7 +119,7 @@ export function SegmentedControl<K extends string>({
         return (
           <Button
             aria-selected={active}
-            data-pill-target={item.key === pillKey ? "" : undefined}
+            data-pill-target={active ? "" : undefined}
             className={cn(
               "relative inline-flex min-w-fit cursor-pointer items-center justify-center gap-1.5 px-3.5 type-meta font-medium whitespace-nowrap cine-fade outline-none focus-visible:ring-1 focus-visible:ring-edge-focus focus-visible:ring-inset",
               fill && "flex-1",
@@ -147,8 +131,6 @@ export function SegmentedControl<K extends string>({
             )}
             key={item.key}
             onClick={() => onChange(item.key)}
-            onFocus={() => setFocusedKey(item.key)}
-            onPointerEnter={() => setHoveredKey(item.key)}
             role="tab"
           >
             {item.icon ? <Icon icon={item.icon} size={12} /> : null}

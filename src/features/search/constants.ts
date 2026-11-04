@@ -82,5 +82,6 @@ export const SEARCH_OVERVIEW_LEAD: Readonly<Record<SearchType, number>> = {
 };
 
 export const SEARCH_ICON = "solar:magnifer-linear";
+export const SEARCH_CLOSE_ICON = "solar:close-bold";
 export const SEARCH_ACTION_KEY = "search.open";
 export const SEARCH_ACTION_ORDER = -20;

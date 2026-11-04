@@ -6,6 +6,7 @@ import {
   type AccountViewProps,
   MEDIA_FILTERS,
 } from "../browse";
+import { AccountPart, AccountSection } from "../motion";
 import { getAccountPageContext } from "../server/context";
 import { getMediaPage, type MediaKind } from "../server/browse";
 import { EmptyState } from "../components/empty-state";
@@ -54,35 +55,45 @@ export async function AccountMediaView({
   const showBar = result.total > 0 || filtered;
 
   return (
-    <div className="flex w-full flex-col">
+    <AccountSection as="div" className="flex w-full flex-col" cue="shelf" now>
       {showBar ? (
-        <FilterBar
-          fields={[
-            ...MEDIA_FILTERS,
-            {
-              defaultValue: "added_desc",
-              key: "sort",
-              options: MEDIA_SORTS,
-            },
-          ]}
-          searchPlaceholder="Search titles"
-        />
+        <AccountPart name="row">
+          <FilterBar
+            fields={[
+              ...MEDIA_FILTERS,
+              {
+                defaultValue: "added_desc",
+                key: "sort",
+                options: MEDIA_SORTS,
+              },
+            ]}
+            searchPlaceholder="Search titles"
+          />
+        </AccountPart>
       ) : null}
 
       {result.items.length > 0 ? (
         <>
-          <PosterGrid items={result.items} source={isOwner ? { kind } : null} />
-          <Pagination page={result.page} pageCount={result.pageCount} />
+          <PosterGrid
+            items={result.items}
+            source={isOwner ? { kind } : null}
+            staged
+          />
+          <AccountPart name="row">
+            <Pagination page={result.page} pageCount={result.pageCount} />
+          </AccountPart>
         </>
       ) : (
-        <EmptyState icon={copy.icon}>
-          {filtered
-            ? "No films match these filters"
-            : isOwner
-              ? copy.emptyOwn
-              : copy.empty}
-        </EmptyState>
+        <AccountPart name="row">
+          <EmptyState icon={copy.icon}>
+            {filtered
+              ? "No films match these filters"
+              : isOwner
+                ? copy.emptyOwn
+                : copy.empty}
+          </EmptyState>
+        </AccountPart>
       )}
-    </div>
+    </AccountSection>
   );
 }

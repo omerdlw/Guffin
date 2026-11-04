@@ -35,6 +35,9 @@ export interface ScoreInput<P extends string, S extends string> {
   opening: readonly Beat<NoInfer<P>>[];
   sections?: Record<S, readonly Beat<NoInfer<P>>[]>;
   leave?: LeaveVerb;
+  // A page of sections laid side by side as well as down the page: those
+  // reached together are taken in the order they lie, top to bottom.
+  ordered?: boolean;
 }
 
 export interface Role {
@@ -55,6 +58,7 @@ export interface Score<P extends string, S extends string> {
   roles: Record<P, Role>;
   opening: readonly Step<P>[];
   sections: Record<S, readonly Step<P>[]>;
+  ordered: boolean;
 }
 
 // The next beat may take the stage three rungs into this one: once the eye has
@@ -164,7 +168,13 @@ export function defineScore<
   const uncalled = names.filter((name) => !called.has(name));
   if (uncalled.length > 0) opening.push({ parts: uncalled });
 
-  return { tempo: clampTempo(input.tempo ?? 0), roles, opening, sections };
+  return {
+    tempo: clampTempo(input.tempo ?? 0),
+    roles,
+    opening,
+    sections,
+    ordered: input.ordered ?? false,
+  };
 }
 
 export interface Cue<P extends string> {

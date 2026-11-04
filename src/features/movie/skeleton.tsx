@@ -113,9 +113,9 @@ function People(): JSX.Element {
         title="5.75rem"
       />
       <div className="flex flex-col gap-3">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {Array.from({ length: 6 }, (_, index) => (
-            <PersonCardSkeleton key={index} />
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {Array.from({ length: 8 }, (_, index) => (
+            <SkeletonBlock className="aspect-[3/4] rounded-sheet" key={index} />
           ))}
         </div>
         <div className="grid h-10 grid-cols-[repeat(2,minmax(0,1fr))_2.5rem] gap-3 sm:grid-cols-[repeat(var(--cells),minmax(0,1fr))] sm:[--cells:4]">

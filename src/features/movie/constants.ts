@@ -1,4 +1,4 @@
-export const MOVIE_FEATURED_PEOPLE = 6;
+export const MOVIE_FEATURED_PEOPLE = 8;
 export const MOVIE_COMPACT_PEOPLE = 3;
 export const MOVIE_TAG_LIMIT = 10;
 export const MOVIE_TAG_MAX_LENGTH = 28;

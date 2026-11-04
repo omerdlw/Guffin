@@ -9,7 +9,7 @@ import {
 } from "@omerdlw/base-framework/modules/dock";
 import { report } from "@omerdlw/base-framework/utils";
 import { useAuth } from "@/features/auth";
-import { Button, Icon } from "@/ui";
+import { Button, DockAction, Icon } from "@/ui";
 import { REVIEW_EVENTS } from "../constants";
 import { getOwnMovieReviewAction } from "../server/actions";
 import type { ReviewInput } from "../types";
@@ -90,7 +90,10 @@ export function MovieAction({
     </Button>
   ) : null;
 
-  if (!userId) return providers;
+  const wrap = (content: JSX.Element | null) =>
+    content ? <DockAction>{content}</DockAction> : null;
+
+  if (!userId) return wrap(providers);
 
   const write = (
     <Button
@@ -108,11 +111,11 @@ export function MovieAction({
     </Button>
   );
 
-  if (!providers) return write;
-  return (
+  if (!providers) return wrap(write);
+  return wrap(
     <div className={slots.actionRow}>
       {write}
       {providers}
-    </div>
+    </div>,
   );
 }

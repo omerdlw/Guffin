@@ -10,6 +10,7 @@ import type { ReviewCardData } from "../browse-types";
 import { formatShortDate } from "../dates";
 import { AccountLink } from "./link";
 import { posterImage } from "../poster";
+import { AccountPart } from "../motion";
 
 type Review = Omit<ReviewCardData, "createdAt">;
 
@@ -38,19 +39,23 @@ function Body({ review }: { review: Review }) {
 }
 
 function ReviewRow({
+  index,
   isOwner,
   review,
   signedIn,
+  staged,
   username,
 }: {
+  index: number;
   isOwner: boolean;
   review: Review;
   signedIn: boolean;
+  staged: boolean;
   username: string;
 }) {
   const href = movieHref(review.tmdbId);
-  return (
-    <li className="flex gap-4 py-6 first:pt-0 last:pb-0 sm:gap-5">
+  const body = (
+    <>
       <MediaCard
         aspect="free"
         className="w-14 shrink-0 sm:w-[4.5rem]"
@@ -105,7 +110,15 @@ function ReviewRow({
           />
         </footer>
       </article>
-    </li>
+    </>
+  );
+  const className = "flex gap-4 py-6 first:pt-0 last:pb-0 sm:gap-5";
+  return staged ? (
+    <AccountPart as="li" className={className} index={index} name="row">
+      {body}
+    </AccountPart>
+  ) : (
+    <li className={className}>{body}</li>
   );
 }
 
@@ -114,22 +127,27 @@ export function ReviewList({
   isOwner,
   reviews,
   signedIn,
+  staged = false,
   username,
 }: {
   className?: string;
   isOwner: boolean;
   reviews: readonly Review[];
   signedIn: boolean;
+  // Played by the page's own score: each row comes in on its own beat.
+  staged?: boolean;
   username: string;
 }): JSX.Element {
   return (
     <ul className={cn("flex flex-col divide-y divide-rule", className)}>
-      {reviews.map((review) => (
+      {reviews.map((review, index) => (
         <ReviewRow
+          index={index}
           isOwner={isOwner}
           key={review.id}
           review={review}
           signedIn={signedIn}
+          staged={staged}
           username={username}
         />
       ))}

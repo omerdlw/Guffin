@@ -45,6 +45,13 @@ export const ENTER = {
     y: -left(p) * reach(-1),
     blur: left(p) * haze(3),
   }),
+  // A part that keeps its line and arrives along it, from the left: only x
+  // moves, so a row of them is read left to right on one fixed level.
+  along: (p) => ({
+    opacity: lit(p),
+    x: -left(p) * reach(-2),
+    blur: left(p) * haze(3),
+  }),
   lift: (p) => ({
     opacity: lit(p),
     y: left(p) * reach(-1),

@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState, type JSX, type PointerEvent } from "react";
 import { cn } from "@/ui/cn";
 import type { ActivityDays } from "../browse-types";
+import { AccountPart } from "../motion";
 import { counted } from "./section";
 
 const DAY = 86_400_000;
@@ -96,9 +97,10 @@ export function ActivityCalendar({
   return (
     <div className="relative flex flex-col gap-3" ref={frame}>
       <div className="flex gap-2">
-        <div
+        <AccountPart
           aria-hidden="true"
           className="grid shrink-0 grid-rows-[12px_repeat(7,10px)] gap-[3px] type-micro leading-none text-ink-faint"
+          name="week"
         >
           <span />
           <span>Mon</span>
@@ -106,7 +108,7 @@ export function ActivityCalendar({
           <span>Wed</span>
           <span />
           <span>Fri</span>
-        </div>
+        </AccountPart>
         <div
           aria-label={`${counted(total, "activity", "activities")} in the last year`}
           className="flex min-w-0 flex-1 flex-row-reverse justify-start gap-[3px] overflow-hidden [mask-image:linear-gradient(to_right,transparent,#000_28px)]"
@@ -117,7 +119,12 @@ export function ActivityCalendar({
           {weeks.toReversed().map((week, back) => {
             const index = weeks.length - 1 - back;
             return (
-              <div className="flex shrink-0 flex-col gap-[3px]" key={index}>
+              <AccountPart
+                className="flex shrink-0 flex-col gap-[3px]"
+                index={index}
+                key={index}
+                name="week"
+              >
                 <span className="relative h-3">
                   {week.month ? (
                     <span className="absolute top-0 left-0 type-micro whitespace-nowrap text-ink-muted">
@@ -141,13 +148,16 @@ export function ActivityCalendar({
                     <span className={CELL} key={weekday} />
                   ),
                 )}
-              </div>
+              </AccountPart>
             );
           })}
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-3 type-label text-ink-muted">
+      <AccountPart
+        className="flex items-center justify-between gap-3 type-label text-ink-muted"
+        name="row"
+      >
         <span className="tabular-nums">
           {total.toLocaleString("en-US")} in the last year
         </span>
@@ -158,7 +168,7 @@ export function ActivityCalendar({
           ))}
           <span className="ml-1">More</span>
         </span>
-      </div>
+      </AccountPart>
 
       {hover ? (
         <div

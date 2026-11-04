@@ -3,13 +3,16 @@
 import type { ReactNode } from "react";
 import { bindScore, defineScore } from "@/motion/engine";
 import { cn } from "@/ui/cn";
+import { Unfold } from "@/ui/unfold";
 
-// The search surface: a tool in the hand like any dock surface, but one that
-// is looked at, so it runs a rung and a half slower than the rest. Posters
-// come out of the soft where they stand and follow one another at an even
-// pace; rows and the notes that stand in for them lift in as paper and glass.
+// The search surface: a tool in the hand, so it answers at the pace of one,
+// on the same rung as every dock surface. Typing is a conversation: what
+// leaves goes in a blink and what comes takes half a second, so the list is
+// already there by the time the eye returns to it. Posters come out of the
+// soft where they stand and follow one another at an even pace; rows and the
+// notes that stand in for them lift in as paper and glass.
 const SEARCH = defineScore({
-  tempo: -2,
+  tempo: -3,
   cast: {
     item: "paper",
     row: "paper",
@@ -39,9 +42,11 @@ export function SearchStage({
 }) {
   return (
     <SearchRoot>
-      <div className={cn("ui-scene w-full", className)} data-cinematic="">
-        {children}
-      </div>
+      <Unfold>
+        <div className={cn("ui-scene w-full", className)} data-cinematic="">
+          {children}
+        </div>
+      </Unfold>
     </SearchRoot>
   );
 }

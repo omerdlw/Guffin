@@ -8,7 +8,7 @@ import {
 } from "@omerdlw/base-framework/modules/dock";
 import { movieHref } from "@/config/routes";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/images";
-import { Button, Icon } from "@/ui";
+import { Button, DockAction, Icon } from "@/ui";
 import type { Feature } from "../types";
 
 const FALLBACK_ICON = "solar:clapperboard-play-bold";
@@ -51,14 +51,16 @@ function OpenFilm({ id, title }: { id: number; title: string }): JSX.Element {
   const { navigate } = useDockActions();
 
   return (
-    <Button
-      aria-label={`Open ${title}`}
-      className={actionClass({ className: "w-full" })}
-      onClick={() => void navigate(movieHref(id))}
-      type="button"
-    >
-      <Icon icon="solar:play-bold" size={16} />
-      <span className="truncate">Open film</span>
-    </Button>
+    <DockAction>
+      <Button
+        aria-label={`Open ${title}`}
+        className={actionClass({ className: "w-full" })}
+        onClick={() => void navigate(movieHref(id))}
+        type="button"
+      >
+        <Icon icon="solar:play-bold" size={16} />
+        <span className="truncate">Open film</span>
+      </Button>
+    </DockAction>
   );
 }

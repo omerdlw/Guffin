@@ -25,9 +25,11 @@ const DETAIL = defineScore({
     // Prose is read as a wave, word after word.
     overview: { matter: "ink", enter: "read", leave: "fade" },
     poster: { matter: "plate", enter: "door" },
+    // The counts on the rule's right: each one comes in along the rule's own
+    // line, left to right, and never moves off it.
+    stat: { matter: "light", enter: "along", cadence: "even" },
     // The sidebar is a staircase: each step comes down from above, one after
     // another, from the poster to the last fact.
-    stat: { matter: "light", enter: "descend", cadence: "stairs" },
     action: { matter: "glass", enter: "descend", cadence: "stairs" },
     proof: { matter: "glass", enter: "descend", cadence: "stairs" },
     row: { matter: "light", enter: "descend", cadence: "stairs" },
@@ -68,9 +70,8 @@ const DETAIL = defineScore({
     { rest: 1, with: "marquee" },
     "title",
     "rule",
-    ["tagline", "role"],
+    ["tagline", "role", "stat"],
     ["overview", "poster"],
-    "stat",
     "action",
     ["proof", "link"],
     ["row", "label", "value", "line"],
@@ -79,6 +80,9 @@ const DETAIL = defineScore({
     // A heading whose content is swapped in place below it.
     shelf: ["header"],
     cast: ["person", ["photo", "name"]],
+    // The first cast plays under its heading: the cards wait for the title to
+    // be set, then come down from the top row.
+    casting: [{ rest: 1 }, "person", ["photo", "name"]],
     slides: ["slide"],
     // A heading over a row it owns.
     row: ["header", "slide"],

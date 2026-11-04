@@ -4,7 +4,10 @@ import { defineTheme } from "@omerdlw/base-framework/theme";
 import { dockTheme } from "@omerdlw/base-framework/modules/dock";
 import { BACKDROP, FILL, FLOAT, GLASS, PRIMARY, SHELL, TIP } from "./chrome";
 import { RADIUS } from "@/ui/page";
-import type { DockMotion } from "@omerdlw/base-framework/modules/dock";
+import type {
+  DockMotion,
+  DockSurfacePhaseMotion,
+} from "@omerdlw/base-framework/modules/dock";
 import { SHARP, hazy, motion, tween } from "./motion";
 
 const { durations: time, easings: ease, springs } = motion;
@@ -43,6 +46,29 @@ const resizeFor = (distancePx: number) => {
 
 const atRest = (y: unknown) => gpuTransform(Number(y) || 0);
 
+const surfaceResize = (distancePx: number) => {
+  const resize = resizeFor(distancePx);
+  return { ...resize, height: resize, width: resize };
+};
+
+// The body comes in a beat after the action leaves, and steps between its own
+// views at the same pace.
+const surfaceEnter = tween(time.reveal, ease.fade, time.touch);
+const surfaceStep = tween(time.reveal, ease.fade);
+const headerSwap = tween(time.light, ease.fade, time.step);
+
+// A phase that plays nothing of its own: the deck rests, the header swaps and
+// the body steps. The phases below change only what they play differently.
+// The glass never compresses (scale 1), so a phase leaves the deck's size alone.
+const REST_PHASE: DockSurfacePhaseMotion = {
+  deck: null,
+  transform: null,
+  scale: 1,
+  body: surfaceStep,
+  header: headerSwap,
+  headerReturn: null,
+};
+
 const controlSlot = {
   hidden: { opacity: 0, width: 0, marginRight: -2 },
   visible: {
@@ -71,21 +97,15 @@ export const dockMotion: DockMotion = {
   transitions: {
     stack: move,
     expand: move,
-    surfaceResize: (distancePx) => {
-      const resize = resizeFor(distancePx);
-      return { ...resize, height: resize, width: resize };
-    },
-    surfaceArrival: move,
-    anticipation: leave,
-    surfaceEnter: tween(time.reveal, ease.fade, time.touch),
-    surfaceStep: tween(time.reveal, ease.fade),
     surfaceExit: tween(time.leave, ease.fade),
+    // Motion's own default for a layout move; swap in `move` to keep it on the ladder.
+    layout: tween(0.45, [0.4, 0, 0.1, 1]),
     card: move,
     cardExpanded: move,
     cardPeek: tween(time.light, ease.pour),
     fade: tween(time.reveal, ease.fade),
     text: tween(time.light, ease.fade),
-    headerSwap: tween(time.light, ease.fade, time.step),
+    headerSwap,
     actionDismiss: touchLeave,
     icon: tween(time.light, ease.fade),
     badge: tween(time.light, ease.pour),
@@ -180,12 +200,25 @@ export const dockMotion: DockMotion = {
     mediaVolumeThumb: { idle: { scale: 1 }, dragging: { scale: 1.15 } },
     cardContent: { hidden: hazy(3), visible: SHARP },
   },
+  phases: {
+    idle: REST_PHASE,
+    dismissAction: { ...REST_PHASE, transform: leave, header: leave },
+    expandBody: {
+      ...REST_PHASE,
+      deck: move,
+      transform: move,
+      body: surfaceEnter,
+    },
+    open: { ...REST_PHASE, deck: surfaceResize },
+    anticipation: { ...REST_PHASE, deck: surfaceResize, transform: leave },
+    collapseBody: { ...REST_PHASE, deck: move, headerReturn: surfaceEnter },
+    restoreHeader: { ...REST_PHASE, deck: move },
+  },
   deck: {
     elevation: {
       rest: "none",
       elevated: "none",
     },
-    compress: { open: 1, close: 1 },
     peek: (position) => {
       const progress = Math.min(position / 3, 1);
       return {
@@ -199,12 +232,29 @@ export const dockMotion: DockMotion = {
       transition: tween(time.reveal, ease.fade),
     }),
     tapScale: 0.98,
+    stacking: {
+      collapsed: {
+        offsetY: -10,
+        scale: 0.88,
+        opacityStep: 0.2,
+        opacityMin: 0.1,
+      },
+      expanded: { offsetY: -72 },
+      shelf: { offsetY: -42, scale: 0.94 },
+      visible: { stack: 3, extensions: 2, status: 1 },
+    },
+    breadcrumbOffset: -44,
+    fullscreenOpacity: 0,
+    origin: "50% 100%",
+    resizeFallback: 260,
   },
+  opacity: { banner: 0.95, description: 0.7 },
   drag: {
     elastic: { top: 0.05, bottom: 0.5 },
     range: [0, 180],
     opacity: [1, 0.75],
     scale: [1, 0.96],
+    dismiss: { offset: 65, velocity: 400 },
   },
   skeleton: "",
   timings: {

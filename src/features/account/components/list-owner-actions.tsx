@@ -5,7 +5,7 @@ import {
   useDockActionClass,
   useDockActions,
 } from "@omerdlw/base-framework/modules/dock";
-import { Button, Icon } from "@/ui";
+import { Button, DockAction, Icon } from "@/ui";
 import { useAccountDock } from "./dock";
 import {
   createListFormSurfaceEntry,
@@ -16,14 +16,18 @@ function NewListAction({ username }: { username: string }): JSX.Element {
   const actionClass = useDockActionClass();
   const { openSurface } = useDockActions();
   return (
-    <Button
-      className={actionClass({ className: "w-full backdrop-blur-sm" })}
-      onClick={() => void openSurface(createListFormSurfaceEntry({ username }))}
-      type="button"
-    >
-      <Icon icon="solar:add-circle-bold" size={16} />
-      <span className="truncate">New list</span>
-    </Button>
+    <DockAction>
+      <Button
+        className={actionClass({ className: "w-full backdrop-blur-sm" })}
+        onClick={() =>
+          void openSurface(createListFormSurfaceEntry({ username }))
+        }
+        type="button"
+      >
+        <Icon icon="solar:add-circle-bold" size={16} />
+        <span className="truncate">New list</span>
+      </Button>
+    </DockAction>
   );
 }
 

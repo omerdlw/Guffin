@@ -11,6 +11,7 @@ import {
 import {
   SEARCH_ACTION_KEY,
   SEARCH_ACTION_ORDER,
+  SEARCH_CLOSE_ICON,
   SEARCH_ICON,
 } from "../constants";
 import { SearchAction } from "./action";
@@ -47,14 +48,14 @@ export function SearchDockCommand(): null {
   const actions = useMemo(
     () => [
       {
-        icon: SEARCH_ICON,
+        icon: open ? SEARCH_CLOSE_ICON : SEARCH_ICON,
         key: SEARCH_ACTION_KEY,
         onClick: toggle,
         order: SEARCH_ACTION_ORDER,
-        tooltip: "Search",
+        tooltip: open ? "Close search" : "Search",
       },
     ],
-    [toggle],
+    [open, toggle],
   );
 
   useDockContextActions(actions);

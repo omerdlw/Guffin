@@ -13,6 +13,7 @@ import {
 import type { PersonEntry } from "../types";
 import { PeopleModal, type PeopleModalData } from "./modals";
 import { PersonCard } from "./person-card";
+import { CastCard } from "./cast-card";
 
 type Tab = "cast" | "crew";
 
@@ -67,8 +68,14 @@ export function MoviePeople({ cast, crew }: MoviePeopleProps) {
         title="Cast & Crew"
       />
 
-      <DetailSwap className="flex flex-col gap-3" cue="cast" id={tab} now>
-        <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <DetailSwap
+        className="flex flex-col gap-3"
+        cue="cast"
+        id={tab}
+        intro="casting"
+        now
+      >
+        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {featured.map((person, index) => (
             <DetailPart
               as="li"
@@ -77,7 +84,7 @@ export function MoviePeople({ cast, crew }: MoviePeopleProps) {
               key={person.key}
               name="person"
             >
-              <PersonCard index={index} person={person} radius={RADIUS.panel} />
+              <CastCard index={index} person={person} />
             </DetailPart>
           ))}
         </ul>

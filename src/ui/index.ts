@@ -21,6 +21,7 @@ export {
   CONTAINER_CLASS,
   FACT_ROW_TYPE,
   HEADER_CLASS,
+  OVERLAP,
   HEADLINE_BOX,
   headlineClass,
   HEADLINE_TYPE,
@@ -78,7 +79,9 @@ export {
   surfaceIconButton,
   surfaceRow,
 } from "./surface";
+export { DockAction } from "./dock-action";
 export { SurfacePart, SurfaceStage, SurfaceSwap } from "./surface-stage";
+export { Unfold } from "./unfold";
 export { HighlightGroup, useHighlight } from "./highlight-group";
 export { Switch } from "./switch";
 export { Textarea } from "./textarea";

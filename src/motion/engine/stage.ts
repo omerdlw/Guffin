@@ -125,6 +125,8 @@ interface Queued<P extends string> {
   step: Step<P>;
   cue: string;
   scope: string | null;
+  // Where the section lies on the page (its top), for an ordered score.
+  at?: number;
 }
 
 const keyOf = (name: string, scope: string | null) =>
@@ -381,13 +383,31 @@ export class Stage<P extends string, S extends string = never> {
     });
   }
 
-  cue(section: S, scope: string | null = null) {
+  cue(section: S, scope: string | null = null, at?: number) {
     if (this.cued.some((cue) => cue.section === section && cue.scope === scope))
       return;
     this.cued.push({ section, scope });
     if (!this.started) return;
-    this.queue.push(...this.steps(section, scope));
+    const steps = this.steps(section, scope, at);
+    if (this.score.ordered && at !== undefined) this.insert(steps, at);
+    else this.queue.push(...steps);
     if (!this.leaving) this.schedule();
+  }
+
+  // Sections reached together are taken in the order they lie on the page,
+  // never ahead of the one already being played.
+  private insert(steps: Queued<P>[], at: number) {
+    let index = this.queue.length;
+    const first = this.queue[0]?.cue;
+    for (let i = 0; i < this.queue.length; i++) {
+      const item = this.queue[i];
+      if (item.cue === first || item.cue === this.queue[i - 1]?.cue) continue;
+      if ((item.at ?? -Infinity) > at) {
+        index = i;
+        break;
+      }
+    }
+    this.queue.splice(index, 0, ...steps);
   }
 
   // A section the eye was carried past unseen (a jump over it) is simply
@@ -410,9 +430,14 @@ export class Stage<P extends string, S extends string = never> {
     }
   }
 
-  private steps(section: S, scope: string | null): Queued<P>[] {
+  private steps(section: S, scope: string | null, at?: number): Queued<P>[] {
     const cue = keyOf(section, scope);
-    return this.score.sections[section].map((step) => ({ step, cue, scope }));
+    return this.score.sections[section].map((step) => ({
+      step,
+      cue,
+      scope,
+      at,
+    }));
   }
 
   leave(): Promise<void> {

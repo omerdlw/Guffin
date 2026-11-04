@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { DockAction } from "@/ui";
 import { ListCommentAction } from "@/features/lists";
 import { useAccountDock } from "./dock";
 import type { ListDetail } from "../browse-types";
@@ -36,34 +37,38 @@ export function ListChrome({
 
   const dock = useMemo(
     () => ({
-      action: isOwner ? (
-        <EditListAction
-          list={{
-            description,
-            id,
-            isPrivate,
-            isRanked,
-            itemsCount,
-            slug,
-            title,
-          }}
-          username={owner.username}
-          wide
-        />
-      ) : (
-        <div className="flex w-full items-center gap-2.5">
-          <ListLikeButton
-            liked={liked}
-            likesCount={likesCount}
-            listId={id}
-            signedIn={signedIn}
-          />
-          <div className="min-w-0 flex-1">
-            <ListCommentAction
-              target={{ content: comment, listId: id, title }}
+      action: (
+        <DockAction>
+          {isOwner ? (
+            <EditListAction
+              list={{
+                description,
+                id,
+                isPrivate,
+                isRanked,
+                itemsCount,
+                slug,
+                title,
+              }}
+              username={owner.username}
+              wide
             />
-          </div>
-        </div>
+          ) : (
+            <div className="flex w-full items-center gap-2.5">
+              <ListLikeButton
+                liked={liked}
+                likesCount={likesCount}
+                listId={id}
+                signedIn={signedIn}
+              />
+              <div className="min-w-0 flex-1">
+                <ListCommentAction
+                  target={{ content: comment, listId: id, title }}
+                />
+              </div>
+            </div>
+          )}
+        </DockAction>
       ),
       description:
         description.trim().split("\n")[0] ||

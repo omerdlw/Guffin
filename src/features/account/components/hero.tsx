@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
-import { AdaptiveImage, BackdropHero, Icon } from "@/ui";
+import { AdaptiveImage, Icon, OVERLAP } from "@/ui";
+import { BackdropProjection } from "@/features/detail";
 import { Room } from "@/motion/engine";
 import {
   applyAvatarFallback,
@@ -117,26 +118,15 @@ interface AccountBackdropHeroProps {
   image?: string | null;
 }
 
-// The background is projected once it has loaded; the opening waits for it.
+// The background is projected as a film's or a person's is; the opening waits
+// for it.
 function AccountBackdropHero({ image }: AccountBackdropHeroProps) {
   const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    if (!image) return;
-    const picture = new Image();
-    picture.onload = picture.onerror = () => setReady(true);
-    picture.src = image;
-    if (picture.complete) setReady(true);
-  }, [image]);
 
   return (
     <div className="relative">
       <AccountPart name="backdrop" ready={ready}>
-        <BackdropHero
-          image={image}
-          position="center 25%"
-          className="lg:h-[clamp(28rem,40vw,34rem)] xl:h-[clamp(30rem,42vw,36rem)]"
-        />
+        <BackdropProjection onReady={() => setReady(true)} src={image ?? ""} />
       </AccountPart>
     </div>
   );
@@ -202,8 +192,9 @@ function AccountHero({
     );
   };
 
+  // The content starts where a film's and a person's does.
   const paddingClass = backdropUrl
-    ? "-mt-20 pb-6 sm:-mt-28 sm:pb-8 lg:-mt-36 lg:pb-10"
+    ? `${OVERLAP} pb-6 sm:pb-8 lg:pb-10`
     : "pt-24 pb-6 sm:pt-28 sm:pb-8 lg:pt-32 lg:pb-10";
 
   const meta: { key: string; node: ReactNode }[] = [];
@@ -344,7 +335,9 @@ export function AccountLayout({
       grade={backdropUrl || account?.avatarUrl || null}
       leaves={leavesAccount(scope)}
     >
-      <Room />
+      {/* The grain is the projection's own, as on a film or a person: it sits
+          on the picture alone and the page under it stays clean. */}
+      <Room grain={false} />
       <main
         className="account-page ui-scene min-h-screen overflow-x-clip pb-[calc(var(--dock-h,6rem)+3rem)]"
         data-cinematic=""

@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { AccountPage } from "../components/view";
 import { readMonth, shiftMonth, type AccountViewProps } from "../browse";
 import { DiaryChrome } from "../components/diary-chrome";
 import { DiaryLedger } from "../components/diary-ledger";
@@ -32,33 +33,35 @@ export async function AccountDiaryView({
   const hasNext = diary.last !== null && diary.month < diary.last;
 
   return (
-    <div className="flex w-full flex-col">
-      {diary.first ? (
-        <DiaryChrome
-          label={MONTH.format(new Date(`${diary.month}-01T00:00:00Z`))}
-          latest={
-            diary.last && diary.month !== diary.last ? href(diary.last) : null
-          }
-          next={hasNext ? href(shiftMonth(diary.month, 1)) : null}
-          previous={hasPrevious ? href(shiftMonth(diary.month, -1)) : null}
-        />
-      ) : null}
+    <AccountPage>
+      <div className="flex w-full flex-col">
+        {diary.first ? (
+          <DiaryChrome
+            label={MONTH.format(new Date(`${diary.month}-01T00:00:00Z`))}
+            latest={
+              diary.last && diary.month !== diary.last ? href(diary.last) : null
+            }
+            next={hasNext ? href(shiftMonth(diary.month, 1)) : null}
+            previous={hasPrevious ? href(shiftMonth(diary.month, -1)) : null}
+          />
+        ) : null}
 
-      {diary.rows.length > 0 ? (
-        <DiaryLedger
-          isOwner={isOwner}
-          username={account.username}
-          rows={diary.rows}
-        />
-      ) : (
-        <EmptyState icon="solar:calendar-mark-bold">
-          {diary.first
-            ? "No diary entries in this month"
-            : isOwner
-              ? "Use “Log to diary” on a movie page to start your diary"
-              : "Nothing in the diary yet"}
-        </EmptyState>
-      )}
-    </div>
+        {diary.rows.length > 0 ? (
+          <DiaryLedger
+            isOwner={isOwner}
+            username={account.username}
+            rows={diary.rows}
+          />
+        ) : (
+          <EmptyState icon="solar:calendar-mark-bold">
+            {diary.first
+              ? "No diary entries in this month"
+              : isOwner
+                ? "Use “Log to diary” on a movie page to start your diary"
+                : "Nothing in the diary yet"}
+          </EmptyState>
+        )}
+      </div>
+    </AccountPage>
   );
 }

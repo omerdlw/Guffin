@@ -2,12 +2,13 @@
 
 import {
   useId,
+  useRef,
   useState,
   type FormEvent,
   type KeyboardEvent,
   type ReactNode,
 } from "react";
-import { LayoutGroup } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   useDockActionClass,
   useDockActions,
@@ -23,10 +24,11 @@ import {
   RADIUS,
   SegmentedControl,
   SkeletonBlock,
-  SURFACE_FIELD,
   TONE,
 } from "@/ui";
-import { SlidingHighlight } from "@/ui/sliding-highlight";
+import { tween } from "@/config/theme/motion";
+import { POINTS } from "@/motion/engine/curve";
+import { step } from "@/motion/engine/ladder";
 import {
   SEARCH_EMPTY_HINTS,
   SEARCH_GROUP_LABELS,
@@ -41,11 +43,16 @@ import { SearchPart, SearchStage, SearchSwap } from "../motion";
 import { arrange, hrefsOf, type SearchSection } from "../overview";
 import type { SearchScope } from "../types";
 import { ListResultRow } from "./list-result-row";
+import { ResultSheet } from "./result-sheet";
 import { ReviewResultRow } from "./review-result-row";
+import { Roll } from "./roll";
 import { UserResultRow } from "./user-result-row";
 
 const POSTER_GRID = "grid grid-cols-4 gap-2.5";
 const ROW_LIST = "flex flex-col gap-1";
+
+// The field's clear button comes in turning out of a quarter-turn.
+const TURN = tween(step(-1), POINTS.expo);
 
 function Option({
   active,
@@ -67,20 +74,11 @@ function Option({
       aria-selected={active}
       className="relative isolate min-w-0"
       data-active={active ? "" : undefined}
+      data-kind={halo ? "tile" : "row"}
       id={id}
       onPointerEnter={onPointerEnter}
       role="option"
     >
-      {active ? (
-        <SlidingHighlight
-          className={
-            halo
-              ? "z-20 rounded-tile ring-1 ring-grade/50 ring-inset"
-              : "rounded-card bg-grade/15 ring-1 ring-grade/25 ring-inset"
-          }
-          layoutId="search-result-highlight"
-        />
-      ) : null}
       <SearchPart
         className="relative z-10 block min-w-0"
         index={index}
@@ -233,7 +231,9 @@ function Section({
           name="row"
         >
           <span className={TONE.label}>{label}</span>
-          <span className="type-label font-semibold tabular-nums">{total}</span>
+          <span className="type-label font-semibold tabular-nums">
+            <Roll value={total} />
+          </span>
         </SearchPart>
       </div>
       {list}
@@ -323,6 +323,8 @@ export function SearchAction({
   const { navigate } = useDockActions();
   const actionClass = useDockActionClass();
   const listId = useId();
+  const listRef = useRef<HTMLDivElement>(null);
+  const reduced = useReducedMotion();
   const [scope, setScope] = useState<SearchScope>("all");
   const [page, setPage] = useState(0);
   const [cursor, setCursor] = useState<{
@@ -440,7 +442,7 @@ export function SearchAction({
     <SearchStage className="flex flex-col">
       <SearchPart name="item">
         <form
-          className="ui-scan group/field relative w-full rounded-full"
+          className="ui-scan group/field relative w-full rounded-card"
           data-busy={isLoading ? "" : undefined}
           onSubmit={handleSubmit}
           role="search"
@@ -465,10 +467,7 @@ export function SearchAction({
             autoCapitalize="off"
             autoComplete="off"
             autoCorrect="off"
-            className={cn(
-              SURFACE_FIELD,
-              "h-11 rounded-full pr-12 pl-11 type-body focus:ring-grade/30",
-            )}
+            className="h-10 rounded-card bg-fill pr-12 pl-11 text-ink ring-1 ring-edge ring-inset outline-none type-body placeholder:text-ink-muted hover:bg-fill-hover hover:ring-edge-hover focus:bg-fill-hover"
             enterKeyHint="search"
             maxLength={SEARCH_MAX_QUERY_LENGTH}
             name="search"
@@ -481,26 +480,36 @@ export function SearchAction({
             value={input}
           />
           <div className="absolute top-1/2 right-2 -translate-y-1/2">
-            {input ? (
-              <Button
-                aria-label="Clear search"
-                className="ui-iris center relative size-7 cursor-pointer rounded-full text-ink-muted hover:text-ink focus-visible:text-ink"
-                onClick={handleClear}
-              >
-                <Icon icon="material-symbols:close-rounded" size={16} />
-              </Button>
-            ) : (
-              <kbd className="pointer-events-none mr-2 hidden items-center rounded-full px-2 py-0.5 type-micro font-semibold tracking-label text-ink-muted uppercase ring-1 ring-edge ring-inset [@media(hover:hover)]:flex">
-                esc
-              </kbd>
-            )}
+            <AnimatePresence initial={false} mode="popLayout">
+              {input ? (
+                <motion.div
+                  animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                  exit={{ opacity: 0, rotate: reduced ? 0 : -45, scale: 0.7 }}
+                  initial={{
+                    opacity: 0,
+                    rotate: reduced ? 0 : -45,
+                    scale: 0.7,
+                  }}
+                  key="clear"
+                  transition={TURN}
+                >
+                  <Button
+                    aria-label="Clear search"
+                    className="ui-iris center relative size-7 cursor-pointer rounded-inset text-ink-muted hover:text-ink focus-visible:text-ink"
+                    onClick={handleClear}
+                  >
+                    <Icon icon="material-symbols:close-rounded" size={16} />
+                  </Button>
+                </motion.div>
+              ) : null}
+            </AnimatePresence>
           </div>
         </form>
       </SearchPart>
 
       <div
         className={cn(
-          "grid transition-[grid-template-rows,opacity] duration-move ease-out-quint",
+          "grid transition-[grid-template-rows,opacity] duration-settle ease-in-out-cubic",
           query ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
         )}
         inert={!query}
@@ -550,7 +559,7 @@ export function SearchAction({
             <>
               <div
                 aria-label="Search results"
-                className="flex flex-col gap-4"
+                className="relative isolate flex flex-col gap-4"
                 id={listId}
                 key={viewKey}
                 onPointerLeave={() => {
@@ -558,11 +567,14 @@ export function SearchAction({
                     current?.source === "pointer" ? null : current,
                   );
                 }}
+                ref={listRef}
                 role="listbox"
               >
-                <LayoutGroup id={`search-results-${listId}`}>
-                  {sections}
-                </LayoutGroup>
+                <ResultSheet
+                  activeId={active >= 0 ? optionId(active) : null}
+                  listRef={listRef}
+                />
+                {sections}
               </div>
 
               {hasPager ? (
@@ -572,7 +584,7 @@ export function SearchAction({
                   name="row"
                 >
                   <span className="type-meta text-ink-muted tabular-nums">
-                    {from}–{to} of {view.total}
+                    <Roll value={`${from}–${to} of ${view.total}`} />
                   </span>
                   <span className="flex items-center gap-1">
                     <PagerButton

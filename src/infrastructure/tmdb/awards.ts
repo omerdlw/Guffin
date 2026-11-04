@@ -60,17 +60,39 @@ function slug(text: string): string {
     .replace(/^-|-$/g, "");
 }
 
-const TITLE_PATTERN =
-  /<div class="[^"]*font-semibold leading-9 text-xl[^"]*"[^>]*>\s*<a[^>]*href="[^"]*"[^>]*>([\s\S]*?)<\/a>/g;
 const LOGO_PATTERNS = [
   /<img[^>]+class="[^"]*logo[^"]*"[^>]+(?:src|data-src)="([^"]+)"/gi,
   /<img[^>]+(?:src|data-src)="([^"]+)"[^>]+class="[^"]*logo[^"]*"/gi,
 ];
 
 const ANCHOR = /<a\b([^>]*)>([\s\S]*?)<\/a>/gi;
+const ORGANIZATION_HREF = /^\/award\/(\d+)(?:-[^/?#]*)?(?:[?#].*)?$/;
+const CEREMONY_HREF = /\/ceremony\/\d+/;
 
 function attributeOf(attributes: string, name: string): string | undefined {
   return new RegExp(`\\b${name}="([^"]*)"`, "i").exec(attributes)?.[1];
+}
+
+// An organization's heading is the text link to its /award/<id> page. Styling
+// classes on the heading change often, the link target does not; the logo links
+// to the same page but holds only an image, so it never counts as a title.
+function parseTitles(html: string): { index: number; title: string }[] {
+  const seen = new Set<string>();
+  const titles: { index: number; title: string }[] = [];
+  for (const match of html.matchAll(ANCHOR)) {
+    const [, attributes, inner] = match;
+    const organization = ORGANIZATION_HREF.exec(
+      attributeOf(attributes, "href") ?? "",
+    )?.[1];
+    if (!organization || seen.has(organization) || /<img\b/i.test(inner)) {
+      continue;
+    }
+    const title = cleanText(inner);
+    if (!title) continue;
+    seen.add(organization);
+    titles.push({ index: match.index, title });
+  }
+  return titles;
 }
 
 function parseRecipients(row: string): AwardRecipient[] {
@@ -159,10 +181,7 @@ function parseAwardsHtml(html: string): Awards {
   if (start === -1) return EMPTY_AWARDS;
   const main = html.slice(start);
 
-  const titles = [...main.matchAll(TITLE_PATTERN)].map((match) => ({
-    index: match.index,
-    title: cleanText(match[1]),
-  }));
+  const titles = parseTitles(main);
 
   const organizations: AwardOrganization[] = [];
   titles.forEach((current, i) => {
@@ -279,13 +298,26 @@ export function createAwardsApi(
     if (response.status === 429) return report(tmdbErrors.rateLimited(null));
     if (!response.ok) return report(tmdbErrors.upstream(response.status));
 
+    let html: string;
     try {
-      return ok(parseAwardsHtml(await response.text()));
+      html = await response.text();
     } catch {
       return report(
         tmdbErrors.invalidResponse(path, ["body could not be read"]),
       );
     }
+
+    // The page lists ceremonies but nothing was parsed: TMDB changed its
+    // markup. Report it instead of caching an empty "no awards" result.
+    const awards = parseAwardsHtml(html);
+    if (awards.organizations.length === 0 && CEREMONY_HREF.test(html)) {
+      return report(
+        tmdbErrors.invalidResponse(path, [
+          "page lists ceremonies but none could be parsed",
+        ]),
+      );
+    }
+    return ok(awards);
   }
 
   return {

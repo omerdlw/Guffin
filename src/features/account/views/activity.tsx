@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { AccountPage } from "../components/view";
 import {
   ACTIVITY_GROUPS,
   ACTIVITY_SORTS,
@@ -32,35 +33,37 @@ export async function AccountActivityView({
   };
 
   return (
-    <div className="flex w-full flex-col">
-      {result.total > 0 || filters.group !== "all" ? (
-        <FilterBar
-          fields={[
-            { defaultValue: "all", key: "type", options: ACTIVITY_GROUPS },
-            { defaultValue: "newest", key: "sort", options: ACTIVITY_SORTS },
-          ]}
-          searchPlaceholder={null}
-        />
-      ) : null}
+    <AccountPage>
+      <div className="flex w-full flex-col">
+        {result.total > 0 || filters.group !== "all" ? (
+          <FilterBar
+            fields={[
+              { defaultValue: "all", key: "type", options: ACTIVITY_GROUPS },
+              { defaultValue: "newest", key: "sort", options: ACTIVITY_SORTS },
+            ]}
+            searchPlaceholder={null}
+          />
+        ) : null}
 
-      {result.items.length > 0 ? (
-        <>
-          <ActivityLog>
-            {result.items.map((item) => (
-              <ActivityRow actor={actor} item={item} key={item.id} />
-            ))}
-          </ActivityLog>
-          <Pagination page={result.page} pageCount={result.pageCount} />
-        </>
-      ) : (
-        <EmptyState icon="solar:bolt-bold">
-          {filters.group !== "all"
-            ? "No activity of this kind"
-            : isOwner
-              ? "What you do on Guffin shows up here"
-              : "No activity yet"}
-        </EmptyState>
-      )}
-    </div>
+        {result.items.length > 0 ? (
+          <>
+            <ActivityLog>
+              {result.items.map((item) => (
+                <ActivityRow actor={actor} item={item} key={item.id} />
+              ))}
+            </ActivityLog>
+            <Pagination page={result.page} pageCount={result.pageCount} />
+          </>
+        ) : (
+          <EmptyState icon="solar:bolt-bold">
+            {filters.group !== "all"
+              ? "No activity of this kind"
+              : isOwner
+                ? "What you do on Guffin shows up here"
+                : "No activity yet"}
+          </EmptyState>
+        )}
+      </div>
+    </AccountPage>
   );
 }

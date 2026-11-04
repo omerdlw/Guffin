@@ -4,20 +4,26 @@ import { movieHref } from "@/config/routes";
 import { MediaCard, RADIUS } from "@/ui";
 import type { MediaItem } from "../browse-types";
 import { GRID, posterImage } from "../poster";
+import { AccountPart } from "../motion";
 import { TileActions, type TileSource } from "./tile-actions";
 
 export function PosterTile({
+  index = 0,
   item,
   rank,
   source,
+  staged = false,
 }: {
+  index?: number;
   item: MediaItem;
   rank?: number;
   source?: TileSource | null;
+  // Played by the page's own score: each poster comes up through its own door.
+  staged?: boolean;
 }) {
   const label = item.year ? `${item.title} (${item.year})` : item.title;
-  return (
-    <li className="group/tile relative min-w-0">
+  const body = (
+    <>
       <MediaCard
         fallbackIcon="solar:clapperboard-play-bold"
         href={movieHref(item.tmdbId)}
@@ -39,7 +45,15 @@ export function PosterTile({
           tmdbId={item.tmdbId}
         />
       ) : null}
-    </li>
+    </>
+  );
+  const className = "group/tile relative min-w-0";
+  return staged ? (
+    <AccountPart as="li" className={className} index={index} name="tile">
+      {body}
+    </AccountPart>
+  ) : (
+    <li className={className}>{body}</li>
   );
 }
 
@@ -48,18 +62,22 @@ export function PosterGrid({
   items,
   numberFrom,
   source,
+  staged = false,
 }: {
   className?: string;
   items: readonly MediaItem[];
   numberFrom?: number;
   source?: TileSource | null;
+  staged?: boolean;
 }): JSX.Element {
   return (
     <ul className={cn(GRID, className)}>
       {items.map((item, index) => (
         <PosterTile
+          index={index}
           item={item}
           key={item.tmdbId}
+          staged={staged}
           rank={numberFrom !== undefined ? numberFrom + index : undefined}
           source={source}
         />

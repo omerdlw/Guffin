@@ -267,8 +267,17 @@ export function usePartOf(
   };
 }
 
-// A section is cued when its top reaches φ⁻¹ of the window. One found already
-// scrolled past, never seen, is simply there.
+// Where a section lies on the page, for a score that plays its sections in the
+// order they lie: by its top, and left to right where tops are level.
+const topOf = (el: HTMLElement) => {
+  const box = el.getBoundingClientRect();
+  return Math.round(box.top + scrollY) + box.left / 1e5;
+};
+
+// A section is cued when its top reaches φ⁻¹ of the window, or when it is
+// wholly in view: one at the end of the page can sit below that line with no
+// room left to scroll it above. One found already scrolled past, never seen,
+// is simply there.
 export function useSectionOf(
   stage: Stage<string, string>,
   name: string,
@@ -278,19 +287,32 @@ export function useSectionOf(
   return useCallback(
     (el: HTMLElement | null) => {
       if (!el) return;
-      const observer = new IntersectionObserver(
+      const reached = new IntersectionObserver(
         ([entry]) => {
           const passed =
             entry.boundingClientRect.top < (entry.rootBounds?.top ?? 0);
-          if (entry.isIntersecting) stage.cue(name, scope);
+          if (entry.isIntersecting) stage.cue(name, scope, topOf(el));
           else if (passed) stage.pass(name, scope);
           else return;
-          observer.disconnect();
+          stop();
         },
         { rootMargin: SECTION_MARGIN },
       );
-      observer.observe(el);
-      return () => observer.disconnect();
+      const shown = new IntersectionObserver(
+        ([entry]) => {
+          if (!entry.isIntersecting) return;
+          stage.cue(name, scope, topOf(el));
+          stop();
+        },
+        { threshold: 1 },
+      );
+      function stop() {
+        reached.disconnect();
+        shown.disconnect();
+      }
+      reached.observe(el);
+      shown.observe(el);
+      return stop;
     },
     [stage, name, scope, generation],
   );

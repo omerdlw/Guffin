@@ -37,6 +37,7 @@ import { MoviePopularLists, type PopularList } from "@/features/lists";
 import { MovieReviewDigest } from "./review-digest";
 import { MovieReviews } from "./reviews";
 import { MovieSidebar } from "./sidebar";
+import { MovieStats } from "./stats";
 import { MovieViews } from "./view-switcher";
 import { MovieVideos } from "./videos";
 
@@ -74,6 +75,8 @@ export function MovieView({
     subtitle: member.jobs,
   }));
 
+  const hasStats = !!stats && stats.watched + stats.listed + stats.liked > 0;
+
   const title = (
     <DetailBloom
       as="h1"
@@ -97,11 +100,7 @@ export function MovieView({
               </>
             ) : null
           }
-          backdrop={
-            backdrop ? (
-              <MovieBackdropHero movie={movie} />
-            ) : null
-          }
+          backdrop={backdrop ? <MovieBackdropHero movie={movie} /> : null}
           className="movie-page"
           header={
             <>
@@ -115,11 +114,13 @@ export function MovieView({
               ) : (
                 title
               )}
-              {movie.tagline || movie.overview ? (
-                <DetailPart
-                  className={`${RULE_GAP} h-px w-full bg-grade/40`}
-                  name="rule"
-                />
+              {movie.tagline || movie.overview || hasStats ? (
+                <div
+                  className={`${RULE_GAP} relative flex w-full items-center gap-5`}
+                >
+                  <DetailPart className="h-px flex-1 bg-grade/40" name="rule" />
+                  <MovieStats stats={stats} />
+                </div>
               ) : null}
               {movie.tagline ? (
                 <DetailText
@@ -182,7 +183,7 @@ export function MovieView({
               />
             )
           }
-          sidebar={<MovieSidebar awards={awards} movie={movie} stats={stats} />}
+          sidebar={<MovieSidebar awards={awards} movie={movie} />}
           wall={
             <MovieGalleryWall
               backdrops={getGalleryImages(images)}

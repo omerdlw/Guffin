@@ -5,6 +5,7 @@ import { cn } from "@/ui/cn";
 import { RatingStars, Star } from "@/features/reviews";
 import type { DiaryEntry, PersonPreview } from "../browse-types";
 import { AccountLink } from "./link";
+import { AccountPart } from "../motion";
 import { counted } from "./section";
 
 const MONTH = new Intl.DateTimeFormat("en-US", {
@@ -30,7 +31,12 @@ export function DiaryDigest({
       {months.map((month) => {
         const date = new Date(`${month.key}-01T00:00:00Z`);
         return (
-          <div className="flex gap-3" key={month.key}>
+          <AccountPart
+            className="flex gap-3"
+            index={months.indexOf(month)}
+            key={month.key}
+            name="row"
+          >
             <span className="flex w-9 shrink-0 flex-col items-center self-start overflow-hidden rounded-thumb ring-1 ring-edge-focus ring-inset">
               <span className="w-full bg-fill-hover py-0.5 text-center type-micro font-semibold tracking-label text-ink-body uppercase">
                 {MONTH.format(date)}
@@ -57,7 +63,7 @@ export function DiaryDigest({
                 </li>
               ))}
             </ol>
-          </div>
+          </AccountPart>
         );
       })}
     </div>
@@ -80,7 +86,7 @@ export function RatingsChart({
     : 0;
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex items-baseline gap-3">
+      <AccountPart className="flex items-baseline gap-3" name="row">
         <span className="type-display-xs leading-none font-semibold text-ink tabular-nums">
           {average.toFixed(1)}
         </span>
@@ -90,26 +96,33 @@ export function RatingsChart({
             average rating
           </span>
         </span>
-      </div>
-      <div className="flex flex-col gap-1.5">
+      </AccountPart>
+      <AccountPart className="flex flex-col gap-1.5" name="row">
         <div className="flex h-24 items-end gap-1 border-b border-line">
           {spread.map((count, index) => (
-            <Tooltip
+            <AccountPart
+              as="span"
+              className="flex h-full flex-1 items-end"
+              index={index}
               key={index}
-              text={`${stars((index + 1) / 2)} · ${counted(count, "rating")}`}
+              name="bar"
             >
-              <span className="group/bar flex h-full flex-1 items-end">
-                {count ? (
-                  <span
-                    className={cn(
-                      "w-full rounded-t-mark group-hover/bar:bg-ink-muted group-focus-visible/bar:bg-ink-muted group-has-focus-visible/bar:bg-ink-muted",
-                      count === peak ? "bg-ink-faint" : "bg-fill-active",
-                    )}
-                    style={{ height: `max(4px, ${(count / peak) * 100}%)` }}
-                  />
-                ) : null}
-              </span>
-            </Tooltip>
+              <Tooltip
+                text={`${stars((index + 1) / 2)} · ${counted(count, "rating")}`}
+              >
+                <span className="group/bar flex h-full w-full items-end">
+                  {count ? (
+                    <span
+                      className={cn(
+                        "w-full rounded-t-mark group-hover/bar:bg-ink-muted group-focus-visible/bar:bg-ink-muted group-has-focus-visible/bar:bg-ink-muted",
+                        count === peak ? "bg-ink-faint" : "bg-fill-active",
+                      )}
+                      style={{ height: `max(4px, ${(count / peak) * 100}%)` }}
+                    />
+                  ) : null}
+                </span>
+              </Tooltip>
+            </AccountPart>
           ))}
         </div>
         <div aria-hidden="true" className="flex justify-between">
@@ -120,7 +133,7 @@ export function RatingsChart({
             ))}
           </span>
         </div>
-      </div>
+      </AccountPart>
     </div>
   );
 }
@@ -136,8 +149,8 @@ export function PeopleGrid({
   const shown = full > 0 ? people.slice(0, full) : people;
   return (
     <ul className="grid grid-cols-6 gap-2">
-      {shown.map((person) => (
-        <li key={person.username}>
+      {shown.map((person, index) => (
+        <AccountPart as="li" index={index} key={person.username} name="face">
           <Tooltip text={person.displayName}>
             <AccountLink
               aria-label={person.displayName}
@@ -152,7 +165,7 @@ export function PeopleGrid({
               />
             </AccountLink>
           </Tooltip>
-        </li>
+        </AccountPart>
       ))}
     </ul>
   );

@@ -6,7 +6,7 @@ import {
   useDockActions,
   useDockRegistration,
 } from "@omerdlw/base-framework/modules/dock";
-import { Button, Icon } from "@/ui";
+import { Button, DockAction, Icon } from "@/ui";
 
 interface DockAction {
   icon: string;
@@ -63,17 +63,19 @@ function Open({
   const actionClass = useDockActionClass();
   const { navigate } = useDockActions();
   return (
-    <Button
-      aria-label={href ? `${label}: ${title}` : label}
-      className={actionClass({ className: "w-full" })}
-      onClick={() => {
-        if (onClick) onClick();
-        else if (href) void navigate(href);
-      }}
-      type="button"
-    >
-      <Icon icon={icon} size={16} />
-      <span className="truncate">{label}</span>
-    </Button>
+    <DockAction>
+      <Button
+        aria-label={href ? `${label}: ${title}` : label}
+        className={actionClass({ className: "w-full" })}
+        onClick={() => {
+          if (onClick) onClick();
+          else if (href) void navigate(href);
+        }}
+        type="button"
+      >
+        <Icon icon={icon} size={16} />
+        <span className="truncate">{label}</span>
+      </Button>
+    </DockAction>
   );
 }

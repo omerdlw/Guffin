@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { AccountPage } from "../components/view";
 import {
   LIST_SORTS,
   parseListSort,
@@ -28,33 +29,39 @@ export async function AccountListsView({
   });
 
   return (
-    <div className="flex w-full flex-col">
-      <ListsChrome isOwner={isOwner} username={account.username} />
-      {result.total > 1 ? (
-        <FilterBar
-          fields={[
-            { defaultValue: "updated_desc", key: "sort", options: LIST_SORTS },
-          ]}
-          searchPlaceholder={null}
-        />
-      ) : null}
-
-      {result.items.length > 0 ? (
-        <>
-          <ListRows
-            lists={result.items}
-            ownerEdit={isOwner}
-            username={account.username}
+    <AccountPage>
+      <div className="flex w-full flex-col">
+        <ListsChrome isOwner={isOwner} username={account.username} />
+        {result.total > 1 ? (
+          <FilterBar
+            fields={[
+              {
+                defaultValue: "updated_desc",
+                key: "sort",
+                options: LIST_SORTS,
+              },
+            ]}
+            searchPlaceholder={null}
           />
-          <Pagination page={result.page} pageCount={result.pageCount} />
-        </>
-      ) : (
-        <EmptyState icon="solar:list-bold">
-          {isOwner
-            ? "Start a list here, or from any movie page"
-            : "No lists yet"}
-        </EmptyState>
-      )}
-    </div>
+        ) : null}
+
+        {result.items.length > 0 ? (
+          <>
+            <ListRows
+              lists={result.items}
+              ownerEdit={isOwner}
+              username={account.username}
+            />
+            <Pagination page={result.page} pageCount={result.pageCount} />
+          </>
+        ) : (
+          <EmptyState icon="solar:list-bold">
+            {isOwner
+              ? "Start a list here, or from any movie page"
+              : "No lists yet"}
+          </EmptyState>
+        )}
+      </div>
+    </AccountPage>
   );
 }

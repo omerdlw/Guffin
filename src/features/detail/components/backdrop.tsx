@@ -27,6 +27,31 @@ const EDGES = { bottom: BOTTOM_COVER, side: SIDE_COVER };
 const CARD_SIZE = "/t/p/w1280/";
 const lighter = (src: string) => src.replace(/\/t\/p\/original\//, CARD_SIZE);
 
+// The projection itself, as every page that has a picture sets it: a film's, a
+// person's and a member's rest on their frame the same way and fall out of
+// focus over the same first screen of scroll.
+export function BackdropProjection({
+  onReady,
+  src,
+  still = null,
+}: {
+  onReady?: () => void;
+  src: string;
+  still?: string | null;
+}) {
+  return (
+    <Projection
+      cut={step(CUT_RUNG)}
+      defocusAt={defocusAt}
+      halation={HALATION}
+      onReady={onReady}
+      position={POSITION}
+      reel={still}
+      src={src}
+    />
+  );
+}
+
 // The page's picture, projected behind the title. The opening waits for it.
 // A still can be cut in over it; what is laid over the picture comes as
 // children. Any page whose score casts a `backdrop` projects with it; the
@@ -53,14 +78,10 @@ export function DetailBackdrop({
         ready={ready}
       >
         <div className="relative">
-          <Projection
-            cut={step(CUT_RUNG)}
-            defocusAt={defocusAt}
-            halation={HALATION}
+          <BackdropProjection
             onReady={() => setReady(true)}
-            position={POSITION}
-            reel={still}
             src={src}
+            still={still}
           />
         </div>
       </DetailPart>

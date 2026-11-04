@@ -5,6 +5,7 @@ import { formatShortDate } from "../dates";
 import { AccountLink } from "./link";
 import { EditListButton } from "./list-owner-actions";
 import { PosterStack } from "./poster-stack";
+import { AccountPart } from "../motion";
 import { counted } from "./section";
 import { listHref } from "@/config/routes";
 
@@ -113,27 +114,31 @@ export function ListRows({
 }
 
 export function ListTeaser({
+  index = 0,
   list,
   username,
 }: {
+  index?: number;
   list: ListCardData;
   username: string;
 }): JSX.Element {
   const href = listHref(username, list.slug);
   return (
-    <AccountLink className="group/list flex flex-col gap-2.5" href={href}>
-      <PosterStack
-        className="ui-fade group-hover/list:opacity-80 group-focus-visible/list:opacity-80 group-has-focus-visible/list:opacity-80"
-        paths={list.previews}
-      />
-      <span className="flex min-w-0 items-baseline gap-2">
-        <span className="truncate type-body font-semibold text-ink underline underline-offset-2 decoration-transparent group-hover/list:decoration-current group-focus-visible/list:decoration-current group-has-focus-visible/list:decoration-current">
-          {list.title}
+    <AccountPart index={index} name="row">
+      <AccountLink className="group/list flex flex-col gap-2.5" href={href}>
+        <PosterStack
+          className="ui-fade group-hover/list:opacity-80 group-focus-visible/list:opacity-80 group-has-focus-visible/list:opacity-80"
+          paths={list.previews}
+        />
+        <span className="flex min-w-0 items-baseline gap-2">
+          <span className="truncate type-body font-semibold text-ink underline underline-offset-2 decoration-transparent group-hover/list:decoration-current group-focus-visible/list:decoration-current group-has-focus-visible/list:decoration-current">
+            {list.title}
+          </span>
+          <span className="shrink-0 type-meta text-ink-muted tabular-nums">
+            {counted(list.itemsCount, "film")}
+          </span>
         </span>
-        <span className="shrink-0 type-meta text-ink-muted tabular-nums">
-          {counted(list.itemsCount, "film")}
-        </span>
-      </span>
-    </AccountLink>
+      </AccountLink>
+    </AccountPart>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useMemo, type JSX } from "react";
 import { useDockActionClass } from "@omerdlw/base-framework/modules/dock";
-import { Icon } from "@/ui";
+import { DockAction, Icon } from "@/ui";
 import { useAccountDock } from "./dock";
 import { AccountLink } from "./link";
 
@@ -56,24 +56,26 @@ function MonthAction({
   });
 
   return (
-    <div className="flex w-full items-center gap-2.5">
-      <Step direction="previous" href={previous} />
-      {latest ? (
-        <AccountLink
-          aria-label={`${label}, back to the latest month`}
-          className={middle}
-          href={latest}
-        >
-          <span className="truncate">{label}</span>
-          <Icon icon="solar:restart-linear" size={14} />
-        </AccountLink>
-      ) : (
-        <span className={`${middle} cursor-default`}>
-          <span className="truncate">{label}</span>
-        </span>
-      )}
-      <Step direction="next" href={next} />
-    </div>
+    <DockAction>
+      <div className="flex w-full items-center gap-2.5">
+        <Step direction="previous" href={previous} />
+        {latest ? (
+          <AccountLink
+            aria-label={`${label}, back to the latest month`}
+            className={middle}
+            href={latest}
+          >
+            <span className="truncate">{label}</span>
+            <Icon icon="solar:restart-linear" size={14} />
+          </AccountLink>
+        ) : (
+          <span className={`${middle} cursor-default`}>
+            <span className="truncate">{label}</span>
+          </span>
+        )}
+        <Step direction="next" href={next} />
+      </div>
+    </DockAction>
   );
 }
 

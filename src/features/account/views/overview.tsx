@@ -1,5 +1,6 @@
 import type { JSX } from "react";
 import { Icon } from "@/ui";
+import { AccountPart } from "../motion";
 import { FAVORITES_MAX } from "../browse-types";
 import { getAccountOverview } from "../server/browse";
 import { getAccountPageContext } from "../server/context";
@@ -8,6 +9,7 @@ import { AccountLink } from "../components/link";
 import { ActivityCalendar } from "../components/activity-calendar";
 import { ActivityFeed } from "../components/activity-row";
 import { EmptyState } from "../components/empty-state";
+import { AccountPage } from "../components/view";
 import { ListTeaser } from "../components/list-row";
 import { PosterGrid, PosterTile } from "../components/poster-grid";
 import { PROFILE_ROW } from "../poster";
@@ -84,17 +86,28 @@ export async function AccountOverviewView({
             action={
               isOwner ? <ViewAll href={`${base}/likes`} label="Edit" /> : null
             }
+            cue="shelf"
             title="Favorite films"
           >
             <ul className={`grid ${PROFILE_ROW}`}>
-              {favorites.map((film) => (
-                <PosterTile item={film} key={film.tmdbId} />
+              {favorites.map((film, index) => (
+                <PosterTile
+                  index={index}
+                  item={film}
+                  key={film.tmdbId}
+                  staged
+                />
               ))}
               {isOwner
                 ? Array.from(
                     { length: FAVORITES_MAX - favorites.length },
                     (_, index) => (
-                      <li key={`slot-${index}`}>
+                      <AccountPart
+                        as="li"
+                        index={favorites.length + index}
+                        key={`slot-${index}`}
+                        name="tile"
+                      >
                         <AccountLink
                           aria-label="Pin a favorite from your likes"
                           className="center aspect-[2/3] rounded-card border border-dashed border-edge-focus text-ink-faint hover:border-ink-faint focus-visible:border-ink-faint hover:text-ink focus-visible:text-ink"
@@ -102,7 +115,7 @@ export async function AccountOverviewView({
                         >
                           <Icon icon="solar:add-circle-linear" size={20} />
                         </AccountLink>
-                      </li>
+                      </AccountPart>
                     ),
                   )
                 : null}
@@ -117,9 +130,10 @@ export async function AccountOverviewView({
                 <ViewAll href={`${base}/watched`} />
               ) : null
             }
+            cue="shelf"
             title="Recently watched"
           >
-            <PosterGrid className={PROFILE_ROW} items={watched} />
+            <PosterGrid className={PROFILE_ROW} items={watched} staged />
           </Section>
         ) : null}
 
@@ -128,9 +142,10 @@ export async function AccountOverviewView({
             action={
               <CountLink count={counts.watchlist} href={`${base}/watchlist`} />
             }
+            cue="shelf"
             title="Watchlist"
           >
-            <PosterGrid className={PROFILE_ROW} items={watchlist} />
+            <PosterGrid className={PROFILE_ROW} items={watchlist} staged />
           </Section>
         ) : null}
 
@@ -147,6 +162,7 @@ export async function AccountOverviewView({
               isOwner={isOwner}
               reviews={reviews}
               signedIn={viewerId !== null}
+              staged
               username={account.username}
             />
           </Section>
@@ -163,17 +179,20 @@ export async function AccountOverviewView({
               isOwner={isOwner}
               reviews={popular}
               signedIn={viewerId !== null}
+              staged
               username={account.username}
             />
           </Section>
         ) : null}
 
         {watched.length === 0 && reviews.length === 0 ? (
-          <EmptyState icon="solar:clapperboard-open-bold">
-            {isOwner
-              ? "Films you watch, rate and review will show up here."
-              : "Nothing here yet."}
-          </EmptyState>
+          <AccountPage>
+            <EmptyState icon="solar:clapperboard-open-bold">
+              {isOwner
+                ? "Films you watch, rate and review will show up here."
+                : "Nothing here yet."}
+            </EmptyState>
+          </AccountPage>
         ) : null}
 
         {lists.length > 0 ? (
@@ -182,8 +201,9 @@ export async function AccountOverviewView({
             title="Lists"
           >
             <div className="grid gap-x-4 gap-y-8 sm:grid-cols-3">
-              {lists.map((list) => (
+              {lists.map((list, index) => (
                 <ListTeaser
+                  index={index}
                   key={list.id}
                   list={list}
                   username={account.username}
@@ -197,11 +217,13 @@ export async function AccountOverviewView({
       <aside className="grid min-w-0 content-start gap-10 sm:grid-cols-2 sm:gap-x-10 lg:grid-cols-1">
         {account.bio ? (
           <Section title="Bio">
-            <AccountBio
-              bio={account.bio}
-              displayName={account.displayName || account.username}
-              username={account.username}
-            />
+            <AccountPart name="row">
+              <AccountBio
+                bio={account.bio}
+                displayName={account.displayName || account.username}
+                username={account.username}
+              />
+            </AccountPart>
           </Section>
         ) : null}
 
@@ -217,6 +239,7 @@ export async function AccountOverviewView({
         {ratings > 0 ? (
           <Section
             action={<CountLink count={ratings} href={`${base}/reviews`} />}
+            cue="ratings"
             title="Ratings"
           >
             <RatingsChart spread={spread} />
@@ -226,6 +249,7 @@ export async function AccountOverviewView({
         {activity.length > 0 ? (
           <Section
             action={<ViewAll href={`${base}/activity`} />}
+            cue="activity"
             title="Activity"
           >
             <div className="flex flex-col gap-6">
@@ -237,6 +261,7 @@ export async function AccountOverviewView({
 
         {following.length > 0 ? (
           <Section
+            cue="faces"
             summary={followingCount.toLocaleString("en-US")}
             title="Following"
           >

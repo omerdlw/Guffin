@@ -1,6 +1,7 @@
-import type { JSX, ReactNode } from "react";
+import type { ComponentProps, JSX, ReactNode } from "react";
 import { cn } from "@/ui/cn";
 import { TONE } from "@/ui";
+import { AccountPart, AccountSection } from "../motion";
 import { AccountLink } from "./link";
 
 export const counted = (count: number, one: string, many = `${one}s`) =>
@@ -8,6 +9,8 @@ export const counted = (count: number, one: string, many = `${one}s`) =>
 
 const LABEL = `${TONE.label} text-ink-body`;
 const AFTER = `${TONE.label} tabular-nums`;
+
+export type SectionCue = ComponentProps<typeof AccountSection>["cue"];
 
 export function ViewAll({
   href,
@@ -29,34 +32,51 @@ export function ViewAll({
   );
 }
 
+// A band of a member's page, played when it is reached: its rule is drawn out
+// from the left while the title and what sits at the end of it are lit, then
+// whatever the band holds arrives by the beat named in `cue`.
 export function Section({
   action,
   children,
   className,
+  cue = "rows",
   summary,
   title,
 }: {
   action?: ReactNode;
   children: ReactNode;
   className?: string;
+  cue?: SectionCue;
   summary?: ReactNode;
   title: string;
 }): JSX.Element {
   return (
-    <section className={cn("flex w-full min-w-0 flex-col", className)}>
-      <header className="mb-4 flex min-h-7 items-end justify-between gap-4 border-b border-line pb-2">
-        <h2 className={LABEL}>{title}</h2>
+    <AccountSection
+      className={cn("flex w-full min-w-0 flex-col", className)}
+      cue={cue}
+    >
+      <header className="relative mb-4 flex min-h-7 items-end justify-between gap-4 pb-2">
+        <AccountPart as="h2" className={LABEL} name="label">
+          {title}
+        </AccountPart>
         {summary || action ? (
-          <div className="flex shrink-0 items-center gap-4">
+          <AccountPart
+            className="flex shrink-0 items-center gap-4"
+            name="label"
+          >
             {summary ? (
               <span className={cn(AFTER, "text-ink-muted")}>{summary}</span>
             ) : null}
             {action}
-          </div>
+          </AccountPart>
         ) : null}
+        <AccountPart
+          className="absolute inset-x-0 bottom-0 h-px bg-line"
+          name="rule"
+        />
       </header>
       {children}
-    </section>
+    </AccountSection>
   );
 }
 

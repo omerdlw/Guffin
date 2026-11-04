@@ -6,10 +6,11 @@ export const PAGE_CLASS = "min-h-screen pb-[calc(var(--dock-h,6rem)+2rem)]";
 export const CONTAINER_CLASS =
   "relative z-10 mx-auto flex w-full max-w-6xl flex-col px-4 [overflow-anchor:none] sm:px-6 lg:px-8";
 
+// How far what is under a projected picture climbs into it.
+export const OVERLAP = "-mt-32 sm:-mt-48 lg:-mt-64 xl:-mt-72";
+
 const overlapClass = (hasBackdrop: boolean) =>
-  hasBackdrop
-    ? "-mt-32 sm:-mt-48 lg:-mt-64 xl:-mt-72"
-    : "pt-6 sm:pt-8 lg:pt-10";
+  hasBackdrop ? OVERLAP : "pt-6 sm:pt-8 lg:pt-10";
 
 export const COLUMNS_CLASS = `grid w-full grid-cols-1 items-start gap-x-8 ${RHYTHM_GAP_Y} lg:grid-cols-[20rem_minmax(0,1fr)] lg:grid-rows-[auto_1fr] xl:grid-cols-[24rem_minmax(0,1fr)]`;
 

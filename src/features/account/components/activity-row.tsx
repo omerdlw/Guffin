@@ -7,6 +7,7 @@ import { AccountLink } from "./link";
 import { posterImage } from "../poster";
 import { RatingStars } from "@/features/reviews";
 import { timeAgo } from "../dates";
+import { AccountPart } from "../motion";
 
 const ICONS: Record<string, string> = {
   FOLLOW_CREATED: "solar:user-plus-bold",
@@ -161,10 +162,13 @@ export function ActivityFeed({
 }): JSX.Element {
   return (
     <ol className="flex flex-col">
-      {items.map((item) => (
-        <li
+      {items.map((item, index) => (
+        <AccountPart
+          as="li"
           className="relative border-l border-line pb-4 pl-4 type-control leading-5 text-ink-muted last:border-transparent last:pb-0"
+          index={index}
           key={item.id}
+          name="row"
         >
           <span
             aria-hidden="true"
@@ -178,7 +182,7 @@ export function ActivityFeed({
           >
             {timeAgo(item.createdAt)}
           </time>
-        </li>
+        </AccountPart>
       ))}
     </ol>
   );

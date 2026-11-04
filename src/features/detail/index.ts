@@ -16,7 +16,7 @@ export {
 } from "./motion";
 export { DetailAction } from "./components/action";
 export { DetailAwards, hasAwards } from "./components/awards";
-export { DetailBackdrop } from "./components/backdrop";
+export { BackdropProjection, DetailBackdrop } from "./components/backdrop";
 export {
   DetailFacts,
   FactNames,

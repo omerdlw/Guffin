@@ -28,7 +28,7 @@ import {
   type MovieLibraryKind,
 } from "@/features/account";
 import { createSignInSurfaceEntry, useAuth } from "@/features/auth";
-import { Button, Icon } from "@/ui";
+import { Button, DockAction, Icon } from "@/ui";
 import type { CanonFilm } from "../types";
 import { COLUMNS } from "../gl/wall/geometry";
 import { Wall, type FilmMarks } from "../gl/wall/renderer";
@@ -446,47 +446,52 @@ function WallAction({
 }): JSX.Element {
   const actionClass = useDockActionClass();
   return (
-    <div className="flex w-full gap-2">
-      <Button
-        aria-pressed={seen}
-        className={actionClass({ className: "min-w-0 flex-1", isActive: seen })}
-        disabled={disabled}
-        onClick={() => onToggle("watched")}
-        type="button"
-      >
-        <Icon
-          icon={seen ? "solar:check-circle-bold" : "solar:eye-bold"}
-          size={16}
-        />
-        <span className="truncate">{seen ? "Seen" : "Mark seen"}</span>
-      </Button>
-      {seen ? null : (
+    <DockAction>
+      <div className="flex w-full gap-2">
         <Button
-          aria-pressed={listed}
+          aria-pressed={seen}
           className={actionClass({
             className: "min-w-0 flex-1",
-            isActive: listed,
+            isActive: seen,
           })}
           disabled={disabled}
-          onClick={() => onToggle("watchlist")}
+          onClick={() => onToggle("watched")}
           type="button"
         >
           <Icon
-            icon={listed ? "solar:bookmark-bold" : "solar:bookmark-linear"}
+            icon={seen ? "solar:check-circle-bold" : "solar:eye-bold"}
             size={16}
           />
-          <span className="truncate">{listed ? "Saved" : "Watchlist"}</span>
+          <span className="truncate">{seen ? "Seen" : "Mark seen"}</span>
         </Button>
-      )}
-      <Button
-        aria-label={`Open ${title}`}
-        className={actionClass({ className: "w-12 shrink-0 px-0" })}
-        onClick={onOpen}
-        type="button"
-      >
-        <Icon icon="solar:arrow-right-up-linear" size={16} />
-      </Button>
-    </div>
+        {seen ? null : (
+          <Button
+            aria-pressed={listed}
+            className={actionClass({
+              className: "min-w-0 flex-1",
+              isActive: listed,
+            })}
+            disabled={disabled}
+            onClick={() => onToggle("watchlist")}
+            type="button"
+          >
+            <Icon
+              icon={listed ? "solar:bookmark-bold" : "solar:bookmark-linear"}
+              size={16}
+            />
+            <span className="truncate">{listed ? "Saved" : "Watchlist"}</span>
+          </Button>
+        )}
+        <Button
+          aria-label={`Open ${title}`}
+          className={actionClass({ className: "w-12 shrink-0 px-0" })}
+          onClick={onOpen}
+          type="button"
+        >
+          <Icon icon="solar:arrow-right-up-linear" size={16} />
+        </Button>
+      </div>
+    </DockAction>
   );
 }
 

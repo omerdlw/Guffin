@@ -22,8 +22,6 @@ import { MovieSocialProof } from "@/features/social";
 import { MovieAwardsAction } from "./awards";
 import { MovieCollectionActions } from "./collection-actions";
 import { MoneyCount } from "./money-count";
-import { MovieStats } from "./stats";
-import type { FilmStats } from "../types";
 
 const MAX_VISIBLE_PEOPLE = 2;
 const MAX_VISIBLE_GENRES = 3;
@@ -43,11 +41,9 @@ const capitalize = (text: string) =>
 export function MovieSidebar({
   awards,
   movie,
-  stats,
 }: {
   awards: Promise<Awards | null>;
   movie: MovieDetails;
-  stats: FilmStats | null;
 }): JSX.Element {
   const directors = getDirectors(movie);
   const writers = getWriters(movie);
@@ -148,7 +144,6 @@ export function MovieSidebar({
   return (
     <DetailSidebar facts={facts}>
       <MoviePoster awards={awards} movie={movie} />
-      <MovieStats stats={stats} />
       <MovieCollectionActions movieId={movie.id}>
         <Suspense fallback={null}>
           <MovieAwardsAction awards={awards} />

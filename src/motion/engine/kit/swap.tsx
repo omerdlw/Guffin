@@ -39,6 +39,11 @@ export interface SwapProps {
   // The first instance plays right behind the opening instead of when it
   // is reached.
   now?: boolean;
+  // The section the first instance plays instead of `cue`, queued behind the
+  // section around the swap: a heading above the content is set first, and
+  // the content can take a rest for the heading to be seen. Later instances
+  // play `cue`, at once.
+  intro?: string;
   children: ReactNode;
 }
 
@@ -48,6 +53,7 @@ export function Swap({
   as: Tag = "div",
   className,
   now = false,
+  intro,
   children,
 }: SwapProps) {
   const stage = useAnyStage();
@@ -98,7 +104,7 @@ export function Swap({
   // opening when the swap is `now`.
   useLayoutEffect(() => {
     if (shown.scope === first) {
-      if (now) stage.cue(cue, first);
+      if (now && !intro) stage.cue(cue, first);
       return;
     }
     stage.cue(cue, shown.scope);
@@ -126,7 +132,17 @@ export function Swap({
     return () => stop();
   }, [shown.scope]);
 
-  const trigger = useSectionOf(stage, cue, shown.scope);
+  // The section around the swap is cued by a layout effect that runs after
+  // its children's, so an intro waits for the passive one to come behind it.
+  useEffect(() => {
+    if (now && intro) stage.cue(intro, first);
+  }, [now, intro, stage, first]);
+
+  const trigger = useSectionOf(
+    stage,
+    intro && shown.scope === first ? intro : cue,
+    shown.scope,
+  );
   const content = id === shown.id ? children : held;
 
   return (
