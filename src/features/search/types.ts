@@ -1,13 +1,9 @@
-export const SEARCH_TYPES = [
-  "movies",
-  "people",
-  "users",
-  "lists",
-  "reviews",
-] as const;
+import type { Result } from "@omerdlw/base-framework/result";
+import type { SEARCH_TYPES } from "./constants";
+
 export type SearchType = (typeof SEARCH_TYPES)[number];
 
-export interface MovieSearchHit {
+interface MovieSearchHit {
   id: number;
   match: number;
   originalTitle: string | null;
@@ -17,7 +13,7 @@ export interface MovieSearchHit {
   year: number | null;
 }
 
-export interface PersonSearchHit {
+interface PersonSearchHit {
   department: string | null;
   id: number;
   knownFor: string[];
@@ -73,9 +69,13 @@ export interface SearchResponse<Hit> {
 }
 
 export type MovieSearchResponse = SearchResponse<MovieSearchHit>;
+
 export type PersonSearchResponse = SearchResponse<PersonSearchHit>;
+
 export type UserSearchResponse = SearchResponse<UserSearchHit>;
+
 export type ListSearchResponse = SearchResponse<ListSearchHit>;
+
 export type ReviewSearchResponse = SearchResponse<ReviewSearchHit>;
 
 export interface SearchResponseMap {
@@ -103,3 +103,67 @@ export interface SearchFailure {
   code: SearchFailureCode;
   message: string;
 }
+
+export type SearchSection = {
+  [K in SearchType]: { kind: K; hits: SearchResults[K] };
+}[SearchType];
+
+export interface SearchView {
+  page: number;
+  pages: number;
+  perPage: number;
+  sections: SearchSection[];
+  total: number;
+}
+
+export type SearchHits = SearchResults[SearchType];
+
+export type SearchAnswers = ReadonlyMap<string, SearchHits>;
+
+export interface SearchState {
+  clear: () => void;
+  failure: SearchFailure | null;
+  input: string;
+  isLoading: boolean;
+  query: string;
+  results: SearchResults | null;
+  retry: () => void;
+  setInput: (value: string) => void;
+}
+
+export interface PersonResultRowProps {
+  person: {
+    department: string | null;
+    id: number;
+    knownFor?: readonly string[];
+    name: string;
+    profilePath: string | null;
+  };
+  onNavigated?: () => void;
+  query?: string;
+}
+
+export interface CatalogFilm {
+  id: number;
+  originalTitle: string | null;
+  popularity: number;
+  posterPath: string | null;
+  releaseYear: number | null;
+  title: string;
+  voteCount: number;
+}
+
+export interface SearchFilm {
+  id: number;
+  originalTitle: string | null;
+  popularity: number;
+  posterPath: string | null;
+  releaseYear: number | null;
+  title: string;
+  voteCount: number;
+}
+
+export type SearchRunner = (
+  query: string,
+  options: { page: number; signal: AbortSignal },
+) => Promise<Result<SearchResponse<unknown>, SearchFailure>>;

@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { createServerSupabaseClient } from "@/infrastructure/supabase/server";
 import { getCurrentAccount } from "@/features/account/server";
 import { getOptionalUser } from "@/features/auth/server";
-import { accountHref } from "@/config/routes";
+import { accountHref } from "@/lib/project";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Account" };
 

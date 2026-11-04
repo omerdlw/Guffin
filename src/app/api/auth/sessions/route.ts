@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/features/auth/server";
-import { apiErrorResponse } from "@/infrastructure/http/api-error";
-import { createServerSupabaseClient } from "@/infrastructure/supabase/server";
+import { apiErrorResponse } from "@/lib/security";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export async function GET() {
   try {

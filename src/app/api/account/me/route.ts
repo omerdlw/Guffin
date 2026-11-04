@@ -1,15 +1,14 @@
 import { NextResponse } from "next/server";
-import {
-  createAdminSupabaseClient,
-  createServerSupabaseClient,
-} from "@/infrastructure/supabase/server";
 import { getCurrentAccount } from "@/features/account/server";
-import { assertSameOrigin } from "@/infrastructure/security/same-origin";
 import {
   requireRecentAuthentication,
   requireUser,
 } from "@/features/auth/server";
-import { apiErrorResponse } from "@/infrastructure/http/api-error";
+import { apiErrorResponse, assertSameOrigin } from "@/lib/security";
+import {
+  createAdminSupabaseClient,
+  createServerSupabaseClient,
+} from "@/lib/supabase/server";
 
 export async function GET(): Promise<NextResponse> {
   try {

@@ -1,8 +1,7 @@
-import { NextResponse, type NextRequest } from "next/server";
-import { createServerSupabaseClient } from "@/infrastructure/supabase/server";
-import { assertSameOrigin } from "@/infrastructure/security/same-origin";
+import { type NextRequest, NextResponse } from "next/server";
 import { requireUser } from "@/features/auth/server";
-import { apiErrorResponse } from "@/infrastructure/http/api-error";
+import { apiErrorResponse, assertSameOrigin } from "@/lib/security";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export async function DELETE(
   request: NextRequest,

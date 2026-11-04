@@ -123,3 +123,96 @@ export interface HomeFeed {
   soon: ShowingFilm[];
   theatres: ShowingFilm[];
 }
+
+export type FollowStatus = "accepted" | "pending" | null;
+
+export type FilmShelf = "theatres" | "soon";
+
+export interface MemberRow {
+  avatar_url: string | null;
+  display_name: string | null;
+  username: string;
+}
+
+export interface FilmRow {
+  backdrop_path?: string | null;
+  poster_path: string | null;
+  release_date: string | null;
+  title: string;
+  tmdb_id: number;
+}
+
+export interface PulseRow {
+  counts: {
+    films: number;
+    lists: number;
+    logs: number;
+    members: number;
+    reviews: number;
+  };
+  lists: {
+    description: string;
+    id: string;
+    items_count: number;
+    likes_count: number;
+    owner: MemberRow;
+    previews: (string | null)[];
+    slug: string;
+    title: string;
+  }[];
+  popular: (FilmRow & {
+    faces: MemberRow[];
+    members: number;
+    rating: number | null;
+    watchers: number;
+  })[];
+  reviewers: (MemberRow & {
+    bio: string | null;
+    followers: number;
+    id: string;
+    likes: number;
+    reviews: number;
+    watched: number;
+  })[];
+  reviews: (FilmRow & {
+    author: MemberRow;
+    content: string;
+    created_at: string;
+    id: string;
+    likes_count: number;
+    rating: number | null;
+  })[];
+  rising: (FilmRow & { lift: number; week: number })[];
+  top_rated: (FilmRow & { rating: number; ratings: number; watched: number })[];
+}
+
+export interface CircleRow {
+  followed: string[];
+  following: number;
+  friends: (FilmRow & {
+    author: MemberRow;
+    id: string;
+    liked: boolean;
+    rating: number | null;
+    reviewed: boolean;
+    rewatch: boolean;
+    watched_at: string;
+  })[];
+  seeds: { title: string; tmdb_id: number }[];
+  seen: number[];
+  shared: (FilmRow & { faces: MemberRow[]; friends: number })[];
+  suggested: (MemberRow & {
+    bio: string | null;
+    followers: number;
+    id: string;
+    mutual: number;
+    reviews: number;
+    watched: number;
+  })[];
+  viewer: { display_name: string | null; username: string | null };
+}
+
+export interface CachedPulse {
+  at: number;
+  pulse: PulseRow;
+}

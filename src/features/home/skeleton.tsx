@@ -1,29 +1,28 @@
 "use client";
 
 import type { JSX } from "react";
+import { useAuth } from "@/features/auth/provider";
+import { PosterStackSkeleton } from "@/features/profile/skeleton";
 import { cn } from "@/ui/cn";
-import { PosterStackSkeleton } from "@/features/account";
-import { useAuth } from "@/features/auth";
+import { BackdropHeroSkeleton } from "@/ui/media";
 import {
-  BackdropHeroSkeleton,
-  CONTAINER_CLASS,
-  HEADLINE_BOX,
-  HEADLINE_TYPE,
-  PAGE_CLASS,
-  PROSE_BOX,
-  PROSE_TYPE,
   SectionHeaderSkeleton,
   SkeletonBlock,
   SkeletonLines,
   TabsSkeleton,
-  TONE,
+} from "@/ui/skeleton";
+import {
+  CONTAINER_CLASS,
+  HEADLINE_BOX,
+  HEADLINE_TYPE,
+  PAGE_CLASS,
   pageBodyClass,
-} from "@/ui";
-
-const ROW_ITEM =
-  "w-[calc((100%-1.5rem)/3)] md:w-[calc((100%-2.25rem)/4)] lg:w-[calc((100%-3rem)/5)]";
-
-const title = (text: string) => `${(text.length * 8.2) / 16}rem`;
+  PROSE_BOX,
+  PROSE_TYPE,
+  TONE,
+} from "@/ui/tokens";
+import { REVIEW_LINES, RISING_TITLES, ROW_ITEM_CLASS } from "./constants";
+import { skeletonWidth } from "./utils";
 
 function Hero(): JSX.Element {
   return (
@@ -111,11 +110,11 @@ function PosterRow({
 }): JSX.Element {
   return (
     <section className="flex w-full flex-col">
-      <SectionHeaderSkeleton actions={actions} title={title(name)} />
+      <SectionHeaderSkeleton actions={actions} title={skeletonWidth(name)} />
       <div className="flex gap-3 overflow-hidden">
         {Array.from({ length: 5 }, (_, index) => (
           <div
-            className={cn("flex shrink-0 flex-col gap-1.5", ROW_ITEM)}
+            className={cn("flex shrink-0 flex-col gap-1.5", ROW_ITEM_CLASS)}
             key={index}
           >
             <SkeletonBlock className="aspect-[2/3] w-full rounded-card" />
@@ -132,19 +131,10 @@ function PosterRow({
   );
 }
 
-const REVIEW_LINES = [
-  ["100%", "100%", "100%", "64%"],
-  ["100%", "100%", "42%"],
-  ["100%", "100%", "100%", "78%"],
-  ["100%", "100%", "100%", "30%"],
-  ["100%", "86%"],
-  ["100%", "100%", "100%", "56%"],
-] as const;
-
 function Reviews(): JSX.Element {
   return (
     <section className="flex w-full flex-col">
-      <SectionHeaderSkeleton title={title("Reviews worth reading")} />
+      <SectionHeaderSkeleton title={skeletonWidth("Reviews worth reading")} />
       <ul
         className={`-my-6 grid grid-cols-1 gap-x-12 divide-y ${TONE.rules} lg:grid-cols-2 lg:divide-y-0 lg:[&>li]:border-b lg:[&>li]:border-rule lg:[&>li:nth-last-child(-n+2)]:border-b-0`}
       >
@@ -181,21 +171,10 @@ function Reviews(): JSX.Element {
   );
 }
 
-const RISING_TITLES = [
-  "9rem",
-  "7rem",
-  "11rem",
-  "8rem",
-  "10rem",
-  "6.5rem",
-  "8.5rem",
-  "9.5rem",
-];
-
 function Rising(): JSX.Element {
   return (
     <section className="flex w-full flex-col">
-      <SectionHeaderSkeleton title={title("Rising on Guffin")} />
+      <SectionHeaderSkeleton title={skeletonWidth("Rising on Guffin")} />
       <ol
         className={`-my-4 grid grid-cols-1 gap-x-12 divide-y ${TONE.rules} sm:grid-cols-2 sm:divide-y-0 sm:[&>li]:border-b sm:[&>li]:border-rule sm:[&>li:nth-last-child(-n+2)]:border-b-0`}
       >
@@ -222,7 +201,7 @@ function Rising(): JSX.Element {
 function Lists(): JSX.Element {
   return (
     <section className="flex w-full flex-col">
-      <SectionHeaderSkeleton title={title("Popular lists")} />
+      <SectionHeaderSkeleton title={skeletonWidth("Popular lists")} />
       <ul className="grid grid-cols-1 gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
         {["11rem", "8.5rem", "13rem", "9.5rem", "12rem", "7.5rem"].map(
           (width) => (
@@ -248,7 +227,7 @@ function Lists(): JSX.Element {
 function Members({ name }: { name: string }): JSX.Element {
   return (
     <section className="flex w-full flex-col">
-      <SectionHeaderSkeleton title={title(name)} />
+      <SectionHeaderSkeleton title={skeletonWidth(name)} />
       <ul className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:grid-cols-6">
         {["5.5rem", "4.5rem", "6rem", "5rem", "6.5rem", "4.75rem"].map(
           (width) => (

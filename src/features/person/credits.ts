@@ -1,89 +1,42 @@
-import type {
-  PersonCastCredit,
-  PersonCrewCredit,
-  PersonDetails,
-} from "@/infrastructure/tmdb/types";
-import { PERSON_CAREER_MIN_YEARS } from "./constants";
+import {
+  type PersonCastCredit,
+  type PersonCrewCredit,
+  type PersonDetails,
+  type PersonImage,
+  tmdbImageUrl,
+} from "@/lib/tmdb/shared";
+import {
+  GROUP_PRIORITY,
+  PERSON_BACKDROP_LIMIT,
+  PERSON_BACKDROP_MIN_VOTES,
+  PERSON_CAREER_MIN_YEARS,
+  PERSON_GALLERY_LIMIT,
+  SHOWN_ALONGSIDE,
+} from "./constants";
 import type {
   Career,
+  CareerFilm,
   FilmographyCredit,
   FilmographyGroup,
   FilmographySort,
+  SourceCredit,
   TimelineCredit,
   TimelineYear,
 } from "./types";
-import { departmentRole } from "./profile";
-
-export type Credit = PersonCastCredit | PersonCrewCredit;
-
-const byPopularity = (a: Credit, b: Credit) =>
-  b.popularity - a.popularity || b.voteCount - a.voteCount;
-
-const byNewest = (a: Credit, b: Credit) =>
-  (b.releaseDate ?? "").localeCompare(a.releaseDate ?? "") ||
-  byPopularity(a, b);
-
-const GROUP_PRIORITY = ["Acting", "Directing", "Writing", "Production"];
-
-const DEPARTMENT_JOBS: Readonly<Record<string, RegExp>> = {
-  Directing: /^(?:co-)?director$/i,
-  Production: /producer/i,
-};
-
-function toCredit(movie: Credit, role: string | null): FilmographyCredit {
-  return {
-    id: movie.id,
-    key: `${movie.id}`,
-    popularity: movie.popularity,
-    posterPath: movie.posterPath,
-    releaseDate: movie.releaseDate,
-    role,
-    title: movie.title,
-    voteCount: movie.voteCount,
-    year: movie.releaseYear,
-  };
-}
-
-function mergeByMovie<T extends Credit>(
-  credits: readonly T[],
-  roleOf: (credit: T) => string | null,
-): FilmographyCredit[] {
-  const merged = new Map<number, { movie: T; roles: string[] }>();
-  for (const credit of credits) {
-    const role = roleOf(credit);
-    const existing = merged.get(credit.id);
-    if (!existing) {
-      merged.set(credit.id, { movie: credit, roles: role ? [role] : [] });
-    } else if (role && !existing.roles.includes(role)) {
-      existing.roles.push(role);
-    }
-  }
-  return [...merged.values()].map(({ movie, roles }) =>
-    toCredit(movie, roles.length > 0 ? roles.join(" / ") : null),
-  );
-}
-
-function makeGroup(
-  key: string,
-  label: string,
-  credits: FilmographyCredit[],
-): FilmographyGroup {
-  const withPoster = credits.filter((credit) => credit.posterPath);
-  return { credits: withPoster, key, label, total: withPoster.length };
-}
-
-function crewOfDepartment(
-  credits: readonly PersonCrewCredit[],
-  department: string,
-): PersonCrewCredit[] {
-  const jobs = DEPARTMENT_JOBS[department];
-  const defining = jobs
-    ? credits.filter((credit) => credit.job && jobs.test(credit.job))
-    : [];
-  return defining.length > 0 ? defining : [...credits];
-}
-
-const SHOWN_ALONGSIDE = ["Acting", "Directing"];
+import {
+  backdropScore,
+  byCreditPopularity,
+  byImpact,
+  byNewest,
+  byPopularity,
+  byTitle,
+  careerFilms,
+  crewOfDepartment,
+  departmentRole,
+  describeCredits,
+  makeGroup,
+  mergeByMovie,
+} from "./utils";
 
 export function getFilmography(person: PersonDetails): FilmographyGroup[] {
   const groups: FilmographyGroup[] = [];
@@ -146,32 +99,6 @@ export function getFilmography(person: PersonDetails): FilmographyGroup[] {
   return largest ? [largest] : [];
 }
 
-export const FILMOGRAPHY_SORTS: readonly {
-  key: FilmographySort;
-  label: string;
-}[] = [
-  { key: "popularity", label: "Popularity" },
-  { key: "newest", label: "Newest first" },
-  { key: "oldest", label: "Oldest first" },
-  { key: "name", label: "Film name" },
-];
-
-export function isFilmographySort(value: unknown): value is FilmographySort {
-  return FILMOGRAPHY_SORTS.some((sort) => sort.key === value);
-}
-
-function sortableTitle(title: string): string {
-  return title.replace(/^(?:the|a|an)\s+/i, "");
-}
-
-const byTitle = (a: FilmographyCredit, b: FilmographyCredit) =>
-  sortableTitle(a.title).localeCompare(sortableTitle(b.title), "en", {
-    sensitivity: "base",
-  });
-
-const byCreditPopularity = (a: FilmographyCredit, b: FilmographyCredit) =>
-  b.popularity - a.popularity || b.voteCount - a.voteCount;
-
 export function sortFilmography(
   credits: readonly FilmographyCredit[],
   sort: FilmographySort,
@@ -195,32 +122,12 @@ export function sortFilmography(
   return [...credits].sort((a, b) => compare(a, b) || byCreditPopularity(a, b));
 }
 
-function describeCredits(
-  cast: readonly PersonCastCredit[],
-  crew: readonly PersonCrewCredit[],
-): string | null {
-  const parts: string[] = [];
-  if (cast.length > 0) {
-    const characters = [
-      ...new Set(cast.map((c) => c.character).filter(Boolean)),
-    ];
-    parts.push(
-      characters.length > 0 ? `as ${characters.join(" / ")}` : "Actor",
-    );
-  }
-  const jobs = [
-    ...new Set(crew.map((c) => c.job ?? c.department).filter(Boolean)),
-  ];
-  if (jobs.length > 0) parts.push(jobs.join(", "));
-  return parts.length > 0 ? parts.join(" · ") : null;
-}
-
 export function getTimeline(person: PersonDetails): TimelineYear[] {
   const films = new Map<
     number,
-    { cast: PersonCastCredit[]; crew: PersonCrewCredit[]; movie: Credit }
+    { cast: PersonCastCredit[]; crew: PersonCrewCredit[]; movie: SourceCredit }
   >();
-  const entry = (movie: Credit) => {
+  const entry = (movie: SourceCredit) => {
     let film = films.get(movie.id);
     if (!film) {
       film = { cast: [], crew: [], movie };
@@ -233,7 +140,7 @@ export function getTimeline(person: PersonDetails): TimelineYear[] {
 
   const years = new Map<
     string | null,
-    { credit: TimelineCredit; movie: Credit }[]
+    { credit: TimelineCredit; movie: SourceCredit }[]
   >();
   for (const { cast, crew, movie } of films.values()) {
     const year = movie.releaseDate?.slice(0, 4) ?? null;
@@ -266,32 +173,6 @@ export function getTimeline(person: PersonDetails): TimelineYear[] {
     }));
 }
 
-interface Film {
-  id: number;
-  popularity: number;
-  title: string;
-  votes: number;
-  year: number;
-}
-
-function careerFilms(person: PersonDetails): Film[] {
-  const films = new Map<number, Film>();
-  for (const credit of [...person.credits.cast, ...person.credits.crew]) {
-    if (credit.releaseYear === null || films.has(credit.id)) continue;
-    films.set(credit.id, {
-      id: credit.id,
-      popularity: credit.popularity,
-      title: credit.title,
-      votes: credit.voteCount,
-      year: credit.releaseYear,
-    });
-  }
-  return [...films.values()];
-}
-
-const byImpact = (a: Film, b: Film) =>
-  b.votes - a.votes || b.popularity - a.popularity;
-
 export function getCareer(person: PersonDetails): Career | null {
   const films = careerFilms(person);
   if (films.length === 0) return null;
@@ -300,7 +181,7 @@ export function getCareer(person: PersonDetails): Career | null {
   const last = Math.max(...films.map((film) => film.year));
   const end = Math.max(last, first + PERSON_CAREER_MIN_YEARS - 1);
 
-  const byYear = new Map<number, Film[]>();
+  const byYear = new Map<number, CareerFilm[]>();
   for (const film of films) {
     byYear.set(film.year, [...(byYear.get(film.year) ?? []), film]);
   }
@@ -340,4 +221,51 @@ export function countFilms(
 ): number {
   const today = now.getUTCFullYear();
   return careerFilms(person).filter((film) => film.year <= today).length;
+}
+
+export function getBackdropPaths(
+  person: PersonDetails,
+  limit = PERSON_BACKDROP_LIMIT,
+): string[] {
+  const best = new Map<number, { path: string; score: number }>();
+  const consider = (credit: SourceCredit, kind: "cast" | "crew") => {
+    if (!credit.backdropPath || credit.voteCount < PERSON_BACKDROP_MIN_VOTES) {
+      return;
+    }
+    const score = backdropScore(credit, kind);
+    const known = best.get(credit.id);
+    if (!known || score > known.score) {
+      best.set(credit.id, { path: credit.backdropPath, score });
+    }
+  };
+  person.credits.cast.forEach((credit) => consider(credit, "cast"));
+  person.credits.crew.forEach((credit) => consider(credit, "crew"));
+
+  return [...best.values()]
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map(({ path }) => path);
+}
+
+export function getBackdropPath(person: PersonDetails): string | null {
+  return getBackdropPaths(person, 1)[0] ?? null;
+}
+
+export function personSwatch(
+  backdropPath: string | null,
+  photoPath: string | null,
+): string | null {
+  return (
+    tmdbImageUrl("backdrop", backdropPath, "w300") ??
+    tmdbImageUrl("profile", photoPath, "w185")
+  );
+}
+
+export function getGalleryImages(
+  person: PersonDetails,
+  limit = PERSON_GALLERY_LIMIT,
+): PersonImage[] {
+  return [...person.images.profiles]
+    .sort((a, b) => b.voteAverage - a.voteAverage || b.voteCount - a.voteCount)
+    .slice(0, limit);
 }

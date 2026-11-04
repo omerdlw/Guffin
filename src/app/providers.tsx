@@ -1,7 +1,7 @@
 "use client";
 
-import type { JSX, ReactNode } from "react";
-import { Compose } from "@omerdlw/base-framework/kernel";
+import { createElement, type JSX, type ReactNode } from "react";
+import { type AppRegistryEntry, Compose } from "@omerdlw/base-framework/kernel";
 import { ambientModule } from "@omerdlw/base-framework/modules/ambient";
 import { contextMenuModule } from "@omerdlw/base-framework/modules/context-menu";
 import { controlsModule } from "@omerdlw/base-framework/modules/controls";
@@ -12,21 +12,70 @@ import {
   navigationModule,
 } from "@omerdlw/base-framework/modules/navigation";
 import { notificationModule } from "@omerdlw/base-framework/modules/notification";
-import { ThemeProvider } from "@omerdlw/base-framework/theme";
 import { CoreProvider } from "@omerdlw/base-framework/provider";
-import { AuthProvider, AuthListener } from "@/features/auth";
+import { ThemeProvider } from "@omerdlw/base-framework/theme";
+import { DEFAULT_ACCOUNT_ICON } from "@/features/account/constants";
 import {
-  AccountProvider,
   AccountGuard,
+  AccountProvider,
   SocialRealtimeSync,
-} from "@/features/account";
-import { PictureForesight } from "@/features/artwork";
-import { SearchDockCommand } from "@/features/search";
-import { EngineProvider } from "@/motion/engine";
-import { Cursor, TintedFavicon } from "@/motion/effects";
-import { isFilmPage } from "@/motion/page-handoff";
-import { motion, themes } from "@/config";
-import { APP_REGISTRY_ENTRIES } from "./registry";
+} from "@/features/account/provider";
+import { PictureForesight } from "@/features/artwork/artwork";
+import { AuthListener, AuthProvider } from "@/features/auth/provider";
+import { SearchDockCommand } from "@/features/search/action";
+import { project } from "@/lib/project";
+import { Cursor } from "@/motion/cursor";
+import { EngineProvider } from "@/motion/react";
+import { TintedFavicon } from "@/motion/screen";
+import { motion } from "@/motion/time";
+import { isFilmPage } from "@/motion/utils";
+import { Logo } from "@/ui/media";
+import { themes } from "./theme";
+
+const APP_REGISTRY_ENTRIES: readonly AppRegistryEntry[] = Object.freeze([
+  {
+    type: "dock",
+    items: {
+      "/": {
+        description: project.description,
+        icon: createElement(Logo, { size: 22 }),
+        name: "home",
+        title: "Guffin - Home",
+        path: "/",
+        stackOrder: -2,
+      },
+      "/oscars": {
+        description: "Every Best Picture winner, cast in gold",
+        icon: "solar:cup-star-bold",
+        name: "oscars",
+        title: "Best Picture",
+        path: "/oscars",
+      },
+      "/top-100": {
+        description: "The IMDb Top 100 on one wall",
+        icon: "solar:gallery-bold",
+        name: "top-100",
+        title: "IMDb Top 100",
+        path: "/top-100",
+      },
+      "/directors": {
+        description: "Ten masters, drawn from their films",
+        icon: "solar:videocamera-record-bold",
+        name: "directors",
+        title: "Directors",
+        path: "/directors",
+      },
+      "/account": {
+        description: "Manage your account",
+        icon: DEFAULT_ACCOUNT_ICON,
+        name: "account",
+        title: "Account",
+        path: "/account",
+        stackOrder: -1,
+      },
+    },
+  },
+]);
 
 configureNavigation({ intent: { match: isFilmPage } });
 

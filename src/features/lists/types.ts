@@ -1,3 +1,5 @@
+import type { createServerSupabaseClient } from "@/lib/supabase/server";
+
 export interface MovieListSummary {
   description?: string | null;
   id: string;
@@ -16,10 +18,6 @@ export type MovieListChangeResult =
   | { inList: boolean; list: MovieListSummary; success: true }
   | { error: string; success: false };
 
-export const LIST_TITLE_MAX = 120;
-
-export const LIST_DESCRIPTION_MAX = 2000;
-
 export interface ListInput {
   description: string;
   isPrivate: boolean;
@@ -35,6 +33,69 @@ export interface PopularList {
   owner: { avatarUrl: string | null; displayName: string; username: string };
   previews: (string | null)[];
   reviewsCount: number;
+  slug: string;
+  title: string;
+}
+
+export type ListsClient = Awaited<
+  ReturnType<typeof createServerSupabaseClient>
+>;
+
+export interface ListRecord {
+  description: string | null;
+  id: string;
+  is_private: boolean;
+  items_count: number;
+  poster_path: string | null;
+  title: string;
+}
+
+export interface ListOrderItem {
+  posterPath: string | null;
+  title: string;
+  tmdbId: number;
+  year: string | null;
+}
+
+export interface ListCommentTarget {
+  content: string | null;
+  listId: string;
+  title: string;
+}
+
+export interface ListFormData {
+  list?: {
+    description: string;
+    id: string;
+    isPrivate: boolean;
+    isRanked: boolean;
+    itemsCount?: number;
+    slug: string;
+    title: string;
+  };
+  username: string;
+}
+
+export interface ListOrderData {
+  listId: string;
+  title: string;
+}
+
+export interface ListPickerData {
+  movieId: number;
+}
+
+export interface PopularListRow {
+  description: string | null;
+  id: string;
+  items_count: number;
+  likes_count: number;
+  owner: {
+    avatar_url: string | null;
+    display_name: string | null;
+    username: string | null;
+  } | null;
+  reviews_count: number;
   slug: string;
   title: string;
 }

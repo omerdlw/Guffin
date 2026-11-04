@@ -1,7 +1,7 @@
 "use client";
 
 import type { JSX } from "react";
-import { RouteError } from "@/ui";
+import { RouteError } from "@/ui/feedback";
 
 export default function MovieError(props: {
   error: Error & { digest?: string };

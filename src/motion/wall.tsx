@@ -1,0 +1,214 @@
+"use client";
+
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import {
+  WALL_BAND,
+  WALL_EDGE,
+  WALL_FOCUS,
+  WALL_GLOW,
+  WALL_GLOW_RUNG,
+  WALL_LIGHT,
+  WALL_RETURN_MARGIN,
+  WALL_ROOM,
+  WALL_SOFT_RUNG,
+  WALL_SWEEP,
+} from "./constants";
+import { useExposure } from "./expose";
+import {
+  OwnedScope,
+  ScopeProvider,
+  useAnyStage,
+  useEngine,
+  usePartOf,
+  useScope,
+} from "./react";
+import { driverOf } from "./scroll";
+import { childScope } from "./stage";
+import { CURVE } from "./time";
+import type {
+  BloomProps,
+  Exposure,
+  WallPhase,
+  WallStageProps,
+  WallState,
+} from "./types";
+import { clearMask, elapsed, haze, setMask, within } from "./utils";
+
+const WallContext = createContext<WallState | null>(null);
+
+export const useWall = () => useContext(WallContext);
+
+const dialogOpen = () =>
+  Boolean(document.querySelector("[role='dialog'], [aria-modal='true']"));
+
+export function WallStage({ cue, wall, children }: WallStageProps) {
+  const stage = useAnyStage();
+  const engine = useEngine();
+  const scope = childScope(useScope(), useId());
+  const [phase, setPhase] = useState<WallPhase>("page");
+  const anchor = useRef<HTMLElement | null>(null);
+
+  const open = useCallback(
+    (from: HTMLElement | null = null) => {
+      if (phase !== "page") return;
+      anchor.current = from;
+      setPhase("leaving");
+      const driver = driverOf(engine);
+      if (driver.active) driver.to(0);
+      else window.scrollTo({ top: 0, behavior: "smooth" });
+      void stage.recede(scope).then(() => setPhase("wall"));
+    },
+    [engine, phase, scope, stage],
+  );
+
+  const close = useCallback(() => {
+    if (phase !== "wall") return;
+    setPhase("closing");
+    void stage.dismiss(scope).then(() => setPhase("returning"));
+  }, [phase, scope, stage]);
+
+  useLayoutEffect(() => {
+    if (phase === "wall") {
+      driverOf(engine).to(0, { immediate: true });
+      window.scrollTo({ top: 0, behavior: "instant" });
+      stage.recue(cue, scope);
+      return;
+    }
+    if (phase !== "returning") return;
+    const from = anchor.current;
+    if (from?.isConnected) {
+      const top =
+        from.getBoundingClientRect().top + window.scrollY - WALL_RETURN_MARGIN;
+      driverOf(engine).to(top, { immediate: true });
+      window.scrollTo({ top, behavior: "instant" });
+    }
+    void stage.restore().then(() => setPhase("page"));
+  }, [phase]);
+
+  useEffect(() => {
+    if (phase !== "wall") return;
+    const key = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !dialogOpen()) close();
+    };
+    window.addEventListener("keydown", key);
+    return () => window.removeEventListener("keydown", key);
+  }, [close, phase]);
+
+  const value = useMemo(() => ({ phase, open, close }), [phase, open, close]);
+  const hung = phase === "wall" || phase === "closing";
+
+  return (
+    <WallContext value={value}>
+      <div hidden={hung}>{children}</div>
+      {hung ? (
+        <ScopeProvider value={scope}>
+          <OwnedScope value>
+            <div>{wall}</div>
+          </OwnedScope>
+        </ScopeProvider>
+      ) : null}
+    </WallContext>
+  );
+}
+
+function bloom({ print, light }: Exposure, progress: number) {
+  if (progress <= 0) {
+    clearMask(print);
+    print.style.opacity = "0";
+    print.style.removeProperty("filter");
+    light.style.opacity = "0";
+    return;
+  }
+  if (progress >= 1) {
+    clearMask(print);
+    print.style.opacity = "1";
+    print.style.removeProperty("filter");
+    clearMask(light);
+    light.style.opacity = "0";
+    light.style.removeProperty("filter");
+    return;
+  }
+  const time = elapsed(CURVE.silk, progress);
+  const sweep = CURVE.glide(within(time, WALL_SWEEP));
+  const focus = CURVE.silk(within(time, WALL_FOCUS));
+  const edge = (100 + WALL_EDGE) * sweep;
+
+  setMask(
+    print,
+    `linear-gradient(90deg, #000 ${edge - WALL_EDGE}%, transparent ${edge}%)`,
+  );
+  print.style.opacity = "1";
+  print.style.filter = `blur(${((1 - focus) * haze(WALL_SOFT_RUNG)).toFixed(2)}px)`;
+
+  setMask(
+    light,
+    `linear-gradient(90deg, transparent ${edge - WALL_BAND}%, #000 ${edge - WALL_EDGE * 0.4}%, transparent ${edge + 3}%)`,
+  );
+  light.style.opacity = (
+    sweep <= 0 || sweep >= 1 ? 0 : Math.sin(Math.PI * sweep) ** 0.6
+  ).toFixed(3);
+  light.style.filter = `blur(${((1 - focus) * haze(WALL_GLOW_RUNG)).toFixed(2)}px)`;
+}
+
+export function Bloom({ part, text, as: Tag = "span", className }: BloomProps) {
+  const stage = useAnyStage();
+  const { get, print, light } = useExposure();
+
+  const props = usePartOf(stage, part, {
+    css: true,
+    render: (_look, state) => {
+      const exposure = get();
+      if (!exposure) return;
+      const progress = state.quiet ? (state.enter > 0 ? 1 : 0) : state.enter;
+      bloom(exposure, progress);
+    },
+  });
+
+  return (
+    <Tag
+      {...props}
+      className={className}
+      style={{ ...props.style, position: "relative" }}
+    >
+      <span
+        data-print=""
+        ref={print}
+        style={{
+          display: "block",
+          margin: `-${WALL_ROOM}`,
+          opacity: 0,
+          padding: WALL_ROOM,
+        }}
+      >
+        {text}
+      </span>
+      <span
+        aria-hidden="true"
+        ref={light}
+        style={{
+          position: "absolute",
+          inset: `-${WALL_ROOM}`,
+          display: "block",
+          padding: WALL_ROOM,
+          opacity: 0,
+          pointerEvents: "none",
+          userSelect: "none",
+          color: WALL_LIGHT,
+          textShadow: WALL_GLOW,
+        }}
+      >
+        {text}
+      </span>
+    </Tag>
+  );
+}

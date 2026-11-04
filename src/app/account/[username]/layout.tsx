@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import {
   AccountProfileLayout,
   getAccountMetadata,
-} from "@/features/account/server";
+} from "@/features/profile/view";
 
 interface AccountLayoutProps {
   children: ReactNode;

@@ -1,6 +1,6 @@
 import type { JSX } from "react";
-import { MovieSkeleton } from "@/features/movie";
-import { Handoff } from "@/motion/page-handoff";
+import { MovieSkeleton } from "@/features/movie/skeleton";
+import { Handoff } from "@/motion/transitions";
 
 export default function MovieLoading(): JSX.Element {
   return (

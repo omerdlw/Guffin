@@ -1,5 +1,6 @@
 import type { Session, SupabaseClient, User } from "@supabase/supabase-js";
-import type { Database } from "@/infrastructure/supabase/client";
+import type { RefObject } from "react";
+import type { Database } from "@/lib/supabase/database.types";
 
 export type AuthClient = SupabaseClient<Database>;
 
@@ -28,4 +29,45 @@ export interface AuthContextValue extends AuthState {
   client: AuthClient | null;
   refresh: () => Promise<AuthState | null>;
   signOut: (scope?: SignOutScope) => Promise<void>;
+}
+
+export type MutationResult<T extends object = object> =
+  ({ success: true } & T) | { error: string; success: false };
+
+export type SignInMethod = OAuthProvider | "email" | "passkey";
+
+export interface SignInData {
+  email?: string;
+  next?: string | null;
+}
+
+export interface SignInSurfaceProps {
+  close?: (result?: { success?: boolean }) => void;
+  data?: SignInData;
+}
+
+export type EmailResult =
+  | { email: string; signedIn: boolean; success: true }
+  | { error: string; success: false }
+  | null;
+
+export interface VerificationData {
+  email: string;
+  next?: string | null;
+  onVerified?: () => Promise<void> | void;
+}
+
+export interface OtpBoxesProps {
+  code: string;
+  disabled?: boolean;
+  hasError?: boolean;
+  inputRef: RefObject<HTMLInputElement | null>;
+  isFocused: boolean;
+  onCodeChange: (value?: string) => void;
+  setIsFocused: (focused: boolean) => void;
+}
+
+export interface VerificationSurfaceProps {
+  close?: (result?: { success?: boolean }) => void;
+  data: VerificationData;
 }

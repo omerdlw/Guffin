@@ -1,11 +1,13 @@
-import { NextResponse } from "next/server";
 import { UserError } from "@omerdlw/base-framework/utils";
+import { NextResponse } from "next/server";
 import { getOptionalUser, requireUser } from "@/features/auth/server";
-import { apiErrorResponse } from "@/infrastructure/http/api-error";
-import { rateLimitResponse } from "@/infrastructure/security/rate-limiter";
-import { assertSameOrigin } from "@/infrastructure/security/same-origin";
-import { createServerSupabaseClient } from "@/infrastructure/supabase/server";
-import { isUuid } from "@/infrastructure/uuid";
+import { isUuid } from "@/lib/http";
+import {
+  apiErrorResponse,
+  assertSameOrigin,
+  rateLimitResponse,
+} from "@/lib/security";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 const FOLLOW_PAGE_SIZE = 50;
 const REQUESTS_LIMIT = 100;

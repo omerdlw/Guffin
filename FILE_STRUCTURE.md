@@ -1,839 +1,152 @@
-# 🎬 Guffin - Proje Dosya Yapısı (File Structure)
+# Guffin: dosya yapısı
 
-Bu doküman, **Guffin** projesinin mimari katmanlarını, dizin organizasyonunu ve tam dosya ağacını özetlemektedir.
+`src/` 508 dosya ve 119 dizinden **237 dosya ve 65 dizine** indirildi (her özellikte sabit `types` · `constants` · `utils` üçlüsü dahil). Dizinlerin çoğu Next.js'in zorunlu kıldığı rota klasörleridir (`app/`); geri kalanı 5 katman ve 15 özellik klasöründen ibarettir.
 
----
+## Teknoloji
 
-## 📌 Proje Özeti ve Teknoloji Yığını
+Next.js (App Router, Turbopack), React 19, Motion, Tailwind CSS v4, Supabase (SSR, Auth, RLS), TMDB API, Upstash Redis, TypeScript, Zod.
 
-- **Framework**: [Next.js](https://nextjs.org/) (App Router, Turbopack, React Server Components)
-- **Kütüphaneler**: [React 19](https://react.dev/), [Motion](https://motion.dev/)
-- **Stil & Tasarım**: [Tailwind CSS v4](https://tailwindcss.com/), PostCSS
-- **Veritabanı & Backend**: [Supabase](https://supabase.com/) (SSR, PostgreSQL, Auth, RLS)
-- **Veri Kaynağı**: [TMDB (The Movie Database) API](https://developer.themoviedb.org/)
-- **Önbellek & Güvenlik**: [Upstash Redis](https://upstash.com/), Rate Limiting, HTTP Security Headers
-- **Tip & Şema Doğrulama**: [TypeScript](https://www.typescriptlang.org/), [Zod](https://zod.dev/)
+## Katmanlar
 
----
+```text
+app  →  features  →  ui ⇄ motion  →  lib
+```
 
-## 🏗️ Mimari Katmanlar
+Bağımlılık soldan sağa akar; `ui` ve `motion` kardeştir (`motion` `cn` ve `Logo`'yu, `ui` motorun partisyonlarını kullanır). `lib` hiçbirine bağlanmaz. `ui`, `motion` ve `lib`'in `features`'a ya da `app`'e, `features`'ın `app`'e bağlanması ESLint ile (`no-restricted-imports`) yasaktır:
 
-Guffin projesi, modern bir **özellik tabanlı (feature-driven)** ve **katmanlı (layered)** mimari ile yapılandırılmıştır:
+| Katman      | Ne içerir                                                                             | Neye bağlanabilir                       |
+| ----------- | ------------------------------------------------------------------------------------- | --------------------------------------- |
+| `app/`      | Rotalar (`page`, `layout`, `loading`, `error`, `route`), kök sağlayıcılar, tema ayarı | Her şey                                 |
+| `features/` | Ürün alanları: film, kişi, profil, arama, listeler…                                   | `ui`, `motion`, `lib`, diğer özellikler |
+| `ui/`       | Tasarım sistemi: buton, form, medya, yüzey, iskelet, sınıf tokenları                  | `motion`, `lib`                         |
+| `motion/`   | Tek hareket motoru ve görsel efektler                                                 | `ui`, `lib`                             |
+| `lib/`      | Yapılandırma, TMDB, Supabase, HTTP, güvenlik; React ya da arayüz bilmez               | yalnızca dışarısı                       |
 
-1. **`src/app/`**: Next.js App Router yapısı; sayfa rotaları, hata yakalama (`error.tsx`), yükleme durumları (`loading.tsx`), route grupları ve API uç noktaları (`api/`).
-2. **`src/features/`**: İş mantığı, veri sorguları, görünümler ve özelliğe özel bileşenleri barındıran modüller (ör. `account`, `movie`, `reviews`, `search`, `social`).
-3. **`src/infrastructure/`**: Harici servisler (Supabase, TMDB, Upstash Redis), HTTP istemcileri ve güvenlik katmanları.
-4. **`src/motion/`**: Tek hareket motoru (`engine`: zaman merdiveni, madde, fiil, partisyon, kuvvetler, scroll sürücüsü, kit) ve görsel efektler (`effects`). Sayfa partisyonları ilgili özelliğin `motion.tsx` dosyasındadır.
-5. **`src/ui/`**: Proje genelinde paylaşılan atomik tasarım bileşenleri (`button`, `input`, `avatar`, `surface`, `media-card` vb.).
-6. **`src/config/`**: Proje rotaları, tema tokenları ve sabit tanımlamalar.
-7. **`supabase/`**: PostgreSQL veritabanı şeması ve migration dosyaları.
-8. **`scripts/seed/`**: Veritabanı başlangıç verisi (seed), TMDB katalog yükleme ve test hesapları oluşturma araçları.
+`@/` takma adı `src/` dizinine gider. Aynı klasördeki dosyalar birbirini `./x` ile, klasör dışındakiler `@/klasör/x` ile içe aktarır. Barrel (`index.ts`) yoktur: bir şeyi tanımlandığı dosyadan içe aktarırsınız.
 
----
+## Özellik klasörü kuralları
 
-## 📂 Tam Dosya Ağacı (Full Directory Tree)
+Her özellik **düz** bir klasördür (`components/`, `server/`, `views/` gibi alt klasör yok). Kökünde aynı üç dosya bulunur; geri kalan dosyalar rolüyle adlandırılır. Olmayan rol için dosya açılmaz.
+
+| Dosya          | Rol                                                                                                       | Sınıf         |
+| -------------- | --------------------------------------------------------------------------------------------------------- | ------------- |
+| `types.ts`     | Özelliğin bütün `type` ve `interface` tanımları. Başka hiçbir dosyada tip tanımlanmaz                     | nötr          |
+| `constants.ts` | Özelliğin bütün sabitleri. WebGL shader kaynakları hariç: onlar kullanıldıkları `gl*.ts` dosyasında kalır | nötr          |
+| `utils.ts`     | Yardımcı, yedek ve akışı bölen fonksiyonlar: bir dosyanın asıl işi olmayan her fonksiyon                  | nötr          |
+| `server.ts`    | Veri okuma (Supabase, TMDB, Redis). `import "server-only"`                                                | yalnız sunucu |
+| `actions.ts`   | Sunucu aksiyonları (`"use server"`), yalnızca async fonksiyon dışa aktarır                                | aksiyon       |
+| `view.tsx`     | Rotanın render ettiği sunucu bileşeni                                                                     | sunucu / nötr |
+| `skeleton.tsx` | `loading.tsx`'in kullandığı iskelet                                                                       | nötr          |
+| `motion.tsx`   | Sayfanın hareket partisyonu (score)                                                                       | istemci       |
+| `<konu>.tsx`   | İstemci bileşenleri, konuya göre gruplu (`reviews.tsx`, `cast.tsx`, `form.tsx`…)                          | istemci       |
+
+Fonksiyon yerleşimi:
+
+- Bir fonksiyon, bulunduğu dosyanın temel sorumluluğunun parçasıysa o dosyada kalır: bileşen ve hook, sunucu aksiyonu, veri okuyan/yazan fonksiyon, modül durumunu tutan fonksiyon, bir `credits.ts` gibi alan mantığı dosyasının dışa açtığı API.
+- Geri kalan her şey `utils.ts`'e gider: biçimlendirici, ayrıştırıcı, karşılaştırıcı, normalleştirici, sınıf üretici, matematik yardımcısı.
+- Bir tipe ya da sabite ihtiyaç duyan her dosya onu `./types` ve `./constants` üzerinden alır; yerel `type`, `interface` ya da sabit tanımlanmaz.
+
+Sınıflar karıştırılmaz: `"use client"` dosyasına sunucu verisi, `"use server"` dosyasına sabit/yardımcı konmaz. `types.ts`, `constants.ts` ve `utils.ts` **nötr**dür; bu yüzden `server-only` içe aktarmaz, hook kullanmaz ve `"use client"` modüllerinden (`ui/surface.tsx`, `ui/media.tsx`…) değer okumaz (sunucuda o değerler istemci referansıdır). Sınıf tokenları bu yüzden `ui/tokens.ts`'tedir. Sunucuya bağlı yardımcılar (Supabase istemcisi alan okuma fonksiyonları gibi) `utils.ts`'e gidemez; `server.ts`/`actions.ts` içinde kalır.
+
+Bağımlılık yönü: `types` ← `constants` ← `utils`. `types.ts` yalnızca `import type` ile `constants.ts`'e bakar (`typeof SABİT` için); `constants.ts` yalnızca `legal`'de `utils.ts`'ten değer alır. Çekirdek dosyalar bu üçünü içe aktarır, tersi olmaz.
+
+Tek dosyalık özellik bile aynı kuralı izler: `features/artwork/artwork.tsx` + üçlü. `motion/` da aynı düzendedir: kökünde `types.ts`, `constants.ts`, `utils.ts`; `.ts` modüllerin dışa açtığı API (`createEngine`, `defineScore`, `mountScene`…) yerinde kalır, bileşen dosyalarındaki yardımcılar `utils.ts`'e gider.
+
+## Ağaç
 
 ```text
 guffin/
-├── .env
-├── .gitignore
-├── DESIGN.md
-├── docs
-│   ├── motion-analysis.md
-│   └── motion-engine.md
-├── eslint.config.mjs
-├── FILE_STRUCTURE.md
-├── LICENSE
-├── next-env.d.ts
-├── next.config.mjs
-├── package-lock.json
-├── package.json
-├── postcss.config.mjs
-├── public
-│   └── images
-│       ├── guffin-mark.svg
-│       ├── Guffin.ico
-│       ├── Guffin.jpeg
-│       ├── Guffin.png
-│       └── noise.webp
-├── scripts
-│   └── seed
-│       ├── .cache
-│       │   ├── accounts.json
-│       │   ├── accounts.md
-│       │   └── catalog.json
-│       ├── catalog.mjs
-│       ├── clean.mjs
-│       ├── lib
-│       │   ├── batch.mjs
-│       │   ├── env.mjs
-│       │   ├── people.mjs
-│       │   ├── random.mjs
-│       │   └── text.mjs
-│       ├── load.mjs
-│       ├── probe.mjs
-│       ├── profile-ab.mjs
-│       ├── README.md
-│       └── run.mjs
-├── src
-│   ├── .DS_Store
-│   ├── app
-│   │   ├── (home)
-│   │   │   ├── loading.tsx
-│   │   │   └── page.tsx
-│   │   ├── .DS_Store
-│   │   ├── account
-│   │   │   ├── [username]
-│   │   │   │   ├── activity
-│   │   │   │   │   ├── loading.tsx
-│   │   │   │   │   └── page.tsx
-│   │   │   │   ├── diary
-│   │   │   │   │   ├── loading.tsx
-│   │   │   │   │   └── page.tsx
-│   │   │   │   ├── error.tsx
-│   │   │   │   ├── layout.tsx
-│   │   │   │   ├── likes
-│   │   │   │   │   ├── loading.tsx
-│   │   │   │   │   └── page.tsx
-│   │   │   │   ├── lists
-│   │   │   │   │   ├── [slug]
-│   │   │   │   │   │   ├── loading.tsx
-│   │   │   │   │   │   └── page.tsx
-│   │   │   │   │   ├── loading.tsx
-│   │   │   │   │   └── page.tsx
-│   │   │   │   ├── loading.tsx
-│   │   │   │   ├── page.tsx
-│   │   │   │   ├── reviews
-│   │   │   │   │   ├── loading.tsx
-│   │   │   │   │   └── page.tsx
-│   │   │   │   ├── watched
-│   │   │   │   │   ├── loading.tsx
-│   │   │   │   │   └── page.tsx
-│   │   │   │   └── watchlist
-│   │   │   │       ├── loading.tsx
-│   │   │   │       └── page.tsx
-│   │   │   ├── loading.tsx
-│   │   │   └── page.tsx
-│   │   ├── api
-│   │   │   ├── account
-│   │   │   │   └── me
-│   │   │   │       └── route.ts
-│   │   │   ├── ambient
-│   │   │   │   └── proxy
-│   │   │   │       └── route.ts
-│   │   │   ├── auth
-│   │   │   │   ├── seed
-│   │   │   │   │   └── route.ts
-│   │   │   │   └── sessions
-│   │   │   │       ├── [sessionId]
-│   │   │   │       │   └── route.ts
-│   │   │   │       ├── others
-│   │   │   │       │   └── route.ts
-│   │   │   │       └── route.ts
-│   │   │   ├── backdrop
-│   │   │   │   └── route.ts
-│   │   │   ├── notifications
-│   │   │   │   └── route.ts
-│   │   │   ├── search
-│   │   │   │   ├── lists
-│   │   │   │   │   └── route.ts
-│   │   │   │   ├── movies
-│   │   │   │   │   └── route.ts
-│   │   │   │   ├── people
-│   │   │   │   │   └── route.ts
-│   │   │   │   ├── reviews
-│   │   │   │   │   └── route.ts
-│   │   │   │   └── users
-│   │   │   │       └── route.ts
-│   │   │   └── social
-│   │   │       └── follows
-│   │   │           └── route.ts
-│   │   ├── apple-icon.png
-│   │   ├── auth
-│   │   │   └── callback
-│   │   │       └── route.ts
-│   │   ├── directors
-│   │   │   ├── loading.tsx
-│   │   │   └── page.tsx
-│   │   ├── error.tsx
-│   │   ├── favicon.ico
-│   │   ├── fonts
-│   │   │   ├── index.ts
-│   │   │   └── zuume
-│   │   │       └── Zuume-Bold.woff2
-│   │   ├── globals.css
-│   │   ├── icon.svg
-│   │   ├── lab
-│   │   │   ├── engine
-│   │   │   │   ├── b
-│   │   │   │   │   └── page.tsx
-│   │   │   │   ├── page.tsx
-│   │   │   │   └── view.tsx
-│   │   │   └── kit
-│   │   │       ├── page.tsx
-│   │   │       └── view.tsx
-│   │   ├── layout.tsx
-│   │   ├── loading.tsx
-│   │   ├── movie
-│   │   │   └── [id]
-│   │   │       ├── error.tsx
-│   │   │       ├── loading.tsx
-│   │   │       ├── page.tsx
-│   │   │       └── reviews
-│   │   │           └── page.tsx
-│   │   ├── not-found.tsx
-│   │   ├── oscars
-│   │   │   ├── loading.tsx
-│   │   │   └── page.tsx
-│   │   ├── person
-│   │   │   └── [id]
-│   │   │       ├── error.tsx
-│   │   │       ├── loading.tsx
-│   │   │       └── page.tsx
-│   │   ├── privacy
-│   │   │   ├── loading.tsx
-│   │   │   └── page.tsx
-│   │   ├── providers.tsx
-│   │   ├── registry.ts
-│   │   ├── robots.ts
-│   │   ├── sitemap.ts
-│   │   ├── terms
-│   │   │   ├── loading.tsx
-│   │   │   └── page.tsx
-│   │   └── top-100
-│   │       ├── loading.tsx
-│   │       └── page.tsx
-│   ├── config
-│   │   ├── index.ts
-│   │   ├── project.ts
-│   │   ├── routes.ts
-│   │   └── theme
-│   │       ├── ambient.ts
-│   │       ├── chrome.ts
-│   │       ├── context-menu.ts
-│   │       ├── controls.ts
-│   │       ├── dock.ts
-│   │       ├── error.ts
-│   │       ├── modal.ts
-│   │       ├── motion.ts
-│   │       ├── notification.ts
-│   │       └── primitives.ts
-│   ├── features
-│   │   ├── account
-│   │   │   ├── avatar.ts
-│   │   │   ├── browse-types.ts
-│   │   │   ├── browse.ts
-│   │   │   ├── client.ts
-│   │   │   ├── components
-│   │   │   │   ├── activity-calendar.tsx
-│   │   │   │   ├── activity-row.tsx
-│   │   │   │   ├── avatar.tsx
-│   │   │   │   ├── bio.tsx
-│   │   │   │   ├── diary-chrome.tsx
-│   │   │   │   ├── diary-delete-button.tsx
-│   │   │   │   ├── diary-ledger.tsx
-│   │   │   │   ├── dock.tsx
-│   │   │   │   ├── empty-state.tsx
-│   │   │   │   ├── filter-bar.tsx
-│   │   │   │   ├── guard.tsx
-│   │   │   │   ├── hero.tsx
-│   │   │   │   ├── inbox-action.tsx
-│   │   │   │   ├── link.tsx
-│   │   │   │   ├── list-chrome.tsx
-│   │   │   │   ├── list-comments.tsx
-│   │   │   │   ├── list-owner-actions.tsx
-│   │   │   │   ├── list-row.tsx
-│   │   │   │   ├── pagination.tsx
-│   │   │   │   ├── poster-grid.tsx
-│   │   │   │   ├── poster-stack.tsx
-│   │   │   │   ├── registry.tsx
-│   │   │   │   ├── review-list.tsx
-│   │   │   │   ├── section-tabs.tsx
-│   │   │   │   ├── section.tsx
-│   │   │   │   ├── shell.tsx
-│   │   │   │   ├── sidebar.tsx
-│   │   │   │   ├── stats.tsx
-│   │   │   │   ├── tile-actions.tsx
-│   │   │   │   └── view.tsx
-│   │   │   ├── constants.ts
-│   │   │   ├── dates.ts
-│   │   │   ├── index.ts
-│   │   │   ├── last-account.ts
-│   │   │   ├── library.ts
-│   │   │   ├── motion.tsx
-│   │   │   ├── normalize.ts
-│   │   │   ├── poster.ts
-│   │   │   ├── provider.tsx
-│   │   │   ├── realtime.ts
-│   │   │   ├── server
-│   │   │   │   ├── actions.ts
-│   │   │   │   ├── ambient.ts
-│   │   │   │   ├── browse-actions.ts
-│   │   │   │   ├── browse.ts
-│   │   │   │   ├── context.ts
-│   │   │   │   ├── follows.ts
-│   │   │   │   ├── header.ts
-│   │   │   │   ├── index.ts
-│   │   │   │   ├── library-actions.ts
-│   │   │   │   ├── profile.ts
-│   │   │   │   └── watched-payload.ts
-│   │   │   ├── skeleton.tsx
-│   │   │   ├── surfaces
-│   │   │   │   ├── bio.tsx
-│   │   │   │   ├── notifications.tsx
-│   │   │   │   ├── setup.tsx
-│   │   │   │   └── social.tsx
-│   │   │   ├── types.ts
-│   │   │   └── views
-│   │   │       ├── activity.tsx
-│   │   │       ├── diary.tsx
-│   │   │       ├── layout.tsx
-│   │   │       ├── list.tsx
-│   │   │       ├── lists.tsx
-│   │   │       ├── media-collection.tsx
-│   │   │       ├── overview.tsx
-│   │   │       └── reviews.tsx
-│   │   ├── artwork
-│   │   │   ├── components
-│   │   │   │   ├── picture-foresight.tsx
-│   │   │   │   ├── poster-thumb.tsx
-│   │   │   │   └── print.tsx
-│   │   │   ├── constants.ts
-│   │   │   ├── entries.ts
-│   │   │   ├── hooks.ts
-│   │   │   ├── index.ts
-│   │   │   ├── store.ts
-│   │   │   └── types.ts
-│   │   ├── auth
-│   │   │   ├── client.ts
-│   │   │   ├── components
-│   │   │   │   └── listener.tsx
-│   │   │   ├── constants.ts
-│   │   │   ├── index.ts
-│   │   │   ├── messages.ts
-│   │   │   ├── provider.tsx
-│   │   │   ├── server
-│   │   │   │   ├── index.ts
-│   │   │   │   ├── mutation.ts
-│   │   │   │   ├── seed-login.ts
-│   │   │   │   └── user.ts
-│   │   │   ├── surfaces
-│   │   │   │   ├── sign-in.tsx
-│   │   │   │   └── verification.tsx
-│   │   │   ├── types.ts
-│   │   │   └── utils.ts
-│   │   ├── awards
-│   │   │   ├── components
-│   │   │   │   └── foil.tsx
-│   │   │   ├── index.ts
-│   │   │   ├── types.ts
-│   │   │   ├── utils.ts
-│   │   │   └── view.tsx
-│   │   ├── detail
-│   │   │   ├── components
-│   │   │   │   ├── action.tsx
-│   │   │   │   ├── awards.tsx
-│   │   │   │   ├── backdrop.tsx
-│   │   │   │   ├── facts.tsx
-│   │   │   │   ├── heading.tsx
-│   │   │   │   ├── image-modal.tsx
-│   │   │   │   ├── intermission.tsx
-│   │   │   │   ├── layout.tsx
-│   │   │   │   ├── stage.tsx
-│   │   │   │   ├── views.tsx
-│   │   │   │   ├── wall-set.ts
-│   │   │   │   └── wall.tsx
-│   │   │   ├── index.ts
-│   │   │   └── motion.tsx
-│   │   ├── home
-│   │   │   ├── components
-│   │   │   │   ├── film-dock.tsx
-│   │   │   │   ├── heading.tsx
-│   │   │   │   ├── hero.tsx
-│   │   │   │   ├── join.tsx
-│   │   │   │   ├── lists.tsx
-│   │   │   │   ├── members.tsx
-│   │   │   │   ├── pulse.tsx
-│   │   │   │   ├── reviews.tsx
-│   │   │   │   ├── rising.tsx
-│   │   │   │   ├── rows.tsx
-│   │   │   │   ├── showing.tsx
-│   │   │   │   └── stage.tsx
-│   │   │   ├── format.ts
-│   │   │   ├── index.ts
-│   │   │   ├── motion.tsx
-│   │   │   ├── rank.ts
-│   │   │   ├── server
-│   │   │   │   ├── feed.ts
-│   │   │   │   └── social.ts
-│   │   │   ├── skeleton.tsx
-│   │   │   ├── types.ts
-│   │   │   └── view.tsx
-│   │   ├── legal
-│   │   │   ├── components
-│   │   │   │   ├── links.tsx
-│   │   │   │   └── text.tsx
-│   │   │   ├── constants.ts
-│   │   │   ├── content.ts
-│   │   │   ├── index.ts
-│   │   │   ├── motion.tsx
-│   │   │   ├── types.ts
-│   │   │   └── view.tsx
-│   │   ├── lists
-│   │   │   ├── components
-│   │   │   │   ├── comment-action.tsx
-│   │   │   │   ├── like-button.tsx
-│   │   │   │   └── popular.tsx
-│   │   │   ├── index.ts
-│   │   │   ├── server
-│   │   │   │   ├── actions.ts
-│   │   │   │   ├── index.ts
-│   │   │   │   └── popular.ts
-│   │   │   ├── surfaces
-│   │   │   │   ├── form.tsx
-│   │   │   │   ├── order.tsx
-│   │   │   │   └── picker.tsx
-│   │   │   └── types.ts
-│   │   ├── movie
-│   │   │   ├── components
-│   │   │   │   ├── artwork.tsx
-│   │   │   │   ├── awards.tsx
-│   │   │   │   ├── chrome.tsx
-│   │   │   │   ├── collection-actions.tsx
-│   │   │   │   ├── gallery.tsx
-│   │   │   │   ├── layout.tsx
-│   │   │   │   ├── modals.tsx
-│   │   │   │   ├── money-count.tsx
-│   │   │   │   ├── people.tsx
-│   │   │   │   ├── person-card.tsx
-│   │   │   │   ├── poster-link.tsx
-│   │   │   │   ├── projection.tsx
-│   │   │   │   ├── recommendations.tsx
-│   │   │   │   ├── reel.tsx
-│   │   │   │   ├── review-card.tsx
-│   │   │   │   ├── review-digest.tsx
-│   │   │   │   ├── reviews.tsx
-│   │   │   │   ├── sidebar.tsx
-│   │   │   │   ├── stage.tsx
-│   │   │   │   ├── stats.tsx
-│   │   │   │   ├── videos.tsx
-│   │   │   │   └── view-switcher.tsx
-│   │   │   ├── constants.ts
-│   │   │   ├── index.ts
-│   │   │   ├── server
-│   │   │   │   ├── index.ts
-│   │   │   │   ├── stats.ts
-│   │   │   │   └── watch-providers-actions.ts
-│   │   │   ├── skeleton.tsx
-│   │   │   ├── styles.ts
-│   │   │   ├── surfaces
-│   │   │   │   └── watch-providers.tsx
-│   │   │   ├── types.ts
-│   │   │   ├── utils.ts
-│   │   │   ├── view.tsx
-│   │   │   └── watch-providers.ts
-│   │   ├── person
-│   │   │   ├── components
-│   │   │   │   ├── age-count.tsx
-│   │   │   │   ├── artwork.tsx
-│   │   │   │   ├── career-chart.tsx
-│   │   │   │   ├── career.tsx
-│   │   │   │   ├── chrome.tsx
-│   │   │   │   ├── filmography.tsx
-│   │   │   │   ├── gallery.tsx
-│   │   │   │   ├── header.tsx
-│   │   │   │   ├── projection.tsx
-│   │   │   │   ├── sidebar.tsx
-│   │   │   │   ├── stage.tsx
-│   │   │   │   ├── timeline.tsx
-│   │   │   │   ├── view-actions.tsx
-│   │   │   │   ├── view-state.tsx
-│   │   │   │   └── view-switcher.tsx
-│   │   │   ├── constants.ts
-│   │   │   ├── credits.ts
-│   │   │   ├── images.ts
-│   │   │   ├── index.ts
-│   │   │   ├── profile.ts
-│   │   │   ├── skeleton.tsx
-│   │   │   ├── styles.ts
-│   │   │   ├── surfaces
-│   │   │   │   └── bio.tsx
-│   │   │   ├── types.ts
-│   │   │   └── view.tsx
-│   │   ├── reviews
-│   │   │   ├── components
-│   │   │   │   ├── movie-action.tsx
-│   │   │   │   ├── rating-selector.tsx
-│   │   │   │   ├── rating-stars.tsx
-│   │   │   │   └── review-actions.tsx
-│   │   │   ├── constants.ts
-│   │   │   ├── hooks.ts
-│   │   │   ├── index.ts
-│   │   │   ├── server
-│   │   │   │   ├── actions.ts
-│   │   │   │   └── queries.ts
-│   │   │   ├── surfaces
-│   │   │   │   └── editor.tsx
-│   │   │   ├── types.ts
-│   │   │   └── validation.ts
-│   │   ├── search
-│   │   │   ├── client.ts
-│   │   │   ├── components
-│   │   │   │   ├── action.tsx
-│   │   │   │   ├── dock-command.tsx
-│   │   │   │   ├── list-result-row.tsx
-│   │   │   │   ├── person-result-row.tsx
-│   │   │   │   ├── review-result-row.tsx
-│   │   │   │   └── user-result-row.tsx
-│   │   │   ├── constants.ts
-│   │   │   ├── hooks.ts
-│   │   │   ├── index.ts
-│   │   │   ├── overview.ts
-│   │   │   ├── rank.ts
-│   │   │   ├── server
-│   │   │   │   ├── catalog.ts
-│   │   │   │   ├── community.ts
-│   │   │   │   ├── handler.ts
-│   │   │   │   ├── index.ts
-│   │   │   │   └── media.ts
-│   │   │   ├── types.ts
-│   │   │   └── utils.ts
-│   │   ├── settings
-│   │   │   ├── components
-│   │   │   │   ├── delete-panel.tsx
-│   │   │   │   ├── email-form.tsx
-│   │   │   │   ├── form.tsx
-│   │   │   │   ├── media-form.tsx
-│   │   │   │   ├── passkeys-panel.tsx
-│   │   │   │   ├── profile-form.tsx
-│   │   │   │   ├── providers-panel.tsx
-│   │   │   │   └── sessions-panel.tsx
-│   │   │   ├── hooks.ts
-│   │   │   ├── index.ts
-│   │   │   ├── session-format.ts
-│   │   │   └── surface.tsx
-│   │   ├── social
-│   │   │   ├── components
-│   │   │   │   ├── avatar-stack.tsx
-│   │   │   │   ├── followed-by.tsx
-│   │   │   │   └── movie-social-proof.tsx
-│   │   │   ├── index.ts
-│   │   │   ├── server
-│   │   │   │   ├── actions.ts
-│   │   │   │   └── queries.ts
-│   │   │   ├── surfaces
-│   │   │   │   └── proof.tsx
-│   │   │   ├── types.ts
-│   │   │   └── utils.ts
-│   │   └── spotlights
-│   │       ├── components
-│   │       │   ├── dock.tsx
-│   │       │   ├── winners-index.tsx
-│   │       │   └── year-dial.tsx
-│   │       ├── data
-│   │       │   ├── best-picture.ts
-│   │       │   ├── directors.ts
-│   │       │   └── imdb-top-100.ts
-│   │       ├── genres.ts
-│   │       ├── gl
-│   │       │   ├── bitmap.ts
-│   │       │   ├── bloom.ts
-│   │       │   ├── foundry
-│   │       │   │   ├── renderer.ts
-│   │       │   │   └── shader.ts
-│   │       │   ├── loop.ts
-│   │       │   ├── mat4.ts
-│   │       │   ├── portrait
-│   │       │   │   ├── renderer.ts
-│   │       │   │   ├── shader.ts
-│   │       │   │   ├── swarm.ts
-│   │       │   │   └── swarm.worker.ts
-│   │       │   └── wall
-│   │       │       ├── geometry.ts
-│   │       │       ├── renderer.ts
-│   │       │       └── shader.ts
-│   │       ├── hooks.ts
-│   │       ├── images-ready.ts
-│   │       ├── index.ts
-│   │       ├── motion.tsx
-│   │       ├── scene.ts
-│   │       ├── server
-│   │       │   ├── cache.ts
-│   │       │   ├── canon.ts
-│   │       │   ├── directors.ts
-│   │       │   └── laureates.ts
-│   │       ├── skeleton.tsx
-│   │       ├── types.ts
-│   │       └── views
-│   │           ├── directors.tsx
-│   │           ├── oscars.tsx
-│   │           └── wall.tsx
-│   ├── infrastructure
-│   │   ├── env.ts
-│   │   ├── http
-│   │   │   ├── api-error.ts
-│   │   │   ├── client.ts
-│   │   │   ├── pinned-fetch.ts
-│   │   │   └── search-params.ts
-│   │   ├── redis.ts
-│   │   ├── security
-│   │   │   ├── headers.ts
-│   │   │   ├── rate-limiter.ts
-│   │   │   └── same-origin.ts
-│   │   ├── supabase
-│   │   │   ├── client.ts
-│   │   │   ├── database.types.ts
-│   │   │   ├── proxy.ts
-│   │   │   ├── server.ts
-│   │   │   └── session.ts
-│   │   ├── tmdb
-│   │   │   ├── ambient.ts
-│   │   │   ├── awards.ts
-│   │   │   ├── client.ts
-│   │   │   ├── constants.ts
-│   │   │   ├── discover.ts
-│   │   │   ├── errors.ts
-│   │   │   ├── filters.ts
-│   │   │   ├── images.ts
-│   │   │   ├── movies.ts
-│   │   │   ├── people.ts
-│   │   │   ├── schemas
-│   │   │   │   ├── common.ts
-│   │   │   │   ├── discover.ts
-│   │   │   │   ├── movie.ts
-│   │   │   │   ├── person.ts
-│   │   │   │   └── search.ts
-│   │   │   ├── server.ts
-│   │   │   ├── snapshot.ts
-│   │   │   ├── transport.ts
-│   │   │   ├── types.ts
-│   │   │   └── validation.ts
-│   │   └── uuid.ts
-│   ├── motion
-│   │   ├── effects
-│   │   │   ├── crt.tsx
-│   │   │   ├── cursor.tsx
-│   │   │   ├── foil.tsx
-│   │   │   ├── idle-screen.tsx
-│   │   │   ├── index.ts
-│   │   │   ├── magnet.tsx
-│   │   │   ├── projection.tsx
-│   │   │   ├── tilt.tsx
-│   │   │   └── tinted-favicon.ts
-│   │   ├── engine
-│   │   │   ├── bind.tsx
-│   │   │   ├── carry.ts
-│   │   │   ├── clock.ts
-│   │   │   ├── curve.ts
-│   │   │   ├── engine.ts
-│   │   │   ├── fields.ts
-│   │   │   ├── index.ts
-│   │   │   ├── kit
-│   │   │   │   ├── count.tsx
-│   │   │   │   ├── deck.tsx
-│   │   │   │   ├── expose.tsx
-│   │   │   │   ├── header.tsx
-│   │   │   │   ├── house.ts
-│   │   │   │   ├── index.ts
-│   │   │   │   ├── room.tsx
-│   │   │   │   ├── swap.tsx
-│   │   │   │   └── wall.tsx
-│   │   │   ├── ladder.ts
-│   │   │   ├── look.ts
-│   │   │   ├── matter.ts
-│   │   │   ├── react.tsx
-│   │   │   ├── scene.ts
-│   │   │   ├── score.ts
-│   │   │   ├── scroll.ts
-│   │   │   ├── signal.ts
-│   │   │   ├── spring.ts
-│   │   │   ├── stage.ts
-│   │   │   ├── text.ts
-│   │   │   ├── tint.ts
-│   │   │   ├── tokens.ts
-│   │   │   ├── touch.ts
-│   │   │   ├── value.ts
-│   │   │   └── verbs.ts
-│   │   ├── gl.ts
-│   │   ├── layout-flow.tsx
-│   │   ├── math.ts
-│   │   ├── page-handoff.tsx
-│   │   ├── pointer.ts
-│   │   └── reduced-motion.ts
-│   ├── proxy.ts
-│   └── ui
-│       ├── action-button.tsx
-│       ├── adaptive-image.tsx
-│       ├── avatar.tsx
-│       ├── backdrop-hero.tsx
-│       ├── button.tsx
-│       ├── carousel.tsx
-│       ├── cn.ts
-│       ├── fact-link.tsx
-│       ├── highlight-group.tsx
-│       ├── highlight.tsx
-│       ├── hooks
-│       │   ├── use-confirm-step.ts
-│       │   └── use-dock-link.ts
-│       ├── icon.tsx
-│       ├── index.ts
-│       ├── input.tsx
-│       ├── loader.tsx
-│       ├── logo.tsx
-│       ├── media-card.tsx
-│       ├── page.ts
-│       ├── result-row.tsx
-│       ├── route-error.tsx
-│       ├── segmented-control.tsx
-│       ├── select.tsx
-│       ├── skeleton.tsx
-│       ├── sliding-highlight.tsx
-│       ├── spinner.tsx
-│       ├── sticky-aside.tsx
-│       ├── surface-stage.tsx
-│       ├── surface.tsx
-│       ├── switch.tsx
-│       ├── textarea.tsx
-│       ├── theme.ts
-│       └── tooltip.tsx
-├── supabase
-│   └── migrations
-│       ├── 20261022130000_audit_fixes.sql
-│       ├── 20261022160000_account_overview.sql
-│       ├── 20261022170000_account_header.sql
-│       ├── 20261022180000_list_page.sql
-│       ├── 20261022190000_account_activity_days.sql
-│       ├── 20261026200000_no_self_list_comments.sql
-│       ├── 20261027120000_film_stats.sql
-│       ├── 20261027120100_seed_tools.sql
-│       ├── 20261027190000_home_feed.sql
-│       └── 20261031090000_guffin.sql
-└── tsconfig.json
+├── DESIGN.md                    Tasarım ve hareket sözleşmesi
+├── FILE_STRUCTURE.md            Bu dosya
+├── docs/
+│   ├── motion-engine.md         Motor mimarisi ve kanunları
+│   └── motion-analysis.md       Motor öncesi analiz (tarihsel)
+├── eslint.config.mjs · next.config.mjs · postcss.config.mjs · tsconfig.json
+├── public/                      grain.png, images/
+├── scripts/seed/                (yerel, git dışı) TMDB kataloğu ve test hesapları
+├── supabase/migrations/         (yerel, git dışı) PostgreSQL şeması
+└── src/
+    ├── proxy.ts                 Next proxy: oturum yenileme + güvenlik başlıkları
+    │
+    ├── app/                     ── Rotalar
+    │   ├── layout.tsx           Kök layout, fontlar, metadata
+    │   ├── providers.tsx        Kök sağlayıcılar + dock kaydı
+    │   ├── theme.ts             Çerçeve modüllerinin tema ayarı (dock, modal, menü…)
+    │   ├── globals.css          Tokenlar ve sınıf tarifleri
+    │   ├── zuume-bold.woff2 · icon.svg · favicon.ico · apple-icon.png
+    │   ├── error.tsx · loading.tsx · not-found.tsx · robots.ts · sitemap.ts
+    │   ├── (home)/              /
+    │   ├── account/             /account (giriş) ve /account/[username]/…
+    │   │                        activity · diary · likes · lists[/slug] · reviews · watched · watchlist
+    │   ├── movie/[id]/          film, reviews/
+    │   ├── person/[id]/
+    │   ├── oscars/ · top-100/ · directors/ · privacy/ · terms/
+    │   ├── auth/callback/       OAuth dönüşü
+    │   ├── lab/                 Yalnızca geliştirme: /lab/engine, /lab/engine/b, /lab/kit
+    │   └── api/                 account/me · ambient/proxy · auth/{seed,sessions} · backdrop
+    │                            notifications · search/[kind] · social/follows
+    │
+    ├── features/                ── Ürün alanları (her birinde types · constants · utils)
+    │   ├── artwork/             artwork: kullanıcının seçtiği afiş/arka plan (depo, bağlam menüsü, bileşenler)
+    │   ├── auth/                client · provider · server · sign-in · verification
+    │   ├── account/             Oturum açmış kullanıcı: client · provider (+ guard, realtime)
+    │   │                        actions · server · notifications · social · setup
+    │   ├── profile/             /account/[username] sayfaları: server · view · motion · skeleton
+    │   │                        hero · shell · controls · blocks · diary · activity · lists
+    │   ├── settings/            Ayarlar yüzeyi: surface · shared · identity · security
+    │   ├── detail/              Film ve kişi sayfasının ortak iskeleti (ödüller dahil):
+    │   │                        layout · stage · awards · motion
+    │   ├── movie/               actions · view · skeleton · reviews · cast · media · stage · watch-providers
+    │   ├── person/              credits · view · skeleton · header · career · sections
+    │   ├── home/                server · view · skeleton · motion · hero · community
+    │   ├── search/              hooks · server · action · results
+    │   ├── lists/               actions · popular · buttons · form · order · picker
+    │   ├── reviews/             actions · server · rating · controls
+    │   ├── social/              actions · proof
+    │   ├── legal/               view (metinler `constants.ts`'te)
+    │   └── spotlights/          Oscar, yönetmenler, Top 100:
+    │                            shell · server · oscars · directors · top-100
+    │                            gl · gl-foundry · gl-portrait · gl-wall · swarm · swarm.worker
+    │
+    ├── ui/                      ── Tasarım sistemi
+    │   ├── tokens.ts            Sayfa ritmi, TONE, RADIUS, cam/yüzey ve dock yüzeyi sınıfları (nötr)
+    │   ├── cn.ts                Token'ları bilen sınıf birleştirici
+    │   ├── theme.ts             Çerçeve tema slotları (primitives)
+    │   ├── button.tsx           Button, ActionButton, DockAction, FactLink, AccountLink, kancalar
+    │   ├── form.tsx             Input, Textarea, Switch, Select, SegmentedControl, vurgu grupları
+    │   ├── media.tsx            Icon, Logo, AdaptiveImage, Avatar, MediaCard, Carousel
+    │   ├── feedback.tsx         Loader, Spinner, RouteError, Tooltip
+    │   ├── surface.tsx          SurfaceStage, SurfacePart, Unfold (sınıflar `tokens.ts`'te)
+    │   └── skeleton.tsx         İskelet blokları
+    │
+    ├── motion/                  ── Hareket motoru (ayrıntı: docs/motion-engine.md)
+    │   ├── types.ts · constants.ts · utils.ts    Motorun bütün tipleri, sabitleri ve yardımcıları (`step`, `clamp`, `bezier`, `springAt`…)
+    │   ├── time.ts              Madde tablosu, fiiller (`arrival`, `departure`, `response`), eğri/yay tabloları, çerçeve `motion` ayarı
+    │   ├── engine.ts            Saat, Signal, Value, duyular
+    │   ├── forces.ts            Kuvvet alanları ve dokunuş
+    │   ├── color.ts             Görünüm cebiri, oda rengi, CSS değişkenleri
+    │   ├── score.ts · stage.ts  Partisyon ve çalışma zamanı
+    │   ├── scroll.ts · carry.ts Scroll sürücüsü, sayfalar arası devir
+    │   ├── render.ts            Canvas/WebGL sahnesi, GL yardımcıları, metin bölme
+    │   ├── react.tsx            EngineProvider, bindScore, kancalar
+    │   ├── kit.tsx · marquee.tsx · expose.tsx · wall.tsx    Kit bileşenleri
+    │   └── projection.tsx · cursor.tsx · tilt.tsx · screen.tsx · transitions.tsx    Efektler
+    │
+    └── lib/                     ── Altyapı
+        ├── env.ts               Ortam değişkenleri, oturum çerezi sabitleri
+        ├── project.ts           Site bilgisi, paylaşım metadata'sı, rota yardımcıları (`movieHref`…)
+        ├── http.ts              İstemci `requestJson`, `readParam`, `isUuid`
+        ├── security.ts          Redis, hız sınırı, güvenlik başlıkları, aynı kaynak, güvenli fetch, API hata yanıtı
+        ├── supabase/            browser · server (+ proxy) · database.types
+        └── tmdb/                api · schemas · awards · server · shared
 ```
 
----
+## Nereye ne konur
 
-## 🔍 Temel Dizin ve Modül Açıklamaları
-
-### 1. `src/app/` (Next.js App Router)
-
-Next.js App Router standartlarına uygun yönlendirme ve API rotalarını içerir:
-
-- **`(home)/`**: Ana sayfa (`page.tsx`) ve yalnızca ana sayfaya ait yükleme iskeleti (`loading.tsx`); grup, bu iskeletin diğer sayfalara sızmasını engeller.
-- **`account/`**: Kullanıcı profil sayfaları:
-  - `[username]/`: Kullanıcı genel bakış profili
-  - `[username]/activity/`: Kullanıcının son aktiviteleri
-  - `[username]/diary/`: Film günlüğü (izleme tarihleri)
-  - `[username]/likes/`: Beğenilen film ve incelemeler
-  - `[username]/lists/` & `[username]/lists/[slug]/`: Özel film listeleri
-  - `[username]/reviews/`: Kullanıcı incelemeleri
-  - `[username]/watched/`: İzlenen tüm filmler
-  - `[username]/watchlist/`: İzleme listesi
-- **`movie/[id]/`**: Film detay sayfası ve `reviews/` alt sayfası.
-- **`person/[id]/`**: Oyuncu / yönetmen detay sayfası ve filmografisi.
-- **`directors/`**: Öne çıkan yönetmenler kataloğu.
-- **`top-100/`**: IMDb Top 100 poster duvarı.
-- **`oscars/`**: Akademi Ödülleri özel sayfası.
-- **`privacy/` & `terms/`**: Gizlilik politikası ve kullanım şartları.
-- **`auth/callback/`**: Supabase kimlik doğrulama geri dönüş (OAuth callback) route handler'ı.
-- **`api/`**: Sunucu tarafı API uç noktaları:
-  - `account/me`: Mevcut oturum açmış kullanıcı bilgileri.
-  - `auth/sessions`: Aktif kullanıcı oturumları yönetimi.
-  - `auth/seed`: Geliştirme ortamında seed hesaplarıyla giriş.
-  - `backdrop`: Film / kişi için backdrop görsel yolunu döner.
-  - `search/`: Film (`movies`), kişi (`people`), liste (`lists`), kullanıcı (`users`) ve inceleme (`reviews`) aramaları.
-  - `social/follows`: Takip etme / takipten çıkma işlemleri.
-  - `notifications`: Kullanıcı bildirimleri.
-  - `ambient/proxy`: TMDB görsellerini ambient renk analizi için proxy'ler (yol, base-framework tarafından sabit kullanılır).
-
----
-
-### 2. `src/features/` (Özellik Modülleri)
-
-Uygulamanın ana fonksiyonları bağımsız modüllere ayrılmıştır. Her modül aynı şablonu izler; olmayan parça atlanır:
-
-```text
-features/<ad>/
-├── index.ts        # client-safe dışa açık API
-├── view.tsx        # route'un render ettiği ana ekran (birden fazlaysa views/)
-├── skeleton.tsx    # loading.tsx'in kullandığı iskelet
-├── components/     # parçalar — dosya adında feature adı tekrarlanmaz
-├── surfaces/       # modal / sheet'ler
-├── server/         # server-only; dışarıya server/index.ts üzerinden açılır
-└── types.ts · constants.ts · utils.ts · hooks.ts · styles.ts · motion.ts …
-```
-
-Modüller:
-
-- **`account`**: Oturum açmış hesabın durumu ve profil sayfaları (genel bakış, günlük, koleksiyonlar, aktivite), takip ve bildirimler.
-- **`artwork`**: Film ve kişi görsellerinin işlenmesi, optimizasyonu ve renk analizi.
-- **`auth`**: Giriş / kayıt modal pencereleri, oturum kontrolü ve yetkilendirme akışları.
-- **`awards`**: Oscar ve film ödülleri filtreleme ve listeleme mantığı.
-- **`home`**: Ana sayfa akışı, vitrin bölümleri ve dinamik öneriler.
-- **`legal`**: Yasal metinler ve sözleşme sayfaları içeriği.
-- **`lists`**: Liste oluşturma / düzenleme / sıralama, filme liste ekleme, liste beğeni ve yorumları, bir filmin popüler listeleri.
-- **`movie`**: Film detayları, oyuncu künyesi, fragmanlar ve benzer film önerileri.
-- **`person`**: Biyografi, doğum/ölüm tarihleri ve kronolojik filmografi.
-- **`reviews`**: Yıldız puanlaması (`rating-selector`), inceleme yazma/düzenleme (`surfaces/editor`), beğeni ve yorum aksiyonları.
-- **`search`**: Birleşik hızlı arama çubuğu ve detaylı arama modalı.
-- **`settings`**: Hesap ayarları paneli (profil, medya, e-posta, passkey, bağlı sağlayıcılar, oturumlar, hesap silme).
-- **`social`**: Takipleşme sistemi, sosyal akış ve kullanıcı etkileşimleri.
-- **`spotlights`**: Yönetmenler, Oscar'lar ve Top 100 sayfaları; WebGL çizimleri `gl/` altında.
-
----
-
-### 3. `src/infrastructure/` (Altyapı & Harici Entegrasyonlar)
-
-- **`supabase/`**:
-  - `client.ts`: Tarayıcı tarafı Supabase istemcisi.
-  - `server.ts`: Next.js Server Components ve Server Actions için Supabase SSR istemcisi.
-  - `database.types.ts`: Veritabanı şemasının TypeScript tip tanımları.
-  - `proxy.ts` & `session.ts`: Oturum doğrulama ve proxy katmanı.
-- **`tmdb/`**:
-  - TMDB API adaptörü; arama (`discover.ts`, `movies.ts`, `people.ts`), ödüller (`awards.ts`), filtreler, resim CDN URL'leri (`images.ts`) ve Zod şemaları (`schemas/`).
-- **`redis.ts` & `security/`**:
-  - Upstash Redis entegrasyonu, istek sınırlandırma (`rate-limiter.ts`), origin doğrulaması (`same-origin.ts`) ve güvenlik başlıkları (`headers.ts`).
-- **`http/`**:
-  - Özel HTTP istemcisi (`client.ts`), hata sınıfları (`api-error.ts`) ve URL arama parametresi işleyicileri.
-
----
-
-### 4. `src/motion/` (Hareket & Sinematik Görsel Motoru)
-
-- **`engine/`**: Guffin'in tek motion motoru. Zaman merdiveni (`ladder.ts`), eğriler (`curve.ts`), yaylar (`spring.ts`), madde ve fiil (`matter.ts`, `verbs.ts`), partisyon ve sahne (`score.ts`, `stage.ts`, `bind.tsx`, `react.tsx`), kuvvetler (`fields.ts`, `touch.ts`), scroll sürücüsü (`scroll.ts`), sayfalar arası devir (`carry.ts`), oda rengi (`tint.ts`), canvas sahnesi (`scene.ts`) ve CSS değişkenleri (`tokens.ts`). `kit/` içinde `Header`, `Expose`, `Count`, `Swap`, `Deck`, `WallStage`, `Room`. Ayrıntı: `docs/motion-engine.md`, sözleşme: `DESIGN.md` bölüm 6.
-- **`effects/`**: Motorun üstünde duran görsel efektler: projeksiyon (`projection.tsx`), özel imleç (`cursor.tsx`), CRT geçişi (`crt.tsx`), boşta ekranı (`idle-screen.tsx`), afiş eğilmesi ve folyo (`tilt.tsx`, `foil.tsx`), `magnet.tsx`, favicon boyası (`tinted-favicon.ts`).
-- Kök: `layout-flow.tsx` (layout kaymalarını yumuşatır), `page-handoff.tsx` (film sayfalarına geçiş), `gl.ts` (WebGL yardımcıları), `pointer.ts`, `reduced-motion.ts`, `math.ts`.
-- Sayfa partisyonları: `features/{detail,home,account,legal,spotlights}/motion.tsx`; dock yüzeyleri için `ui/surface-stage.tsx`.
-- Laboratuvar (yalnızca geliştirme): `app/lab/engine`, `app/lab/kit`.
-
----
-
-### 5. `src/ui/` (Tasarım Sistemi & Temel Bileşenler)
-
-- **Form Elemanları**: `button.tsx`, `input.tsx`, `select.tsx`, `switch.tsx`, `textarea.tsx`, `segmented-control.tsx`.
-- **Medya & Sunum**: `adaptive-image.tsx`, `backdrop-hero.tsx`, `media-card.tsx`, `avatar.tsx`, `logo.tsx`.
-- **Geri Bildirim & Durum**: `loader.tsx`, `spinner.tsx`, `skeleton.tsx`, `route-error.tsx`, `tooltip.tsx`.
-- **Yardımcılar**: `cn.ts` (Tailwind class merging), `theme.ts`, `page.ts` (sayfa düzeni sınıfları), `highlight.tsx`, `sticky-aside.tsx`, `surface.tsx` (yüzey kiti), `surface-stage.tsx` (dock yüzeyi sahnesi).
-- **Hook'lar**: `hooks/use-confirm-step.ts`, `hooks/use-dock-link.ts`.
-
-`src/config/theme/` her framework modülü için tek dosya tutar (`dock.ts`, `modal.ts` …); bileşenin hem görünüm hem hareket tokenları aynı dosyadadır, ortak hareket ölçeği `motion.ts`'tedir.
-
----
-
-### 6. `supabase/migrations/` (Veritabanı Şemaları)
-
-PostgreSQL üzerinde çalışan migration dosyaları:
-
-- Kullanıcı hesapları ve profil tabloları
-- Film istatistikleri ve aktivite günlüğü
-- Liste, yorum ve beğeni yapıları (RLS güvenlik politikaları ile)
-- Ana sayfa akışı (home feed) görünüm ve fonksiyonları
-
----
-
-### 7. `scripts/seed/` (Veri Hazırlama & Tohumlama Araçları)
-
-- `catalog.mjs`: TMDB API üzerinden filmleri çekip yerel önbelleğe (`.cache/catalog.json`) kaydeder.
-- `run.mjs` & `load.mjs`: Önbellekteki film kataloğunu ve örnek kullanıcı hesaplarını Supabase veritabanına aktarır.
-- `clean.mjs`: Veritabanındaki test verilerini temizler.
-- `probe.mjs` & `profile-ab.mjs`: Veri profilleme ve test araçları.
+- **Yeni sayfa:** `app/<rota>/page.tsx` ince kalır (metadata + `view` çağrısı). Gövdesi ilgili özelliğin `view.tsx`'ine, iskeleti `skeleton.tsx`'e, hareketi `motion.tsx`'e gider.
+- **Yeni özellik:** `features/<ad>/` aç; `types.ts`, `constants.ts`, `utils.ts` üçlüsünü (içeriği olanları) ve gereken rol dosyalarını ekle.
+- **Yeni tip, sabit ya da yardımcı:** dosyanın içine değil, özelliğin `types.ts` / `constants.ts` / `utils.ts` dosyasına yaz. Dosyada yalnızca o dosyanın asıl işi kalır.
+- **İki özelliğin ortak ihtiyacı:** önce ilgisiz bir özellik değil `ui/` (görsel) ya da `lib/` (mantık) olup olmadığına bak. Film ve kişi sayfalarının ortak parçaları `features/detail`'dedir.
+- **Yeni UI parçası:** `ui/` içindeki konuya uyan dosyaya ekle (`form.tsx`, `media.tsx`…); yeni dosya yalnızca yeni bir konu doğarsa.
+- **Rota dosyaları** (`page`, `layout`, `loading`, `error`, `route`) Next.js'in kuralıdır; birleştirilemez. `app/api/search/[kind]` beş arama uç noktasını tek rotada toplar.
+- **Veritabanı değişikliği:** `supabase/migrations/` altına yeni bir migration; tipler `lib/supabase/database.types.ts`'e yeniden üretilir.

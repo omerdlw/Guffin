@@ -19,19 +19,19 @@ values, so changing the system means changing one line.
 
 ### 1.2 Where the values live
 
-| What                                      | Where                                                           |
-| ----------------------------------------- | --------------------------------------------------------------- |
-| Tokens (colour, type, radius, time)       | `src/app/globals.css`, `@theme`                                 |
-| Class recipes (`TONE`) and `RADIUS`       | `src/ui/page.ts`                                                |
-| Layer chrome (`SHELL`, `PRIMARY` …)       | `src/config/theme/chrome.ts`                                    |
-| Surface kit (buttons, tiles, fields)      | `src/ui/surface.tsx`                                            |
-| Shared row hover                          | `src/ui/highlight-group.tsx`                                    |
-| Class merging that understands tokens     | `src/ui/cn.ts`                                                  |
-| Time, curves, springs (the ladder)        | `src/motion/engine/` (`ladder.ts` `step`, `curve.ts` `POINTS`)  |
-| The ladder as CSS (`--step-*`, `--curve`) | `src/motion/engine/tokens.ts`, written to `:root` by the engine |
-| Page and surface choreography (scores)    | `src/features/*/motion.tsx`, `src/ui/surface-stage.tsx`         |
-| Motion reference (laws, kit, lab)         | `docs/motion-engine.md`, `/lab/engine`, `/lab/kit` (dev only)   |
-| Theme slots for dock, modal, menu, toast  | `src/config/theme/*.ts`; motion in `src/config/theme/motion.ts` |
+| What                                         | Where                                                                                   |
+| -------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Tokens (colour, type, radius, time)          | `src/app/globals.css`, `@theme`                                                         |
+| Class recipes (`TONE`) and `RADIUS`          | `src/ui/tokens.ts`                                                                      |
+| Layer chrome (`SHELL`, `PRIMARY` …)          | `src/ui/tokens.ts`                                                                      |
+| Surface kit classes (buttons, tiles, fields) | `src/ui/tokens.ts`                                                                      |
+| Shared row hover                             | `src/ui/form.tsx` (`HighlightGroup`)                                                    |
+| Class merging that understands tokens        | `src/ui/cn.ts`                                                                          |
+| Time, curves, springs (the ladder)           | `src/motion/utils.ts` (`step`), `constants.ts` (`POINTS`), `time.ts` (`SPRING`, matter) |
+| The ladder as CSS (`--step-*`, `--curve`)    | `src/motion/color.ts`, written to `:root` by the engine                                 |
+| Page and surface choreography (scores)       | `src/features/*/motion.tsx`, `src/ui/surface.tsx`                                       |
+| Motion reference (laws, kit, lab)            | `docs/motion-engine.md`, `/lab/engine`, `/lab/kit` (dev only)                           |
+| Theme slots for dock, modal, menu, toast     | `src/app/theme.ts`; motion in `src/motion/time.ts`                                      |
 
 ### 1.3 Workflow for any UI change
 
@@ -228,7 +228,7 @@ by its glass, its ring and its blur alone.
 ### 3.6 Time and easing
 
 All time is one geometric ladder, `step(n) = 0.5s × φⁿ`. In TypeScript it is
-`step(n)` from `@/motion/engine`; in CSS it is `--step-n6 … --step-6` (and the
+`step(n)` from `@/motion/utils`; in CSS it is `--step-n6 … --step-6` (and the
 `duration-*` utilities below). A stage multiplies the whole ladder by `φ^tempo`
 (section 6.1), so the ratio between two durations never changes.
 
@@ -311,7 +311,7 @@ Every control answers in the same two beats:
 `reveal` / `settle` moves one colour level at a time and reads as stepping,
 hence the quicker pair there.
 
-Springs (`SPRING` in `src/config/theme/motion.ts`) are the engine's own, turned
+Springs (`SPRING` in `src/motion/time.ts`) are the engine's own, turned
 into stiffness and damping by `springForce`: `press` is the engine's press on
 _light_, one rung quicker than its hover, for a control going down and back;
 `follow` is _ink_ answering a hand, for a highlight sliding after the pointer or
@@ -396,7 +396,7 @@ hover.
 ### 5.2 Layers
 
 The dock, modals, the context menu, toasts and tooltips are cut from one set of
-chrome in `src/config/theme/chrome.ts`.
+chrome in `src/ui/tokens.ts`.
 
 | Name       | Look                                                | For                                |
 | ---------- | --------------------------------------------------- | ---------------------------------- |
@@ -420,13 +420,13 @@ control, a tooltip) leaves over `touch`.
 
 ### 5.3 The surface kit
 
-`src/ui/surface.tsx` holds what goes inside a surface: `surfaceButton`,
+`src/ui/tokens.ts` holds the classes that go inside a surface: `surfaceButton`,
 `surfaceIconButton`, `SURFACE_PRIMARY`, `SURFACE_DANGER`, `SURFACE_FIELD`,
 `surfaceRow`, `SURFACE_TILE` and its parts, `SURFACE_TEXT`, `SURFACE_TITLE`,
-`SURFACE_META`.
+`SURFACE_META`. `src/ui/surface.tsx` holds the stage and its components.
 
 - **Tiles and rows carry no ring.** A tile is `bg-fill`; only a chosen one takes
-  the grade ring (`SURFACE_TILE_LIT`). Rings stay on fields and buttons.
+  the grade ring. Rings stay on fields and buttons.
 - **Text in a tile** is a title over a meta line with no gap (`SURFACE_TEXT`).
 - **Radius inside a tile:** buttons and icon tiles are `rounded-inset`.
 - **A list of rows shares one hover.** `HighlightGroup` and `useHighlight`
@@ -441,7 +441,7 @@ control, a tooltip) leaves over `touch`.
 
 ## 6. Motion
 
-Guffin has one motion engine, `src/motion/engine/`. Every page, dock surface,
+Guffin has one motion engine, `src/motion/`. Every page, dock surface,
 scroll and CSS duration answers to it, so the interface moves like one
 material. The engine standardises _laws_, not movements: a page writes a score
 (who is on stage, what each part is made of, in what order they arrive) and the
@@ -608,7 +608,7 @@ is never faded in. `useShowing` dims the house by φ⁻¹ while a modal stands i
 
 ### 6.8 The kit and the recipes
 
-Build with the kit in `src/motion/engine/kit/` (bound to the page's score by
+Build with the kit in `src/motion/kit.tsx` (bound to the page's score by
 `bindScore`) before writing anything of your own.
 
 | Need                                                       | Use                                                            |
@@ -657,14 +657,14 @@ Rules of use:
 When the engine has no word for what you need, add the word; do not step around
 it.
 
-| Missing           | Add                                            | Where                    |
-| ----------------- | ---------------------------------------------- | ------------------------ |
-| A weight          | A matter                                       | `matter.ts`              |
-| A movement        | An entering or leaving verb (progress to look) | `verbs.ts`               |
-| A curve           | A named cubic in `POINTS`                      | `curve.ts` (CSS follows) |
-| A force on a part | A field                                        | `fields.ts`              |
-| A piece of chrome | A kit component, bound to the score            | `kit/`                   |
-| A new page        | A score, in the feature's `motion.tsx`         | `features/<name>/`       |
+| Missing           | Add                                            | Where                   |
+| ----------------- | ---------------------------------------------- | ----------------------- |
+| A weight          | A matter                                       | `time.ts`               |
+| A movement        | An entering or leaving verb (progress to look) | `time.ts`               |
+| A curve           | A named cubic in `POINTS`                      | `time.ts` (CSS follows) |
+| A force on a part | A field                                        | `forces.ts`             |
+| A piece of chrome | A kit component, bound to the score            | `kit.tsx`               |
+| A new page        | A score, in the feature's `motion.tsx`         | `features/<name>/`      |
 
 Then document it here if it changes a contract, and in `docs/motion-engine.md`
 for the detail. Try it in `/lab/kit` (every kit piece) or `/lab/engine` (tempo,

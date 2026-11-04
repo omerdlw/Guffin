@@ -1,5 +1,5 @@
 import { report } from "@omerdlw/base-framework/utils";
-import { TMDB_IMAGE_BASE_URL } from "@/infrastructure/tmdb/constants";
+import { TMDB_IMAGE_BASE_URL } from "@/lib/tmdb/shared";
 
 const TMDB_IMAGES = new URL(TMDB_IMAGE_BASE_URL);
 

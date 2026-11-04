@@ -1,6 +1,6 @@
 import type { JSX } from "react";
-import { AccountDiaryView } from "@/features/account/server";
-import type { SearchParams } from "@/infrastructure/http/search-params";
+import { AccountDiaryView } from "@/features/profile/view";
+import type { SearchParams } from "@/lib/http";
 
 export default async function AccountDiaryPage({
   params,

@@ -1,8 +1,26 @@
-import type { SearchScope, SearchType } from "./types";
+import { REGISTRY_SOURCES } from "@omerdlw/base-framework/kernel";
+import { USER_MESSAGES } from "@omerdlw/base-framework/utils";
+import type {
+  SearchFailure,
+  SearchFailureCode,
+  SearchScope,
+  SearchType,
+} from "./types";
+
+export const SEARCH_TYPES = [
+  "movies",
+  "people",
+  "users",
+  "lists",
+  "reviews",
+] as const;
 
 export const SEARCH_MIN_QUERY_LENGTH = 2;
+
 export const SEARCH_MAX_QUERY_LENGTH = 100;
+
 export const SEARCH_DEBOUNCE_MS = 250;
+
 export const SEARCH_CACHE_LIMIT = 80;
 
 export const SEARCH_ENDPOINTS: Readonly<Record<SearchType, string>> = {
@@ -66,6 +84,7 @@ export const SEARCH_PER_PAGE: Readonly<Record<SearchType, number>> = {
   reviews: 3,
   users: 3,
 };
+
 export const SEARCH_OVERVIEW: Readonly<Record<SearchType, number>> = {
   lists: 1,
   movies: 4,
@@ -73,6 +92,7 @@ export const SEARCH_OVERVIEW: Readonly<Record<SearchType, number>> = {
   reviews: 1,
   users: 1,
 };
+
 export const SEARCH_OVERVIEW_LEAD: Readonly<Record<SearchType, number>> = {
   lists: 2,
   movies: 4,
@@ -82,6 +102,126 @@ export const SEARCH_OVERVIEW_LEAD: Readonly<Record<SearchType, number>> = {
 };
 
 export const SEARCH_ICON = "solar:magnifer-linear";
+
 export const SEARCH_CLOSE_ICON = "solar:close-bold";
+
 export const SEARCH_ACTION_KEY = "search.open";
+
 export const SEARCH_ACTION_ORDER = -20;
+
+export const MATCH_SCORE = Object.freeze({
+  exact: 1,
+  prefix: 0.85,
+  acronym: 0.82,
+  partialPrefix: 0.8,
+  phrase: 0.6,
+  phraseStart: 0.55,
+  allWords: 0.4,
+  substring: 0.35,
+  coverage: 0.1,
+  strong: 0.85,
+  weak: 0.55,
+});
+
+export const ARTICLE_PATTERN = /^(?:the|a|an) (?=\S)/;
+
+export const ACRONYM_PATTERN = /^[\p{L}\p{N}]{2,8}$/u;
+
+export const SUBTITLE_PATTERN = /\s*(?::|\s[-–—]\s)/;
+
+export const SEQUEL_PATTERN =
+  / (?:(?:vol(?:ume)?|part|chapter) )?(?:\d+|[ivx]+)$/;
+
+export const FRANCHISE_PATTERN = / and .*$/;
+
+export const RENOWN_VOTES = 20_000;
+
+export const RENOWN_WEIGHT = Object.freeze({
+  follows: 1_000,
+  likes: 300,
+  movie: 100,
+  person: 30,
+});
+
+export const TMDB_SEARCH_TYPES: ReadonlySet<SearchType> = new Set([
+  "movies",
+  "people",
+]);
+
+export const DISTANT_MATCH = 0.6;
+
+export const RESULT_POSTER_GRID = "grid grid-cols-4 gap-2.5";
+
+export const RESULT_ROW_LIST = "flex flex-col gap-1";
+
+export const SEARCH_REGISTRATION = {
+  priority: 1000,
+  source: REGISTRY_SOURCES.DYNAMIC,
+} as const;
+
+export const SEARCH_FALLBACK_MESSAGE =
+  "Search is unavailable right now. Please try again in a moment";
+
+export const POSTER_WIDTHS = ["w185"] as const;
+
+export const PROFILE_WIDTHS = ["w185"] as const;
+
+export const REVIEW_RESULT_ROW_POSTER_WIDTHS = ["w185"] as const;
+
+export const STILL_TRANSITION = { duration: 0 };
+
+export const HIGHLIGHT_HALO = 4;
+
+export const CATALOG_PAGES = {
+  "popularity.desc": 5,
+  "vote_count.desc": 25,
+} as const;
+
+export const CATALOG_LIFETIME_MS = 6 * 60 * 60 * 1000;
+
+export const INVALID_QUERY_FAILURE: SearchFailure = {
+  code: "invalid_query",
+  message: "Enter a valid search term",
+};
+
+export const UNAVAILABLE_FAILURE: SearchFailure = {
+  code: "unavailable",
+  message: "Search is unavailable right now. Please try again in a moment",
+};
+
+export const COMMUNITY_CANDIDATES = SEARCH_COMMUNITY_LIMIT * 2;
+
+export const FAILURE_MESSAGES: Record<SearchFailureCode, string> = {
+  aborted: "The search was cancelled",
+  invalid_query: "Enter a valid search term",
+  rate_limited: USER_MESSAGES.rateLimited,
+  unavailable: "Search is unavailable right now. Please try again in a moment",
+};
+
+export const FAME_WEIGHT = 0.5;
+
+export const ORDER_WEIGHT = 0.15;
+
+export const YEAR_BONUS = 0.4;
+
+export const NO_PICTURE_PENALTY = 0.2;
+
+export const CREDIT_MATCH = 0.75;
+
+export const CREDIT_FILMS = 8;
+
+export const STANDOUT_RENOWN = 0.45;
+
+export const STANDOUT_LEAD = 1.5;
+
+export const FAILURE_STATUS: Record<SearchFailureCode, number> = {
+  aborted: 499,
+  invalid_query: 400,
+  rate_limited: 429,
+  unavailable: 503,
+};
+
+export const PUBLIC_CACHE_CONTROL =
+  "public, max-age=60, s-maxage=3600, stale-while-revalidate=86400";
+
+export const PRIVATE_CACHE_CONTROL = "private, max-age=30";

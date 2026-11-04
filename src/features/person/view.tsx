@@ -1,22 +1,132 @@
-import { Suspense, type JSX } from "react";
-import { tmdbImageUrl } from "@/infrastructure/tmdb/images";
-import type { Awards, PersonDetails } from "@/infrastructure/tmdb/types";
-import { DetailAwards, DetailLayout } from "@/features/detail";
-import { getCareer, getFilmography, getTimeline } from "./credits";
-import { getBackdropPath, getBackdropPaths, getGalleryImages } from "./images";
-import { departmentRole, excerptBiography, getSocialLinks } from "./profile";
-import { PersonBackdropHero } from "./components/artwork";
-import { PersonCareer } from "./components/career";
-import { PersonFilmography } from "./components/filmography";
-import { PersonGallery, PersonGalleryWall } from "./components/gallery";
-import { PersonHeader } from "./components/header";
-import { PersonProjection } from "./components/projection";
-import { PersonSidebar } from "./components/sidebar";
-import { PersonStage } from "./components/stage";
-import { PersonTimeline } from "./components/timeline";
-import { PersonViews } from "./components/view-switcher";
+import { type JSX, Suspense } from "react";
+import {
+  DetailAwards,
+  DetailLayout,
+  DetailSidebar,
+  FactNames,
+  FactText,
+} from "@/features/detail/layout";
+import type { Fact } from "@/features/detail/types";
+import { movieHref } from "@/lib/project";
+import {
+  type Awards,
+  type PersonDetails,
+  tmdbImageUrl,
+} from "@/lib/tmdb/shared";
+import { PersonCareer, PersonTimeline } from "./career";
+import {
+  CAREER_MIN_FILMS,
+  PERSON_ALIAS_VISIBLE,
+  PERSON_KNOWN_FOR,
+} from "./constants";
+import {
+  getBackdropPath,
+  getBackdropPaths,
+  getCareer,
+  getFilmography,
+  getGalleryImages,
+  getTimeline,
+} from "./credits";
+import {
+  AgeCount,
+  PersonBackdropHero,
+  PersonHeader,
+  PersonPortrait,
+  PersonProjection,
+  PersonStage,
+} from "./header";
+import {
+  PersonFilmography,
+  PersonGallery,
+  PersonGalleryWall,
+  PersonViewActions,
+  PersonViews,
+} from "./sections";
+import {
+  calculateAge,
+  departmentRole,
+  excerptBiography,
+  formatDate,
+  getSocialLinks,
+} from "./utils";
 
-const CAREER_MIN_FILMS = 3;
+function PersonSidebar({
+  awards,
+  person,
+}: {
+  awards?: Promise<Awards | null>;
+  person: PersonDetails;
+}): JSX.Element {
+  const knownFor = (getFilmography(person)[0]?.credits ?? []).slice(
+    0,
+    PERSON_KNOWN_FOR,
+  );
+  const age = calculateAge(person.birthday, person.deathday);
+  const born = formatDate(person.birthday);
+  const died = formatDate(person.deathday);
+  const place = person.placeOfBirth;
+  const aliases = person.alsoKnownAs;
+
+  const facts: Fact[] = [];
+  if (born) {
+    facts.push({
+      label: "Born",
+      value: (index) => <FactText index={index}>{born}</FactText>,
+    });
+  }
+  if (died) {
+    facts.push({
+      label: "Died",
+      value: (index) => <FactText index={index}>{died}</FactText>,
+    });
+  }
+  if (age !== null) {
+    facts.push({
+      label: died ? "Aged" : "Age",
+      value: (index) => <AgeCount index={index} value={age} />,
+    });
+  }
+  if (place) {
+    facts.push({
+      label: "Birthplace",
+      value: (index) => <FactText index={index}>{place}</FactText>,
+    });
+  }
+  if (aliases.length > 0) {
+    facts.push({
+      label: "Also known as",
+      value: (index) => (
+        <FactNames
+          index={index}
+          max={PERSON_ALIAS_VISIBLE}
+          names={aliases.map((text) => ({ text }))}
+        />
+      ),
+    });
+  }
+  if (knownFor.length > 0) {
+    facts.push({
+      label: "Known for",
+      value: (index) => (
+        <FactNames
+          index={index}
+          max={PERSON_KNOWN_FOR}
+          names={knownFor.map((film) => ({
+            href: movieHref(film.id),
+            text: film.title,
+          }))}
+        />
+      ),
+    });
+  }
+
+  return (
+    <DetailSidebar facts={facts}>
+      <PersonPortrait awards={awards} person={person} />
+      <PersonViewActions />
+    </DetailSidebar>
+  );
+}
 
 export function PersonView({
   awards,

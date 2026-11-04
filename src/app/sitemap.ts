@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { project } from "@/config/project";
+import { project } from "@/lib/project";
 
 const PAGES: readonly [
   path: string,

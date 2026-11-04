@@ -1,10 +1,12 @@
-import { NextResponse } from "next/server";
 import { UserError } from "@omerdlw/base-framework/utils";
+import { NextResponse } from "next/server";
 import { requireUser } from "@/features/auth/server";
-import { apiErrorResponse } from "@/infrastructure/http/api-error";
-import { rateLimitResponse } from "@/infrastructure/security/rate-limiter";
-import { assertSameOrigin } from "@/infrastructure/security/same-origin";
-import { createServerSupabaseClient } from "@/infrastructure/supabase/server";
+import {
+  apiErrorResponse,
+  assertSameOrigin,
+  rateLimitResponse,
+} from "@/lib/security";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 const DONE = { success: true };
 

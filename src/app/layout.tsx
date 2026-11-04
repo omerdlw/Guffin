@@ -1,10 +1,27 @@
-import type { Metadata } from "next";
-import { connection } from "next/server";
 import type { JSX, ReactNode } from "react";
+import type { Metadata } from "next";
+import { Geist } from "next/font/google";
+import localFont from "next/font/local";
+import { connection } from "next/server";
+import { project } from "@/lib/project";
 import "./globals.css";
-import { geist, zuume } from "./fonts";
-import { project } from "@/config/project";
 import { Providers } from "./providers";
+
+const geist = Geist({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-geist",
+});
+
+const zuume = localFont({
+  src: [
+    {
+      path: "./zuume-bold.woff2",
+      style: "normal",
+      weight: "700",
+    },
+  ],
+  variable: "--font-zuume",
+});
 
 export const metadata: Metadata = {
   description: project.description,

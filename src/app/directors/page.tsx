@@ -1,7 +1,8 @@
 import type { JSX } from "react";
 import type { Metadata } from "next";
-import { DirectorsView, getDirectors } from "@/features/spotlights";
-import { shareMetadata } from "@/config/project";
+import { DirectorsView } from "@/features/spotlights/directors";
+import { getDirectors } from "@/features/spotlights/server";
+import { shareMetadata } from "@/lib/project";
 
 export const metadata: Metadata = shareMetadata({
   description:

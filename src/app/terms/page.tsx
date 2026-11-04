@@ -1,6 +1,7 @@
 import type { JSX } from "react";
 import type { Metadata } from "next";
-import { LegalPage, TERMS } from "@/features/legal";
+import { TERMS } from "@/features/legal/constants";
+import { LegalPage } from "@/features/legal/view";
 
 export const metadata: Metadata = {
   alternates: { canonical: TERMS.path },

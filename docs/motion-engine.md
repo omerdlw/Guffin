@@ -2,7 +2,7 @@
 
 > Tasarım sözleşmesi (kurallar, tablolar, kontrol listesi) `DESIGN.md` bölüm 6'dadır. Bu belge motorun ayrıntılı referansıdır.
 
-`src/motion/engine/`: Guffin'in tek motion motoru. Bütün sayfalar, dock yüzeyleri, tekerlek ve stylesheet'teki süreler bu motordan gelir; eski `stage`/`scene`/`scroll` sistemleri silindi. Geçişin nasıl yapıldığı "Sayfalara geçiş" bölümünde.
+`src/motion/`: Guffin'in tek motion motoru. Bütün sayfalar, dock yüzeyleri, tekerlek ve stylesheet'teki süreler bu motordan gelir; eski `stage`/`scene`/`scroll` sistemleri silindi. Geçişin nasıl yapıldığı "Sayfalara geçiş" bölümünde.
 
 ## Temel fikir
 
@@ -30,28 +30,22 @@ const movie = defineScore({
 
 ## Katmanlar
 
-| Dosya       | Sorumluluk                                                                                                                                                                      |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ladder.ts` | Zaman merdiveni: `step(n) = 0.5 · φⁿ`, tempo, `trail` (altın gecikme), `reach` (mesafe merdiveni)                                                                               |
-| `curve.ts`  | Cubic-bezier çözücü ve eğri ailesi (fade, silk, pour, expo, glide, fall)                                                                                                        |
-| `spring.ts` | Kapalı formda çözülen yay: her kare uzunluğunda kesin sonuç verir, yeniden hedeflenince hız korunur                                                                             |
-| `matter.ts` | Madde tablosu: basamak, kütle, sönüm, eğri, varsayılan fiiller                                                                                                                  |
-| `verbs.ts`  | Fiiller: hareketin _şekli_ (ilerleme → görünüm). Süre içermez.                                                                                                                  |
-| `look.ts`   | Görünüm cebiri: her kuvvet bir "gölge" ekler, gölgeler harmanlanıp tek seferde yazılır                                                                                          |
-| `clock.ts`  | Tek saat: her karede okuma, güncelleme ve çizim fazları; boşta durur; topluca yavaşlatılabilir                                                                                  |
-| `value.ts`  | Saatte hareket eden sayı (tween ya da yay); kesilince olduğu yerden, olduğu hızla devam eder                                                                                    |
-| `engine.ts` | Saat ve duyular: scroll, viewport, pointer, reduced motion, layout                                                                                                              |
-| `fields.ts` | Kuvvet alanları: derinlik (parallax, karartma, odak kaybı) ve sürüklenme (imlece eğilme)                                                                                        |
-| `score.ts`  | `defineScore`, `plan` (partisyonun kâğıt üzerindeki zamanlaması)                                                                                                                |
-| `stage.ts`  | Çalışma zamanı: dikkat kuyruğu, yaşam döngüsü, çizim                                                                                                                            |
-| `touch.ts`  | Kuvvet arayüzü ve dokunuş: hover/press yayları, maddeye göre                                                                                                                    |
-| `scroll.ts` | Scroll sürücüsü: tekerlek bir kuvvet, sayfa merdivendeki bir yayla takip eder                                                                                                   |
-| `carry.ts`  | Devir: basılan resim sayfalar arasında uçar, yeni sayfadaki eşine iner                                                                                                          |
-| `tint.ts`   | Oda rengi: resimden ton okuma, OKLCH'de çapraz geçiş, `--tint`                                                                                                                  |
-| `text.ts`   | Metni kelime/satır kardeşlerine bölme                                                                                                                                           |
-| `scene.ts`  | Canvas/WebGL parçası: CSS yerine görünümü çizen sahne                                                                                                                           |
-| `tokens.ts` | Merdivenin CSS değişkenleri, her sahnenin kökünde (`[data-tempo]`) `--tempo` ile yeniden ölçeklenir                                                                             |
-| `react.tsx` | `EngineProvider`, `bindScore` → `StageRoot`, `SurfaceRoot`, `usePart`, `useSection`, `useScene`, `Text`, `useAct`, `useStage`; ayrıca `useTouch`, `useCarry`, `useScrollDriver` |
+| Dosya (`src/motion/`)                                                       | Sorumluluk                                                                                                                                                                                                                                                                                                       |
+| --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `types.ts`, `constants.ts`, `utils.ts`                                      | Motorun bütün tipleri (`Curve`, `Spring`, `Frame`…), sabitleri (`PHI`, `BEAT`, `POINTS`, tüm dosya sabitleri) ve yardımcıları: merdiven (`step`, `haze`, `reach`, `tempo`, `trail`), eğriler (`bezier`, `cubic`), kapalı formda yaylar (`springAt`, `springForce`), `tween`. Nötrdür: sunucudan da içe aktarılır |
+| `time.ts`                                                                   | Madde tablosu, fiiller (`arrival`, `departure`, `response`), eğri/yay tabloları; çerçevenin `motion` ayarı ve `SPRING`, `HAZE_CAP`                                                                                                                                                                               |
+| `engine.ts`                                                                 | Tek saat (okuma, güncelleme, çizim fazları), `Signal` ve `Value`, duyular: scroll, viewport, pointer                                                                                                                                                                                                             |
+| `forces.ts`                                                                 | Kuvvet alanları (derinlik, sürüklenme) ve dokunuş: hover/press yayları, maddeye göre                                                                                                                                                                                                                             |
+| `color.ts`                                                                  | Görünüm cebiri (`look`), oda rengi (`tint`, OKLCH'de çapraz geçiş, `--tint`) ve merdivenin CSS değişkenleri (`tokens`)                                                                                                                                                                                           |
+| `score.ts`                                                                  | `defineScore`, `plan` (partisyonun kâğıt üzerindeki zamanlaması)                                                                                                                                                                                                                                                 |
+| `stage.ts`                                                                  | Çalışma zamanı: dikkat kuyruğu, yaşam döngüsü, çizim                                                                                                                                                                                                                                                             |
+| `scroll.ts`                                                                 | Scroll sürücüsü: tekerlek bir kuvvet, sayfa merdivendeki bir yayla takip eder                                                                                                                                                                                                                                    |
+| `carry.ts`                                                                  | Devir: basılan resim sayfalar arasında uçar, yeni sayfadaki eşine iner                                                                                                                                                                                                                                           |
+| `render.ts`                                                                 | Canvas/WebGL parçası (`mountScene`), GL yardımcıları ve metni kelime/satır kardeşlerine bölme                                                                                                                                                                                                                    |
+| `react.tsx`                                                                 | `EngineProvider`, `bindScore` → `StageRoot`, `SurfaceRoot`, `usePart`, `useSection`, `useScene`, `Text`, `useAct`, `useStage`; ayrıca `useTouch`, `useScrollDriver`, reduced motion                                                                                                                              |
+| `kit.tsx`                                                                   | Kit bileşenleri: `Header`, `Count`, `Swap`, `Deck`, `Room` ve evin ışıkları (`house`)                                                                                                                                                                                                                            |
+| `marquee.tsx`, `expose.tsx`, `wall.tsx`                                     | Kit: kayan şerit, parça açığa çıkarma, galeri duvarı (+ bloom)                                                                                                                                                                                                                                                   |
+| `projection.tsx`, `cursor.tsx`, `tilt.tsx`, `screen.tsx`, `transitions.tsx` | Efektler: projeksiyon, özel imleç, afiş eğilmesi/folyo/mıknatıs, CRT + boşta ekranı + favicon boyası, yerleşim kayması ve film sayfası devri                                                                                                                                                                     |
 
 ## Kanunlar
 
@@ -170,7 +164,7 @@ waiting → arriving → present → leaving → gone
 
 ### 11. Devir: bir resim iki sayfa arasında
 
-- `usePart("poster", { carry: "poster" })` parçayı hem taşınabilir hem de alıcı yapar. Parça olmayan bir kaynak için `useCarry(key)`.
+- `usePart("poster", { carry: "poster" })` parçayı hem taşınabilir hem de alıcı yapar.
 - Elin bastığı kaynak, sayfa ayrılırken iki sayfanın üstündeki bir katmana kopyalanır ve orada bekler.
 - Yeni sayfada aynı anahtarı isteyen parça **son yerinde ama görünmez** yerleştirilir; resim tam oraya uçar, iner ve parça devralır. Uçuş `step(min(rung + tempo − 1, 2))` sürer, `glide` eğrisiyle.
 - Alıcının beat'i iniş bitene kadar bekler; açılışın geri kalanı uçuşla uyumlu oynar.
@@ -200,7 +194,7 @@ Bir CSS değişkeni tanımlandığı elemanda çözülür; `:root`'ta tanımlı 
 
 `globals.css` artık kendi sürelerini yazmaz. `duration-*` yardımcıları, `--touch-in/out`, `--press-*` ve görüntü geçişleri `--step-*` basamaklarını kullanır (`duration-leave` = `--step-n2`, `duration-reveal` = `--step-0`, `duration-linger` = `--step-3` …). Motorda karşılığı olan eğriler (`--ease-fade`, `--ease-out-expo`, `--ease-out-quint`, `--ease-in-out-cubic`) `--curve-*`'e bağlıdır; motorda olmayan dördü (`quart`, `in-cubic`, `cream`, `phosphor`) yerinde kaldı.
 
-Framework'ün kendi hareketleri (dock, bildirimler, modal, sağ tık menüsü) `config/theme/motion.ts` üzerinden aynı merdivendedir: süreler `step(n)`, eğriler `POINTS`, yaylar `springForce(response(…))`. `springForce` motorun yayını (`period`, `damping`, `mass`) motion'ın `stiffness`/`damping`'ine çevirir; `SPRING.follow` (kaydırılan vurgu, segment pili) mürekkebin elle tepkisi, `SPRING.press` ışığın basması. Motorun dışındaki yaylar da aynı yoldan kurulur: afişin eğilmesi (`Tilt`) `springForce({ ...response(MATTER.paper, 0), period: step(1) })`, imlecin butondaki simgeyi çekmesi (`Magnet`) `springForce(response(MATTER.ink, 1))`; elle yazılmış `stiffness`/`damping` kalmadı.
+Framework'ün kendi hareketleri (dock, bildirimler, modal, sağ tık menüsü) `motion/time.ts` ve `motion/utils.ts` üzerinden aynı merdivendedir: süreler `step(n)` (`motion/utils.ts`), eğriler `POINTS` (`motion/constants.ts`), yaylar `springForce(response(…))`. `springForce` motorun yayını (`period`, `damping`, `mass`) motion'ın `stiffness`/`damping`'ine çevirir; `SPRING.follow` (kaydırılan vurgu, segment pili) mürekkebin elle tepkisi, `SPRING.press` ışığın basması. Motorun dışındaki yaylar da aynı yoldan kurulur: afişin eğilmesi (`Tilt`) `springForce({ ...response(MATTER.paper, 0), period: step(1) })`, imlecin butondaki simgeyi çekmesi (`Magnet`) `springForce(response(MATTER.ink, 1))`; elle yazılmış `stiffness`/`damping` kalmadı.
 
 ## Parçanın sözleşmesi
 
@@ -243,15 +237,15 @@ Partisyonun kâğıt üzerindeki zamanlaması da ekranda görünür.
 
 ### Durum
 
-| Sayfa          | Durum       | Not                                                                                 |
-| -------------- | ----------- | ----------------------------------------------------------------------------------- |
-| Terms, Privacy | **Motorda** | `features/legal/motion.tsx`; tempo −1; her bölüm kendi kapsamında (`Section`) gelir |
-| Film, yorumlar | **Motorda** | `features/detail/motion.tsx`; aşağıdaki "Film ve kişi sayfası" notları              |
-| Kişi           | **Motorda** | Film sayfasıyla aynı altyapı (`features/detail`)                                    |
-| Ana sayfa      | **Motorda** | `features/home/motion.tsx`; aşağıdaki "Ana sayfa" notları                           |
-| Hesap          | **Motorda** | `features/account/motion.tsx`; aşağıdaki "Hesap sayfası" notları                    |
-| Salonlar       | **Motorda** | `features/spotlights/motion.tsx`; Oscars, yönetmenler, Top 100                      |
-| Dock yüzeyleri | **Motorda** | `ui/surface-stage.tsx`; aşağıdaki "Dock yüzeyleri" notları                          |
+| Sayfa          | Durum       | Not                                                                               |
+| -------------- | ----------- | --------------------------------------------------------------------------------- |
+| Terms, Privacy | **Motorda** | `features/legal/view.tsx`; tempo −1; her bölüm kendi kapsamında (`Section`) gelir |
+| Film, yorumlar | **Motorda** | `features/detail/motion.tsx`; aşağıdaki "Film ve kişi sayfası" notları            |
+| Kişi           | **Motorda** | Film sayfasıyla aynı altyapı (`features/detail`)                                  |
+| Ana sayfa      | **Motorda** | `features/home/motion.tsx`; aşağıdaki "Ana sayfa" notları                         |
+| Hesap          | **Motorda** | `features/profile/motion.tsx`; aşağıdaki "Hesap sayfası" notları                  |
+| Salonlar       | **Motorda** | `features/spotlights/shell.tsx`; Oscars, yönetmenler, Top 100                     |
+| Dock yüzeyleri | **Motorda** | `ui/surface.tsx`; aşağıdaki "Dock yüzeyleri" notları                              |
 
 `EngineProvider drive` uygulamanın kökünde: token'ları yazar, sayfa geçişlerinde rengi taşır, tekerleği sürer ve favicon'u odanın rengine boyar (`TintedFavicon`). Eski `SmoothScrollProvider`, `src/motion/stage`, `src/motion/scroll` ve `src/motion/scene` silindi.
 
@@ -264,7 +258,7 @@ Partisyonun kâğıt üzerindeki zamanlaması da ekranda görünür.
 
 ### Kit
 
-`src/motion/engine/kit/`, `bindScore`'un döndürdüğü nesnede skorun parça ve bölüm adlarıyla tiplenmiş halde. Her parça aynı kanunlarla çalışır: süresi parçanın maddesinden ve sayfanın temposundan gelir.
+`src/motion/kit.tsx` (ve `marquee.tsx`, `expose.tsx`, `wall.tsx`), `bindScore`'un döndürdüğü nesnede skorun parça ve bölüm adlarıyla tiplenmiş halde. Her parça aynı kanunlarla çalışır: süresi parçanın maddesinden ve sayfanın temposundan gelir.
 
 | Bileşen                      | Ne yapar                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Nasıl cast edilir                                                                                                                 |
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
@@ -310,9 +304,9 @@ Sahne üç yeni fiil kazandı:
 | `Title`, `Words`, `Hairline`, `Line` | `Text`, `wipe`                                                                               |
 | `Cascade`, `Item`, `Beat`            | `Section` + `Part index`                                                                     |
 | `Header`, `Expose`, `Count`, `Swap`  | Kit'teki aynı adlı bileşenler                                                                |
-| `Carousel`                           | `@/ui` `Carousel part="…"`: her slayt bir parça, oklar ilk slayt inince                      |
+| `Carousel`                           | `@/ui/media` `Carousel part="…"`: her slayt bir parça, oklar ilk slayt inince                |
 | `Tile`, `Develop`                    | `door` fiili                                                                                 |
-| `StageAction`                        | `@/ui` `ActionButton` + sayfanın `Part`'ı                                                    |
+| `StageAction`                        | `@/ui/button` `ActionButton` + sayfanın `Part`'ı                                             |
 | `Picture` (`ArtworkPoster`)          | `ArtworkPrint part`: `door` + `Tilt` (eğilme, parlama, folyo)                                |
 | `useRoom().setLead`                  | Sayfanın `grade`'i (film: `useLead`)                                                         |
 | `ViewDeck`                           | `Deck`                                                                                       |
@@ -321,7 +315,7 @@ Sahne üç yeni fiil kazandı:
 | `useShowing` (effects)               | `useShowing` (kit)                                                                           |
 | Carry, grade, favicon tonu           | `carry`, `grade`, `TintedFavicon` (odanın hedef rengi)                                       |
 | `Projection` (WebGL)                 | Olduğu gibi, `plate` bir parçanın içinde (`ready` = `onReady`); `useScene`'e taşınması sonra |
-| `SurfaceScene`, `Cascade` (dock)     | `SurfaceStage`, `SurfacePart`, `SurfaceSwap` (`@/ui`)                                        |
+| `SurfaceScene`, `Cascade` (dock)     | `SurfaceStage`, `SurfacePart`, `SurfaceSwap` (`@/ui/surface`)                                |
 
 Laboratuvar: `/lab/kit` (yalnızca geliştirme). Her kit parçası orada denenebilir.
 
@@ -356,7 +350,7 @@ Not: aynı dikkat kuyruğu, aşağıda sırada bekleyen bölümler varken bir fi
 
 ### Hesap sayfası
 
-Hesap sayfası bir Next layout'udur (`/account/[username]/…`): kahraman, sekmeler ve istatistikler bütün sekmelerde aynı sahnededir. `features/account/motion.tsx` içindeki score:
+Hesap sayfası bir Next layout'udur (`/account/[username]/…`): kahraman, sekmeler ve istatistikler bütün sekmelerde aynı sahnededir. `features/profile/motion.tsx` içindeki score:
 
 - **Açılış:** üyenin arka planı (`plate`, `depth 1`, resim yüklenene kadar bekler), sonra avatar (`develop`) ve isim (`Text`, `mask`), sonra kullanıcı adı / katılma / gizli satırı, en son sekmeler, "followed by" ve istatistik satırı birlikte.
 - **Görünüm:** sekmenin sayfası tek bir `view` parçasıdır, kendi kapsamında (`AccountView`). Açılışın hemen arkasından gelir.
@@ -368,11 +362,11 @@ Motor: `sampleTint` okuyamadığı bir resmi bir kez de kendi adresiyle (`?tint`
 
 ### Salon sayfaları
 
-Oscars, yönetmenler ve Top 100 tek bir küçük score'u paylaşır (`features/spotlights/motion.tsx`, `SalonStage`): karanlık oda (`Room black`, `grade={null}`), WebGL sahnesi (`scene`) ve üstündeki sayfa katmanı (`chrome`: yıl kadranı, yönetmen adları ve filmleri, Top 100 sayacı).
+Oscars, yönetmenler ve Top 100 tek bir küçük score'u paylaşır (`features/spotlights/shell.tsx`, `SalonStage`): karanlık oda (`Room black`, `grade={null}`), WebGL sahnesi (`scene`) ve üstündeki sayfa katmanı (`chrome`: yıl kadranı, yönetmen adları ve filmleri, Top 100 sayacı).
 
 - **Varış sayfanın kendisinindir.** Altının dökülmesi, portrenin basılıp akması, duvarın yanması her sayfanın kendi koreografisidir; ikisi de `enter: "still"` ile hemen oradadır. Motor bunlara yalnızca çıkışı verir: sayfa ayrılırken sahne ve katman `fade` ile söner, route sahne `gone` olunca gelir.
 - `chrome` yalnızca `fade` ile çıkar: üzerine bir `filter` ya da `transform` yazılsaydı içindeki `fixed` paneller ona göre konumlanırdı.
-- **Sahneler motorun saatinde.** Üç renderer da (`Foundry`, `Portrait`, `Wall`) kendi `requestAnimationFrame` döngüsü yerine `mountSpotlight` (`features/spotlights/scene.ts`) ile bir `mountScene` parçası olarak çalışır: kareler motorun saatinden gelir (boşta durur, `clock.rate` ile yavaşlar, kare sınırı motorunki). Renderer'lar kendi zaman tabanlarını (`performance.now()`) korur; yalnızca `dt` motordan gelir. Her renderer kendi piksel sınırını (1.5 / 1.75 / 2) `pixelRatio` olarak verir, böylece motorun boyutlandırması renderer'ınkiyle aynıdır.
+- **Sahneler motorun saatinde.** Üç renderer da (`Foundry`, `Portrait`, `Wall`) kendi `requestAnimationFrame` döngüsü yerine `mountSpotlight` (`features/spotlights/shell.tsx`) ile bir `mountScene` parçası olarak çalışır: kareler motorun saatinden gelir (boşta durur, `clock.rate` ile yavaşlar, kare sınırı motorunki). Renderer'lar kendi zaman tabanlarını (`performance.now()`) korur; yalnızca `dt` motordan gelir. Her renderer kendi piksel sınırını (1.5 / 1.75 / 2) `pixelRatio` olarak verir, böylece motorun boyutlandırması renderer'ınkiyle aynıdır.
 - Motor: `SceneSetup` artık ikinci bir argüman alır, `wake`. Kendi durumu değişen bir renderer (resim yüklendi, yeni yıl seçildi) onunla bir kare daha ister. Bakışı, scroll'u ya da imleci değişmeyen bir sahne başka türlü yeniden çizilmezdi.
 - Sahne, view'in kendi effect'inde kurulur (`useAnyStage` + `mountSpotlight`), `useScene` ile değil: kurulum ref'lere ve `useEffectEvent`'lere dokunuyor, React Compiler da bunu ancak bir effect içinde kabul ediyor. Bu yüzden her view'in dışa aktarılan bileşeni yalnızca `SalonStage`'i kurar; asıl sayfa onun içindedir.
 - Top 100 filme `router.push` ile gidiyordu; bu framework'ün navigasyon bekletmesini atladığı için sayfa ayrılmadan kesiliyordu. Artık `useDockActions().navigate` ile gidiyor.
@@ -382,7 +376,7 @@ Oscars, yönetmenler ve Top 100 tek bir küçük score'u paylaşır (`features/s
 
 Bir dock yüzeyi sayfa değildir: sayfanın önünde, kendi panelinde açılır ve kapanır. Motor bunun için `SurfaceRoot` verir (`bindScore`'un döndürdüğü nesnede, `StageRoot`'un yanında). Açılışını mount olur olmaz oynar; navigasyonu bekletmez, tekerleğin temposunu ve odanın rengini sayfaya bırakır.
 
-Bütün yüzeyler tek bir score'u paylaşır (`ui/surface-stage.tsx`, `@/ui`'dan `SurfaceStage`, `SurfacePart`, `SurfaceSwap`):
+Bütün yüzeyler tek bir score'u paylaşır (`ui/surface.tsx`, `@/ui/surface`'ten `SurfaceStage`, `SurfacePart`, `SurfaceSwap`):
 
 - **Tempo −2.** Yüzey elde tutulan bir araçtır, sahne değil. Bir sayfadan iki basamak hızlı oynar.
 - **Açılış:** dock paneli açılırken kısa bir bekleme (`{ rest: 0 }`, tempo −2'de 0.19 sn, eski `SURFACE_LEAD`), sonra yüzeyin alanları ve satırları (`item`, `paper`) DOM sırasıyla.

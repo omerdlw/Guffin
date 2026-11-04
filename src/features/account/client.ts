@@ -1,5 +1,11 @@
-import { requestJson } from "@/infrastructure/http/client";
-import type { CurrentAccount } from "./types";
+import { requestJson } from "@/lib/http";
+import type {
+  CurrentAccount,
+  FollowCursor,
+  FollowPage,
+  FollowUser,
+  NotificationItem,
+} from "./types";
 
 export async function fetchCurrentAccount(): Promise<CurrentAccount | null> {
   const response = await requestJson<{ account: CurrentAccount | null }>(
@@ -7,16 +13,6 @@ export async function fetchCurrentAccount(): Promise<CurrentAccount | null> {
     { notifyOnUnauthorized: false },
   );
   return response.account;
-}
-
-export interface FollowUser {
-  avatarUrl: string | null;
-  bannerUrl: string | null;
-  createdAt: string;
-  displayName: string;
-  id: string;
-  username: string | null;
-  viewerStatus?: string | null;
 }
 
 export async function getFollowState(
@@ -85,17 +81,6 @@ export async function rejectFollowRequest(requesterId: string): Promise<void> {
   });
 }
 
-export interface FollowCursor {
-  before: string;
-  beforeId: string;
-}
-
-export interface FollowPage {
-  items: FollowUser[];
-  next: FollowCursor | null;
-  total: number | null;
-}
-
 async function fetchFollowPage(
   resource: "followers" | "following",
   userId?: string | null,
@@ -134,26 +119,6 @@ export function fetchFollowing(
   cursor?: FollowCursor | null,
 ): Promise<FollowPage> {
   return fetchFollowPage("following", userId, cursor);
-}
-
-export interface NotificationItem {
-  actor: {
-    avatar_url: string | null;
-    banner_url: string | null;
-    display_name: string | null;
-    id: string;
-    username: string | null;
-  } | null;
-  created_at: string;
-  id: string;
-  payload: {
-    message?: string;
-    subjectTitle?: string;
-    targetTitle?: string;
-    title?: string;
-  } | null;
-  read: boolean;
-  type: string;
 }
 
 export async function fetchNotifications(

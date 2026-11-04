@@ -1,31 +1,85 @@
 "use client";
 
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
-import { fetchSearch } from "./client";
-import { SEARCH_CACHE_LIMIT, SEARCH_DEBOUNCE_MS } from "./constants";
+import { ok, type Result } from "@omerdlw/base-framework/result";
 import {
-  SEARCH_TYPES,
-  type SearchFailure,
-  type SearchResults,
-  type SearchScope,
-  type SearchType,
+  SEARCH_CACHE_LIMIT,
+  SEARCH_DEBOUNCE_MS,
+  SEARCH_ENDPOINTS,
+} from "./constants";
+import type {
+  SearchAnswers,
+  SearchFailure,
+  SearchFailureCode,
+  SearchHits,
+  SearchResponseMap,
+  SearchScope,
+  SearchState,
+  SearchType,
 } from "./types";
-import { isSearchable, normalizeQuery } from "./utils";
+import {
+  answerKey,
+  collectAnswers,
+  isSearchable,
+  isSearchResponse,
+  kindsOf,
+  normalizeQuery,
+  searchError,
+} from "./utils";
 
-function emptyResults(): SearchResults {
-  return { lists: [], movies: [], people: [], reviews: [], users: [] };
+async function fetchSearch<T extends SearchType>(
+  type: T,
+  query: string,
+  signal?: AbortSignal,
+): Promise<Result<SearchResponseMap[T], SearchFailure>> {
+  let response: Response;
+  try {
+    response = await fetch(
+      `${SEARCH_ENDPOINTS[type]}?${new URLSearchParams({ q: query })}`,
+      {
+        headers: { accept: "application/json" },
+        signal,
+      },
+    );
+  } catch {
+    return signal?.aborted
+      ? searchError("aborted")
+      : searchError("unavailable");
+  }
+
+  const body: unknown = await response.json().catch(() => null);
+  const payload = body as {
+    code?: SearchFailureCode;
+    data?: unknown;
+    error?: string;
+  } | null;
+
+  if (response.ok && isSearchResponse(payload?.data)) {
+    const data = payload.data as SearchResponseMap[T];
+    const hits = (data.hits as unknown[]).map((hit) => {
+      const { match, score } = hit as { match?: unknown; score?: unknown };
+      return {
+        ...(hit as object),
+        match: typeof match === "number" ? match : 0,
+        score: typeof score === "number" ? score : 0,
+      };
+    });
+    return ok({ ...data, hits } as SearchResponseMap[T]);
+  }
+
+  const code: SearchFailureCode =
+    response.status === 400
+      ? "invalid_query"
+      : response.status === 429
+        ? "rate_limited"
+        : "unavailable";
+  return searchError(code, payload?.error);
 }
 
-type Hits = SearchResults[SearchType];
-type Answers = ReadonlyMap<string, Hits>;
-
-let answers: Answers = new Map();
+let answers: SearchAnswers = new Map();
 const answerListeners = new Set<() => void>();
 
-const answerKey = (kind: SearchType, query: string) =>
-  `${kind}:${query.toLowerCase()}`;
-
-function remember(kind: SearchType, query: string, hits: Hits) {
+function remember(kind: SearchType, query: string, hits: SearchHits) {
   const next = new Map(answers);
   const key = answerKey(kind, query);
   next.delete(key);
@@ -46,37 +100,6 @@ function subscribeAnswers(listener: () => void) {
 }
 
 const readAnswers = () => answers;
-
-function kindsOf(scope: SearchScope): readonly SearchType[] {
-  return scope === "all" ? SEARCH_TYPES : [scope];
-}
-
-function collect(
-  store: Answers,
-  holes: ReadonlySet<string>,
-  scope: SearchScope,
-  query: string,
-): SearchResults | null {
-  const results = emptyResults();
-  for (const kind of kindsOf(scope)) {
-    const key = answerKey(kind, query);
-    const hits = store.get(key);
-    if (!hits && !holes.has(key)) return null;
-    Object.assign(results, { [kind]: hits ?? [] });
-  }
-  return results;
-}
-
-interface SearchState {
-  clear: () => void;
-  failure: SearchFailure | null;
-  input: string;
-  isLoading: boolean;
-  query: string;
-  results: SearchResults | null;
-  retry: () => void;
-  setInput: (value: string) => void;
-}
 
 export function useSearch(scope: SearchScope): SearchState {
   const store = useSyncExternalStore(
@@ -99,7 +122,7 @@ export function useSearch(scope: SearchScope): SearchState {
 
   const normalized = normalizeQuery(input);
   const query = isSearchable(normalized) ? normalized : "";
-  const fresh = query ? collect(store, holes, scope, query) : null;
+  const fresh = query ? collectAnswers(store, holes, scope, query) : null;
   const known = fresh !== null;
   const failureKey = `${scope}:${query.toLowerCase()}`;
   const failure = failed?.key === failureKey ? failed.failure : null;
@@ -162,7 +185,7 @@ export function useSearch(scope: SearchScope): SearchState {
 
   const stale =
     shown && shown.scope === scope
-      ? collect(store, holes, scope, shown.query)
+      ? collectAnswers(store, holes, scope, shown.query)
       : null;
 
   return {

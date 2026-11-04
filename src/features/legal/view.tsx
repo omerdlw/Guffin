@@ -1,10 +1,141 @@
-import type { JSX } from "react";
-import { LEGAL_LAST_UPDATED } from "./constants";
+"use client";
+
+import { Fragment, type JSX } from "react";
+import Link from "next/link";
+import { bindScore } from "@/motion/react";
+import { defineScore } from "@/motion/score";
+import { useDockLinkClick } from "@/ui/button";
+import { cn } from "@/ui/cn";
+import { PAGE_CLASS, TONE } from "@/ui/tokens";
+import {
+  BASE,
+  LEGAL_CONTACT_EMAIL,
+  LEGAL_LAST_UPDATED,
+  LEGAL_LINKS,
+  LINK,
+  LINK_CLASS,
+  TOKEN,
+} from "./constants";
 import type { LegalDocument } from "./types";
-import { LegalLinks } from "./components/links";
-import { LegalText } from "./components/text";
-import { LegalHeadline, LegalPart, LegalSection, LegalStage } from "./motion";
-import { PAGE_CLASS, TONE } from "@/ui";
+
+const LEGAL = defineScore({
+  tempo: -1,
+  cast: {
+    title: "ink",
+    intro: "light",
+    updated: "light",
+    links: "glass",
+    sheet: { matter: "paper", leave: "fade" },
+    heading: "ink",
+    prose: { matter: "ink", leave: "fade" },
+  },
+  opening: ["title", ["intro", "updated"], "links", "sheet"],
+  sections: { block: ["heading", "prose"] },
+});
+
+const bound = bindScore(LEGAL);
+
+const LegalStage = bound.StageRoot;
+const LegalPart = bound.Part;
+const LegalSection = bound.Section;
+const LegalHeadline = bound.Text;
+
+function LegalLink({
+  active,
+  href,
+  label,
+}: {
+  active: boolean;
+  href: string;
+  label: string;
+}): JSX.Element {
+  const onClick = useDockLinkClick(href);
+  return (
+    <Link
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        BASE,
+        active
+          ? "bg-fill-hover text-ink ring-edge-hover"
+          : "bg-fill text-ink-body ring-edge hover:bg-fill-hover focus-visible:bg-fill-hover hover:text-ink focus-visible:text-ink hover:ring-edge-hover focus-visible:ring-edge-focus",
+      )}
+      href={href}
+      onClick={onClick}
+      prefetch={false}
+    >
+      {label}
+    </Link>
+  );
+}
+
+function LegalLinks({ active }: { active: string | null }): JSX.Element {
+  return (
+    <nav aria-label="Legal" className="flex flex-col gap-2 sm:flex-row">
+      {LEGAL_LINKS.map((link) => (
+        <LegalLink
+          active={active === link.href}
+          href={link.href}
+          key={link.href}
+          label={link.label}
+        />
+      ))}
+      <a
+        className={cn(
+          BASE,
+          "bg-fill text-ink-body ring-edge hover:bg-fill-hover focus-visible:bg-fill-hover hover:text-ink focus-visible:text-ink hover:ring-edge-hover focus-visible:ring-edge-focus",
+        )}
+        href={`mailto:${LEGAL_CONTACT_EMAIL}`}
+      >
+        Contact
+      </a>
+    </nav>
+  );
+}
+
+function AppLink({
+  children,
+  href,
+}: {
+  children: string;
+  href: string;
+}): JSX.Element {
+  const onClick = useDockLinkClick(href);
+  return (
+    <Link className={LINK_CLASS} href={href} onClick={onClick} prefetch={false}>
+      {children}
+    </Link>
+  );
+}
+
+function LegalText({ text }: { text: string }): JSX.Element {
+  return (
+    <>
+      {text.split(TOKEN).map((part, index) => {
+        if (part.startsWith("**") && part.endsWith("**")) {
+          return (
+            <strong className="font-semibold text-ink" key={index}>
+              {part.slice(2, -2)}
+            </strong>
+          );
+        }
+        const link = LINK.exec(part);
+        if (link) {
+          const [, label, href] = link;
+          return href.startsWith("/") ? (
+            <AppLink href={href} key={index}>
+              {label}
+            </AppLink>
+          ) : (
+            <a className={LINK_CLASS} href={href} key={index}>
+              {label}
+            </a>
+          );
+        }
+        return <Fragment key={index}>{part}</Fragment>;
+      })}
+    </>
+  );
+}
 
 export function LegalPage({
   document,

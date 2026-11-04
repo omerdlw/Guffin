@@ -1,24 +1,13 @@
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 
-const FEATURE_INTERNALS = {
-  group: ["@/features/*/**", "!@/features/*/server"],
-  message:
-    "Import a feature through @/features/<name> or @/features/<name>/server.",
-};
-
 function layer(files, banned, message) {
   return {
     files,
     rules: {
       "no-restricted-imports": [
         "error",
-        {
-          patterns: [
-            FEATURE_INTERNALS,
-            ...(banned.length > 0 ? [{ group: banned, message }] : []),
-          ],
-        },
+        { patterns: [{ group: banned, message }] },
       ],
     },
   };
@@ -42,20 +31,19 @@ const eslintConfig = defineConfig([
       ],
     },
   },
-  layer(["src/**/*.{ts,tsx}"], [], ""),
   layer(
-    ["src/features/**/*.{ts,tsx}", "src/config/**/*.{ts,tsx}"],
+    ["src/features/**/*.{ts,tsx}"],
     ["@/app/**"],
-    "Features and config cannot depend on the app layer.",
+    "Features cannot depend on the app layer.",
   ),
   layer(
     [
       "src/ui/**/*.{ts,tsx}",
       "src/motion/**/*.{ts,tsx}",
-      "src/infrastructure/**/*.{ts,tsx}",
+      "src/lib/**/*.{ts,tsx}",
     ],
-    ["@/app/**", "@/features", "@/features/**"],
-    "ui, motion and infrastructure cannot depend on features or the app layer.",
+    ["@/app/**", "@/features/**"],
+    "ui, motion and lib cannot depend on features or the app layer.",
   ),
   {
     files: ["src/**/*.{js,jsx,ts,tsx}"],

@@ -1,56 +1,13 @@
 "use client";
 
-import type { WheelEvent } from "react";
-import { FILL, PRIMARY } from "@/config/theme/chrome";
-
-const BUTTON =
-  "center relative inline-flex cursor-pointer items-center justify-center gap-2 rounded-card type-control font-medium ring-1 ring-inset select-none outline-none focus-visible:ring-edge-focus disabled:pointer-events-none disabled:opacity-50";
-const IDLE = `text-ink-body hover:text-ink focus-visible:text-ink ${FILL}`;
-const LIT =
-  "bg-grade/15 text-grade ring-grade/25 hover:bg-grade/20 focus-visible:bg-grade/20 hover:ring-grade/30 focus-visible:ring-grade/30";
-const ROW_IDLE = "bg-fill text-ink-body hover:text-ink focus-visible:text-ink";
-const ROW_LIT =
-  "bg-grade/15 text-grade ring-1 ring-inset ring-grade/25 hover:ring-grade/30 focus-visible:ring-grade/30";
-
-export const surfaceButton = (lit: boolean) =>
-  `${BUTTON} h-10 ${lit ? LIT : IDLE}`;
-
-export const SURFACE_PRIMARY = `${BUTTON} h-10 px-4 ${PRIMARY}`;
-
-export const SURFACE_DANGER = `${BUTTON} h-10 px-4 bg-danger/15 text-danger ring-danger/25 hover:bg-danger/20 focus-visible:bg-danger/20 hover:ring-danger/30 focus-visible:ring-danger/30`;
-
-export const surfaceIconButton = (lit: boolean) =>
-  `${BUTTON} size-10 shrink-0 p-0 ${lit ? LIT : IDLE}`;
-
-export const SURFACE_STACK = "flex w-full flex-col gap-2.5";
-
-const TILE_SHAPE = "flex min-w-0 items-center gap-3 rounded-card p-1.5";
-export const SURFACE_TILE = `${TILE_SHAPE} bg-fill`;
-export const SURFACE_TILE_LIT = "bg-grade/15 ring-1 ring-inset ring-grade/25";
-export const SURFACE_TILE_HOVER =
-  "hover:bg-fill-hover focus-visible:bg-fill-hover";
-export const SURFACE_TILE_INNER = "rounded-inset";
-export const SURFACE_TILE_END = "pr-3.5";
-
-export const SURFACE_POSTER = "h-[60px] w-10 shrink-0 overflow-hidden";
-
-export const SURFACE_TEXT =
-  "flex min-w-0 flex-1 flex-col justify-center text-left";
-export const SURFACE_TITLE = "truncate type-body font-semibold text-ink";
-export const SURFACE_META = "truncate type-meta text-ink-muted";
-
-export const surfaceRow = (lit: boolean) =>
-  `group relative isolate w-full cursor-pointer ${TILE_SHAPE} ${SURFACE_TILE_END} select-none outline-none disabled:cursor-wait ${lit ? ROW_LIT : ROW_IDLE}`;
-
-export const SURFACE_PANEL = "rounded-card bg-fill";
-
-export const SURFACE_CHECK_ON = "bg-grade text-black ring-grade";
-
-export const SURFACE_FIELD =
-  "rounded-card bg-fill text-ink ring-1 ring-edge ring-inset outline-none placeholder:text-ink-muted hover:bg-fill-hover focus:bg-fill-hover focus:ring-edge-focus";
-
-export const SURFACE_SCROLL =
-  "overflow-y-auto overscroll-contain rounded-card [clip-path:inset(0_round_var(--radius-card))] scrollbar-none";
+import { type ReactNode, useRef, type WheelEvent } from "react";
+import { motion, useReducedMotion } from "motion/react";
+import { POINTS } from "@/motion/constants";
+import { bindScore } from "@/motion/react";
+import { defineScore } from "@/motion/score";
+import { step, tween } from "@/motion/utils";
+import { cn } from "./cn";
+import { SURFACE_PANEL, SURFACE_SCROLL } from "./tokens";
 
 export function scrollWithin(event: WheelEvent<HTMLElement>) {
   const box = event.currentTarget;
@@ -80,5 +37,63 @@ export function SurfaceProse({ text }: { text: string }) {
         ))}
       </div>
     </div>
+  );
+}
+
+const SURFACE = defineScore({
+  tempo: -3,
+  cast: {
+    item: "paper",
+    row: "paper",
+    note: "glass",
+  },
+  opening: [{ rest: 0 }, ["item", "note"]],
+  sections: {
+    items: [["item", "note"]],
+    rows: [["row", "note"]],
+  },
+});
+
+const bound = bindScore(SURFACE);
+
+const SurfaceRoot = bound.SurfaceRoot;
+export const SurfacePart = bound.Part;
+export const SurfaceSwap = bound.Swap;
+
+export function SurfaceStage({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <SurfaceRoot>
+      <div className={cn("ui-scene w-full", className)} data-cinematic="">
+        {children}
+      </div>
+    </SurfaceRoot>
+  );
+}
+
+const UNFOLD = tween(step(-0.5), POINTS.fade);
+
+export function Unfold({ children }: { children: ReactNode }) {
+  const reduced = useReducedMotion();
+  const box = useRef<HTMLDivElement>(null);
+
+  return (
+    <motion.div
+      animate={{ height: "auto" }}
+      initial={{ height: 0 }}
+      onAnimationComplete={() => {
+        if (box.current) box.current.style.overflow = "visible";
+      }}
+      ref={box}
+      style={{ overflow: "clip" }}
+      transition={reduced ? { duration: 0 } : UNFOLD}
+    >
+      {children}
+    </motion.div>
   );
 }

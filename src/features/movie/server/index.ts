@@ -1,1 +1,0 @@
-export { MoviePageContent } from "../view";

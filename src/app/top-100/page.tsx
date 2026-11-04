@@ -1,7 +1,8 @@
 import type { JSX } from "react";
 import type { Metadata } from "next";
-import { WallView, getCanon } from "@/features/spotlights";
-import { shareMetadata } from "@/config/project";
+import { getCanon } from "@/features/spotlights/server";
+import { WallView } from "@/features/spotlights/top-100";
+import { shareMetadata } from "@/lib/project";
 
 export const metadata: Metadata = shareMetadata({
   description: "The IMDb Top 100, hung on one wall in the dark.",

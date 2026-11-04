@@ -1,12 +1,17 @@
 import type { JSX } from "react";
-import { SIDEBAR_FACTS_CLASS } from "@/features/detail";
-import { AFTER_TAGLINE, TAGLINE_TYPE } from "./styles";
+import { SIDEBAR_FACTS_CLASS } from "@/features/detail/constants";
+import { BackdropHeroSkeleton } from "@/ui/media";
+import {
+  CarouselSkeleton,
+  SectionHeaderSkeleton,
+  SkeletonBlock,
+  SkeletonLines,
+  TabsSkeleton,
+} from "@/ui/skeleton";
 import {
   ASIDE_CLASS,
-  BackdropHeroSkeleton,
   CAROUSEL_ITEM,
   CAROUSEL_WIDE_ITEM,
-  CarouselSkeleton,
   COLUMNS_CLASS,
   CONTAINER_CLASS,
   FACT_ROW_TYPE,
@@ -19,25 +24,14 @@ import {
   PROSE_BOX,
   PROSE_TYPE,
   RULE_GAP,
-  SectionHeaderSkeleton,
   SIDEBAR_CLASS,
-  SkeletonBlock,
-  SkeletonLines,
-  TabsSkeleton,
-} from "@/ui";
-
-const FACT_WIDTHS = [
-  ["3.5rem", "7rem"],
-  ["2.5rem", "9rem"],
-  ["4.5rem", "6.5rem"],
-  ["3.5rem", "5.5rem"],
-  ["4.5rem", "7.5rem"],
-  ["3rem", "1.25rem"],
-  ["4rem", "3.5rem"],
-  ["3.25rem", "4.5rem"],
-  ["3.5rem", "3rem"],
-  ["4rem", "4.5rem"],
-] as const;
+} from "@/ui/tokens";
+import {
+  AFTER_TAGLINE,
+  SKELETON_FACT_WIDTHS,
+  SKELETON_REVIEW_LINES,
+  TAGLINE_TYPE,
+} from "./constants";
 
 function Sidebar(): JSX.Element {
   return (
@@ -62,7 +56,7 @@ function Sidebar(): JSX.Element {
 
       <div className={SIDEBAR_FACTS_CLASS}>
         <div className="flex flex-col sm:max-lg:flex-1">
-          {FACT_WIDTHS.map(([label, value], index) => (
+          {SKELETON_FACT_WIDTHS.map(([label, value], index) => (
             <div
               className="group/row relative flex py-3 first:pt-0 last:pb-0 sm:max-lg:grow-2 sm:max-lg:items-center sm:max-lg:first:grow sm:max-lg:first:items-start sm:max-lg:last:grow sm:max-lg:last:items-end"
               key={index}
@@ -165,12 +159,6 @@ function Stills({
   );
 }
 
-const REVIEW_LINES = [
-  ["100%", "100%", "38%"],
-  ["100%", "72%"],
-  ["100%", "100%", "100%", "54%"],
-] as const;
-
 function Reviews(): JSX.Element {
   return (
     <section className="flex w-full flex-col">
@@ -187,7 +175,7 @@ function Reviews(): JSX.Element {
         <SkeletonBlock className="h-8 w-44 rounded-full" />
       </div>
       <div className="flex flex-col">
-        {REVIEW_LINES.map((lines, index) => (
+        {SKELETON_REVIEW_LINES.map((lines, index) => (
           <div className="relative flex py-6 first:pt-0 last:pb-0" key={index}>
             <div className="flex w-full flex-col gap-3">
               <div className="flex items-center gap-3.5">
@@ -202,7 +190,7 @@ function Reviews(): JSX.Element {
               </div>
               <SkeletonLines className="type-copy leading-7" widths={lines} />
             </div>
-            {index < REVIEW_LINES.length - 1 ? (
+            {index < SKELETON_REVIEW_LINES.length - 1 ? (
               <SkeletonBlock className="absolute inset-x-0 bottom-0 h-px" />
             ) : null}
           </div>

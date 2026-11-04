@@ -33,3 +33,24 @@ export interface MutualFollowers {
 
 export type SocialResult<T extends object> =
   ({ success: true } & T) | { error: string; success: false };
+
+export interface MovieProofRow {
+  account_id: string;
+  avatar_url: string | null;
+  display_name: string | null;
+  liked: boolean;
+  rating: number | string | null;
+  reviewed: boolean;
+  total: number | string;
+  username: string;
+  watched: boolean;
+  watchlisted: boolean;
+}
+
+export type ProofTab = "all" | "watched" | "liked" | "watchlist" | "reviews";
+
+export interface SocialProofSurfaceData {
+  movieId: number;
+  proof: MovieSocialProof;
+  title: string;
+}

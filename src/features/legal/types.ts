@@ -2,7 +2,7 @@ type LegalBlock =
   | { kind: "paragraph"; text: string }
   | { kind: "list"; items: readonly string[] };
 
-export interface LegalSection {
+interface LegalSection {
   blocks: readonly LegalBlock[];
   title: string;
 }

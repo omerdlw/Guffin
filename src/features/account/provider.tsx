@@ -2,17 +2,59 @@
 
 import {
   createContext,
+  type ReactNode,
   use,
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
-  type ReactNode,
 } from "react";
-import { useAuth } from "@/features/auth";
-import { fetchCurrentAccount } from "./client";
-import { INITIAL_ACCOUNT_STATE } from "./constants";
-import type { AccountContextValue, AccountState } from "./types";
+import { globalEvents } from "@omerdlw/base-framework/events";
+import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
+import { REGISTRY_SOURCES } from "@omerdlw/base-framework/kernel";
+import {
+  useDockActions,
+  useDockContextActions,
+  useDockRegistration,
+  useDockSelector,
+} from "@omerdlw/base-framework/modules/dock";
+import { getCurrentPath, report } from "@omerdlw/base-framework/utils";
+import { usePathname, useRouter } from "next/navigation";
+import { useAuth } from "@/features/auth/provider";
+import { createSignInSurfaceEntry } from "@/features/auth/sign-in";
+import { isSupabaseConfigured } from "@/lib/env";
+import { accountHref } from "@/lib/project";
+import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
+import {
+  fetchCurrentAccount,
+  fetchInboxCount,
+  fetchUnreadCount,
+} from "./client";
+import {
+  ACCOUNT_ENTRY_PATH,
+  DEFAULT_ACCOUNT_ICON,
+  INBOX_TYPES,
+  INITIAL_ACCOUNT_STATE,
+  NOTIFICATIONS_ACTION_KEY,
+  NOTIFICATIONS_ACTION_ORDER,
+  NOTIFICATIONS_ICON,
+  NOTIFICATIONS_TITLE,
+  REALTIME_DEBOUNCE_MS,
+  SIGN_OUT_ACTION_KEY,
+  SIGN_OUT_ACTION_ORDER,
+  SIGN_OUT_REDIRECT_DELAY_MS,
+  SOCIAL_EVENTS,
+} from "./constants";
+import {
+  AccountInboxAction,
+  AccountNotificationsSurface,
+  createAccountNotificationsSurfaceEntry,
+} from "./notifications";
+import { createAccountSetupSurfaceEntry } from "./setup";
+import { createAccountSocialSurfaceEntry } from "./social";
+import type { AccountContextValue, AccountState, TableRow } from "./types";
+import { changedRow, succeeded } from "./utils";
 
 const AccountContext = createContext<AccountContextValue | null>(null);
 
@@ -51,4 +93,273 @@ export function useAccount(): AccountContextValue {
     throw new Error("useAccount must be used inside AccountProvider");
   }
   return context;
+}
+
+function useInboxCount(enabled: boolean): number {
+  const [count, setCount] = useState(0);
+
+  const load = useCallback(() => {
+    if (enabled) void fetchInboxCount().then(setCount, () => null);
+  }, [enabled]);
+
+  useEffect(load, [load]);
+  useGlobalEvent(SOCIAL_EVENTS.INBOX_CHANGE, load, { debounceMs: 150 });
+
+  return enabled ? count : 0;
+}
+
+function AccountDockRegistration(): null {
+  const auth = useAuth();
+  const { account } = useAccount();
+  const pathname = usePathname();
+  const router = useRouter();
+  const { openSurface } = useDockActions();
+  const prompted = useRef<string | null>(null);
+
+  const signedIn = auth.isAuthenticated;
+  const ownPath = account?.username
+    ? accountHref(account.username)
+    : ACCOUNT_ENTRY_PATH;
+  const ownView = pathname === ACCOUNT_ENTRY_PATH || pathname === ownPath;
+  const inboxCount = useInboxCount(signedIn && Boolean(account?.isPrivate));
+
+  const openInbox = useCallback(() => {
+    if (!account) return;
+    void openSurface(
+      createAccountSocialSurfaceEntry({
+        canManageRequests: true,
+        displayName: account.displayName,
+        tab: "inbox",
+        userId: account.id,
+        username: account.username,
+      }),
+    );
+  }, [account, openSurface]);
+
+  const dockConfig = useMemo(
+    () => ({
+      action:
+        signedIn && ownView && inboxCount > 0 ? (
+          <AccountInboxAction count={inboxCount} onOpen={openInbox} />
+        ) : null,
+      bannerPosition: (signedIn && account?.bannerPosition) || null,
+      bannerUrl: (signedIn && account?.bannerUrl) || null,
+      description:
+        (signedIn && account?.username && `@${account.username}`) ||
+        "Manage your account",
+      icon: (signedIn && account?.avatarUrl) || DEFAULT_ACCOUNT_ICON,
+      keepWhenDescendant: (activePath?: unknown) =>
+        typeof activePath === "string" &&
+        activePath.startsWith(ACCOUNT_ENTRY_PATH) &&
+        activePath !== ACCOUNT_ENTRY_PATH &&
+        activePath !== ownPath,
+      path: ACCOUNT_ENTRY_PATH,
+      targetPath: ownPath,
+      title: (signedIn && account?.displayName) || "Account",
+    }),
+    [account, inboxCount, openInbox, ownPath, ownView, signedIn],
+  );
+
+  useDockRegistration(dockConfig, {
+    priority: 200,
+    source: REGISTRY_SOURCES.DYNAMIC,
+  });
+
+  useEffect(() => {
+    if (signedIn || pathname !== ACCOUNT_ENTRY_PATH) {
+      prompted.current = null;
+      return;
+    }
+    if (!auth.isReady || prompted.current === pathname) return;
+
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled || prompted.current === pathname) return;
+      prompted.current = pathname;
+      void openSurface(
+        createSignInSurfaceEntry({ next: getCurrentPath() }),
+      ).then((result) => {
+        if (cancelled) return;
+        if (
+          !succeeded(result) &&
+          window.location.pathname === ACCOUNT_ENTRY_PATH
+        ) {
+          router.replace("/");
+        }
+        prompted.current = null;
+      });
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [auth.isReady, openSurface, pathname, router, signedIn]);
+
+  return null;
+}
+
+function AccountSetupPrompt(): null {
+  const auth = useAuth();
+  const { openSurface } = useDockActions();
+  const prompted = useRef(false);
+
+  useEffect(() => {
+    if (!auth.isReady || !auth.isAuthenticated || prompted.current) return;
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("setup") !== "account") return;
+
+    prompted.current = true;
+    url.searchParams.delete("setup");
+    url.searchParams.delete("next");
+    window.history.replaceState(null, "", url.toString());
+    queueMicrotask(() => void openSurface(createAccountSetupSurfaceEntry()));
+  }, [auth.isAuthenticated, auth.isReady, openSurface]);
+
+  return null;
+}
+
+function AccountDockActions(): null {
+  const auth = useAuth();
+  const router = useRouter();
+  const { closeSurface, openSurface } = useDockActions();
+  const notificationsOpen = useDockSelector(
+    (state) =>
+      state.activeSurfaceEntry?.component === AccountNotificationsSurface,
+  );
+  const [unreadCount, setUnreadCount] = useState(0);
+  const signedIn = auth.isReady && auth.isAuthenticated;
+
+  const loadUnread = useCallback(() => {
+    if (auth.isAuthenticated) {
+      void fetchUnreadCount().then(setUnreadCount, () => null);
+    }
+  }, [auth.isAuthenticated]);
+
+  useEffect(loadUnread, [loadUnread]);
+  useGlobalEvent(SOCIAL_EVENTS.NOTIFICATION_CHANGE, loadUnread, {
+    debounceMs: 150,
+  });
+
+  const toggleNotifications = useCallback(
+    (event?: { preventDefault(): void; stopPropagation(): void }) => {
+      event?.preventDefault();
+      event?.stopPropagation();
+      if (notificationsOpen) {
+        closeSurface();
+        return;
+      }
+      void openSurface(createAccountNotificationsSurfaceEntry());
+    },
+    [closeSurface, notificationsOpen, openSurface],
+  );
+
+  const signOut = useCallback(async () => {
+    await auth.signOut("local");
+    window.setTimeout(() => router.replace("/"), SIGN_OUT_REDIRECT_DELAY_MS);
+  }, [auth, router]);
+
+  const actions = useMemo(
+    () => [
+      {
+        badge:
+          unreadCount > 0
+            ? unreadCount > 99
+              ? "99+"
+              : `${unreadCount}`
+            : null,
+        icon: NOTIFICATIONS_ICON,
+        key: NOTIFICATIONS_ACTION_KEY,
+        onClick: toggleNotifications,
+        order: NOTIFICATIONS_ACTION_ORDER,
+        tooltip: NOTIFICATIONS_TITLE,
+        visible: signedIn,
+      },
+      {
+        icon: "solar:logout-2-bold",
+        key: SIGN_OUT_ACTION_KEY,
+        onClick: () => void signOut(),
+        order: SIGN_OUT_ACTION_ORDER,
+        tooltip: "Exit",
+        visible: signedIn,
+      },
+    ],
+    [signOut, signedIn, toggleNotifications, unreadCount],
+  );
+
+  useDockContextActions(actions);
+
+  return null;
+}
+
+export function AccountGuard() {
+  return (
+    <>
+      <AccountDockRegistration />
+      <AccountSetupPrompt />
+      <AccountDockActions />
+    </>
+  );
+}
+
+export function SocialRealtimeSync(): null {
+  const auth = useAuth();
+  const userId = auth.user?.id ?? null;
+  const accessToken = auth.session?.access_token ?? null;
+
+  useEffect(() => {
+    if (!isSupabaseConfigured() || !auth.isAuthenticated || !userId) return;
+
+    const supabase = createBrowserSupabaseClient();
+    const refreshInbox = () =>
+      globalEvents.emitDebounced(
+        SOCIAL_EVENTS.INBOX_CHANGE,
+        undefined,
+        REALTIME_DEBOUNCE_MS,
+      );
+
+    try {
+      if (accessToken) void supabase.realtime.setAuth(accessToken);
+      const channel = supabase
+        .channel(`social:user:${userId}`)
+        .on<TableRow<"notifications">>(
+          "postgres_changes",
+          {
+            event: "*",
+            filter: `user_id=eq.${userId}`,
+            schema: "public",
+            table: "notifications",
+          },
+          (payload) => {
+            globalEvents.emitDebounced(
+              SOCIAL_EVENTS.NOTIFICATION_CHANGE,
+              undefined,
+              REALTIME_DEBOUNCE_MS,
+            );
+            const type = changedRow(payload).type;
+            if (type && INBOX_TYPES.has(type)) refreshInbox();
+          },
+        )
+        .on<TableRow<"account_follows">>(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "account_follows" },
+          (payload) => {
+            const { follower_id, following_id, status } = changedRow(payload);
+            if (following_id === userId) refreshInbox();
+            if (following_id !== userId && follower_id !== userId) return;
+            globalEvents.emit(SOCIAL_EVENTS.FOLLOW_CHANGE, {
+              followerId: follower_id ?? null,
+              followingId: following_id ?? null,
+              status: payload.eventType === "DELETE" ? null : (status ?? null),
+            });
+          },
+        )
+        .subscribe();
+
+      return () => void supabase.removeChannel(channel);
+    } catch (error) {
+      report("Social realtime init", error, "warn");
+    }
+  }, [accessToken, auth.isAuthenticated, userId]);
+
+  return null;
 }

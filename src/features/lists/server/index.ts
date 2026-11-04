@@ -1,1 +1,0 @@
-export { getMoviePopularLists } from "./popular";

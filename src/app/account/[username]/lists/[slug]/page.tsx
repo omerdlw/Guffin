@@ -1,6 +1,6 @@
 import type { JSX } from "react";
-import { AccountListView } from "@/features/account/server";
-import type { SearchParams } from "@/infrastructure/http/search-params";
+import { AccountListView } from "@/features/profile/view";
+import type { SearchParams } from "@/lib/http";
 
 export default async function AccountListPage({
   params,

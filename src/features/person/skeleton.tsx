@@ -1,13 +1,17 @@
 import type { JSX } from "react";
-import { SIDEBAR_FACTS_CLASS } from "@/features/detail";
-import { FILMOGRAPHY_GRID_CLASS, LINKS_CLASS } from "./styles";
-import { PERSON_FILMOGRAPHY_PREVIEW } from "./constants";
+import { SIDEBAR_FACTS_CLASS } from "@/features/detail/constants";
+import { BackdropHeroSkeleton } from "@/ui/media";
+import {
+  CarouselSkeleton,
+  SectionHeaderSkeleton,
+  SkeletonBlock,
+  SkeletonLines,
+  TabsSkeleton,
+} from "@/ui/skeleton";
 import {
   ASIDE_CLASS,
-  BackdropHeroSkeleton,
   bodyClass,
   CAROUSEL_ITEM,
-  CarouselSkeleton,
   CONTAINER_CLASS,
   FACT_ROW_TYPE,
   HEADER_CLASS,
@@ -18,21 +22,16 @@ import {
   PROSE_BOX,
   PROSE_TYPE,
   RULE_GAP,
-  SectionHeaderSkeleton,
   SIDEBAR_CLASS,
-  SkeletonBlock,
-  SkeletonLines,
-  TabsSkeleton,
   TONE,
-} from "@/ui";
-
-const FACT_WIDTHS = [
-  ["2.5rem", "8rem"],
-  ["2rem", "1.25rem"],
-  ["4.5rem", "9rem"],
-  ["5.5rem", "6.5rem"],
-  ["4.5rem", "10rem"],
-] as const;
+} from "@/ui/tokens";
+import {
+  FILMOGRAPHY_GRID_CLASS,
+  PERSON_FILMOGRAPHY_PREVIEW,
+  PERSON_LINKS_CLASS,
+  SKELETON_BAR_COUNT,
+  SKELETON_FACT_WIDTHS,
+} from "./constants";
 
 function Sidebar(): JSX.Element {
   return (
@@ -49,7 +48,7 @@ function Sidebar(): JSX.Element {
 
       <div className={SIDEBAR_FACTS_CLASS}>
         <div className="flex flex-col">
-          {FACT_WIDTHS.map(([label, value], index) => (
+          {SKELETON_FACT_WIDTHS.map(([label, value], index) => (
             <div
               className="group/row relative py-3 first:pt-0 last:pb-0"
               key={index}
@@ -75,8 +74,6 @@ function Sidebar(): JSX.Element {
   );
 }
 
-const BAR_COUNT = 24;
-
 function Career(): JSX.Element {
   return (
     <section className="flex w-full flex-col">
@@ -99,7 +96,7 @@ function Career(): JSX.Element {
           </div>
         </div>
         <div className="relative flex h-40 items-end gap-[3px] sm:h-48">
-          {Array.from({ length: BAR_COUNT }, (_, index) => (
+          {Array.from({ length: SKELETON_BAR_COUNT }, (_, index) => (
             <SkeletonBlock
               className="min-w-[3px] max-w-7 flex-1 rounded-t-mark"
               key={index}
@@ -109,7 +106,7 @@ function Career(): JSX.Element {
           <SkeletonBlock className="absolute inset-x-0 bottom-0 h-px" />
         </div>
         <div className="-mt-3 flex h-4 gap-[3px]">
-          {Array.from({ length: BAR_COUNT }, (_, index) => (
+          {Array.from({ length: SKELETON_BAR_COUNT }, (_, index) => (
             <div
               className="relative flex min-w-[3px] max-w-7 flex-1 items-center justify-center"
               key={index}
@@ -196,7 +193,7 @@ export function PersonSkeleton(): JSX.Element {
                 widths={["4.5rem"]}
               />
               <SkeletonBlock className="h-px min-w-6 flex-1" />
-              <div className={LINKS_CLASS}>
+              <div className={PERSON_LINKS_CLASS}>
                 {Array.from({ length: 4 }, (_, index) => (
                   <div className="center size-9" key={index}>
                     <SkeletonBlock className="size-5 rounded-full" />

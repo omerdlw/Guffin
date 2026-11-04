@@ -1,6 +1,6 @@
 import type { JSX } from "react";
-import { AccountMediaView } from "@/features/account/server";
-import type { SearchParams } from "@/infrastructure/http/search-params";
+import { AccountMediaView } from "@/features/profile/view";
+import type { SearchParams } from "@/lib/http";
 
 export default async function AccountLikesPage({
   params,

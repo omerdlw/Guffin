@@ -2,7 +2,7 @@
 
 import type { JSX } from "react";
 import { USER_MESSAGES } from "@omerdlw/base-framework/utils";
-import { RouteError } from "@/ui";
+import { RouteError } from "@/ui/feedback";
 
 export default function AccountError(props: {
   error: Error & { digest?: string };

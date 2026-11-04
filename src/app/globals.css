@@ -368,9 +368,6 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
     img.cine-zoom {
     scale: 1.04;
   }
-  /* A cinematic page's pictures already carry a transition of their own
-     (`img[data-state]`) that has no `filter` in it, so it has to be listed
-     here, on every page a card can be on: otherwise the blur below snaps. */
   :is([data-cinematic], .ui-motion, .ui-scene) .cine-card img.cine-zoom {
     transition:
       opacity var(--step-2) var(--ease-fade),
@@ -378,9 +375,6 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
       scale var(--step-3) var(--ease-out-cream),
       filter var(--step-2) var(--ease-fade);
   }
-  /* Rack focus: while one card in a row is pointed at, its neighbours fall
-     out of focus, so the eye is handed to the one that is lit. The focus
-     is pulled over the length of a rung and given back the same way. */
   :is([data-cinematic], .ui-motion, .ui-scene)
     [data-rack]:has(.cine-card:is(:hover, :focus-visible))
     .cine-card:not(:is(:hover, :focus-visible))
@@ -388,8 +382,6 @@ html.reticle *:not([data-reticle-off], [data-reticle-off] *) {
     filter: blur(var(--haze-2));
   }
 
-  /* The foot of a cast card goes out of focus (`CastCard`): each layer blurs
-     what is behind it, through a mask that overlaps its neighbours. */
   .cast-blur {
     -webkit-backdrop-filter: blur(var(--blur));
     backdrop-filter: blur(var(--blur));

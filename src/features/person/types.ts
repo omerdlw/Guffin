@@ -1,3 +1,6 @@
+import type { PersonCastCredit, PersonCrewCredit } from "@/lib/tmdb/shared";
+import type { MediaCardAspect } from "@/ui/media";
+
 export interface FilmographyCredit {
   id: number;
   key: string;
@@ -56,4 +59,38 @@ export interface Career {
 export interface AwardTotals {
   nominations: number;
   wins: number;
+}
+
+export type SourceCredit = PersonCastCredit | PersonCrewCredit;
+
+export interface CareerFilm {
+  id: number;
+  popularity: number;
+  title: string;
+  votes: number;
+  year: number;
+}
+
+export interface PersonViewState {
+  awards: AwardTotals | null;
+  focusYear: number | null;
+  hasTimeline: boolean;
+  openTimeline: (year: number) => void;
+  toggle: (view: Exclude<PersonViewKey, "main">) => void;
+  view: PersonViewKey;
+}
+
+export type GalleryTab = "portraits" | "backdrops";
+
+export interface GalleryView {
+  aspect: MediaCardAspect;
+  item: string;
+  label: string;
+  noun: string;
+  sizes: string;
+}
+
+export interface PersonBioData {
+  biography: string;
+  name: string;
 }

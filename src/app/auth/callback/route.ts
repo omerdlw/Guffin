@@ -1,6 +1,6 @@
-import { NextResponse, type NextRequest } from "next/server";
-import { createServerSupabaseClient } from "@/infrastructure/supabase/server";
-import { sanitizeNextPath } from "@/features/auth/server";
+import { type NextRequest, NextResponse } from "next/server";
+import { sanitizeNextPath } from "@/features/auth/utils";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);

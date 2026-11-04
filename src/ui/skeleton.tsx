@@ -1,5 +1,5 @@
 import type { CSSProperties, JSX, ReactNode } from "react";
-import { cn } from "@/ui/cn";
+import { cn } from "./cn";
 
 export function SkeletonBlock({
   className,

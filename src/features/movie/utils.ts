@@ -1,40 +1,41 @@
-import type {
-  MovieDetails,
-  MovieImage,
-  MovieImages,
-} from "@/infrastructure/tmdb/types";
-import { tmdbImageUrl } from "@/infrastructure/tmdb/images";
+import type { CSSProperties } from "react";
+import type { FactName } from "@/features/detail/types";
+import { personHref } from "@/lib/project";
 import {
+  type MovieDetails,
+  type MovieImage,
+  type MovieImages,
+  tmdbImageSrcSet,
+  tmdbImageUrl,
+} from "@/lib/tmdb/shared";
+import { readable } from "@/motion/render";
+import { headlineClass } from "@/ui/tokens";
+import {
+  CAST_BLUR_STEPS,
+  CREW_JOB_PRIORITY,
+  DOCK_DIRECTOR_LIMIT,
+  EXACT_NUMBER_FORMAT,
+  FALLBACK_REGION,
   MOVIE_CERTIFICATION_REGION,
+  MOVIE_DATE_FORMAT,
+  MOVIE_MONEY_FORMAT,
   MOVIE_RECOMMENDATION_LIMIT,
   MOVIE_TAG_LIMIT,
   MOVIE_TAG_MAX_LENGTH,
   MOVIE_WRITER_LIMIT,
+  PROVIDER_SEARCH_URLS,
+  RELEASE_TYPE_PRIORITY,
+  WRITING_JOBS,
 } from "./constants";
+import type {
+  GalleryTab,
+  MovieCrewEntry,
+  Provider,
+  ProviderEntry,
+  RegionProviders,
+} from "./types";
 
-const WRITING_JOBS: ReadonlySet<string> = new Set([
-  "Screenplay",
-  "Writer",
-  "Story",
-  "Novel",
-  "Author",
-]);
-
-const DOCK_DIRECTOR_LIMIT = 2;
-
-const RELEASE_TYPE_PRIORITY = [3, 2, 4, 5, 6, 1];
-
-const dateFormatter = new Intl.DateTimeFormat("en-US", {
-  dateStyle: "long",
-  timeZone: "UTC",
-});
-const moneyFormatter = new Intl.NumberFormat("en-US", {
-  currency: "USD",
-  maximumFractionDigits: 1,
-  minimumFractionDigits: 0,
-  notation: "compact",
-  style: "currency",
-});
+export const titleClass = (title: string) => headlineClass(title, [26, 37, 49]);
 
 export function parseMovieId(raw: string): number | null {
   return /^[1-9]\d{0,9}$/.test(raw) ? Number(raw) : null;
@@ -51,11 +52,13 @@ function formatRuntime(minutes: number | null): string | null {
 export function formatReleaseDate(date: string | null): string | null {
   if (!date) return null;
   const parsed = new Date(`${date}T00:00:00Z`);
-  return Number.isNaN(parsed.getTime()) ? null : dateFormatter.format(parsed);
+  return Number.isNaN(parsed.getTime())
+    ? null
+    : MOVIE_DATE_FORMAT.format(parsed);
 }
 
 export function formatMoney(amount: number | null): string | null {
-  return amount ? moneyFormatter.format(amount) : null;
+  return amount ? MOVIE_MONEY_FORMAT.format(amount) : null;
 }
 
 function uniqueById<T extends { id: number }>(items: readonly T[]): T[] {
@@ -77,29 +80,6 @@ export function getWriters(movie: MovieDetails, limit = MOVIE_WRITER_LIMIT) {
 
 export function getCast(movie: MovieDetails) {
   return uniqueById([...movie.credits.cast].sort((a, b) => a.order - b.order));
-}
-
-const CREW_JOB_PRIORITY = [
-  "Director",
-  "Screenplay",
-  "Writer",
-  "Story",
-  "Producer",
-  "Executive Producer",
-  "Director of Photography",
-  "Original Music Composer",
-  "Editor",
-  "Production Design",
-  "Costume Design",
-];
-
-interface MovieCrewEntry {
-  creditId: string;
-  department: string | null;
-  id: number;
-  jobs: string;
-  name: string;
-  profilePath: string | null;
 }
 
 export function getCrew(movie: MovieDetails): MovieCrewEntry[] {
@@ -224,4 +204,128 @@ export function movieSwatch(
     tmdbImageUrl("backdrop", backdropPath, "w300") ??
     tmdbImageUrl("poster", posterPath, "w185")
   );
+}
+
+export const safeProviderLink = (value: string | null | undefined) =>
+  typeof value === "string" && value.startsWith("https://www.themoviedb.org/")
+    ? value
+    : null;
+
+export const providerEntries = (
+  ...groups: readonly (readonly Provider[])[]
+): ProviderEntry[] => {
+  const seen = new Set<number>();
+  return groups
+    .flat()
+    .sort((a, b) => a.displayPriority - b.displayPriority)
+    .filter((p) => !seen.has(p.providerId) && seen.add(p.providerId))
+    .map((p) => ({ id: p.providerId, logoPath: p.logoPath, name: p.name }));
+};
+
+export const castBlurLayer = (index: number): CSSProperties => {
+  const step = 100 / (CAST_BLUR_STEPS.length + 1);
+  const last = index === CAST_BLUR_STEPS.length - 1;
+  return {
+    "--blur": `${CAST_BLUR_STEPS[index]}px`,
+    "--m0": `${index * step}%`,
+    "--m1": `${(index + 1) * step}%`,
+    "--m2": last ? "100%" : `${(index + 2) * step}%`,
+    "--m3": last ? "100%" : `${(index + 3) * step}%`,
+  } as CSSProperties;
+};
+
+export function compactCells(count: number, hasMore: boolean): CSSProperties {
+  const extra = hasMore ? 1 : 0;
+  return {
+    "--cells": count + extra,
+    "--cells-sm": Math.min(count, 2),
+  } as CSSProperties;
+}
+
+export function galleryThumbnail(tab: GalleryTab, path: string) {
+  if (tab === "backdrops") {
+    return {
+      crossOrigin: "anonymous" as const,
+      src: tmdbImageUrl("backdrop", path, "w780"),
+      srcSet: tmdbImageSrcSet("backdrop", path, ["w300", "w780", "w1280"]),
+    };
+  }
+  return {
+    src: tmdbImageUrl("poster", path, "w342"),
+    srcSet: tmdbImageSrcSet("poster", path, ["w185", "w342", "w500"]),
+  };
+}
+
+export function wallThumbnail(tab: GalleryTab, path: string) {
+  if (tab === "backdrops") {
+    return {
+      crossOrigin: "anonymous" as const,
+      src: tmdbImageUrl("backdrop", path, "w780"),
+      srcSet: tmdbImageSrcSet("backdrop", path, ["w300", "w780"]),
+    };
+  }
+  return {
+    src: tmdbImageUrl("poster", path, "w342"),
+    srcSet: tmdbImageSrcSet("poster", path, ["w185", "w342"]),
+  };
+}
+
+export function galleryOriginal(tab: GalleryTab, path: string) {
+  return tab === "backdrops"
+    ? tmdbImageUrl("backdrop", path, "original")
+    : tmdbImageUrl("poster", path, "original");
+}
+
+export const pluralType = (type: string) =>
+  type.endsWith("s") ? type : `${type}s`;
+
+export const pictureOf = (src: string | null) => (src ? readable(src) : null);
+
+export const moneyLabel = (amount: number) => formatMoney(amount) ?? "$0";
+
+export const asName = (person: { id: number; name: string }): FactName => ({
+  href: personHref(person.id),
+  text: person.name,
+});
+
+export const capitalize = (text: string) =>
+  text.replace(
+    /(^|\s)(\S)/g,
+    (_, space: string, letter: string) => `${space}${letter.toUpperCase()}`,
+  );
+
+export const membersLabel = (count: number) =>
+  `${EXACT_NUMBER_FORMAT.format(count)} ${count === 1 ? "member" : "members"}`;
+
+export function providerHref(
+  provider: ProviderEntry,
+  title: string,
+  region: RegionProviders,
+): string | null {
+  const q = encodeURIComponent(title.trim());
+  const match = PROVIDER_SEARCH_URLS.find(([pattern]) =>
+    pattern.test(provider.name),
+  );
+  if (match && q) return match[1](q);
+  return region.link;
+}
+
+export const regionName = (code: string) => {
+  try {
+    return new Intl.DisplayNames(["en"], { type: "region" }).of(code) ?? code;
+  } catch {
+    return code;
+  }
+};
+
+export const flagOf = (code: string) =>
+  String.fromCodePoint(
+    ...code.split("").map((char) => 127397 + char.charCodeAt(0)),
+  );
+
+export function pickRegion(codes: readonly string[]): string {
+  const language = typeof navigator === "undefined" ? "" : navigator.language;
+  const own = language.split("-")[1]?.toUpperCase();
+  if (own && codes.includes(own)) return own;
+  return codes.includes(FALLBACK_REGION) ? FALLBACK_REGION : (codes[0] ?? "");
 }

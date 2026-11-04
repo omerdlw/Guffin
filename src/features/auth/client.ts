@@ -1,18 +1,7 @@
 import type { UserIdentity } from "@supabase/supabase-js";
-import { UserError } from "@omerdlw/base-framework/utils";
-import { requestJson } from "@/infrastructure/http/client";
-import { SEED_EMAIL_DOMAIN } from "./constants";
+import { requestJson } from "@/lib/http";
 import type { AuthClient, OAuthProvider, SignOutScope } from "./types";
-import { normalizeEmail } from "./utils";
-
-function unwrap<T>(
-  result: { data: T | null; error: unknown },
-  fallbackMessage: string,
-): T {
-  if (result.error) throw result.error;
-  if (!result.data) throw new UserError(fallbackMessage);
-  return result.data;
-}
+import { normalizeEmail, unwrap } from "./utils";
 
 export async function requestEmailAuth(
   client: AuthClient,
@@ -29,13 +18,6 @@ export async function requestEmailAuth(
   });
   if (error) throw error;
   return normalizedEmail;
-}
-
-export function isSeedEmail(email: string): boolean {
-  return (
-    process.env.NEXT_PUBLIC_SEED_LOGIN === "1" &&
-    email.trim().toLowerCase().endsWith(`@${SEED_EMAIL_DOMAIN}`)
-  );
 }
 
 export async function signInSeedAccount(email: string): Promise<void> {
