@@ -25,6 +25,8 @@ export const RELATIVE_TIME_STEPS: [Intl.RelativeTimeFormatUnit, number][] = [
 
 export const LOGLINE_LENGTH = 180;
 
+export const LOGLINE_ENOUGH_LENGTH = 80;
+
 export const JOIN_POINTS = [
   {
     icon: "solar:notebook-bookmark-bold",
@@ -71,6 +73,16 @@ export const PULSE_KEEP_SECONDS = 60 * 60;
 
 export const FEATURE_LIMIT = 5;
 
+export const FEATURE_SPARE_CANDIDATES = 2;
+
+export const FEATURE_GENRE_LIMIT = 3;
+
+export const REVIEW_LIMIT = 6;
+
+export const PICKS_MIN_FILMS = 4;
+
+export const PICKS_RANK_CONSTANT = 10;
+
 export const ROW_LIMIT = 16;
 
 export const SHOWING_LIMIT = 12;
@@ -102,6 +114,36 @@ export const RISING_TITLES = [
   "8.5rem",
   "9.5rem",
 ];
+
+export const HERO_REEL_WIDTHS = ["7.5rem", "10rem", "6rem", "9rem", "8rem"];
+
+export const PULSE_LABEL_WIDTHS = ["6.25rem", "7.25rem", "7.75rem", "4.25rem"];
+
+export const LIST_TITLE_WIDTHS = [
+  "11rem",
+  "8.5rem",
+  "13rem",
+  "9.5rem",
+  "12rem",
+  "7.5rem",
+];
+
+export const MEMBER_NAME_WIDTHS = [
+  "5.5rem",
+  "4.5rem",
+  "6rem",
+  "5rem",
+  "6.5rem",
+  "4.75rem",
+];
+
+export const JOIN_POINT_LINES = [["100%", "34%"], ["96%"], ["92%"], ["88%"]];
+
+export const POSTER_SIZES =
+  "(min-width: 1024px) 18vw, (min-width: 768px) 22vw, 30vw";
+
+export const TEXT_LINK_CLASS =
+  "underline underline-offset-2 decoration-transparent hover:decoration-current focus-visible:decoration-current";
 
 export const CAPTION_CLASS =
   "flex min-h-5 min-w-0 items-center gap-1.5 type-meta font-medium text-ink-muted tabular-nums";

@@ -1,12 +1,9 @@
+import type { MutationResult } from "@/features/auth/types";
 import type { SETTINGS_SECTIONS } from "./constants";
 
-export type SaveResult =
-  | { success: true; username: string }
-  | { error: string; success: false }
-  | null;
+export type SaveResult = MutationResult<{ username: string }> | null;
 
-export type MediaFormSaveResult =
-  { success: true } | { error: string; success: false } | null;
+export type MediaFormSaveResult = MutationResult | null;
 
 export type MarkTone = "danger" | "lit" | "plain";
 

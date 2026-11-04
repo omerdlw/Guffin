@@ -1,23 +1,26 @@
 "use client";
 
-import { type JSX, useEffect, useId, useMemo, useState } from "react";
+import { type JSX, useEffect, useMemo, useState } from "react";
 import {
   type SurfaceEntry,
   useDockActions,
 } from "@omerdlw/base-framework/modules/dock";
 import { report } from "@omerdlw/base-framework/utils";
-import { LayoutGroup } from "motion/react";
 import Link from "next/link";
 import { useAuth } from "@/features/auth/provider";
 import { RatingStars } from "@/features/reviews/rating";
 import { accountHref, reviewHref } from "@/lib/project";
 import { StagePart } from "@/motion/react";
 import { cn } from "@/ui/cn";
-import { SlidingHighlight, SurfaceSegmentedControl } from "@/ui/form";
+import {
+  HighlightGroup,
+  SurfaceSegmentedControl,
+  useHighlight,
+} from "@/ui/form";
 import { Avatar, Icon } from "@/ui/media";
 import { scrollWithin } from "@/ui/surface";
 import { getMovieSocialProofAction } from "./actions";
-import { OVERLAP } from "./constants";
+import { AVATAR_OVERLAP } from "./constants";
 import type {
   Friend,
   MutualFollowers,
@@ -59,7 +62,7 @@ export function AvatarStack({
           size={size}
           src={person.avatarUrl}
           style={{
-            marginLeft: index === 0 ? 0 : -Math.round(size * OVERLAP),
+            marginLeft: index === 0 ? 0 : -Math.round(size * AVATAR_OVERLAP),
             zIndex: max - index,
             ...(index === 0 ? null : cutout(size, round)),
           }}
@@ -77,11 +80,7 @@ export function FollowedBy({
   if (mutual.people.length === 0) return null;
 
   const names = mutual.people.map((person) => person.displayName);
-  const hidden = Math.max(0, mutual.total - names.length);
-  const text =
-    hidden > 0
-      ? `${names.join(", ")} and ${hidden} ${hidden === 1 ? "other" : "others"}`
-      : formatNames(names, names.length);
+  const text = formatNames(names, names.length, mutual.total);
 
   return (
     <div className="flex min-w-0 items-center gap-2.5 type-meta text-ink-body">
@@ -129,27 +128,20 @@ function Signal({
 function FriendRow({
   close,
   friend,
-  highlighted,
   movieId,
-  onFocus,
-  onPointerEnter,
 }: {
   close: () => void;
   friend: Friend;
-  highlighted: boolean;
   movieId: number;
-  onFocus: () => void;
-  onPointerEnter: () => void;
 }): JSX.Element {
+  const highlight = useHighlight(friend.id);
+
   return (
     <li
       className={`relative isolate ${SURFACE_TILE} group/friend ${SURFACE_TILE_END}`}
-      onFocusCapture={onFocus}
-      onPointerEnter={onPointerEnter}
+      {...highlight.props}
     >
-      {highlighted ? (
-        <SlidingHighlight layoutId="social-proof-friend-highlight" />
-      ) : null}
+      {highlight.node}
       <Link
         className={`relative z-10 flex min-w-0 flex-1 items-center gap-3 ${SURFACE_TILE_INNER}`}
         href={accountHref(friend.username)}
@@ -207,33 +199,28 @@ function SocialProofSurface({
 }): JSX.Element {
   const { closeSurface } = useDockActions();
   const { counts, friends } = data.proof;
-  const highlightGroupId = useId();
   const [tab, setTab] = useState<ProofTab>("all");
-  const [hoveredFriend, setHoveredFriend] = useState<string | null>(null);
-  const [focusedFriend, setFocusedFriend] = useState<string | null>(null);
 
-  const tabs = useMemo(() => {
-    const all: { count: number; key: ProofTab; label: string }[] = [
-      { count: friends.length, key: "all", label: "All" },
-      { count: counts.watched, key: "watched", label: "Watched" },
-      { count: counts.liked, key: "liked", label: "Liked" },
-      { count: counts.watchlist, key: "watchlist", label: "To watch" },
-      { count: counts.reviews, key: "reviews", label: "Reviews" },
-    ];
-    return all
-      .filter((item) => item.key === "all" || item.count > 0)
-      .map(({ count, key, label }) => ({ count, key, label }));
-  }, [counts, friends.length]);
+  const tabs = useMemo(
+    () =>
+      [
+        { count: friends.length, key: "all", label: "All" },
+        { count: counts.watched, key: "watched", label: "Watched" },
+        { count: counts.liked, key: "liked", label: "Liked" },
+        { count: counts.watchlist, key: "watchlist", label: "To watch" },
+        { count: counts.reviews, key: "reviews", label: "Reviews" },
+      ].filter((item) => item.key === "all" || item.count > 0) as {
+        count: number;
+        key: ProofTab;
+        label: string;
+      }[],
+    [counts, friends.length],
+  );
 
   const visible = useMemo(
     () => friends.filter((friend) => matchesTab(friend, tab)),
     [friends, tab],
   );
-  const activeFriend = visible.some((friend) => friend.id === hoveredFriend)
-    ? hoveredFriend
-    : visible.some((friend) => friend.id === focusedFriend)
-      ? focusedFriend
-      : null;
 
   return (
     <div className={SURFACE_STACK}>
@@ -247,34 +234,22 @@ function SocialProofSurface({
         />
       ) : null}
 
-      <LayoutGroup id={`social-proof-${highlightGroupId}`}>
+      <HighlightGroup>
         <ul
           className={`${SURFACE_SCROLL} flex max-h-[min(56dvh,26rem)] flex-col gap-2.5`}
           data-scroll-native
-          onBlurCapture={(event) => {
-            if (
-              !(event.relatedTarget instanceof Node) ||
-              !event.currentTarget.contains(event.relatedTarget)
-            ) {
-              setFocusedFriend(null);
-            }
-          }}
-          onPointerLeave={() => setHoveredFriend(null)}
           onWheel={scrollWithin}
         >
           {visible.map((friend) => (
             <FriendRow
               close={() => closeSurface?.()}
               friend={friend}
-              highlighted={activeFriend === friend.id}
               key={friend.id}
               movieId={data.movieId}
-              onFocus={() => setFocusedFriend(friend.id)}
-              onPointerEnter={() => setHoveredFriend(friend.id)}
             />
           ))}
         </ul>
-      </LayoutGroup>
+      </HighlightGroup>
 
       {data.proof.total > friends.length ? (
         <p className="text-center type-meta text-ink-muted">

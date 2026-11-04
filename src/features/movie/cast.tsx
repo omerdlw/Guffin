@@ -17,8 +17,6 @@ import {
 } from "@/features/detail/motion";
 import { personHref } from "@/lib/project";
 import { tmdbImageUrl } from "@/lib/tmdb/shared";
-import { useShowing } from "@/motion/kit";
-import { Tube } from "@/motion/screen";
 import { Button, useDockLinkClick } from "@/ui/button";
 import { cn } from "@/ui/cn";
 import { SegmentedControl } from "@/ui/form";
@@ -35,9 +33,8 @@ import type {
   PeopleModalData,
   PeopleTab,
   PersonEntry,
-  VideoModalData,
 } from "./types";
-import { castBlurLayer, compactCells } from "./utils";
+import { castBlurLayer, compactCells, peopleTabs } from "./utils";
 
 function CastCard({ index, person }: { index: number; person: PersonEntry }) {
   const photoPath = useArtworkPath(
@@ -201,10 +198,7 @@ function PeopleModalView({
   header,
 }: CastModalProps<PeopleModalData>) {
   const [tab, setTab] = useState(data.initialTab);
-  const tabs = [
-    ...(data.cast.length ? [{ key: "cast" as const, label: "Cast" }] : []),
-    ...(data.crew.length ? [{ key: "crew" as const, label: "Crew" }] : []),
-  ];
+  const tabs = peopleTabs(data.cast, data.crew);
   const people = tab === "cast" ? data.cast : data.crew;
 
   return (
@@ -239,33 +233,9 @@ const PeopleModal = defineModal({
   title: "Cast & crew",
 });
 
-function VideoModalView({ data }: CastModalProps<VideoModalData>) {
-  useShowing();
-  return (
-    <Tube className="aspect-video w-[min(92vw,64rem)] overflow-hidden rounded-sheet bg-black ring-1 ring-edge-hover ring-inset">
-      <iframe
-        allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-        className="size-full"
-        referrerPolicy="strict-origin-when-cross-origin"
-        src={`https://www.youtube-nocookie.com/embed/${encodeURIComponent(data.key)}?autoplay=1&rel=0`}
-        title={data.name}
-      />
-    </Tube>
-  );
-}
-
-export const VideoModal = defineModal({
-  chrome: "bare",
-  component: VideoModalView,
-  position: "center",
-});
-
 export function MoviePeople({ cast, crew }: MoviePeopleProps) {
   const [openModal] = useModal(PeopleModal);
-  const tabs = [
-    ...(cast.length ? [{ key: "cast" as const, label: "Cast" }] : []),
-    ...(crew.length ? [{ key: "crew" as const, label: "Crew" }] : []),
-  ];
+  const tabs = peopleTabs(cast, crew);
   const [tab, setTab] = useState<PeopleTab>(tabs[0]?.key ?? "cast");
   if (tabs.length === 0) return null;
 

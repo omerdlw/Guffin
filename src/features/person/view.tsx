@@ -3,8 +3,8 @@ import {
   DetailAwards,
   DetailLayout,
   DetailSidebar,
-  FactNames,
-  FactText,
+  namesFact,
+  textFact,
 } from "@/features/detail/layout";
 import type { Fact } from "@/features/detail/types";
 import { movieHref } from "@/lib/project";
@@ -39,9 +39,8 @@ import {
   PersonFilmography,
   PersonGallery,
   PersonGalleryWall,
-  PersonViewActions,
-  PersonViews,
 } from "./sections";
+import { PersonViewActions, PersonViews } from "./views";
 import {
   calculateAge,
   departmentRole,
@@ -67,61 +66,33 @@ function PersonSidebar({
   const place = person.placeOfBirth;
   const aliases = person.alsoKnownAs;
 
-  const facts: Fact[] = [];
-  if (born) {
-    facts.push({
-      label: "Born",
-      value: (index) => <FactText index={index}>{born}</FactText>,
-    });
-  }
-  if (died) {
-    facts.push({
-      label: "Died",
-      value: (index) => <FactText index={index}>{died}</FactText>,
-    });
-  }
-  if (age !== null) {
-    facts.push({
+  const facts: (Fact | false | null | "")[] = [
+    born && textFact("Born", born),
+    died && textFact("Died", died),
+    age !== null && {
       label: died ? "Aged" : "Age",
       value: (index) => <AgeCount index={index} value={age} />,
-    });
-  }
-  if (place) {
-    facts.push({
-      label: "Birthplace",
-      value: (index) => <FactText index={index}>{place}</FactText>,
-    });
-  }
-  if (aliases.length > 0) {
-    facts.push({
-      label: "Also known as",
-      value: (index) => (
-        <FactNames
-          index={index}
-          max={PERSON_ALIAS_VISIBLE}
-          names={aliases.map((text) => ({ text }))}
-        />
+    },
+    place && textFact("Birthplace", place),
+    aliases.length > 0 &&
+      namesFact(
+        "Also known as",
+        PERSON_ALIAS_VISIBLE,
+        aliases.map((text) => ({ text })),
       ),
-    });
-  }
-  if (knownFor.length > 0) {
-    facts.push({
-      label: "Known for",
-      value: (index) => (
-        <FactNames
-          index={index}
-          max={PERSON_KNOWN_FOR}
-          names={knownFor.map((film) => ({
-            href: movieHref(film.id),
-            text: film.title,
-          }))}
-        />
+    knownFor.length > 0 &&
+      namesFact(
+        "Known for",
+        PERSON_KNOWN_FOR,
+        knownFor.map((film) => ({
+          href: movieHref(film.id),
+          text: film.title,
+        })),
       ),
-    });
-  }
+  ];
 
   return (
-    <DetailSidebar facts={facts}>
+    <DetailSidebar facts={facts.filter((fact): fact is Fact => Boolean(fact))}>
       <PersonPortrait awards={awards} person={person} />
       <PersonViewActions />
     </DetailSidebar>

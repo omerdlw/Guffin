@@ -4,19 +4,19 @@ import {
   type FormEvent,
   type JSX,
   memo,
+  type ReactNode,
   useEffect,
-  useId,
   useState,
 } from "react";
 import type { SurfaceEntry } from "@omerdlw/base-framework/modules/dock";
 import { useToast } from "@omerdlw/base-framework/modules/notification";
 import { report, toUserMessage } from "@omerdlw/base-framework/utils";
-import { LayoutGroup } from "motion/react";
+import { pluralize } from "@/lib/format";
 import { tmdbImageUrl } from "@/lib/tmdb/shared";
 import { Button } from "@/ui/button";
 import { cn } from "@/ui/cn";
 import { Loader } from "@/ui/feedback";
-import { Input, SlidingHighlight } from "@/ui/form";
+import { HighlightGroup, Input, useHighlight } from "@/ui/form";
 import { AdaptiveImage, Icon } from "@/ui/media";
 import {
   scrollWithin,
@@ -24,18 +24,6 @@ import {
   SurfaceStage,
   SurfaceSwap,
 } from "@/ui/surface";
-import {
-  createMovieListAction,
-  getMovieListsAction,
-  setMovieListMembershipAction,
-} from "./actions";
-import {
-  LIST_TITLE_MAX,
-  PREVIEW_STACK,
-  PREVIEW_STACK_WIDTH,
-} from "./constants";
-import type { ListPickerData, MovieListSummary } from "./types";
-import { stackCard } from "./utils";
 import {
   SURFACE_CHECK_ON,
   SURFACE_FIELD,
@@ -51,6 +39,22 @@ import {
   surfaceIconButton,
   surfaceRow,
 } from "@/ui/tokens";
+import {
+  createMovieListAction,
+  getMovieListsAction,
+  setMovieListMembershipAction,
+} from "./actions";
+import {
+  LIST_TITLE_MAX,
+  PREVIEW_STACK,
+  PREVIEW_STACK_WIDTH,
+} from "./constants";
+import type {
+  ListPickerData,
+  ListPickerLibrary,
+  MovieListSummary,
+} from "./types";
+import { previewPosters, stackCard } from "./utils";
 
 export function createListPickerSurfaceEntry(
   data: ListPickerData,
@@ -64,90 +68,78 @@ export function createListPickerSurfaceEntry(
   };
 }
 
+function PreviewCard({
+  index,
+  poster,
+}: {
+  index: number;
+  poster: string | undefined;
+}): JSX.Element {
+  const src = poster ? tmdbImageUrl("poster", poster, "original") : null;
+
+  return (
+    <div
+      className={cn(
+        "absolute overflow-hidden",
+        SURFACE_TILE_INNER,
+        poster ? "bg-black ring-1 ring-inset ring-edge-hover" : "bg-fill-hover",
+      )}
+      style={stackCard(index)}
+    >
+      {!poster ? (
+        <div className="center size-full text-ink-muted">
+          <Icon icon="solar:folder-bold" size={18} />
+        </div>
+      ) : src ? (
+        <AdaptiveImage
+          alt=""
+          className="size-full object-cover select-none pointer-events-none"
+          decoding="async"
+          loading="lazy"
+          src={src}
+          wrapperClassName="size-full bg-fill"
+        />
+      ) : (
+        <div className="center size-full bg-fill text-ink-faint">
+          <Icon icon="solar:filmstrip-bold" size={14} />
+        </div>
+      )}
+    </div>
+  );
+}
+
 const ListPreviewStack = memo(function ListPreviewStack({
   list,
 }: {
   list: MovieListSummary;
 }): JSX.Element {
-  const previews = (
-    list.previewPosters && list.previewPosters.length > 0
-      ? list.previewPosters
-      : list.posterPath
-        ? [list.posterPath]
-        : []
-  )
-    .filter(Boolean)
-    .slice(0, PREVIEW_STACK);
+  const posters = previewPosters(list).slice(0, PREVIEW_STACK);
 
   return (
     <div
       className="relative z-10 h-[60px] shrink-0 select-none"
       style={{ width: `${PREVIEW_STACK_WIDTH}px` }}
     >
-      {Array.from({ length: Math.max(previews.length, 1) }, (_, index) => {
-        const poster = previews[index];
-        const imageSrc = poster
-          ? tmdbImageUrl("poster", poster, "original")
-          : null;
-        const hasCard = Boolean(poster);
-
-        return (
-          <div
-            key={index}
-            className={cn(
-              "absolute overflow-hidden",
-              SURFACE_TILE_INNER,
-              hasCard
-                ? "bg-black ring-1 ring-inset ring-edge-hover"
-                : "bg-fill-hover",
-            )}
-            style={stackCard(index)}
-          >
-            {hasCard ? (
-              imageSrc ? (
-                <AdaptiveImage
-                  alt=""
-                  className="size-full object-cover select-none pointer-events-none"
-                  decoding="async"
-                  loading="lazy"
-                  src={imageSrc}
-                  wrapperClassName="size-full bg-fill"
-                />
-              ) : (
-                <div className="center size-full bg-fill text-ink-faint">
-                  <Icon icon="solar:filmstrip-bold" size={14} />
-                </div>
-              )
-            ) : (
-              <div className="center size-full text-ink-muted">
-                <Icon icon="solar:folder-bold" size={18} />
-              </div>
-            )}
-          </div>
-        );
-      })}
+      {Array.from({ length: Math.max(posters.length, 1) }, (_, index) => (
+        <PreviewCard index={index} key={index} poster={posters[index]} />
+      ))}
     </div>
   );
 });
 
 const ListRow = memo(function ListRow({
   inList,
-  highlighted,
   list,
-  onFocus,
-  onPointerEnter,
   onToggle,
   pending,
 }: {
   inList: boolean;
-  highlighted: boolean;
   list: MovieListSummary;
-  onFocus: () => void;
-  onPointerEnter: () => void;
   onToggle: () => void;
   pending: boolean;
 }): JSX.Element {
-  const detail = `${list.itemsCount} ${list.itemsCount === 1 ? "film" : "films"}`;
+  const highlight = useHighlight(list.id);
+  const detail = pluralize(list.itemsCount, "film");
 
   return (
     <Button
@@ -155,12 +147,9 @@ const ListRow = memo(function ListRow({
       className={surfaceRow(inList)}
       disabled={pending}
       onClick={onToggle}
-      onFocus={onFocus}
-      onPointerEnter={onPointerEnter}
+      {...highlight.props}
     >
-      {highlighted ? (
-        <SlidingHighlight layoutId="list-picker-highlight" />
-      ) : null}
+      {highlight.node}
       <ListPreviewStack list={list} />
 
       <div className={cn(SURFACE_TEXT, "relative z-10")}>
@@ -248,23 +237,110 @@ function LoadingListSkeleton(): JSX.Element {
   );
 }
 
+function PickerNote({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className: string;
+}): JSX.Element {
+  return (
+    <SurfacePart className={cn("center text-center", className)} name="note">
+      {children}
+    </SurfacePart>
+  );
+}
+
+function ListShelf({
+  library,
+  onToggle,
+  pending,
+}: {
+  library: ListPickerLibrary;
+  onToggle: (list: MovieListSummary) => void;
+  pending: ReadonlySet<string>;
+}): JSX.Element {
+  if (library.status === "loading") {
+    return (
+      <SurfacePart name="note">
+        <LoadingListSkeleton />
+      </SurfacePart>
+    );
+  }
+
+  if (library.status === "error") {
+    return (
+      <PickerNote className="min-h-40 flex-col gap-1.5">
+        <div className="center size-10 rounded-full bg-fill text-ink-muted">
+          <Icon icon="solar:danger-circle-bold" size={20} />
+        </div>
+        <p className="type-body text-ink-body">
+          Your lists could not be loaded
+        </p>
+      </PickerNote>
+    );
+  }
+
+  if (library.lists.length === 0) {
+    return (
+      <PickerNote className="min-h-40 flex-col gap-2 py-6">
+        <div className="center size-12 rounded-full bg-fill text-ink-faint ring-1 ring-edge-hover ring-inset">
+          <Icon icon="solar:folder-open-bold" size={22} />
+        </div>
+        <div className="flex flex-col gap-0.5">
+          <p className="type-body font-medium text-ink-body">No lists yet</p>
+          <p className="type-meta text-ink-muted">
+            Name one above to start it with this movie
+          </p>
+        </div>
+      </PickerNote>
+    );
+  }
+
+  return (
+    <HighlightGroup className="flex flex-col gap-2.5">
+      {library.lists.map((list, index) => (
+        <SurfacePart index={index} key={list.id} name="row">
+          <ListRow
+            inList={library.memberships.has(list.id)}
+            list={list}
+            onToggle={() => onToggle(list)}
+            pending={pending.has(list.id)}
+          />
+        </SurfacePart>
+      ))}
+    </HighlightGroup>
+  );
+}
+
+function shelfKeyOf({ lists, status }: ListPickerLibrary): string {
+  if (status !== "ready") return status;
+  return lists.length === 0 ? "empty" : "rows";
+}
+
+function toggleMember(
+  members: ReadonlySet<string>,
+  id: string,
+  present: boolean,
+): Set<string> {
+  const next = new Set(members);
+  if (present) next.add(id);
+  else next.delete(id);
+  return next;
+}
+
 function ListPickerSurface({ data }: { data: ListPickerData }): JSX.Element {
   const toast = useToast();
   const movieId = data.movieId;
-  const highlightGroupId = useId();
 
-  const [lists, setLists] = useState<MovieListSummary[]>([]);
-  const [inLists, setInLists] = useState<ReadonlySet<string>>(new Set());
+  const [library, setLibrary] = useState<ListPickerLibrary>({
+    lists: [],
+    memberships: new Set(),
+    status: "loading",
+  });
   const [pending, setPending] = useState<ReadonlySet<string>>(new Set());
-  const [status, setStatus] = useState<"loading" | "ready" | "error">(
-    "loading",
-  );
-  const [title, setTitle] = useState("");
-  const [isPrivate, setIsPrivate] = useState(false);
+  const [draft, setDraft] = useState({ isPrivate: false, title: "" });
   const [creating, setCreating] = useState(false);
-  const [hoveredList, setHoveredList] = useState<string | null>(null);
-  const [focusedList, setFocusedList] = useState<string | null>(null);
-  const activeList = hoveredList ?? focusedList;
 
   useEffect(() => {
     let cancelled = false;
@@ -272,53 +348,39 @@ function ListPickerSurface({ data }: { data: ListPickerData }): JSX.Element {
       .then((result) => {
         if (cancelled) return;
         if (result.success) {
-          setLists(result.lists);
-          setInLists(new Set(result.memberships));
-          setStatus("ready");
+          setLibrary({
+            lists: result.lists,
+            memberships: new Set(result.memberships),
+            status: "ready",
+          });
         } else {
-          setStatus("error");
+          setLibrary((current) => ({ ...current, status: "error" }));
           toast(result.error);
         }
       })
       .catch((error) => {
         if (cancelled) return;
         report("ListPickerSurface load", error);
-        setStatus("error");
+        setLibrary((current) => ({ ...current, status: "error" }));
       });
     return () => {
       cancelled = true;
     };
   }, [movieId, toast]);
 
-  const shelf =
-    status !== "ready" ? status : lists.length === 0 ? "empty" : "rows";
-
-  const mark = (listId: string, on: boolean) =>
-    setPending((current) => {
-      const next = new Set(current);
-      if (on) next.add(listId);
-      else next.delete(listId);
-      return next;
-    });
-
-  const remember = (list: MovieListSummary, inList: boolean) => {
-    setLists((current) =>
-      current.some((item) => item.id === list.id)
-        ? current.map((item) => (item.id === list.id ? list : item))
-        : [list, ...current],
-    );
-    setInLists((current) => {
-      const next = new Set(current);
-      if (inList) next.add(list.id);
-      else next.delete(list.id);
-      return next;
-    });
-  };
+  const remember = (list: MovieListSummary, inList: boolean) =>
+    setLibrary((current) => ({
+      ...current,
+      lists: current.lists.some((item) => item.id === list.id)
+        ? current.lists.map((item) => (item.id === list.id ? list : item))
+        : [list, ...current.lists],
+      memberships: toggleMember(current.memberships, list.id, inList),
+    }));
 
   async function toggle(list: MovieListSummary) {
     if (pending.has(list.id)) return;
-    const active = !inLists.has(list.id);
-    mark(list.id, true);
+    const active = !library.memberships.has(list.id);
+    setPending((current) => toggleMember(current, list.id, true));
     try {
       const result = await setMovieListMembershipAction(
         movieId,
@@ -331,20 +393,24 @@ function ListPickerSurface({ data }: { data: ListPickerData }): JSX.Element {
       report("ListPickerSurface toggle", error);
       toast(toUserMessage(error, { fallback: "Could not update your list" }));
     } finally {
-      mark(list.id, false);
+      setPending((current) => toggleMember(current, list.id, false));
     }
   }
 
   async function create(event: FormEvent) {
     event.preventDefault();
-    const name = title.trim();
+    const name = draft.title.trim();
     if (!name || creating) return;
     setCreating(true);
     try {
-      const result = await createMovieListAction(movieId, name, isPrivate);
+      const result = await createMovieListAction(
+        movieId,
+        name,
+        draft.isPrivate,
+      );
       if (result.success) {
         remember(result.list, result.inList);
-        setTitle("");
+        setDraft((current) => ({ ...current, title: "" }));
       } else {
         toast(result.error);
       }
@@ -366,19 +432,31 @@ function ListPickerSurface({ data }: { data: ListPickerData }): JSX.Element {
               className={`${SURFACE_FIELD} h-10 min-w-0 flex-1 px-4 type-body`}
               disabled={creating}
               maxLength={LIST_TITLE_MAX}
-              onChange={(event) => setTitle(event.target.value)}
+              onChange={(event) =>
+                setDraft((current) => ({
+                  ...current,
+                  title: event.target.value,
+                }))
+              }
               placeholder="New list"
-              value={title}
+              value={draft.title}
             />
             <Button
-              aria-label={isPrivate ? "Private list" : "Public list"}
-              aria-pressed={isPrivate}
-              className={surfaceIconButton(isPrivate)}
-              onClick={() => setIsPrivate((current) => !current)}
+              aria-label={draft.isPrivate ? "Private list" : "Public list"}
+              aria-pressed={draft.isPrivate}
+              className={surfaceIconButton(draft.isPrivate)}
+              onClick={() =>
+                setDraft((current) => ({
+                  ...current,
+                  isPrivate: !current.isPrivate,
+                }))
+              }
             >
               <Icon
                 icon={
-                  isPrivate ? "solar:lock-bold" : "solar:lock-unlocked-linear"
+                  draft.isPrivate
+                    ? "solar:lock-bold"
+                    : "solar:lock-unlocked-linear"
                 }
                 size={16}
               />
@@ -386,7 +464,7 @@ function ListPickerSurface({ data }: { data: ListPickerData }): JSX.Element {
             <Button
               aria-label="Create list and add this movie"
               className={cn(SURFACE_PRIMARY, "size-10 shrink-0 px-0")}
-              disabled={!title.trim()}
+              disabled={!draft.title.trim()}
               loading={creating}
               type="submit"
             >
@@ -401,69 +479,14 @@ function ListPickerSurface({ data }: { data: ListPickerData }): JSX.Element {
             "flex max-h-[min(56dvh,26rem)] flex-col",
           )}
           data-scroll-native
-          onBlurCapture={(event) => {
-            if (
-              !event.currentTarget.contains(event.relatedTarget as Node | null)
-            ) {
-              setFocusedList(null);
-            }
-          }}
-          onPointerLeave={() => setHoveredList(null)}
           onWheel={scrollWithin}
         >
-          <SurfaceSwap cue="rows" id={shelf} now>
-            {shelf === "loading" ? (
-              <SurfacePart name="note">
-                <LoadingListSkeleton />
-              </SurfacePart>
-            ) : shelf === "error" ? (
-              <SurfacePart
-                className="center min-h-40 flex-col gap-1.5 text-center"
-                name="note"
-              >
-                <div className="center size-10 rounded-full bg-fill text-ink-muted">
-                  <Icon icon="solar:danger-circle-bold" size={20} />
-                </div>
-                <p className="type-body text-ink-body">
-                  Your lists could not be loaded
-                </p>
-              </SurfacePart>
-            ) : shelf === "empty" ? (
-              <SurfacePart
-                className="center min-h-40 flex-col gap-2 py-6 text-center"
-                name="note"
-              >
-                <div className="center size-12 rounded-full bg-fill text-ink-faint ring-1 ring-edge-hover ring-inset">
-                  <Icon icon="solar:folder-open-bold" size={22} />
-                </div>
-                <div className="flex flex-col gap-0.5">
-                  <p className="type-body font-medium text-ink-body">
-                    No lists yet
-                  </p>
-                  <p className="type-meta text-ink-muted">
-                    Name one above to start it with this movie
-                  </p>
-                </div>
-              </SurfacePart>
-            ) : (
-              <LayoutGroup id={`list-picker-${highlightGroupId}`}>
-                <div className="flex flex-col gap-2.5">
-                  {lists.map((list, index) => (
-                    <SurfacePart index={index} key={list.id} name="row">
-                      <ListRow
-                        highlighted={activeList === list.id}
-                        inList={inLists.has(list.id)}
-                        list={list}
-                        onFocus={() => setFocusedList(list.id)}
-                        onPointerEnter={() => setHoveredList(list.id)}
-                        onToggle={() => void toggle(list)}
-                        pending={pending.has(list.id)}
-                      />
-                    </SurfacePart>
-                  ))}
-                </div>
-              </LayoutGroup>
-            )}
+          <SurfaceSwap cue="rows" id={shelfKeyOf(library)} now>
+            <ListShelf
+              library={library}
+              onToggle={(list) => void toggle(list)}
+              pending={pending}
+            />
           </SurfaceSwap>
         </div>
       </div>

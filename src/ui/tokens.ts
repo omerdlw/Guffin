@@ -175,3 +175,6 @@ export const SURFACE_FIELD =
 
 export const SURFACE_SCROLL =
   "overflow-y-auto overscroll-contain rounded-card [clip-path:inset(0_round_var(--radius-card))] scrollbar-none";
+
+export const INLINE_LINK =
+  "underline decoration-ink-faint underline-offset-2 hover:text-ink focus-visible:text-ink hover:decoration-ink-muted focus-visible:decoration-ink-muted";

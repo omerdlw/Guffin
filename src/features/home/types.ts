@@ -21,6 +21,13 @@ export interface Feature extends HomeFilm {
   trending: number | null;
 }
 
+export interface FeatureCandidate {
+  backdropPath: string | null;
+  id: number;
+  social: PulseRow["popular"][number] | null;
+  trending: number | null;
+}
+
 export interface PopularFilm extends HomeFilm {
   faces: Member[];
   members: number;
@@ -110,6 +117,11 @@ export interface Circle {
   shared: SharedFilm[];
 }
 
+export type PulseShelves = Pick<
+  HomeFeed,
+  "lists" | "popular" | "rated" | "reviews" | "rising"
+>;
+
 export interface HomeFeed {
   circle: Circle | null;
   features: Feature[];
@@ -124,7 +136,7 @@ export interface HomeFeed {
   theatres: ShowingFilm[];
 }
 
-export type FollowStatus = "accepted" | "pending" | null;
+export type MemberFollowState = "accepted" | "pending" | null;
 
 export type FilmShelf = "theatres" | "soon";
 

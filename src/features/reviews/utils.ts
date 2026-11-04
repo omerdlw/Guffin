@@ -55,7 +55,7 @@ export function getReviewValidationError({
   return null;
 }
 
-export function clean(input: ReviewInput): ReviewInput {
+export function normalizeReviewInput(input: ReviewInput): ReviewInput {
   const content =
     typeof input?.content === "string" ? input.content.trim() : "";
   return {
@@ -65,7 +65,7 @@ export function clean(input: ReviewInput): ReviewInput {
   };
 }
 
-export function primaryLabel({
+export function editorSubmitLabel({
   editing,
   isList,
   ratingOnly,
@@ -79,9 +79,13 @@ export function primaryLabel({
   return ratingOnly ? "Save Rating" : "Publish Review";
 }
 
-export function fillOf(star: number, value: number | null): number {
+export function starFillWidth(star: number, value: number | null): number {
   if (value === null) return 0;
   if (value >= star) return 24;
   if (value >= star - 0.5) return 12;
   return 0;
+}
+
+export function isRated(rating: number | null): rating is number {
+  return rating !== null && Number.isFinite(rating) && rating > 0;
 }

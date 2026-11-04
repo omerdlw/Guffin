@@ -1,4 +1,6 @@
 import type { Variants } from "motion/react";
+import { POINTS } from "@/motion/constants";
+import { step } from "@/motion/utils";
 import type { MediaCardAspect } from "@/ui/media";
 import { TONE } from "@/ui/tokens";
 import type { AwardsGrouping, AwardsLook } from "./types";
@@ -36,6 +38,32 @@ export const STAGE_LOOK: AwardsLook = {
 };
 
 export const STILL_VARIANTS: Variants = { exit: {}, hidden: {}, visible: {} };
+
+export const AWARD_LIST_VARIANTS: Variants = {
+  exit: {
+    opacity: 0,
+    transition: { duration: step(-2), ease: POINTS.expo },
+    y: -8,
+  },
+  hidden: {},
+  visible: { transition: { staggerChildren: step(-4) } },
+};
+
+export const AWARD_GROUP_VARIANTS: Variants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: {
+    opacity: 1,
+    transition: { duration: step(0), ease: POINTS.expo },
+    y: 0,
+  },
+};
+
+export const INTERMISSION_TIMING = {
+  after: step(11),
+  drift: step(9),
+  enter: step(4),
+  leave: step(2),
+};
 
 export const ALL_ORGANIZATIONS = "all";
 

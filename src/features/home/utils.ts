@@ -3,13 +3,23 @@ import type { TmdbError } from "@/lib/tmdb/api";
 import {
   type FeaturedMovie,
   type FeaturedMoviePage,
+  type MovieDetails,
   tmdbImageUrl,
 } from "@/lib/tmdb/shared";
+import { toLogline } from "@/lib/format";
 import { headlineClass } from "@/ui/tokens";
 import {
   COMPACT_NUMBER_FORMAT,
+  FEATURE_GENRE_LIMIT,
+  FEATURE_LIMIT,
+  FEATURE_SPARE_CANDIDATES,
+  LOGLINE_ENOUGH_LENGTH,
   LOGLINE_LENGTH,
   MEMBER_LIMIT,
+  REVIEW_LIMIT,
+  RISING_LIMIT,
+  ROW_LIMIT,
+  SHOWING_LIMIT,
   RELATIVE_TIME_FORMAT,
   RELATIVE_TIME_STEPS,
   RELEASE_DATE_FORMAT,
@@ -17,22 +27,25 @@ import {
 import type {
   CircleRow,
   Feature,
+  FeatureCandidate,
   FilmRow,
   HomeFilm,
   HomeMember,
   Member,
   MemberRow,
   PulseRow,
+  PulseShelves,
 } from "./types";
 
-export const compact = (value: number) => COMPACT_NUMBER_FORMAT.format(value);
+export const formatCompact = (value: number) =>
+  COMPACT_NUMBER_FORMAT.format(value);
 
-export const whole = (value: number) => value.toLocaleString("en-US");
+export const formatWhole = (value: number) => value.toLocaleString("en-US");
 
-export const releaseDay = (iso: string) =>
+export const formatReleaseDay = (iso: string) =>
   RELEASE_DATE_FORMAT.format(new Date(`${iso}T12:00:00Z`));
 
-export function ago(iso: string, now = Date.now()): string {
+export function formatRelativeTime(iso: string, now = Date.now()): string {
   let value = (new Date(iso).getTime() - now) / 60_000;
   for (const [unit, next] of RELATIVE_TIME_STEPS) {
     if (Math.abs(value) < next)
@@ -42,7 +55,7 @@ export function ago(iso: string, now = Date.now()): string {
   return RELATIVE_TIME_FORMAT.format(Math.round(value), "year");
 }
 
-export function fuse<T>(
+export function fuseRankings<T>(
   lists: readonly (readonly T[])[],
   key: (item: T) => number,
   k = 60,
@@ -59,7 +72,7 @@ export function fuse<T>(
   return [...scores.values()].sort((a, b) => b.score - a.score);
 }
 
-export function fresh<T extends { id: number }>(
+function takeUnseen<T extends { id: number }>(
   items: readonly T[],
   shown: Set<number>,
   limit: number,
@@ -74,41 +87,23 @@ const yearOf = (date: string | null | undefined): number | null => {
   return Number.isFinite(year) && year > 0 ? year : null;
 };
 
-export function loglineOf(overview: string | null | undefined): string | null {
-  const flat = overview?.replace(/\s+/g, " ").trim();
-  if (!flat) return null;
-  const sentences = flat.match(/.+?[.!?](?=\s+["“‘']?[A-Z]|$)|.+$/g) ?? [flat];
-  let line = "";
-  for (const sentence of sentences) {
-    const next = `${line} ${sentence.trim()}`.trim();
-    if (line && next.length > LOGLINE_LENGTH) break;
-    line = next;
-    if (line.length >= 80) break;
-  }
-  if (line.length <= LOGLINE_LENGTH) return line;
-  return `${line.slice(0, LOGLINE_LENGTH).replace(/\s+\S*$/, "")}…`;
-}
+const featureLogline = (overview: string | null | undefined) =>
+  toLogline(overview, LOGLINE_LENGTH, LOGLINE_ENOUGH_LENGTH);
 
-export const titleClass = (title: string) => headlineClass(title, [22, 32, 44]);
+export const featureTitleClass = (title: string) =>
+  headlineClass(title, [22, 32, 44]);
 
-export function runtime(minutes: number | null): string | null {
-  if (!minutes) return null;
-  const hours = Math.floor(minutes / 60);
-  const rest = minutes % 60;
-  return hours ? `${hours}h ${rest ? `${rest}m` : ""}`.trim() : `${rest}m`;
-}
-
-export function reasonOf(film: Feature): string {
+export function featureReason(film: Feature): string {
   const parts: string[] = [];
   if (film.social) parts.push("Popular on Guffin");
   if (film.trending) parts.push(`Trending #${film.trending} worldwide`);
   return parts.join(" · ") || "Featured";
 }
 
-export const roomOf = (backdropPath: string | null) =>
+export const ambientImage = (backdropPath: string | null) =>
   tmdbImageUrl("backdrop", backdropPath, "w300");
 
-export const results = (
+export const resultsOf = (
   outcome: Result<FeaturedMoviePage, TmdbError>,
 ): FeaturedMovie[] => (outcome.success ? outcome.data.results : []);
 
@@ -134,10 +129,12 @@ export const fromTmdb = (movie: FeaturedMovie): HomeFilm => ({
   year: movie.releaseYear,
 });
 
-export const isoDate = (time: number) =>
+export const toIsoDate = (time: number) =>
   new Date(time).toISOString().slice(0, 10);
 
-export function distinct(movies: readonly FeaturedMovie[]): FeaturedMovie[] {
+export function uniqueMovies(
+  movies: readonly FeaturedMovie[],
+): FeaturedMovie[] {
   const seen = new Set<number>();
   return movies.filter((movie) => {
     if (seen.has(movie.id)) return false;
@@ -146,7 +143,7 @@ export function distinct(movies: readonly FeaturedMovie[]): FeaturedMovie[] {
   });
 }
 
-export function membersOf(
+export function selectMembers(
   pulse: PulseRow,
   circle: CircleRow | null,
 ): HomeMember[] {
@@ -179,7 +176,149 @@ export function membersOf(
   ].slice(0, MEMBER_LIMIT);
 }
 
-export const skeletonWidth = (text: string) => `${(text.length * 8.2) / 16}rem`;
-
-export const memberFaces = (members: Member[]) =>
+export const toAvatarPeople = (members: Member[]) =>
   members.map((member) => ({ ...member, id: member.username }));
+
+export function pickShowing(
+  {
+    playing,
+    upcoming,
+  }: { playing: FeaturedMovie[]; upcoming: FeaturedMovie[] },
+  minVotes: number,
+  today: string,
+): { soon: FeaturedMovie[]; theatres: FeaturedMovie[] } {
+  const byPopularity = (a: FeaturedMovie, b: FeaturedMovie) =>
+    b.popularity - a.popularity;
+  const releasedBy = (movie: FeaturedMovie) => movie.releaseDate ?? "";
+
+  const theatres = uniqueMovies(playing)
+    .filter(
+      (movie) =>
+        movie.posterPath &&
+        movie.voteCount >= minVotes &&
+        releasedBy(movie) <= today,
+    )
+    .sort(byPopularity)
+    .slice(0, SHOWING_LIMIT);
+  const soon = uniqueMovies(upcoming)
+    .filter((movie) => movie.posterPath && releasedBy(movie) > today)
+    .sort(byPopularity)
+    .slice(0, SHOWING_LIMIT)
+    .sort((a, b) => releasedBy(a).localeCompare(releasedBy(b)));
+
+  return { soon, theatres };
+}
+
+export function mergeFeatureCandidates(
+  trending: readonly FeaturedMovie[],
+  popular: PulseRow["popular"],
+): FeatureCandidate[] {
+  const world: FeatureCandidate[] = trending.map((movie, rank) => ({
+    backdropPath: movie.backdropPath,
+    id: movie.id,
+    social: null,
+    trending: rank + 1,
+  }));
+  const members: FeatureCandidate[] = popular.map((film) => ({
+    backdropPath: film.backdrop_path ?? null,
+    id: film.tmdb_id,
+    social: film,
+    trending: null,
+  }));
+  const find = (list: FeatureCandidate[], id: number) =>
+    list.find((candidate) => candidate.id === id);
+
+  return fuseRankings([world, members], (candidate) => candidate.id)
+    .map(({ item }) => ({
+      ...item,
+      social: item.social ?? find(members, item.id)?.social ?? null,
+      trending: item.trending ?? find(world, item.id)?.trending ?? null,
+    }))
+    .filter((candidate) => candidate.backdropPath)
+    .slice(0, FEATURE_LIMIT + FEATURE_SPARE_CANDIDATES);
+}
+
+export function toFeature(
+  candidate: FeatureCandidate,
+  movie: MovieDetails,
+): Feature | null {
+  const backdropPath = movie.backdropPath ?? candidate.backdropPath;
+  if (!backdropPath) return null;
+  const { social } = candidate;
+  return {
+    backdropPath,
+    genres: movie.genres.slice(0, FEATURE_GENRE_LIMIT).map(({ name }) => name),
+    id: movie.id,
+    logline: featureLogline(movie.overview),
+    posterPath: movie.posterPath,
+    runtime: movie.runtimeMinutes,
+    social: social
+      ? {
+          faces: social.faces.map(toMember),
+          rating: social.rating,
+          watchers: social.members,
+        }
+      : null,
+    title: movie.title,
+    trending: candidate.trending,
+    year: movie.releaseYear,
+  };
+}
+
+export function toPulseShelves(pulse: PulseRow): PulseShelves {
+  const shown = new Set<number>();
+  const popular = takeUnseen(
+    pulse.popular
+      .filter((row) => row.poster_path)
+      .map((row) => ({
+        ...toFilm(row),
+        faces: row.faces.map(toMember),
+        members: row.members,
+        rating: row.rating,
+        watchers: row.watchers,
+      })),
+    shown,
+    ROW_LIMIT,
+  );
+  const rising = takeUnseen(
+    pulse.rising.map((row) => ({
+      ...toFilm(row),
+      lift: row.lift,
+      week: row.week,
+    })),
+    shown,
+    RISING_LIMIT,
+  );
+
+  return {
+    lists: pulse.lists.map((row) => ({
+      description: row.description,
+      films: row.items_count,
+      id: row.id,
+      likes: row.likes_count,
+      owner: toMember(row.owner),
+      previews: row.previews,
+      slug: row.slug,
+      title: row.title,
+    })),
+    popular,
+    rated: pulse.top_rated
+      .filter((row) => row.poster_path)
+      .slice(0, ROW_LIMIT)
+      .map((row) => ({
+        ...toFilm(row),
+        rating: row.rating,
+        ratings: row.ratings,
+      })),
+    reviews: pulse.reviews.slice(0, REVIEW_LIMIT).map((row) => ({
+      author: toMember(row.author),
+      content: row.content,
+      createdAt: row.created_at,
+      film: toFilm(row),
+      id: row.id,
+      likes: row.likes_count,
+      rating: row.rating,
+    })),
+    rising,
+  };
+}

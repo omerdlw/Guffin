@@ -2,13 +2,11 @@
 
 import {
   type Dispatch,
-  type FocusEvent,
   memo,
   type ReactNode,
   type SetStateAction,
   useCallback,
   useEffect,
-  useId,
   useMemo,
   useRef,
   useState,
@@ -18,19 +16,27 @@ import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
 import type { SurfaceEntry } from "@omerdlw/base-framework/modules/dock";
 import { useToast } from "@omerdlw/base-framework/modules/notification";
 import { toUserMessage, UserError } from "@omerdlw/base-framework/utils";
-import { LayoutGroup } from "motion/react";
 import Link from "next/link";
 import { useAuth } from "@/features/auth/provider";
 import { accountHref } from "@/lib/project";
 import { Button } from "@/ui/button";
-import { SlidingHighlight, SurfaceSegmentedControl } from "@/ui/form";
-import { AdaptiveImage, Icon } from "@/ui/media";
+import {
+  HighlightGroup,
+  SurfaceSegmentedControl,
+  useHighlight,
+} from "@/ui/form";
 import { scrollWithin } from "@/ui/surface";
+import {
+  SURFACE_META,
+  SURFACE_SCROLL,
+  SURFACE_TEXT,
+  SURFACE_TILE_INNER,
+  SURFACE_TITLE,
+} from "@/ui/tokens";
 import { followUserAction, unfollowUserAction } from "./actions";
 import {
   acceptFollowRequest,
-  fetchFollowers,
-  fetchFollowing,
+  fetchFollowPage,
   fetchFollowRequests,
   rejectFollowRequest,
   removeFollower,
@@ -43,29 +49,19 @@ import {
   SOCIAL_SECONDARY_BUTTON,
   SOCIAL_TAB_LABELS,
 } from "./constants";
+import { AccountAvatarImage, AvatarTile, StatusTile } from "./tiles";
 import type {
   AccountSocialData,
   FollowUser,
   SocialAction,
+  SocialActionPlan,
   SocialCollection,
+  SocialCollectionController,
   SocialPageLoader,
   SocialTab,
   UserActionProps,
 } from "./types";
-import {
-  applyAvatarFallback,
-  getUserAvatarFallbackUrl,
-  getUserAvatarUrl,
-  socialErrorMessage,
-  withoutUser,
-} from "./utils";
-import {
-  SURFACE_META,
-  SURFACE_SCROLL,
-  SURFACE_TEXT,
-  SURFACE_TILE_INNER,
-  SURFACE_TITLE,
-} from "@/ui/tokens";
+import { socialErrorMessage, withoutUser } from "./utils";
 
 const loadRequests: SocialPageLoader = async () => ({
   items: await fetchFollowRequests(),
@@ -76,12 +72,7 @@ const loadRequests: SocialPageLoader = async () => ({
 function useCollection(
   load: SocialPageLoader,
   enabled: boolean,
-): [
-  SocialCollection,
-  Dispatch<SetStateAction<SocialCollection>>,
-  () => void,
-  () => void,
-] {
+): SocialCollectionController {
   const [state, setState] = useState<SocialCollection>({
     error: null,
     list: [],
@@ -90,19 +81,25 @@ function useCollection(
     next: null,
     total: null,
   });
-  const request = useRef(0);
-  const loadingMore = useRef(false);
+  const requestId = useRef(0);
+  const isLoadingMore = useRef(false);
 
   const reload = useCallback(async () => {
     if (!enabled) {
-      setState((s) => (s.loading ? { ...s, loading: false } : s));
+      setState((current) =>
+        current.loading ? { ...current, loading: false } : current,
+      );
       return;
     }
-    const id = ++request.current;
-    setState((s) => ({ ...s, error: null, loading: s.list.length === 0 }));
+    const id = ++requestId.current;
+    setState((current) => ({
+      ...current,
+      error: null,
+      loading: current.list.length === 0,
+    }));
     try {
       const page = await load();
-      if (id !== request.current) return;
+      if (id !== requestId.current) return;
       setState({
         error: null,
         list: page.items,
@@ -112,27 +109,27 @@ function useCollection(
         total: page.total,
       });
     } catch (error) {
-      if (id === request.current) {
-        setState((s) => ({ ...s, error, loading: false }));
+      if (id === requestId.current) {
+        setState((current) => ({ ...current, error, loading: false }));
       }
     }
   }, [enabled, load]);
 
+  const cursor = state.next;
   const loadMore = useCallback(async () => {
-    const cursor = state.next;
-    if (!cursor || loadingMore.current) return;
-    loadingMore.current = true;
-    const id = request.current;
-    setState((s) => ({ ...s, loadingMore: true }));
+    if (!cursor || isLoadingMore.current) return;
+    isLoadingMore.current = true;
+    const id = requestId.current;
+    setState((current) => ({ ...current, loadingMore: true }));
     try {
       const page = await load(cursor);
-      if (id !== request.current) return;
-      setState((s) => {
-        const known = new Set(s.list.map((user) => user.id));
+      if (id !== requestId.current) return;
+      setState((current) => {
+        const known = new Set(current.list.map((user) => user.id));
         return {
-          ...s,
+          ...current,
           list: [
-            ...s.list,
+            ...current.list,
             ...page.items.filter((user) => !known.has(user.id)),
           ],
           loadingMore: false,
@@ -140,17 +137,188 @@ function useCollection(
         };
       });
     } catch {
-      setState((s) => ({ ...s, loadingMore: false }));
+      setState((current) => ({ ...current, loadingMore: false }));
     } finally {
-      loadingMore.current = false;
+      isLoadingMore.current = false;
     }
-  }, [load, state.next]);
+  }, [cursor, load]);
 
   useEffect(() => {
     void reload();
   }, [reload]);
 
-  return [state, setState, reload, loadMore];
+  return { loadMore, reload, setState, state };
+}
+
+function useFollowStatuses(followers: FollowUser[], following: FollowUser[]) {
+  const [statuses, setStatuses] = useState<Record<string, string>>({});
+  const [seen, setSeen] = useState({ followers, following });
+
+  if (seen.followers !== followers || seen.following !== following) {
+    setSeen({ followers, following });
+    setStatuses((current) => {
+      const next = { ...current };
+      for (const user of [...followers, ...following]) {
+        next[user.id] = user.viewerStatus || "";
+      }
+      return next;
+    });
+  }
+
+  return [statuses, setStatuses] as const;
+}
+
+function snapshotState<T>(
+  setter: Dispatch<SetStateAction<T>>,
+  change: (value: T) => T,
+) {
+  let previous: T | undefined;
+  setter((value) => {
+    previous = value;
+    return change(value);
+  });
+  return () => {
+    if (previous !== undefined) setter(previous as T);
+  };
+}
+
+function useSocialActions({
+  collections,
+  ownProfile,
+  setFollowStatus,
+  viewerId,
+}: {
+  collections: Record<
+    "followers" | "following" | "requests",
+    SocialCollectionController
+  >;
+  ownProfile: boolean;
+  setFollowStatus: Dispatch<SetStateAction<Record<string, string>>>;
+  viewerId: string | null;
+}) {
+  const toast = useToast();
+  const [pending, setPending] = useState<Record<string, SocialAction>>({});
+  const setFollowers = collections.followers.setState;
+  const setFollowing = collections.following.setState;
+  const setRequests = collections.requests.setState;
+
+  const planAction = useCallback(
+    (action: SocialAction, id: string): SocialActionPlan => {
+      switch (action) {
+        case "accept":
+          return {
+            apply: () =>
+              snapshotState(setRequests, (state) => withoutUser(state, id)),
+            failure: "Couldn't accept this request",
+            request: async () => {
+              await acceptFollowRequest(id);
+              globalEvents.emit(SOCIAL_EVENTS.FOLLOW_CHANGE, {
+                followingId: viewerId,
+                status: "accepted",
+              });
+              globalEvents.emit(SOCIAL_EVENTS.INBOX_CHANGE);
+            },
+          };
+        case "reject":
+          return {
+            apply: () =>
+              snapshotState(setRequests, (state) => withoutUser(state, id)),
+            failure: "Couldn't decline this request",
+            request: async () => {
+              await rejectFollowRequest(id);
+              globalEvents.emit(SOCIAL_EVENTS.INBOX_CHANGE);
+            },
+          };
+        case "remove":
+          return {
+            apply: () =>
+              snapshotState(setFollowers, (state) => withoutUser(state, id)),
+            failure: "Couldn't remove this follower",
+            request: async () => {
+              await removeFollower(id);
+              globalEvents.emit(SOCIAL_EVENTS.FOLLOW_CHANGE, {
+                followingId: viewerId,
+                status: null,
+              });
+            },
+          };
+        case "unfollow":
+          return {
+            apply: () => {
+              const revertStatus = snapshotState(
+                setFollowStatus,
+                ({ [id]: _, ...rest }) => rest,
+              );
+              const revertList = ownProfile
+                ? snapshotState(setFollowing, (state) => withoutUser(state, id))
+                : () => {};
+              return () => {
+                revertStatus();
+                revertList();
+              };
+            },
+            failure: "Couldn't unfollow this account",
+            request: async () => {
+              const result = await unfollowUserAction(id);
+              if (!result.success) throw new UserError(result.error);
+              globalEvents.emit(SOCIAL_EVENTS.FOLLOW_CHANGE, {
+                followingId: id,
+                status: null,
+              });
+            },
+          };
+        case "follow":
+          return {
+            apply: () =>
+              snapshotState(setFollowStatus, (statuses) => ({
+                ...statuses,
+                [id]: "accepted",
+              })),
+            failure: "Couldn't follow this account",
+            request: async () => {
+              const result = await followUserAction(id);
+              if (!result.success) throw new UserError(result.error);
+              setFollowStatus((statuses) => ({
+                ...statuses,
+                [id]: result.data,
+              }));
+              globalEvents.emit(SOCIAL_EVENTS.FOLLOW_CHANGE, {
+                followingId: id,
+                status: result.data,
+              });
+            },
+          };
+      }
+    },
+    [
+      ownProfile,
+      setFollowStatus,
+      setFollowers,
+      setFollowing,
+      setRequests,
+      viewerId,
+    ],
+  );
+
+  const runAction = useCallback(
+    async (action: SocialAction, id: string) => {
+      if (!viewerId || pending[id]) return;
+      const { apply, failure, request } = planAction(action, id);
+      setPending((current) => ({ ...current, [id]: action }));
+      const revert = apply();
+      try {
+        await request();
+      } catch (error) {
+        revert();
+        toast(toUserMessage(error, { fallback: failure }));
+      } finally {
+        setPending(({ [id]: _, ...rest }) => rest);
+      }
+    },
+    [pending, planAction, toast, viewerId],
+  );
+
+  return { pending, runAction };
 }
 
 function LoadingRow() {
@@ -199,75 +367,31 @@ function LoadMoreSentinel({
   );
 }
 
-function StatusTile({
-  description,
-  icon,
-  title,
-}: {
-  description: string;
-  icon: string;
-  title: string;
-}) {
-  return (
-    <div className={SOCIAL_ROW}>
-      <div
-        className={`center size-10 shrink-0 bg-fill text-ink-muted ${SURFACE_TILE_INNER}`}
-      >
-        <Icon icon={icon} size={18} />
-      </div>
-      <div className={SURFACE_TEXT}>
-        <p className={SURFACE_TITLE}>{title}</p>
-        <p className={SURFACE_META}>{description}</p>
-      </div>
-    </div>
-  );
-}
-
 const UserRow = memo(function UserRow({
   action,
-  highlighted,
-  onBlur,
-  onFocus,
   onNavigate,
-  onPointerEnter,
   user,
 }: {
   action: ReactNode;
-  highlighted: boolean;
-  onBlur: (event: FocusEvent<HTMLDivElement>) => void;
-  onFocus: () => void;
   onNavigate?: () => void;
-  onPointerEnter: () => void;
   user: FollowUser;
 }) {
+  const highlight = useHighlight(user.id);
+
   return (
     <div
       className={`${SOCIAL_ROW} relative isolate group/user`}
-      onBlur={onBlur}
-      onFocus={onFocus}
-      onPointerEnter={onPointerEnter}
+      {...highlight.props}
     >
-      {highlighted ? (
-        <SlidingHighlight layoutId="account-social-row-highlight" />
-      ) : null}
+      {highlight.node}
       <Link
         className={`relative z-10 flex h-full min-w-0 flex-1 items-center gap-3 ${SURFACE_TILE_INNER}`}
         href={accountHref(user.username || user.id)}
         onClick={onNavigate}
       >
-        <div
-          className={`relative size-10 shrink-0 overflow-hidden bg-fill ${SURFACE_TILE_INNER}`}
-        >
-          <AdaptiveImage
-            alt={user.displayName}
-            className="size-full rounded-[inherit] object-cover"
-            onError={(event) =>
-              applyAvatarFallback(event, getUserAvatarFallbackUrl(user))
-            }
-            src={getUserAvatarUrl(user)}
-            wrapperClassName="size-full rounded-[inherit]"
-          />
-        </div>
+        <AvatarTile>
+          <AccountAvatarImage account={user} alt={user.displayName} />
+        </AvatarTile>
         <div className={SURFACE_TEXT}>
           <span className={SURFACE_TITLE}>{user.displayName}</span>
           <span
@@ -342,6 +466,39 @@ const UserAction = memo(function UserAction({
   );
 });
 
+function SocialTabStatus({
+  collection,
+  tab,
+}: {
+  collection: SocialCollection;
+  tab: SocialTab;
+}) {
+  const isInbox = tab === "inbox";
+
+  if (collection.error) {
+    return (
+      <StatusTile
+        description={socialErrorMessage(collection.error, tab)}
+        icon="solar:danger-circle-bold"
+        title={`Couldn't load ${tab}`}
+      />
+    );
+  }
+  return (
+    <StatusTile
+      description={
+        isInbox
+          ? "Incoming follow requests will appear here"
+          : `No ${tab} yet for this account`
+      }
+      icon={
+        isInbox ? "solar:inbox-line-bold" : "solar:users-group-rounded-bold"
+      }
+      title={isInbox ? "No pending follow requests" : `No ${tab} yet`}
+    />
+  );
+}
+
 function AccountSocialSurface({
   close,
   data,
@@ -349,9 +506,7 @@ function AccountSocialSurface({
   close?: () => void;
   data: AccountSocialData;
 }) {
-  const highlightGroupId = useId();
   const auth = useAuth();
-  const toast = useToast();
   const viewerId = auth.user?.id ?? null;
   const userId = data.userId;
   const ownProfile = viewerId !== null && viewerId === userId;
@@ -359,226 +514,79 @@ function AccountSocialSurface({
   const signedIn = auth.isReady && auth.isAuthenticated && viewerId !== null;
 
   const [tab, setTab] = useState<SocialTab>(data.tab);
-  const [hoveredUserId, setHoveredUserId] = useState<string | null>(null);
-  const [focusedUserId, setFocusedUserId] = useState<string | null>(null);
-  const [pending, setPending] = useState<Record<string, SocialAction>>({});
-  const [followStatus, setFollowStatus] = useState<Record<string, string>>({});
 
   const loadFollowers = useCallback<SocialPageLoader>(
-    (cursor) => fetchFollowers(userId, cursor),
+    (cursor) => fetchFollowPage("followers", userId, cursor),
     [userId],
   );
   const loadFollowing = useCallback<SocialPageLoader>(
-    (cursor) => fetchFollowing(userId, cursor),
+    (cursor) => fetchFollowPage("following", userId, cursor),
     [userId],
   );
-  const [followers, setFollowers, reloadFollowers, moreFollowers] =
-    useCollection(loadFollowers, Boolean(userId));
-  const [following, setFollowing, reloadFollowing, moreFollowing] =
-    useCollection(loadFollowing, Boolean(userId));
-  const [requests, setRequests, reloadRequests] = useCollection(
-    loadRequests,
-    canManageRequests && signedIn,
+  const followers = useCollection(loadFollowers, Boolean(userId));
+  const following = useCollection(loadFollowing, Boolean(userId));
+  const requests = useCollection(loadRequests, canManageRequests && signedIn);
+  const [followStatus, setFollowStatus] = useFollowStatuses(
+    followers.state.list,
+    following.state.list,
   );
 
-  const [seenLists, setSeenLists] = useState([followers.list, following.list]);
-  if (seenLists[0] !== followers.list || seenLists[1] !== following.list) {
-    setSeenLists([followers.list, following.list]);
-    setFollowStatus((statuses) => {
-      const next = { ...statuses };
-      for (const user of [...followers.list, ...following.list]) {
-        next[user.id] = user.viewerStatus || "";
-      }
-      return next;
-    });
-  }
+  const { pending, runAction } = useSocialActions({
+    collections: { followers, following, requests },
+    ownProfile,
+    setFollowStatus,
+    viewerId,
+  });
 
   useGlobalEvent(
     SOCIAL_EVENTS.FOLLOW_CHANGE,
     () => {
-      reloadFollowers();
-      reloadFollowing();
+      followers.reload();
+      following.reload();
     },
     { debounceMs: 250 },
   );
   useGlobalEvent(
     SOCIAL_EVENTS.INBOX_CHANGE,
     () => {
-      if (canManageRequests && viewerId) reloadRequests();
+      if (canManageRequests && viewerId) requests.reload();
     },
     { debounceMs: 250 },
   );
 
-  const run = useCallback(
-    async (
-      id: string,
-      action: SocialAction,
-      request: () => Promise<void>,
-      failure: string,
-      apply: () => () => void,
-    ) => {
-      if (!viewerId || pending[id]) return;
-      setPending((current) => ({ ...current, [id]: action }));
-      const revert = apply();
-      try {
-        await request();
-      } catch (error) {
-        revert();
-        toast(toUserMessage(error, { fallback: failure }));
-      } finally {
-        setPending(({ [id]: _, ...rest }) => rest);
-      }
-    },
-    [pending, toast, viewerId],
-  );
-
-  const snapshot = <T,>(
-    setter: Dispatch<SetStateAction<T>>,
-    change: (value: T) => T,
-  ) => {
-    let previous: T | undefined;
-    setter((value) => {
-      previous = value;
-      return change(value);
-    });
-    return () => {
-      if (previous !== undefined) setter(previous as T);
-    };
-  };
-
-  const handleAction = useCallback(
-    (action: SocialAction, id: string) => {
-      switch (action) {
-        case "accept":
-          return run(
-            id,
-            action,
-            async () => {
-              await acceptFollowRequest(id);
-              globalEvents.emit(SOCIAL_EVENTS.FOLLOW_CHANGE, {
-                followingId: viewerId,
-                status: "accepted",
-              });
-              globalEvents.emit(SOCIAL_EVENTS.INBOX_CHANGE);
-            },
-            "Couldn't accept this request",
-            () => snapshot(setRequests, (s) => withoutUser(s, id)),
-          );
-        case "reject":
-          return run(
-            id,
-            action,
-            async () => {
-              await rejectFollowRequest(id);
-              globalEvents.emit(SOCIAL_EVENTS.INBOX_CHANGE);
-            },
-            "Couldn't decline this request",
-            () => snapshot(setRequests, (s) => withoutUser(s, id)),
-          );
-        case "remove":
-          return run(
-            id,
-            action,
-            async () => {
-              await removeFollower(id);
-              globalEvents.emit(SOCIAL_EVENTS.FOLLOW_CHANGE, {
-                followingId: viewerId,
-                status: null,
-              });
-            },
-            "Couldn't remove this follower",
-            () => snapshot(setFollowers, (s) => withoutUser(s, id)),
-          );
-        case "unfollow":
-          return run(
-            id,
-            action,
-            async () => {
-              const result = await unfollowUserAction(id);
-              if (!result.success) throw new UserError(result.error);
-              globalEvents.emit(SOCIAL_EVENTS.FOLLOW_CHANGE, {
-                followingId: id,
-                status: null,
-              });
-            },
-            "Couldn't unfollow this account",
-            () => {
-              const revertStatus = snapshot(
-                setFollowStatus,
-                ({ [id]: _, ...rest }) => rest,
-              );
-              const revertList = ownProfile
-                ? snapshot(setFollowing, (s) => withoutUser(s, id))
-                : () => {};
-              return () => {
-                revertStatus();
-                revertList();
-              };
-            },
-          );
-        case "follow":
-          return run(
-            id,
-            action,
-            async () => {
-              const result = await followUserAction(id);
-              if (!result.success) throw new UserError(result.error);
-              const status = result.data;
-              setFollowStatus((current) => ({ ...current, [id]: status }));
-              globalEvents.emit(SOCIAL_EVENTS.FOLLOW_CHANGE, {
-                followingId: id,
-                status,
-              });
-            },
-            "Couldn't follow this account",
-            () =>
-              snapshot(setFollowStatus, (current) => ({
-                ...current,
-                [id]: "accepted",
-              })),
-          );
-      }
-    },
-    [ownProfile, run, setFollowers, setFollowing, setRequests, viewerId],
-  );
-
   const showInbox =
     canManageRequests &&
-    (requests.loading || requests.list.length > 0 || Boolean(requests.error));
+    (requests.state.loading ||
+      requests.state.list.length > 0 ||
+      Boolean(requests.state.error));
 
   const tabs = useMemo(
     () => [
       {
-        count: following.total ?? following.list.length,
+        count: following.state.total ?? following.state.list.length,
         key: "following" as const,
         label: "Following",
       },
       {
-        count: followers.total ?? followers.list.length,
+        count: followers.state.total ?? followers.state.list.length,
         key: "followers" as const,
         label: "Followers",
       },
       ...(showInbox
         ? [
             {
-              count: requests.list.length,
+              count: requests.state.list.length,
               key: "inbox" as const,
               label: "Inbox",
             },
           ]
         : []),
     ],
-    [followers, following, requests.list.length, showInbox],
+    [followers.state, following.state, requests.state.list.length, showInbox],
   );
 
-  const active =
-    tab === "inbox" ? requests : tab === "following" ? following : followers;
-  const loadMore =
-    tab === "following"
-      ? moreFollowing
-      : tab === "followers"
-        ? moreFollowers
-        : null;
+  const controllers = { followers, following, inbox: requests };
+  const { loadMore, state: active } = controllers[tab];
 
   let body: ReactNode;
   if (active.loading) {
@@ -589,78 +597,42 @@ function AccountSocialSurface({
         ))}
       </div>
     );
-  } else if (active.error) {
-    body = (
-      <StatusTile
-        description={socialErrorMessage(active.error, tab)}
-        icon="solar:danger-circle-bold"
-        title={`Couldn't load ${tab}`}
-      />
-    );
-  } else if (active.list.length === 0) {
-    body = (
-      <StatusTile
-        description={
-          tab === "inbox"
-            ? "Incoming follow requests will appear here"
-            : `No ${tab} yet for this account`
-        }
-        icon={
-          tab === "inbox"
-            ? "solar:inbox-line-bold"
-            : "solar:users-group-rounded-bold"
-        }
-        title={tab === "inbox" ? "No pending follow requests" : `No ${tab} yet`}
-      />
-    );
+  } else if (active.error || active.list.length === 0) {
+    body = <SocialTabStatus collection={active} tab={tab} />;
   } else {
     body = (
       <div
         className={`${SURFACE_SCROLL} max-h-[min(56dvh,26rem)] w-full touch-pan-y`}
         data-scroll-native
         key={tab}
-        onPointerLeave={() => setHoveredUserId(null)}
         onWheel={scrollWithin}
       >
-        <LayoutGroup id={`account-social-${highlightGroupId}-${tab}`}>
-          <div className="flex w-full flex-col gap-2.5">
-            {active.list.map((user) => (
-              <UserRow
-                action={
-                  <UserAction
-                    followStatus={followStatus[user.id] || null}
-                    onAction={handleAction}
-                    ownProfile={ownProfile}
-                    pending={pending[user.id] ?? null}
-                    showFollow={viewerId !== null && viewerId !== user.id}
-                    tab={tab}
-                    userId={user.id}
-                  />
-                }
-                highlighted={(hoveredUserId ?? focusedUserId) === user.id}
-                key={user.id}
-                onBlur={(event) => {
-                  if (
-                    !(event.relatedTarget instanceof Node) ||
-                    !event.currentTarget.contains(event.relatedTarget)
-                  ) {
-                    setFocusedUserId(null);
-                  }
-                }}
-                onFocus={() => setFocusedUserId(user.id)}
-                onNavigate={close}
-                onPointerEnter={() => setHoveredUserId(user.id)}
-                user={user}
-              />
-            ))}
-            {active.next && loadMore ? (
-              <LoadMoreSentinel
-                loading={active.loadingMore}
-                onVisible={loadMore}
-              />
-            ) : null}
-          </div>
-        </LayoutGroup>
+        <HighlightGroup className="flex w-full flex-col gap-2.5">
+          {active.list.map((user) => (
+            <UserRow
+              action={
+                <UserAction
+                  followStatus={followStatus[user.id] || null}
+                  onAction={runAction}
+                  ownProfile={ownProfile}
+                  pending={pending[user.id] ?? null}
+                  showFollow={viewerId !== null && viewerId !== user.id}
+                  tab={tab}
+                  userId={user.id}
+                />
+              }
+              key={user.id}
+              onNavigate={close}
+              user={user}
+            />
+          ))}
+          {active.next ? (
+            <LoadMoreSentinel
+              loading={active.loadingMore}
+              onVisible={loadMore}
+            />
+          ) : null}
+        </HighlightGroup>
       </div>
     );
   }

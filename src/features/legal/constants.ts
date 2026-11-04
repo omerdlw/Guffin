@@ -1,5 +1,5 @@
 import type { LegalDocument } from "./types";
-import { list, para } from "./utils";
+import { bulletList, paragraph } from "./utils";
 
 export const LEGAL_CONTACT_EMAIL = "omerdeliavci@outlook.com";
 
@@ -21,7 +21,7 @@ export const TERMS: LegalDocument = {
   sections: [
     {
       blocks: [
-        para(
+        paragraph(
           "By accessing or using Guffin you agree to these Terms of Service and to the [Privacy Policy](/privacy). If you do not agree, do not use the service.",
         ),
       ],
@@ -29,7 +29,7 @@ export const TERMS: LegalDocument = {
     },
     {
       blocks: [
-        para(
+        paragraph(
           "Guffin is a web product for discovering movies and the people who make them, signing in, keeping a profile, tracking what you watch, building lists, writing reviews and following other people. Parts of the service rely on third-party data sources and providers.",
         ),
       ],
@@ -37,7 +37,7 @@ export const TERMS: LegalDocument = {
     },
     {
       blocks: [
-        list(
+        bulletList(
           "You are responsible for the accuracy of the information you add to your account.",
           "You are responsible for everything that happens under your account.",
           "You must keep your sign-in methods, passkeys and verification codes secure.",
@@ -49,13 +49,13 @@ export const TERMS: LegalDocument = {
     },
     {
       blocks: [
-        para(
+        paragraph(
           "You keep ownership of what you submit to Guffin: profile text, ratings, reviews, lists, comments and other content.",
         ),
-        para(
+        paragraph(
           "By posting it, you give Guffin a non-exclusive licence to host, store, reproduce, adapt for formatting and display that content as needed to run the service and to make it available according to your account settings and the feature you used.",
         ),
-        para(
+        paragraph(
           "You are responsible for making sure what you publish is lawful and that you have the right to share it.",
         ),
       ],
@@ -63,8 +63,8 @@ export const TERMS: LegalDocument = {
     },
     {
       blocks: [
-        para("You agree not to use Guffin to:"),
-        list(
+        paragraph("You agree not to use Guffin to:"),
+        bulletList(
           "break the law or violate another person's rights;",
           "harass, abuse, threaten, impersonate or expose other people;",
           "upload malicious code, interfere with the service or try to bypass its security controls;",
@@ -77,10 +77,10 @@ export const TERMS: LegalDocument = {
     },
     {
       blocks: [
-        para(
+        paragraph(
           "Guffin depends on outside providers: Supabase for authentication, the database and file storage, Google or GitHub for optional sign-in, an email provider for account emails, and TMDB for movie and people data, images and watch-provider availability. They operate under their own terms and privacy policies.",
         ),
-        para(
+        paragraph(
           "That data may change, be incomplete or be removed by those providers. Guffin is not responsible for third-party outages or inaccuracies outside its control. This product uses the TMDB API but is not endorsed or certified by TMDB.",
         ),
       ],
@@ -88,7 +88,7 @@ export const TERMS: LegalDocument = {
     },
     {
       blocks: [
-        para(
+        paragraph(
           "Guffin is provided on an evolving basis. Features may be added, changed, limited or removed without notice, and the service may be modified or discontinued, in whole or in part, for technical, security, operational or product reasons.",
         ),
       ],
@@ -96,7 +96,7 @@ export const TERMS: LegalDocument = {
     },
     {
       blocks: [
-        para(
+        paragraph(
           "You may stop using Guffin at any time, and delete your account from its settings. Guffin may suspend or end access if you violate these terms, put the service or other users at risk, or use it in an abusive or technically harmful way.",
         ),
       ],
@@ -104,7 +104,7 @@ export const TERMS: LegalDocument = {
     },
     {
       blocks: [
-        para(
+        paragraph(
           "Guffin is provided “as is” and “as available”. We do not guarantee uninterrupted access, or that every feature, profile, review or piece of third-party data will always be accurate, complete or current.",
         ),
       ],
@@ -112,7 +112,7 @@ export const TERMS: LegalDocument = {
     },
     {
       blocks: [
-        para(
+        paragraph(
           "To the maximum extent permitted by law, Guffin and its operators are not liable for indirect, incidental, special, consequential, exemplary or punitive damages arising from your use of the service. Where liability cannot be excluded, it is limited to the minimum the law allows.",
         ),
       ],
@@ -120,14 +120,16 @@ export const TERMS: LegalDocument = {
     },
     {
       blocks: [
-        para(
+        paragraph(
           "These terms may be revised as the product changes. When they are, the date at the top of this page changes with them. Using Guffin after an update means you accept the revised terms.",
         ),
       ],
       title: "Changes to these terms",
     },
     {
-      blocks: [para(`Questions about these terms can be sent to ${contact}.`)],
+      blocks: [
+        paragraph(`Questions about these terms can be sent to ${contact}.`),
+      ],
       title: "Contact",
     },
   ],
@@ -143,17 +145,17 @@ export const PRIVACY: LegalDocument = {
   sections: [
     {
       blocks: [
-        para(
+        paragraph(
           "Guffin is a movie discovery app: you can sign in, keep a profile, track what you watch, build lists, write reviews and follow other people. We only collect what is needed to run those features, keep accounts secure and keep the service reliable.",
         ),
-        para(`Privacy questions can be sent to ${contact}.`),
+        paragraph(`Privacy questions can be sent to ${contact}.`),
       ],
       title: "Overview",
     },
     {
       blocks: [
-        para("Depending on how you use Guffin, we process:"),
-        list(
+        paragraph("Depending on how you use Guffin, we process:"),
+        bulletList(
           "**Account information:** your email address, username, display name, how you sign in and basic profile details.",
           "**Profile content you add:** avatar, banner and background images, biography, and whether your account is private.",
           "**What you do in the app:** watched movies, your diary, watchlist, likes and favorites, lists and the movies in them, ratings, reviews and comments, the reviews and lists you like, and who you follow and who follows you. Each stores a small copy of the movie's title and poster so your pages load without asking TMDB again.",
@@ -166,7 +168,7 @@ export const PRIVACY: LegalDocument = {
     },
     {
       blocks: [
-        list(
+        bulletList(
           "If you sign in with Google or GitHub, we may receive the basic details that provider shares: your email address, name and profile image.",
           "Movie and people data, images and where a movie can be watched come from TMDB. They are used to power browsing and are not used to identify you.",
         ),
@@ -175,7 +177,7 @@ export const PRIVACY: LegalDocument = {
     },
     {
       blocks: [
-        list(
+        bulletList(
           "To create your account and sign you in securely.",
           "To let you edit your profile and publish the content you choose to share.",
           "To run the social features: reviews, likes, lists, follows, notifications, the activity feed, search and profile pages.",
@@ -188,10 +190,10 @@ export const PRIVACY: LegalDocument = {
     },
     {
       blocks: [
-        para(
+        paragraph(
           "A public profile can be seen by anyone: your username, display name, avatar, biography, library, favorites, lists, reviews, likes and activity, depending on the feature. Public content can also be found through search.",
         ),
-        para(
+        paragraph(
           "If you make your profile private, only people whose follow request you accepted can see those sections, and your lists, reviews and activity stop appearing to everyone else, search included. Private mode is a control inside the app, not an absolute guarantee against every possible exposure or cached copy.",
         ),
       ],
@@ -199,10 +201,10 @@ export const PRIVACY: LegalDocument = {
     },
     {
       blocks: [
-        para(
+        paragraph(
           "Guffin does not sell your personal information. It is processed by providers that help run the service:",
         ),
-        list(
+        bulletList(
           "**Supabase** for authentication, database and file storage, and realtime features.",
           "**Google** or **GitHub** when you choose those sign-in methods.",
           "**An email delivery provider** for verification and account-security emails.",
@@ -215,7 +217,7 @@ export const PRIVACY: LegalDocument = {
     },
     {
       blocks: [
-        para(
+        paragraph(
           "Guffin uses cookies and similar browser storage to keep you signed in, protect your session, remember preferences and support parts of the interface. Some of it is necessary for the app to work, such as the sign-in cookies. Some is for convenience, such as your artwork choices.",
         ),
       ],
@@ -223,7 +225,7 @@ export const PRIVACY: LegalDocument = {
     },
     {
       blocks: [
-        para(
+        paragraph(
           "We keep account and content data as long as it is needed to run the service and keep what you chose to store. Session records and the security log are pruned regularly. Deleting something removes it from the app straight away, though copies may remain in backups or logs for a while. Deleting your account removes your profile and everything tied to it, including your follows, which also corrects the other side's counts.",
         ),
       ],
@@ -231,7 +233,7 @@ export const PRIVACY: LegalDocument = {
     },
     {
       blocks: [
-        list(
+        bulletList(
           "You can edit your profile in the app, and switch your account between public and private in its settings.",
           "You can remove your reviews, lists, library entries and other content.",
           "You can end any of your signed-in devices from your account's security settings.",
@@ -242,7 +244,7 @@ export const PRIVACY: LegalDocument = {
     },
     {
       blocks: [
-        para(
+        paragraph(
           "Guffin is not meant for children below the age at which the law lets them create an account on their own. Do not use the service if you are not legally allowed to.",
         ),
       ],
@@ -250,10 +252,10 @@ export const PRIVACY: LegalDocument = {
     },
     {
       blocks: [
-        para(
+        paragraph(
           "This policy may be updated as the product changes. When it is, the date at the top of this page changes with it.",
         ),
-        para("Please also read the [Terms of Service](/terms)."),
+        paragraph("Please also read the [Terms of Service](/terms)."),
       ],
       title: "Changes to this policy",
     },
@@ -261,12 +263,14 @@ export const PRIVACY: LegalDocument = {
   title: "Privacy Policy",
 };
 
-export const BASE =
+export const LEGAL_PILL_BASE_CLASS =
   "cine-fade flex-1 px-4 py-3 text-center type-body font-medium ring-1 ring-inset outline-none focus-visible:ring-edge-focus";
 
-export const LINK_CLASS =
-  "underline decoration-ink-faint underline-offset-2 hover:text-ink focus-visible:text-ink hover:decoration-ink-muted focus-visible:decoration-ink-muted";
+export const LEGAL_PILL_IDLE_CLASS =
+  "bg-fill text-ink-body ring-edge hover:bg-fill-hover focus-visible:bg-fill-hover hover:text-ink focus-visible:text-ink hover:ring-edge-hover focus-visible:ring-edge-focus";
 
-export const TOKEN = /(\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\))/g;
+export const LEGAL_PILL_ACTIVE_CLASS = "bg-fill-hover text-ink ring-edge-hover";
 
-export const LINK = /^\[([^\]]+)\]\(([^)]+)\)$/;
+export const LEGAL_TOKEN_PATTERN = /(\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\))/g;
+
+export const LEGAL_LINK_PATTERN = /^\[([^\]]+)\]\(([^)]+)\)$/;

@@ -10,11 +10,9 @@ import { formatShortDate } from "@/features/account/utils";
 import { ListCommentAction, ListLikeButton } from "@/features/lists/buttons";
 import { createListFormSurfaceEntry } from "@/features/lists/form";
 import type { ListFormData } from "@/features/lists/types";
-import {
-  createReviewEditorSurfaceEntry,
-  ReviewActions,
-  ReviewBody,
-} from "@/features/reviews/controls";
+import { ReviewActions, ReviewBody } from "@/features/reviews/controls";
+import { createReviewEditorSurfaceEntry } from "@/features/reviews/editor";
+import { pluralize } from "@/lib/format";
 import { accountHref, listHref } from "@/lib/project";
 import { AccountLink, Button, DockAction } from "@/ui/button";
 import { Avatar, Icon } from "@/ui/media";
@@ -23,7 +21,7 @@ import { LIST_DATE_FORMAT } from "./constants";
 import { AccountPart } from "./motion";
 import { useAccountDock } from "./shell";
 import type { ListCardData, ListComment, ListDetail } from "./types";
-import { countLabel } from "./utils";
+import { toListFormEntry } from "./utils";
 
 function NewListAction({ username }: { username: string }): JSX.Element {
   const actionClass = useDockActionClass();
@@ -121,48 +119,31 @@ export function ListChrome({
   list: ListDetail;
   signedIn: boolean;
 }): null {
-  const {
-    description,
-    id,
-    isPrivate,
-    isRanked,
-    itemsCount,
-    liked,
-    likesCount,
-    owner,
-    slug,
-    title,
-  } = list;
-
   const dock = useMemo(
     () => ({
       action: (
         <DockAction>
           {isOwner ? (
             <EditListAction
-              list={{
-                description,
-                id,
-                isPrivate,
-                isRanked,
-                itemsCount,
-                slug,
-                title,
-              }}
-              username={owner.username}
+              list={toListFormEntry(list)}
+              username={list.owner.username}
               wide
             />
           ) : (
             <div className="flex w-full items-center gap-2.5">
               <ListLikeButton
-                liked={liked}
-                likesCount={likesCount}
-                listId={id}
+                liked={list.liked}
+                likesCount={list.likesCount}
+                listId={list.id}
                 signedIn={signedIn}
               />
               <div className="min-w-0 flex-1">
                 <ListCommentAction
-                  target={{ content: comment, listId: id, title }}
+                  target={{
+                    content: comment,
+                    listId: list.id,
+                    title: list.title,
+                  }}
                 />
               </div>
             </div>
@@ -170,28 +151,12 @@ export function ListChrome({
         </DockAction>
       ),
       description:
-        description.trim().split("\n")[0] ||
-        `${countLabel(itemsCount, "film")} · by ${owner.displayName}`,
+        list.description.trim().split("\n")[0] ||
+        `${pluralize(list.itemsCount, "film")} · by ${list.owner.displayName}`,
       icon: icon ?? "solar:list-bold",
-      title,
+      title: list.title,
     }),
-    [
-      comment,
-      description,
-      icon,
-      id,
-      isOwner,
-      isPrivate,
-      isRanked,
-      itemsCount,
-      liked,
-      likesCount,
-      owner.displayName,
-      owner.username,
-      signedIn,
-      slug,
-      title,
-    ],
+    [comment, icon, isOwner, list, signedIn],
   );
   useAccountDock(dock);
   return null;
@@ -324,7 +289,7 @@ function ListRow({
         </div>
         <p className="flex flex-wrap items-center gap-x-3 gap-y-1 type-meta text-ink-muted tabular-nums">
           <span>
-            {countLabel(list.itemsCount, "film")}
+            {pluralize(list.itemsCount, "film")}
             {list.isRanked ? " · Ranked" : ""}
           </span>
           <span>Updated {formatShortDate(list.updatedAt)}</span>
@@ -347,15 +312,7 @@ function ListRow({
       {ownerEdit ? (
         <EditListButton
           className="center size-8 shrink-0 cursor-pointer self-start rounded-full text-ink-muted ring-1 ring-edge-hover ring-inset hover:bg-fill-hover focus-visible:bg-fill-hover hover:text-ink focus-visible:text-ink"
-          list={{
-            description: list.description,
-            id: list.id,
-            isPrivate: list.isPrivate,
-            isRanked: list.isRanked,
-            itemsCount: list.itemsCount,
-            slug: list.slug,
-            title: list.title,
-          }}
+          list={toListFormEntry(list)}
           username={username}
         />
       ) : null}
@@ -408,7 +365,7 @@ export function ListTeaser({
             {list.title}
           </span>
           <span className="shrink-0 type-meta text-ink-muted tabular-nums">
-            {countLabel(list.itemsCount, "film")}
+            {pluralize(list.itemsCount, "film")}
           </span>
         </span>
       </AccountLink>

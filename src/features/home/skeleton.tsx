@@ -9,6 +9,7 @@ import {
   SectionHeaderSkeleton,
   SkeletonBlock,
   SkeletonLines,
+  skeletonTextWidth,
   TabsSkeleton,
 } from "@/ui/skeleton";
 import {
@@ -21,8 +22,16 @@ import {
   PROSE_TYPE,
   TONE,
 } from "@/ui/tokens";
-import { REVIEW_LINES, RISING_TITLES, ROW_ITEM_CLASS } from "./constants";
-import { skeletonWidth } from "./utils";
+import {
+  HERO_REEL_WIDTHS,
+  JOIN_POINT_LINES,
+  LIST_TITLE_WIDTHS,
+  MEMBER_NAME_WIDTHS,
+  PULSE_LABEL_WIDTHS,
+  REVIEW_LINES,
+  RISING_TITLES,
+  ROW_ITEM_CLASS,
+} from "./constants";
 
 function Hero(): JSX.Element {
   return (
@@ -52,7 +61,7 @@ function Hero(): JSX.Element {
           </div>
 
           <ol className="grid grid-cols-5 gap-2 lg:flex lg:flex-col lg:gap-0">
-            {["7.5rem", "10rem", "6rem", "9rem", "8rem"].map((width, index) => (
+            {HERO_REEL_WIDTHS.map((width, index) => (
               <li
                 className="relative flex w-full flex-col py-3 lg:flex-row lg:items-center lg:gap-4 lg:py-3.5"
                 key={index}
@@ -86,7 +95,7 @@ function Pulse(): JSX.Element {
         />
       </div>
       <div className="grid grid-cols-2 divide-rule sm:grid-cols-4 sm:divide-x [&>div]:py-3 sm:[&>div]:px-6 sm:[&>div:first-child]:pl-0">
-        {["6.25rem", "7.25rem", "7.75rem", "4.25rem"].map((label) => (
+        {PULSE_LABEL_WIDTHS.map((label) => (
           <div className="flex flex-col gap-1.5" key={label}>
             <SkeletonLines className={TONE.label} widths={[label]} />
             <div className="font-zuume flex h-[1lh] items-center type-display-xs leading-none sm:type-display-sm">
@@ -110,7 +119,10 @@ function PosterRow({
 }): JSX.Element {
   return (
     <section className="flex w-full flex-col">
-      <SectionHeaderSkeleton actions={actions} title={skeletonWidth(name)} />
+      <SectionHeaderSkeleton
+        actions={actions}
+        title={skeletonTextWidth(name)}
+      />
       <div className="flex gap-3 overflow-hidden">
         {Array.from({ length: 5 }, (_, index) => (
           <div
@@ -134,7 +146,9 @@ function PosterRow({
 function Reviews(): JSX.Element {
   return (
     <section className="flex w-full flex-col">
-      <SectionHeaderSkeleton title={skeletonWidth("Reviews worth reading")} />
+      <SectionHeaderSkeleton
+        title={skeletonTextWidth("Reviews worth reading")}
+      />
       <ul
         className={`-my-6 grid grid-cols-1 gap-x-12 divide-y ${TONE.rules} lg:grid-cols-2 lg:divide-y-0 lg:[&>li]:border-b lg:[&>li]:border-rule lg:[&>li:nth-last-child(-n+2)]:border-b-0`}
       >
@@ -174,7 +188,7 @@ function Reviews(): JSX.Element {
 function Rising(): JSX.Element {
   return (
     <section className="flex w-full flex-col">
-      <SectionHeaderSkeleton title={skeletonWidth("Rising on Guffin")} />
+      <SectionHeaderSkeleton title={skeletonTextWidth("Rising on Guffin")} />
       <ol
         className={`-my-4 grid grid-cols-1 gap-x-12 divide-y ${TONE.rules} sm:grid-cols-2 sm:divide-y-0 sm:[&>li]:border-b sm:[&>li]:border-rule sm:[&>li:nth-last-child(-n+2)]:border-b-0`}
       >
@@ -201,24 +215,22 @@ function Rising(): JSX.Element {
 function Lists(): JSX.Element {
   return (
     <section className="flex w-full flex-col">
-      <SectionHeaderSkeleton title={skeletonWidth("Popular lists")} />
+      <SectionHeaderSkeleton title={skeletonTextWidth("Popular lists")} />
       <ul className="grid grid-cols-1 gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
-        {["11rem", "8.5rem", "13rem", "9.5rem", "12rem", "7.5rem"].map(
-          (width) => (
-            <li className="flex min-w-0 flex-col gap-3" key={width}>
-              <PosterStackSkeleton />
-              <SkeletonLines className="type-base leading-6" widths={[width]} />
-              <div className="flex h-5 items-center gap-x-4">
-                <div className="flex items-center gap-2">
-                  <SkeletonBlock className="size-5 shrink-0 rounded-full" />
-                  <SkeletonBlock className="h-2 w-16 rounded-full" />
-                </div>
-                <SkeletonBlock className="h-2 w-12 rounded-full" />
-                <SkeletonBlock className="h-2 w-8 rounded-full" />
+        {LIST_TITLE_WIDTHS.map((width) => (
+          <li className="flex min-w-0 flex-col gap-3" key={width}>
+            <PosterStackSkeleton />
+            <SkeletonLines className="type-base leading-6" widths={[width]} />
+            <div className="flex h-5 items-center gap-x-4">
+              <div className="flex items-center gap-2">
+                <SkeletonBlock className="size-5 shrink-0 rounded-full" />
+                <SkeletonBlock className="h-2 w-16 rounded-full" />
               </div>
-            </li>
-          ),
-        )}
+              <SkeletonBlock className="h-2 w-12 rounded-full" />
+              <SkeletonBlock className="h-2 w-8 rounded-full" />
+            </div>
+          </li>
+        ))}
       </ul>
     </section>
   );
@@ -227,37 +239,32 @@ function Lists(): JSX.Element {
 function Members({ name }: { name: string }): JSX.Element {
   return (
     <section className="flex w-full flex-col">
-      <SectionHeaderSkeleton title={skeletonWidth(name)} />
+      <SectionHeaderSkeleton title={skeletonTextWidth(name)} />
       <ul className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:grid-cols-6">
-        {["5.5rem", "4.5rem", "6rem", "5rem", "6.5rem", "4.75rem"].map(
-          (width) => (
-            <li
-              className="flex min-w-0 flex-col items-center gap-3"
-              key={width}
-            >
-              <SkeletonBlock className="size-[72px] rounded-full" />
-              <div className="flex w-full min-w-0 flex-col items-center gap-0.5">
-                <SkeletonLines className="type-copy" widths={[width]} />
-                <SkeletonLines className="type-meta" widths={["4rem"]} />
-              </div>
-              <div className="flex w-full flex-col items-center">
-                {["90%", "60%"].map((line) => (
-                  <div
-                    className="flex h-4 w-full items-center justify-center"
-                    key={line}
-                  >
-                    <SkeletonBlock
-                      className="h-[0.62em] rounded-full type-meta"
-                      style={{ width: line }}
-                    />
-                  </div>
-                ))}
-              </div>
-              <SkeletonLines className="type-meta" widths={["7.5rem"]} />
-              <SkeletonBlock className="mt-auto h-8 w-full max-w-36 rounded-full" />
-            </li>
-          ),
-        )}
+        {MEMBER_NAME_WIDTHS.map((width) => (
+          <li className="flex min-w-0 flex-col items-center gap-3" key={width}>
+            <SkeletonBlock className="size-[72px] rounded-full" />
+            <div className="flex w-full min-w-0 flex-col items-center gap-0.5">
+              <SkeletonLines className="type-copy" widths={[width]} />
+              <SkeletonLines className="type-meta" widths={["4rem"]} />
+            </div>
+            <div className="flex w-full flex-col items-center">
+              {["90%", "60%"].map((line) => (
+                <div
+                  className="flex h-4 w-full items-center justify-center"
+                  key={line}
+                >
+                  <SkeletonBlock
+                    className="h-[0.62em] rounded-full type-meta"
+                    style={{ width: line }}
+                  />
+                </div>
+              ))}
+            </div>
+            <SkeletonLines className="type-meta" widths={["7.5rem"]} />
+            <SkeletonBlock className="mt-auto h-8 w-full max-w-36 rounded-full" />
+          </li>
+        ))}
       </ul>
     </section>
   );
@@ -287,7 +294,7 @@ function Join(): JSX.Element {
           <SkeletonBlock className="h-11 w-[11.3rem] rounded-full" />
         </div>
         <ul className="grid grid-cols-1 gap-5 self-center sm:grid-cols-2">
-          {[["100%", "34%"], ["96%"], ["92%"], ["88%"]].map((phone, index) => (
+          {JOIN_POINT_LINES.map((phone, index) => (
             <li className="flex items-start gap-3" key={index}>
               <SkeletonBlock className="mt-0.5 size-8 shrink-0 rounded-full" />
               <SkeletonLines

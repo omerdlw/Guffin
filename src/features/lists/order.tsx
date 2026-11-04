@@ -17,7 +17,8 @@ import { HighlightGroup, useHighlight } from "@/ui/form";
 import { AdaptiveImage, Icon } from "@/ui/media";
 import { scrollWithin, SurfacePart, SurfaceStage } from "@/ui/surface";
 import { getListOrderAction, reorderListAction } from "./actions";
-import type { ListOrderData, ListOrderItem } from "./types";
+import type { ListOrderData, ListOrderItem, ListOrderState } from "./types";
+import { moveItem, orderKeyTarget } from "./utils";
 import {
   SURFACE_META,
   SURFACE_PANEL,
@@ -61,16 +62,7 @@ const OrderRow = memo(function OrderRow({
     : null;
 
   function onKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
-    const to =
-      event.key === "ArrowUp"
-        ? index - 1
-        : event.key === "ArrowDown"
-          ? index + 1
-          : event.key === "Home"
-            ? 0
-            : event.key === "End"
-              ? total - 1
-              : null;
+    const to = orderKeyTarget(event.key, index, total);
     if (to === null) return;
     event.preventDefault();
     if (to >= 0 && to < total && to !== index) onMove(index, to);
@@ -147,27 +139,38 @@ function ListOrderSurface({ data }: { data: ListOrderData }): JSX.Element {
   const router = useRouter();
   const toast = useToast();
   const { closeAllSurfaces } = useDockActions();
-  const [saved, setSaved] = useState<ListOrderItem[] | null>(null);
-  const [order, setOrder] = useState<ListOrderItem[]>([]);
-  const [failed, setFailed] = useState(false);
+  const [arrangement, setArrangement] = useState<ListOrderState>({
+    order: [],
+    saved: null,
+    status: "loading",
+  });
   const [saving, setSaving] = useState(false);
+  const { order, saved, status } = arrangement;
+
+  const setOrder = (next: ListOrderItem[]) =>
+    setArrangement((current) => ({ ...current, order: next }));
 
   useEffect(() => {
     let live = true;
+    const fail = () =>
+      setArrangement((current) => ({ ...current, status: "failed" }));
     getListOrderAction(data.listId)
       .then((result) => {
         if (!live) return;
         if (!result.success) {
-          setFailed(true);
+          fail();
           toast(result.error);
           return;
         }
-        setSaved(result.items);
-        setOrder(result.items);
+        setArrangement({
+          order: result.items,
+          saved: result.items,
+          status: "ready",
+        });
       })
       .catch((error) => {
         report("ListOrderSurface read", error);
-        if (live) setFailed(true);
+        if (live) fail();
       });
     return () => {
       live = false;
@@ -177,15 +180,6 @@ function ListOrderSurface({ data }: { data: ListOrderData }): JSX.Element {
   const changed =
     saved !== null &&
     order.some((item, index) => item.tmdbId !== saved[index]?.tmdbId);
-
-  function move(from: number, to: number) {
-    setOrder((current) => {
-      const next = [...current];
-      const [item] = next.splice(from, 1);
-      next.splice(to, 0, item);
-      return next;
-    });
-  }
 
   async function save() {
     if (!changed || saving) return;
@@ -209,10 +203,10 @@ function ListOrderSurface({ data }: { data: ListOrderData }): JSX.Element {
     }
   }
 
-  if (failed || saved === null) {
+  if (status !== "ready" || saved === null) {
     return (
       <div className={cn(SURFACE_PANEL, "center min-h-40 flex-col gap-2 p-4")}>
-        {failed ? (
+        {status === "failed" ? (
           <p className="type-body text-ink-body">
             This list could not be loaded
           </p>
@@ -245,7 +239,7 @@ function ListOrderSurface({ data }: { data: ListOrderData }): JSX.Element {
                   index={index}
                   item={item}
                   key={item.tmdbId}
-                  onMove={move}
+                  onMove={(from, to) => setOrder(moveItem(order, from, to))}
                   total={order.length}
                 />
               ))}

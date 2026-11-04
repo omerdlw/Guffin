@@ -130,3 +130,6 @@ export function CarouselSkeleton({
     </div>
   );
 }
+
+export const skeletonTextWidth = (text: string) =>
+  `${(text.length * 8.2) / 16}rem`;

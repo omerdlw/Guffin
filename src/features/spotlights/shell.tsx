@@ -20,7 +20,11 @@ import { defineScore } from "@/motion/score";
 import type { Stage } from "@/motion/stage";
 import { Button, DockAction } from "@/ui/button";
 import { Icon } from "@/ui/media";
-import { GESTURE_END_MS, GESTURE_THRESHOLD } from "./constants";
+import {
+  GESTURE_END_MS,
+  GESTURE_THRESHOLD,
+  URL_SYNC_DELAY_MS,
+} from "./constants";
 import type { LoopFactory, SpotlightDockAction } from "./types";
 import { typing } from "./utils";
 
@@ -144,6 +148,17 @@ export function useGestureStep(
       window.removeEventListener("keydown", onKey);
     };
   }, [enabled, keys]);
+}
+
+export function useSyncedSearchParam(key: string, value: string): void {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const url = new URL(window.location.href);
+      url.searchParams.set(key, value);
+      window.history.replaceState(window.history.state, "", url);
+    }, URL_SYNC_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [key, value]);
 }
 
 export function SpotlightLoading(): JSX.Element {

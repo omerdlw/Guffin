@@ -2,7 +2,6 @@
 
 import { type JSX, useState, useTransition } from "react";
 import { globalEvents } from "@omerdlw/base-framework/events";
-import { useDockActions } from "@omerdlw/base-framework/modules/dock";
 import { useToast } from "@omerdlw/base-framework/modules/notification";
 import {
   followUserAction,
@@ -10,20 +9,20 @@ import {
 } from "@/features/account/actions";
 import { SOCIAL_EVENTS } from "@/features/account/constants";
 import { useAuth } from "@/features/auth/provider";
-import { createSignInSurfaceEntry } from "@/features/auth/sign-in";
+import { useOpenSignIn } from "@/features/auth/sign-in";
 import { accountHref } from "@/lib/project";
 import { AccountLink, Button } from "@/ui/button";
 import { cn } from "@/ui/cn";
 import { Avatar, Icon } from "@/ui/media";
 import { HEADLINE_BOX, PRIMARY, TONE } from "@/ui/tokens";
-import { JOIN_POINTS } from "./constants";
+import { JOIN_POINTS, TEXT_LINK_CLASS } from "./constants";
 import { Heading, HomeCount, HomePart, HomeSection } from "./motion";
-import type { FollowStatus, HomeMember, Pulse } from "./types";
-import { compact, whole } from "./utils";
+import type { MemberFollowState, HomeMember, Pulse } from "./types";
+import { formatCompact, formatWhole } from "./utils";
 
 export function HomeJoin({ members }: { members: number }): JSX.Element | null {
   const auth = useAuth();
-  const { openSurface } = useDockActions();
+  const openSignIn = useOpenSignIn();
   if (auth.isAuthenticated) return null;
 
   return (
@@ -38,17 +37,13 @@ export function HomeJoin({ members }: { members: number }): JSX.Element | null {
           </h2>
           <p className="max-w-[46ch] type-base leading-7 text-ink-body">
             {members > 0
-              ? `Join ${whole(members)} members keeping a diary of what they watch.`
+              ? `Join ${formatWhole(members)} members keeping a diary of what they watch.`
               : "Keep a diary of what you watch."}{" "}
             It’s free, and it takes a minute.
           </p>
           <Button
             className={`${PRIMARY} h-11 rounded-full px-6 type-body font-medium`}
-            onClick={() =>
-              void openSurface(
-                createSignInSurfaceEntry({ next: window.location.pathname }),
-              )
-            }
+            onClick={openSignIn}
           >
             Create your account
           </Button>
@@ -77,15 +72,13 @@ export function HomeJoin({ members }: { members: number }): JSX.Element | null {
 function FollowButton({ member }: { member: HomeMember }): JSX.Element {
   const auth = useAuth();
   const toast = useToast();
-  const { openSurface } = useDockActions();
-  const [status, setStatus] = useState<FollowStatus>(null);
+  const openSignIn = useOpenSignIn();
+  const [status, setStatus] = useState<MemberFollowState>(null);
   const [pending, start] = useTransition();
 
   const toggle = () => {
     if (!auth.isAuthenticated) {
-      void openSurface(
-        createSignInSurfaceEntry({ next: window.location.pathname }),
-      );
+      openSignIn();
       return;
     }
     const was = status;
@@ -99,7 +92,9 @@ function FollowButton({ member }: { member: HomeMember }): JSX.Element {
         toast(result.error);
         return;
       }
-      const next: FollowStatus = was ? null : (result.data as FollowStatus);
+      const next: MemberFollowState = was
+        ? null
+        : (result.data as MemberFollowState);
       setStatus(next);
       globalEvents.emit(SOCIAL_EVENTS.FOLLOW_CHANGE, {
         followingId: member.id,
@@ -151,7 +146,7 @@ function MemberCard({
       </AccountLink>
       <div className="flex w-full min-w-0 flex-col gap-0.5">
         <AccountLink
-          className="truncate type-copy font-semibold text-ink underline underline-offset-2 decoration-transparent hover:decoration-current focus-visible:decoration-current"
+          className={`truncate type-copy font-semibold text-ink ${TEXT_LINK_CLASS}`}
           href={href}
         >
           {member.displayName}
@@ -164,7 +159,8 @@ function MemberCard({
         {member.reason}
       </p>
       <p className="type-meta text-ink-muted tabular-nums">
-        {compact(member.watched)} films · {compact(member.reviews)} reviews
+        {formatCompact(member.watched)} films · {formatCompact(member.reviews)}{" "}
+        reviews
       </p>
       <div className="mt-auto w-full max-w-36">
         <FollowButton member={member} />
@@ -234,7 +230,7 @@ export function HomePulse({
             </HomePart>
             <HomeCount
               className="font-zuume type-display-xs leading-none font-bold text-ink tabular-nums sm:type-display-sm"
-              format={whole}
+              format={formatWhole}
               hover
               index={index}
               part="count"

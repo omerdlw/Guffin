@@ -20,14 +20,12 @@ import {
   USERNAME_PATTERN,
 } from "./constants";
 import type {
-  AccountClient,
   AccountPatchInput,
   AccountRow,
   AvatarSource,
   CurrentAccount,
   KnownAccount,
   MovieLibraryKind,
-  MovieLibraryResult,
   MovieLibraryState,
   NormalizedAccountPatch,
   NotificationItem,
@@ -80,43 +78,50 @@ function normalizeUsername(value: unknown): string {
   return username;
 }
 
-export function readAccountPatchField<K extends keyof AccountPatchInput, F>(
-  input: AccountPatchInput | undefined,
-  field: K,
-  fallback: F,
-): Exclude<AccountPatchInput[K], undefined> | F {
-  const value = input?.[field];
-  return value !== undefined
-    ? (value as Exclude<AccountPatchInput[K], undefined>)
-    : fallback;
+export function mergeAccountPatch(
+  current: Pick<
+    AccountRow,
+    | "avatar_url"
+    | "background_url"
+    | "banner_position"
+    | "banner_url"
+    | "bio"
+    | "display_name"
+    | "is_private"
+    | "username"
+  >,
+  input: AccountPatchInput,
+): AccountPatchInput {
+  const entries = Object.entries(input).filter(
+    ([, value]) => value !== undefined,
+  );
+  return {
+    avatarUrl: current.avatar_url,
+    backgroundUrl: current.background_url,
+    bannerPosition: current.banner_position,
+    bannerUrl: current.banner_url,
+    bio: current.bio,
+    displayName: current.display_name ?? undefined,
+    isPrivate: current.is_private,
+    username: current.username ?? undefined,
+    ...Object.fromEntries(entries),
+  };
 }
 
 export function normalizeAccountPatch(
-  input: AccountPatchInput = {},
+  input: AccountPatchInput,
 ): NormalizedAccountPatch {
-  const rawDisplayName = readAccountPatchField(input, "displayName", "");
-  const displayName = normalizeText(rawDisplayName, 80);
+  const displayName = normalizeText(input.displayName, 80);
   if (!displayName) throw new UserError("Display name is required");
 
-  const rawAvatarUrl = readAccountPatchField(input, "avatarUrl", null);
-  const rawBannerUrl = readAccountPatchField(input, "bannerUrl", null);
-  const rawBackgroundUrl = readAccountPatchField(input, "backgroundUrl", null);
-  const rawBannerPosition = readAccountPatchField(
-    input,
-    "bannerPosition",
-    null,
-  );
-  const rawBio = readAccountPatchField(input, "bio", null);
-  const rawIsPrivate = readAccountPatchField(input, "isPrivate", false);
-
   return {
-    avatarUrl: normalizeText(rawAvatarUrl, 2048) || null,
-    backgroundUrl: normalizeText(rawBackgroundUrl, 2048) || null,
-    bannerPosition: normalizeText(rawBannerPosition, 64) || null,
-    bannerUrl: normalizeText(rawBannerUrl, 2048) || null,
-    bio: normalizeText(rawBio, 500) || null,
+    avatarUrl: normalizeText(input.avatarUrl, 2048) || null,
+    backgroundUrl: normalizeText(input.backgroundUrl, 2048) || null,
+    bannerPosition: normalizeText(input.bannerPosition, 64) || null,
+    bannerUrl: normalizeText(input.bannerUrl, 2048) || null,
+    bio: normalizeText(input.bio, 500) || null,
     displayName,
-    isPrivate: rawIsPrivate === true || rawIsPrivate === "on",
+    isPrivate: input.isPrivate === true || input.isPrivate === "on",
     username: normalizeUsername(input.username),
   };
 }
@@ -127,18 +132,13 @@ export function getInitial(value: unknown): string {
 }
 
 export function getUserAvatarFallbackUrl(user: AvatarSource = {}): string {
-  const initial = getInitial(
-    user.displayName || user.display_name || user.username,
-  );
+  const initial = getInitial(user.displayName || user.username);
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%"><rect width="200" height="200" fill="#0d0d0d"/><text x="50%" y="52%" text-anchor="middle" dominant-baseline="middle" fill="#fcfcfb" font-family="ui-sans-serif, system-ui, sans-serif" font-size="82" font-weight="600">${initial}</text></svg>`;
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
 
 export function getUserAvatarUrl(user: AvatarSource = {}): string {
-  return (
-    trimToNull(user.avatarUrl || user.avatar_url) ??
-    getUserAvatarFallbackUrl(user)
-  );
+  return trimToNull(user.avatarUrl) ?? getUserAvatarFallbackUrl(user);
 }
 
 export function applyAvatarFallback(
@@ -151,19 +151,19 @@ export function applyAvatarFallback(
   image.src = fallbackUrl;
 }
 
-const validDate = (value?: string | null): Date | null => {
+function parseDate(value?: string | null): Date | null {
   if (!value) return null;
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? null : date;
-};
+}
 
 export function formatShortDate(value?: string | null): string {
-  const date = validDate(value);
+  const date = parseDate(value);
   return date ? ACCOUNT_DATE_FORMAT.format(date) : "";
 }
 
-export function timeAgo(value: string): string {
-  const date = validDate(value);
+export function formatCompactAge(value: string): string {
+  const date = parseDate(value);
   if (!date) return "";
   const minutes = Math.max(
     0,
@@ -299,49 +299,9 @@ export function localDiaryDate(now = new Date()): string {
   return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
 }
 
-export const librarySuccess = (
-  state: MovieLibraryState,
-): MovieLibraryResult => ({
-  state,
-  success: true,
-});
-
-export const libraryFail = (error: string): MovieLibraryResult => ({
-  error,
-  success: false,
-});
-
-export function remove(
-  client: AccountClient,
-  accountId: string,
-  tmdbId: number,
-  kind: MovieLibraryKind,
-) {
-  switch (kind) {
-    case "liked":
-      return client
-        .from("account_likes")
-        .delete()
-        .eq("account_id", accountId)
-        .eq("tmdb_id", tmdbId);
-    case "watched":
-      return client
-        .from("account_watched")
-        .delete()
-        .eq("account_id", accountId)
-        .eq("tmdb_id", tmdbId);
-    case "watchlist":
-      return client
-        .from("account_watchlist")
-        .delete()
-        .eq("account_id", accountId)
-        .eq("tmdb_id", tmdbId);
-  }
-}
-
-export function notificationAge(value: string): string {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
+export function formatNotificationAge(value: string): string {
+  const date = parseDate(value);
+  if (!date) return "";
   const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
   if (seconds < 60) return "Just now";
   if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
@@ -350,7 +310,11 @@ export function notificationAge(value: string): string {
   return NOTIFICATION_DATE_FORMAT.format(date);
 }
 
-export function headlineOf({ actor, payload, type }: NotificationItem): string {
+export function notificationHeadline({
+  actor,
+  payload,
+  type,
+}: NotificationItem): string {
   if (actor) return actor.display_name || actor.username || "Anonymous User";
   if (type === "SYSTEM_ANNOUNCEMENT") {
     return payload?.title || "System Announcement";
@@ -358,7 +322,10 @@ export function headlineOf({ actor, payload, type }: NotificationItem): string {
   return payload?.title || "Notification";
 }
 
-export function summaryOf({ payload, type }: NotificationItem): string {
+export function notificationSummary({
+  payload,
+  type,
+}: NotificationItem): string {
   const subject = payload?.subjectTitle || payload?.targetTitle;
   switch (type) {
     case "FOLLOW_REQUEST":
@@ -378,7 +345,7 @@ export function summaryOf({ payload, type }: NotificationItem): string {
   }
 }
 
-export const announceChange = () =>
+export const announceNotificationChange = () =>
   globalEvents.emit(SOCIAL_EVENTS.NOTIFICATION_CHANGE);
 
 export const succeeded = (result: unknown) =>

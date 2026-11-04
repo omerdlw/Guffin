@@ -16,13 +16,14 @@ import {
   CATALOG_FRESH_MS,
   CATALOG_KEEP_SECONDS,
   DIRECTORS,
+  SPOTLIGHT_GENRE_LIMIT,
 } from "./constants";
 import type { CanonFilm, Director, Kept, Laureate } from "./types";
 import {
   ceremonyYear,
   filmographyOf,
   genreNames,
-  loglineOf,
+  spotlightLogline,
   winnerAmong,
 } from "./utils";
 
@@ -172,11 +173,11 @@ async function readLaureates(): Promise<Laureate[]> {
         film?.credits.crew.find((member) => member.job === "Director")?.name ??
         null,
       genres: film
-        ? film.genres.map((genre) => genre.name).slice(0, 3)
+        ? film.genres.map((genre) => genre.name).slice(0, SPOTLIGHT_GENRE_LIMIT)
         : genreNames(movie.genreIds),
       honoured: year,
       id: movie.id,
-      logline: loglineOf(film?.overview),
+      logline: spotlightLogline(film?.overview),
       posterPath: movie.posterPath,
       runtime: film?.runtimeMinutes ?? null,
       tagline: film?.tagline?.trim() || null,

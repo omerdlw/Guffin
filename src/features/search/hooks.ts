@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { ok, type Result } from "@omerdlw/base-framework/result";
 import {
+  FAILURE_CODE_BY_STATUS,
   SEARCH_CACHE_LIMIT,
   SEARCH_DEBOUNCE_MS,
   SEARCH_ENDPOINTS,
@@ -67,13 +68,10 @@ async function fetchSearch<T extends SearchType>(
     return ok({ ...data, hits } as SearchResponseMap[T]);
   }
 
-  const code: SearchFailureCode =
-    response.status === 400
-      ? "invalid_query"
-      : response.status === 429
-        ? "rate_limited"
-        : "unavailable";
-  return searchError(code, payload?.error);
+  return searchError(
+    FAILURE_CODE_BY_STATUS[response.status] ?? "unavailable",
+    payload?.error,
+  );
 }
 
 let answers: SearchAnswers = new Map();

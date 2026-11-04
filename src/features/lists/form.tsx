@@ -1,36 +1,44 @@
 "use client";
 
-import { type FormEvent, type JSX, useId, useState } from "react";
+import { type FormEvent, type JSX, useState } from "react";
 import {
   type SurfaceEntry,
   useDockActions,
 } from "@omerdlw/base-framework/modules/dock";
 import { useToast } from "@omerdlw/base-framework/modules/notification";
 import { report, toUserMessage } from "@omerdlw/base-framework/utils";
-import { LayoutGroup } from "motion/react";
 import { useRouter } from "next/navigation";
 import { accountHref, listHref } from "@/lib/project";
 import { Button } from "@/ui/button";
 import { cn } from "@/ui/cn";
-import { Input, SlidingHighlight, Switch, Textarea } from "@/ui/form";
+import {
+  HighlightGroup,
+  Input,
+  Switch,
+  Textarea,
+  useHighlight,
+  useHighlightReset,
+} from "@/ui/form";
 import { Icon } from "@/ui/media";
 import { SurfacePart, SurfaceStage } from "@/ui/surface";
-import { deleteListAction, saveListAction } from "./actions";
-import { LIST_DESCRIPTION_MAX, LIST_TITLE_MAX } from "./constants";
-import { createListOrderSurfaceEntry } from "./order";
-import type { ListFormData } from "./types";
 import {
   SURFACE_FIELD,
   SURFACE_META,
   SURFACE_PRIMARY,
   SURFACE_STACK,
   SURFACE_TEXT,
-  SURFACE_TILE,
-  SURFACE_TILE_END,
   SURFACE_TILE_INNER,
   SURFACE_TITLE,
   surfaceButton,
 } from "@/ui/tokens";
+import { deleteListAction, saveListAction } from "./actions";
+import {
+  LIST_DESCRIPTION_MAX,
+  LIST_TILE_CLASS,
+  LIST_TITLE_MAX,
+} from "./constants";
+import { createListOrderSurfaceEntry } from "./order";
+import type { ListDraft, ListFormData } from "./types";
 
 export function createListFormSurfaceEntry(data: ListFormData): SurfaceEntry {
   return {
@@ -74,39 +82,25 @@ function Toggle({
   checked,
   description,
   disabled,
-  highlighted,
   icon,
   label,
-  onBlur,
   onChange,
-  onFocus,
-  onPointerEnter,
 }: {
   checked: boolean;
   description: string;
   disabled: boolean;
-  highlighted: boolean;
   icon: string;
   label: string;
-  onBlur: () => void;
   onChange: (value: boolean) => void;
-  onFocus: () => void;
-  onPointerEnter: () => void;
 }): JSX.Element {
+  const highlight = useHighlight(label, "-z-10 rounded-card bg-fill");
+
   return (
     <label
-      className={cn(
-        SURFACE_TILE,
-        SURFACE_TILE_END,
-        "group relative isolate cursor-pointer select-none",
-      )}
-      onBlur={onBlur}
-      onFocus={onFocus}
-      onPointerEnter={onPointerEnter}
+      className={cn(LIST_TILE_CLASS, "cursor-pointer")}
+      {...highlight.props}
     >
-      {highlighted ? (
-        <SlidingHighlight layoutId="list-form-control-highlight" />
-      ) : null}
+      {highlight.node}
       <TileMark icon={icon} />
       <TileText description={description} label={label} />
       <span className="relative z-10">
@@ -121,42 +115,73 @@ function Toggle({
   );
 }
 
+function FilmOrderLink({
+  disabled,
+  onOpen,
+}: {
+  disabled: boolean;
+  onOpen: () => void;
+}): JSX.Element {
+  const highlight = useHighlight("film-order");
+
+  return (
+    <button
+      className={cn(
+        LIST_TILE_CLASS,
+        "w-full cursor-pointer outline-none disabled:cursor-wait",
+      )}
+      disabled={disabled}
+      onClick={onOpen}
+      type="button"
+      {...highlight.props}
+    >
+      {highlight.node}
+      <TileMark icon="solar:sort-vertical-bold" />
+      <TileText
+        description="Drag the films into the order you keep them"
+        label="Film order"
+      />
+      <Icon
+        className="center relative z-10 shrink-0 text-ink-muted group-hover:translate-x-0.5 group-hover:text-ink-body group-focus-visible:text-ink-body group-has-focus-visible:text-ink-body"
+        icon="solar:alt-arrow-right-linear"
+        size={16}
+      />
+    </button>
+  );
+}
+
 function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
-  const highlightGroupId = useId();
   const router = useRouter();
   const toast = useToast();
   const { closeSurface, openSurface } = useDockActions();
+  const resetHighlight = useHighlightReset();
   const list = data.list;
 
-  const [title, setTitle] = useState(list?.title ?? "");
-  const [description, setDescription] = useState(list?.description ?? "");
-  const [isPrivate, setIsPrivate] = useState(list?.isPrivate ?? false);
-  const [isRanked, setIsRanked] = useState(list?.isRanked ?? false);
+  const [draft, setDraft] = useState<ListDraft>({
+    description: list?.description ?? "",
+    isPrivate: list?.isPrivate ?? false,
+    isRanked: list?.isRanked ?? false,
+    title: list?.title ?? "",
+  });
   const [busy, setBusy] = useState<"save" | "delete" | null>(null);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
-  const [hoveredControl, setHoveredControl] = useState<string | null>(null);
-  const [focusedControl, setFocusedControl] = useState<string | null>(null);
+
+  const updateDraft = (patch: Partial<ListDraft>) =>
+    setDraft((current) => ({ ...current, ...patch }));
 
   async function save(event: FormEvent) {
     event.preventDefault();
-    if (!title.trim() || busy) return;
+    if (!draft.title.trim() || busy) return;
     setBusy("save");
     try {
-      const result = await saveListAction(list?.id ?? null, {
-        description,
-        isPrivate,
-        isRanked,
-        title,
-      });
+      const result = await saveListAction(list?.id ?? null, draft);
       if (!result.success) {
         toast(result.error);
         return;
       }
       closeSurface?.();
       if (list) router.refresh();
-      else {
-        router.push(listHref(data.username, result.slug));
-      }
+      else router.push(listHref(data.username, result.slug));
     } catch (error) {
       report("ListFormSurface save", error);
       toast(toUserMessage(error, { fallback: "Could not save your list" }));
@@ -189,23 +214,24 @@ function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
     }
   }
 
+  const disabled = busy !== null;
   const canOrder = list !== undefined && (list.itemsCount ?? 0) > 1;
 
   return (
     <SurfaceStage>
-      <form onPointerLeave={() => setHoveredControl(null)} onSubmit={save}>
-        <LayoutGroup id={`list-form-${highlightGroupId}`}>
+      <form onSubmit={save}>
+        <HighlightGroup>
           <div className={SURFACE_STACK}>
             <SurfacePart name="item">
               <Input
                 aria-label="List name"
                 className={cn(SURFACE_FIELD, "h-10 w-full px-4 type-body")}
-                disabled={busy !== null}
+                disabled={disabled}
                 maxLength={LIST_TITLE_MAX}
-                onPointerEnter={() => setHoveredControl(null)}
-                onChange={(event) => setTitle(event.target.value)}
+                onChange={(event) => updateDraft({ title: event.target.value })}
                 placeholder="List name"
-                value={title}
+                value={draft.title}
+                {...resetHighlight}
               />
             </SurfacePart>
             <SurfacePart name="item">
@@ -215,55 +241,43 @@ function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
                   SURFACE_FIELD,
                   "w-full px-4 py-3 type-body leading-6",
                 )}
-                disabled={busy !== null}
+                disabled={disabled}
+                maxHeight={180}
                 maxLength={LIST_DESCRIPTION_MAX}
                 minHeight={96}
-                maxHeight={180}
-                onPointerEnter={() => setHoveredControl(null)}
-                onChange={(event) => setDescription(event.target.value)}
+                onChange={(event) =>
+                  updateDraft({ description: event.target.value })
+                }
                 placeholder="What is this list about? (optional)"
-                value={description}
+                value={draft.description}
+                {...resetHighlight}
               />
             </SurfacePart>
             <SurfacePart name="item">
               <Toggle
-                checked={isRanked}
+                checked={draft.isRanked}
                 description="Number the films in the order you keep them"
-                disabled={busy !== null}
-                highlighted={(hoveredControl ?? focusedControl) === "ranked"}
+                disabled={disabled}
                 icon="solar:ranking-bold"
                 label="Ranked"
-                onBlur={() => setFocusedControl(null)}
-                onChange={setIsRanked}
-                onFocus={() => setFocusedControl("ranked")}
-                onPointerEnter={() => setHoveredControl("ranked")}
+                onChange={(isRanked) => updateDraft({ isRanked })}
               />
             </SurfacePart>
             <SurfacePart name="item">
               <Toggle
-                checked={isPrivate}
+                checked={draft.isPrivate}
                 description="Only you see it, and it stays out of your activity"
-                disabled={busy !== null}
-                highlighted={(hoveredControl ?? focusedControl) === "private"}
+                disabled={disabled}
                 icon="solar:lock-keyhole-bold"
                 label="Private"
-                onBlur={() => setFocusedControl(null)}
-                onChange={setIsPrivate}
-                onFocus={() => setFocusedControl("private")}
-                onPointerEnter={() => setHoveredControl("private")}
+                onChange={(isPrivate) => updateDraft({ isPrivate })}
               />
             </SurfacePart>
             {canOrder ? (
               <SurfacePart name="item">
-                <button
-                  className={cn(
-                    SURFACE_TILE,
-                    SURFACE_TILE_END,
-                    "group relative isolate w-full cursor-pointer outline-none disabled:cursor-wait",
-                  )}
-                  disabled={busy !== null}
-                  onBlur={() => setFocusedControl(null)}
-                  onClick={() =>
+                <FilmOrderLink
+                  disabled={disabled}
+                  onOpen={() =>
                     void openSurface?.(
                       createListOrderSurfaceEntry({
                         listId: list.id,
@@ -271,24 +285,7 @@ function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
                       }),
                     )
                   }
-                  onFocus={() => setFocusedControl("film-order")}
-                  onPointerEnter={() => setHoveredControl("film-order")}
-                  type="button"
-                >
-                  {(hoveredControl ?? focusedControl) === "film-order" ? (
-                    <SlidingHighlight layoutId="list-form-control-highlight" />
-                  ) : null}
-                  <TileMark icon="solar:sort-vertical-bold" />
-                  <TileText
-                    description="Drag the films into the order you keep them"
-                    label="Film order"
-                  />
-                  <Icon
-                    className="center relative z-10 shrink-0 text-ink-muted group-hover:translate-x-0.5 group-hover:text-ink-body group-focus-visible:text-ink-body group-has-focus-visible:text-ink-body"
-                    icon="solar:alt-arrow-right-linear"
-                    size={16}
-                  />
-                </button>
+                />
               </SurfacePart>
             ) : null}
 
@@ -301,10 +298,10 @@ function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
                     confirmingDelete &&
                       "bg-danger/15 text-danger ring-danger/25 hover:bg-danger/20 focus-visible:bg-danger/20 hover:ring-danger/30 focus-visible:ring-danger/30",
                   )}
-                  disabled={busy !== null}
+                  disabled={disabled}
                   loading={busy === "delete"}
                   onClick={() => void remove()}
-                  onPointerEnter={() => setHoveredControl(null)}
+                  {...resetHighlight}
                 >
                   <Icon icon="solar:trash-bin-trash-bold" size={15} />
                   {confirmingDelete ? "Delete for good" : "Delete"}
@@ -312,16 +309,16 @@ function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
               ) : null}
               <Button
                 className={`${SURFACE_PRIMARY} min-w-0 flex-1 disabled:cursor-not-allowed`}
-                disabled={!title.trim() || busy !== null}
+                disabled={!draft.title.trim() || disabled}
                 loading={busy === "save"}
-                onPointerEnter={() => setHoveredControl(null)}
                 type="submit"
+                {...resetHighlight}
               >
                 {list ? "Save" : "Create list"}
               </Button>
             </SurfacePart>
           </div>
-        </LayoutGroup>
+        </HighlightGroup>
       </form>
     </SurfaceStage>
   );

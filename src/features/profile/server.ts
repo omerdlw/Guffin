@@ -6,34 +6,40 @@ import {
   extractAmbientPalette,
 } from "@omerdlw/base-framework/ambient/server";
 import { report } from "@omerdlw/base-framework/utils";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { unstable_cache } from "next/cache";
 import { notFound } from "next/navigation";
 import { after } from "next/server";
 import { getPublicAccount } from "@/features/account/server";
 import { getOptionalUser } from "@/features/auth/server";
+import { readListPreviews } from "@/features/lists/server";
 import { toPerson } from "@/features/social/utils";
 import { isPublicHttps, pinnedFetch } from "@/lib/security";
-import type { Database } from "@/lib/supabase/database.types";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import {
   ACTIVITY_PAGE_SIZE,
   ACTIVITY_TYPES,
+  DIARY_MONTH_LIMIT,
   EMPTY_HEADER,
   EMPTY_LIBRARY_COUNTS,
   EMPTY_OVERVIEW,
+  LIST_COMMENTS_LIMIT,
   LIST_PAGE_SIZE,
+  LIST_PREVIEW_POSTERS,
+  LIST_SORT_COLUMNS,
   MEDIA_PAGE_SIZE,
+  MEDIA_SORT_COLUMNS,
   MEDIA_TABLES,
   MOVIE_COLUMNS,
   PALETTE_BUDGET_MS,
   PALETTE_MAX_BYTES,
+  PALETTE_REVALIDATE_SECONDS,
   PALETTE_TIMEOUT_MS,
   PALETTE_VERSION,
   PROFILE_ACTIVITY_COLUMNS,
   PROFILE_LIST_COLUMNS,
   PROFILE_REVIEW_COLUMNS,
   REVIEW_PAGE_SIZE,
+  REVIEW_SORT_COLUMNS,
   TMDB_IMAGE,
 } from "./constants";
 import type {
@@ -119,14 +125,8 @@ export async function getMediaPage({
     filters,
   );
 
-  const [column, ascending] = {
-    added_asc: [added, true],
-    added_desc: [added, false],
-    release_asc: ["release_date", true],
-    release_desc: ["release_date", false],
-    title_asc: ["title", true],
-    title_desc: ["title", false],
-  }[filters.sort] as [string, boolean];
+  const [sortKey, ascending] = MEDIA_SORT_COLUMNS[filters.sort];
+  const column = sortKey === "added" ? added : sortKey;
 
   const [result, favorites] = await Promise.all([
     readPage(
@@ -157,20 +157,11 @@ async function withPreviews(
   client: ProfileClient,
   rows: ListRow[],
 ): Promise<ListCardData[]> {
-  const previews = new Map<string, (string | null)[]>();
-  if (rows.length > 0) {
-    const { data, error } = await client.rpc("get_list_previews", {
-      p_limit: 5,
-      p_list_ids: rows.map((row) => row.id),
-    });
-    if (error) throw error;
-    for (const item of data ?? []) {
-      const posters = previews.get(item.list_id) ?? [];
-      posters.push(item.poster_path);
-      previews.set(item.list_id, posters);
-    }
-  }
-
+  const previews = await readListPreviews(
+    client,
+    rows.map((row) => row.id),
+    LIST_PREVIEW_POSTERS,
+  );
   return rows.map((row) => toListCard(row, previews.get(row.id) ?? []));
 }
 
@@ -185,14 +176,7 @@ export async function getListsPage({
   page: number;
   sort: ListSort;
 }): Promise<Paged<ListCardData>> {
-  const [column, ascending] = {
-    created_asc: ["created_at", true],
-    created_desc: ["created_at", false],
-    items_desc: ["items_count", false],
-    likes_desc: ["likes_count", false],
-    title_asc: ["title", true],
-    updated_desc: ["updated_at", false],
-  }[sort] as [string, boolean];
+  const [column, ascending] = LIST_SORT_COLUMNS[sort];
 
   const result = await readPage(
     client
@@ -215,7 +199,7 @@ export async function getListsPage({
 
 export async function getListPage({
   client,
-  comments = 50,
+  comments = LIST_COMMENTS_LIMIT,
   filters,
   owner,
   slug,
@@ -325,13 +309,7 @@ export async function getReviewsPage({
     query = query.or(`title.ilike.${pattern},content.ilike.${pattern}`);
   }
 
-  const [column, ascending] = {
-    likes_desc: ["likes_count", false],
-    newest: ["updated_at", false],
-    oldest: ["updated_at", true],
-    rating_asc: ["rating", true],
-    rating_desc: ["rating", false],
-  }[filters.sort] as [string, boolean];
+  const [column, ascending] = REVIEW_SORT_COLUMNS[filters.sort];
 
   const result = await readPage(
     query
@@ -505,7 +483,7 @@ export async function getDiaryMonth({
     .lt("watched_on", to)
     .order("watched_on", { ascending: false })
     .order("watched_at", { ascending: false })
-    .limit(400);
+    .limit(DIARY_MONTH_LIMIT);
   if (error) throw error;
 
   const entries = (data ?? []) as DiaryEntryRow[];
@@ -547,18 +525,12 @@ export async function getDiaryMonth({
   };
 }
 
-async function getAccountFollowRelation({
-  client,
-  viewerId,
-  targetId,
-}: {
-  client: SupabaseClient<Database>;
-  viewerId?: string | null;
-  targetId: string;
-}): Promise<{ status: string | null; isFollower: boolean }> {
-  if (!client || !viewerId || viewerId === targetId) {
-    return { status: null, isFollower: false };
-  }
+async function isAcceptedFollower(
+  client: ProfileClient,
+  targetId: string,
+  viewerId?: string,
+): Promise<boolean> {
+  if (!viewerId || viewerId === targetId) return false;
 
   const { data } = await client
     .from("account_follows")
@@ -566,33 +538,21 @@ async function getAccountFollowRelation({
     .eq("follower_id", viewerId)
     .eq("following_id", targetId)
     .maybeSingle();
-
-  const status = data?.status || null;
-  return {
-    status,
-    isFollower: status === "accepted",
-  };
+  return data?.status === "accepted";
 }
 
-const loadViewer = cache(getOptionalUser);
+const readViewer = cache(getOptionalUser);
 
-const load = cache(async (username: string) => {
+const readAccountAndViewer = cache(async (username: string) => {
   const client = await createServerSupabaseClient();
   const [account, viewer] = await Promise.all([
     getPublicAccount({ client, username }),
-    loadViewer(),
+    readViewer(),
   ]);
   return { account, client, viewer };
 });
 
-const loadFollower = cache(
-  async (
-    client: AccountPageContext["client"],
-    targetId: string,
-    viewerId?: string,
-  ) =>
-    (await getAccountFollowRelation({ client, targetId, viewerId })).isFollower,
-);
+const readFollowerStatus = cache(isAcceptedFollower);
 
 export async function getAccountPageContext(
   username: string,
@@ -604,14 +564,14 @@ export async function getAccountPageContext(
     notFound();
   }
 
-  const { account, client, viewer } = await load(handle);
+  const { account, client, viewer } = await readAccountAndViewer(handle);
   if (!account) notFound();
 
   const isOwner = viewer?.id === account.id;
   const locked =
     account.isPrivate &&
     !isOwner &&
-    !(await loadFollower(client, account.id, viewer?.id));
+    !(await readFollowerStatus(client, account.id, viewer?.id));
 
   return {
     account,
@@ -622,12 +582,19 @@ export async function getAccountPageContext(
   };
 }
 
+export async function getUnlockedAccountContext(
+  username: string,
+): Promise<AccountPageContext | null> {
+  const context = await getAccountPageContext(username);
+  return context.locked ? null : context;
+}
+
 export async function getAccountHeader({
   accountId,
   client,
 }: {
   accountId: string;
-  client: SupabaseClient<Database>;
+  client: ProfileClient;
 }): Promise<AccountHeader> {
   const { data, error } = await client.rpc("get_account_header", {
     p_account_id: accountId,
@@ -659,7 +626,7 @@ export async function getAccountHeader({
 
 class NoPalette extends Error {}
 
-const paletteOf = unstable_cache(
+const readPalette = unstable_cache(
   async (url: string): Promise<AmbientPalette> => {
     const palette = await extractAmbientPalette(url, {
       allow: isPublicHttps,
@@ -671,7 +638,7 @@ const paletteOf = unstable_cache(
     return palette;
   },
   [PALETTE_VERSION],
-  { revalidate: 60 * 60 * 24 * 7 },
+  { revalidate: PALETTE_REVALIDATE_SECONDS },
 );
 
 export async function getAccountAmbientPalette(
@@ -679,7 +646,7 @@ export async function getAccountAmbientPalette(
 ): Promise<AmbientPalette | null> {
   if (!url || !/^https:\/\//i.test(url)) return null;
 
-  const reading = paletteOf(url.replace(TMDB_IMAGE, "$1w300$2")).then(
+  const reading = readPalette(url.replace(TMDB_IMAGE, "$1w300$2")).then(
     (palette): AmbientPalette => ({ ...palette, source: url }),
     (error) => {
       if (error instanceof AmbientDecoderMissingError) report("Ambient", error);

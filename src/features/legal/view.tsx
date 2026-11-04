@@ -1,22 +1,23 @@
 "use client";
 
-import { Fragment, type JSX } from "react";
+import type { JSX } from "react";
 import Link from "next/link";
 import { bindScore } from "@/motion/react";
 import { defineScore } from "@/motion/score";
 import { useDockLinkClick } from "@/ui/button";
 import { cn } from "@/ui/cn";
-import { PAGE_CLASS, TONE } from "@/ui/tokens";
+import { INLINE_LINK, PAGE_CLASS, TONE } from "@/ui/tokens";
 import {
-  BASE,
   LEGAL_CONTACT_EMAIL,
   LEGAL_LAST_UPDATED,
+  LEGAL_LINK_PATTERN,
   LEGAL_LINKS,
-  LINK,
-  LINK_CLASS,
-  TOKEN,
+  LEGAL_PILL_ACTIVE_CLASS,
+  LEGAL_PILL_BASE_CLASS,
+  LEGAL_PILL_IDLE_CLASS,
+  LEGAL_TOKEN_PATTERN,
 } from "./constants";
-import type { LegalDocument } from "./types";
+import type { LegalBlock, LegalDocument } from "./types";
 
 const LEGAL = defineScore({
   tempo: -1,
@@ -54,10 +55,8 @@ function LegalLink({
     <Link
       aria-current={active ? "page" : undefined}
       className={cn(
-        BASE,
-        active
-          ? "bg-fill-hover text-ink ring-edge-hover"
-          : "bg-fill text-ink-body ring-edge hover:bg-fill-hover focus-visible:bg-fill-hover hover:text-ink focus-visible:text-ink hover:ring-edge-hover focus-visible:ring-edge-focus",
+        LEGAL_PILL_BASE_CLASS,
+        active ? LEGAL_PILL_ACTIVE_CLASS : LEGAL_PILL_IDLE_CLASS,
       )}
       href={href}
       onClick={onClick}
@@ -80,10 +79,7 @@ function LegalLinks({ active }: { active: string | null }): JSX.Element {
         />
       ))}
       <a
-        className={cn(
-          BASE,
-          "bg-fill text-ink-body ring-edge hover:bg-fill-hover focus-visible:bg-fill-hover hover:text-ink focus-visible:text-ink hover:ring-edge-hover focus-visible:ring-edge-focus",
-        )}
+        className={cn(LEGAL_PILL_BASE_CLASS, LEGAL_PILL_IDLE_CLASS)}
         href={`mailto:${LEGAL_CONTACT_EMAIL}`}
       >
         Contact
@@ -101,39 +97,74 @@ function AppLink({
 }): JSX.Element {
   const onClick = useDockLinkClick(href);
   return (
-    <Link className={LINK_CLASS} href={href} onClick={onClick} prefetch={false}>
+    <Link
+      className={INLINE_LINK}
+      href={href}
+      onClick={onClick}
+      prefetch={false}
+    >
       {children}
     </Link>
+  );
+}
+
+function LegalToken({ token }: { token: string }): JSX.Element {
+  if (token.startsWith("**") && token.endsWith("**")) {
+    return (
+      <strong className="font-semibold text-ink">{token.slice(2, -2)}</strong>
+    );
+  }
+
+  const link = LEGAL_LINK_PATTERN.exec(token);
+  if (!link) return <>{token}</>;
+
+  const [, label, href] = link;
+  return href.startsWith("/") ? (
+    <AppLink href={href}>{label}</AppLink>
+  ) : (
+    <a className={INLINE_LINK} href={href}>
+      {label}
+    </a>
   );
 }
 
 function LegalText({ text }: { text: string }): JSX.Element {
   return (
     <>
-      {text.split(TOKEN).map((part, index) => {
-        if (part.startsWith("**") && part.endsWith("**")) {
-          return (
-            <strong className="font-semibold text-ink" key={index}>
-              {part.slice(2, -2)}
-            </strong>
-          );
-        }
-        const link = LINK.exec(part);
-        if (link) {
-          const [, label, href] = link;
-          return href.startsWith("/") ? (
-            <AppLink href={href} key={index}>
-              {label}
-            </AppLink>
-          ) : (
-            <a className={LINK_CLASS} href={href} key={index}>
-              {label}
-            </a>
-          );
-        }
-        return <Fragment key={index}>{part}</Fragment>;
-      })}
+      {text.split(LEGAL_TOKEN_PATTERN).map((token, index) => (
+        <LegalToken key={index} token={token} />
+      ))}
     </>
+  );
+}
+
+function LegalBlockView({
+  block,
+  index,
+}: {
+  block: LegalBlock;
+  index: number;
+}): JSX.Element {
+  if (block.kind === "paragraph") {
+    return (
+      <LegalPart as="p" index={index} name="prose">
+        <LegalText text={block.text} />
+      </LegalPart>
+    );
+  }
+  return (
+    <LegalPart
+      as="ul"
+      className="flex list-disc flex-col gap-2 pl-5"
+      index={index}
+      name="prose"
+    >
+      {block.items.map((item) => (
+        <li key={item}>
+          <LegalText text={item} />
+        </li>
+      ))}
+    </LegalPart>
   );
 }
 
@@ -193,27 +224,9 @@ export function LegalPage({
                   {section.title}
                 </LegalPart>
                 <div className="flex flex-col gap-3 type-body leading-7 text-ink-body">
-                  {section.blocks.map((block, index) =>
-                    block.kind === "paragraph" ? (
-                      <LegalPart name="prose" as="p" index={index} key={index}>
-                        <LegalText text={block.text} />
-                      </LegalPart>
-                    ) : (
-                      <LegalPart
-                        name="prose"
-                        as="ul"
-                        index={index}
-                        key={index}
-                        className="flex list-disc flex-col gap-2 pl-5"
-                      >
-                        {block.items.map((item) => (
-                          <li key={item}>
-                            <LegalText text={item} />
-                          </li>
-                        ))}
-                      </LegalPart>
-                    ),
-                  )}
+                  {section.blocks.map((block, index) => (
+                    <LegalBlockView block={block} index={index} key={index} />
+                  ))}
                 </div>
               </LegalSection>
             ))}

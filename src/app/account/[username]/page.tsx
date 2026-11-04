@@ -1,5 +1,5 @@
 import type { JSX } from "react";
-import { AccountOverviewView } from "@/features/profile/view";
+import { AccountOverviewView } from "@/features/profile/overview";
 
 export default async function AccountOverviewPage({
   params,

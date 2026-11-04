@@ -37,6 +37,7 @@ import {
   SalonStage,
   SpotlightDock,
   useGestureStep,
+  useSyncedSearchParam,
   useSalonPart,
 } from "./shell";
 import type { Director, DirectorsAct, GridFit } from "./types";
@@ -127,6 +128,50 @@ const Filmography = memo(function Filmography({
     </ol>
   );
 });
+
+function DirectorNav({
+  directors,
+  index,
+  named,
+  onPick,
+}: {
+  directors: Director[];
+  index: number;
+  named: boolean;
+  onPick: (index: number) => void;
+}): JSX.Element {
+  return (
+    <nav
+      aria-label="Directors"
+      className="flex min-w-0 lg:order-3 lg:items-center lg:justify-end"
+      data-named={named ? "" : undefined}
+    >
+      <ol className="-mx-4 flex gap-1 overflow-x-auto px-4 [scrollbar-width:none] lg:mx-0 lg:flex-col lg:items-end lg:gap-0 lg:overflow-visible lg:px-0">
+        {directors.map((entry, position) => (
+          <li
+            className="directors-name shrink-0"
+            key={entry.id}
+            style={{ "--i": position } as CSSProperties}
+          >
+            <button
+              aria-current={position === index ? "true" : undefined}
+              className={cn(
+                "cine-fade py-1.5 pr-3 type-control font-medium whitespace-nowrap lg:py-1 lg:pr-0",
+                position === index
+                  ? "text-ink"
+                  : "text-ink-body hover:text-ink focus-visible:text-ink",
+              )}
+              onClick={() => onPick(position)}
+              type="button"
+            >
+              {entry.name}
+            </button>
+          </li>
+        ))}
+      </ol>
+    </nav>
+  );
+}
 
 function Directors({
   directors,
@@ -302,13 +347,8 @@ function Directors({
 
   useEffect(() => {
     portrait.current?.show(index);
-    const timer = setTimeout(() => {
-      const url = new URL(window.location.href);
-      url.searchParams.set("director", String(directors[index]!.id));
-      window.history.replaceState(window.history.state, "", url);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [directors, index]);
+  }, [index]);
+  useSyncedSearchParam("director", String(director.id));
 
   return (
     <>
@@ -345,38 +385,12 @@ function Directors({
           } as CSSProperties
         }
       >
-        <nav
-          aria-label="Directors"
-          className="flex min-w-0 lg:order-3 lg:items-center lg:justify-end"
-          data-named={named ? "" : undefined}
-        >
-          <ol className="-mx-4 flex gap-1 overflow-x-auto px-4 [scrollbar-width:none] lg:mx-0 lg:flex-col lg:items-end lg:gap-0 lg:overflow-visible lg:px-0">
-            {directors.map((entry, i) => {
-              const on = i === index;
-              return (
-                <li
-                  className="directors-name shrink-0"
-                  key={entry.id}
-                  style={{ "--i": i } as CSSProperties}
-                >
-                  <button
-                    aria-current={on ? "true" : undefined}
-                    className={cn(
-                      "cine-fade py-1.5 pr-3 type-control font-medium whitespace-nowrap lg:py-1 lg:pr-0",
-                      on
-                        ? "text-ink"
-                        : "text-ink-body hover:text-ink focus-visible:text-ink",
-                    )}
-                    onClick={() => pick(i)}
-                    type="button"
-                  >
-                    {entry.name}
-                  </button>
-                </li>
-              );
-            })}
-          </ol>
-        </nav>
+        <DirectorNav
+          directors={directors}
+          index={index}
+          named={named}
+          onPick={pick}
+        />
 
         <div className="flex min-h-0 items-center justify-center py-4 lg:order-2 lg:py-0">
           <div

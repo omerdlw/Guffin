@@ -143,7 +143,7 @@ export interface PersonResultRowProps {
   query?: string;
 }
 
-export interface CatalogFilm {
+export interface FilmCandidate {
   id: number;
   originalTitle: string | null;
   popularity: number;
@@ -153,17 +153,12 @@ export interface CatalogFilm {
   voteCount: number;
 }
 
-export interface SearchFilm {
-  id: number;
-  originalTitle: string | null;
-  popularity: number;
-  posterPath: string | null;
-  releaseYear: number | null;
-  title: string;
-  voteCount: number;
+export interface SearchOptions {
+  page?: number;
+  signal?: AbortSignal;
 }
 
 export type SearchRunner = (
   query: string,
-  options: { page: number; signal: AbortSignal },
+  options: Required<SearchOptions>,
 ) => Promise<Result<SearchResponse<unknown>, SearchFailure>>;

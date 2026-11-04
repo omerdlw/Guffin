@@ -72,41 +72,38 @@ function useSocialFollowSync(
   initialCount = 0,
   initialStatus = false,
 ) {
-  const [isFollower, setIsFollower] = useState(initialStatus);
-  const [prevAccountId, setPrevAccountId] = useState(accountId);
-  const [prevInitialStatus, setPrevInitialStatus] = useState(initialStatus);
-  const [prevInitialCount, setPrevInitialCount] = useState(initialCount);
-  const [baseCount, setBaseCount] = useState(initialCount);
+  const served = { accountId, count: initialCount, status: initialStatus };
+  const [seen, setSeen] = useState(served);
+  const [sync, setSync] = useState({
+    baseCount: initialCount,
+    isFollower: initialStatus,
+  });
 
-  if (accountId !== prevAccountId) {
-    setPrevAccountId(accountId);
-    setPrevInitialStatus(initialStatus);
-    setPrevInitialCount(initialCount);
-    setIsFollower(initialStatus);
-    setBaseCount(initialCount);
-  } else {
-    if (initialStatus !== prevInitialStatus) {
-      setPrevInitialStatus(initialStatus);
-      setIsFollower(initialStatus);
-    }
-    if (initialCount !== prevInitialCount) {
-      setPrevInitialCount(initialCount);
-      setBaseCount(initialCount);
-    }
+  if (accountId !== seen.accountId) {
+    setSeen(served);
+    setSync({ baseCount: initialCount, isFollower: initialStatus });
+  } else if (initialStatus !== seen.status || initialCount !== seen.count) {
+    setSeen(served);
+    setSync((current) => ({
+      baseCount: initialCount !== seen.count ? initialCount : current.baseCount,
+      isFollower:
+        initialStatus !== seen.status ? initialStatus : current.isFollower,
+    }));
   }
 
   useGlobalEvent(accountId ? SOCIAL_EVENTS.FOLLOW_CHANGE : null, (payload) => {
     if (payload.followingId === accountId) {
-      setIsFollower(payload.status === "accepted");
+      setSync((current) => ({
+        ...current,
+        isFollower: payload.status === "accepted",
+      }));
     }
   });
 
-  const delta = isFollower === prevInitialStatus ? 0 : isFollower ? 1 : -1;
-  const followersCount = Math.max(0, baseCount + delta);
-
+  const delta = sync.isFollower === seen.status ? 0 : sync.isFollower ? 1 : -1;
   return {
-    followersCount,
-    isFollower,
+    followersCount: Math.max(0, sync.baseCount + delta),
+    isFollower: sync.isFollower,
   };
 }
 

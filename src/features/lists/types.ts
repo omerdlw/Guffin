@@ -1,3 +1,4 @@
+import type { MutationResult } from "@/features/auth/types";
 import type { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export interface MovieListSummary {
@@ -10,20 +11,30 @@ export interface MovieListSummary {
   title: string;
 }
 
-export type MovieListsResult =
-  | { lists: MovieListSummary[]; memberships: string[]; success: true }
-  | { error: string; success: false };
+export type MovieListsResult = MutationResult<{
+  lists: MovieListSummary[];
+  memberships: string[];
+}>;
 
-export type MovieListChangeResult =
-  | { inList: boolean; list: MovieListSummary; success: true }
-  | { error: string; success: false };
+export type MovieListChangeResult = MutationResult<{
+  inList: boolean;
+  list: MovieListSummary;
+}>;
 
-export interface ListInput {
+export interface ListPickerLibrary {
+  lists: MovieListSummary[];
+  memberships: ReadonlySet<string>;
+  status: "error" | "loading" | "ready";
+}
+
+export interface ListDraft {
   description: string;
   isPrivate: boolean;
   isRanked: boolean;
   title: string;
 }
+
+export type ListInput = ListDraft;
 
 export interface PopularList {
   description: string;
@@ -55,6 +66,12 @@ export interface ListOrderItem {
   title: string;
   tmdbId: number;
   year: string | null;
+}
+
+export interface ListOrderState {
+  order: ListOrderItem[];
+  saved: ListOrderItem[] | null;
+  status: "failed" | "loading" | "ready";
 }
 
 export interface ListCommentTarget {

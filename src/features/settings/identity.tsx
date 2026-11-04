@@ -47,10 +47,17 @@ export function ProfileForm({ onSaved }: { onSaved: () => void }) {
   const router = useRouter();
   const toast = useToast();
 
-  const [displayName, setDisplayName] = useState(current?.displayName ?? "");
-  const [username, setUsername] = useState(current?.username ?? "");
-  const [bio, setBio] = useState(current?.bio ?? "");
-  const [isPrivate, setIsPrivate] = useState(Boolean(current?.isPrivate));
+  const [fields, setFields] = useState({
+    bio: current?.bio ?? "",
+    displayName: current?.displayName ?? "",
+    isPrivate: Boolean(current?.isPrivate),
+    username: current?.username ?? "",
+  });
+  const { bio, displayName, isPrivate, username } = fields;
+  const setField =
+    <K extends keyof typeof fields>(name: K) =>
+    (value: (typeof fields)[K]) =>
+      setFields((current) => ({ ...current, [name]: value }));
 
   const [result, submit, pending] = useActionState<SaveResult, FormData>(
     async () => {
@@ -103,7 +110,7 @@ export function ProfileForm({ onSaved }: { onSaved: () => void }) {
           disabled={pending}
           maxLength={80}
           name="displayName"
-          onChange={(event) => setDisplayName(event.target.value)}
+          onChange={(event) => setField("displayName")(event.target.value)}
           placeholder="Display Name"
           required
           value={displayName}
@@ -113,7 +120,7 @@ export function ProfileForm({ onSaved }: { onSaved: () => void }) {
           disabled={pending}
           maxLength={30}
           name="username"
-          onChange={(event) => setUsername(event.target.value)}
+          onChange={(event) => setField("username")(event.target.value)}
           pattern="[a-zA-Z0-9_\-]{3,30}"
           placeholder="Username"
           required
@@ -126,7 +133,7 @@ export function ProfileForm({ onSaved }: { onSaved: () => void }) {
         disabled={pending}
         maxLength={500}
         name="bio"
-        onChange={(event) => setBio(event.target.value)}
+        onChange={(event) => setField("bio")(event.target.value)}
         placeholder="Bio"
         rows={4}
         value={bio}
@@ -154,7 +161,7 @@ export function ProfileForm({ onSaved }: { onSaved: () => void }) {
           aria-label="Private profile"
           checked={isPrivate}
           disabled={pending}
-          onCheckedChange={setIsPrivate}
+          onCheckedChange={setField("isPrivate")}
         />
       </label>
       <Button
@@ -379,15 +386,16 @@ export function MediaForm({ onSaved }: { onSaved: () => void }) {
   const router = useRouter();
   const toast = useToast();
 
-  const [avatarUrl, setAvatarUrl] = useState(current?.avatarUrl ?? "");
-  const [bannerUrl, setBannerUrl] = useState(current?.bannerUrl ?? "");
-  const [backgroundUrl, setBackgroundUrl] = useState(
-    current?.backgroundUrl ?? "",
-  );
-  const [bannerPosition, setBannerPosition] = useState(
-    current?.bannerPosition ?? DEFAULT_BANNER_POSITION,
-  );
+  const [images, setImages] = useState({
+    avatarUrl: current?.avatarUrl ?? "",
+    backgroundUrl: current?.backgroundUrl ?? "",
+    bannerPosition: current?.bannerPosition ?? DEFAULT_BANNER_POSITION,
+    bannerUrl: current?.bannerUrl ?? "",
+  });
+  const { avatarUrl, backgroundUrl, bannerPosition, bannerUrl } = images;
   const position = bannerY(bannerPosition);
+  const setImage = (name: keyof typeof images) => (value: string) =>
+    setImages((current) => ({ ...current, [name]: value }));
 
   const [result, submit, pending] = useActionState<
     MediaFormSaveResult,
@@ -440,7 +448,7 @@ export function MediaForm({ onSaved }: { onSaved: () => void }) {
           </Preview>
           <UrlInput
             disabled={pending}
-            onChange={setAvatarUrl}
+            onChange={setImage("avatarUrl")}
             placeholder="Avatar image URL"
             value={avatarUrl}
           />
@@ -463,7 +471,7 @@ export function MediaForm({ onSaved }: { onSaved: () => void }) {
           </Preview>
           <UrlInput
             disabled={pending}
-            onChange={setBackgroundUrl}
+            onChange={setImage("backgroundUrl")}
             placeholder="Page background URL"
             value={backgroundUrl}
           />
@@ -481,7 +489,7 @@ export function MediaForm({ onSaved }: { onSaved: () => void }) {
           />
           <UrlInput
             disabled={pending}
-            onChange={setBannerUrl}
+            onChange={setImage("bannerUrl")}
             placeholder="Dock banner image URL"
             value={bannerUrl}
           />
@@ -489,7 +497,7 @@ export function MediaForm({ onSaved }: { onSaved: () => void }) {
         {bannerUrl ? (
           <BannerSlider
             disabled={pending}
-            onChange={(y) => setBannerPosition(`center ${y}%`)}
+            onChange={(y) => setImage("bannerPosition")(`center ${y}%`)}
             value={position}
           />
         ) : null}

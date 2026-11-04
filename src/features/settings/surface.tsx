@@ -14,13 +14,10 @@ import {
   SETTINGS_SECTIONS,
 } from "./constants";
 import { MediaForm, ProfileForm } from "./identity";
-import {
-  DeletePanel,
-  EmailForm,
-  PasskeysPanel,
-  ProvidersPanel,
-  SessionsPanel,
-} from "./security";
+import { PasskeysPanel } from "./passkeys";
+import { ProvidersPanel } from "./providers";
+import { DeletePanel, EmailForm } from "./security";
+import { SessionsPanel } from "./sessions";
 import { Mark, useSecurity } from "./shared";
 import type { SettingsKey, SettingsSection } from "./types";
 import {

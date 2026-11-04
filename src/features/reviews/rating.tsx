@@ -4,7 +4,7 @@ import { type CSSProperties, type FocusEvent, type JSX, useState } from "react";
 import { Button } from "@/ui/button";
 import { cn } from "@/ui/cn";
 import { STAR_GAP, STAR_PATH } from "./constants";
-import { fillOf } from "./utils";
+import { isRated, starFillWidth } from "./utils";
 
 export function Star({
   className,
@@ -47,7 +47,7 @@ export function RatingStars({
   rating: number | null;
   size?: number;
 }): JSX.Element {
-  if (rating === null || !Number.isFinite(rating) || rating <= 0) {
+  if (!isRated(rating)) {
     return (
       <span aria-label="No rating" className="text-ink-muted">
         —
@@ -123,7 +123,7 @@ export function RatingSelector({
                   height="24"
                   style={{
                     transition: `width var(--step-0) var(--ease-out-cream) calc(var(--step-n6) * ${star - 1})`,
-                    width: fillOf(star, shown),
+                    width: starFillWidth(star, shown),
                   }}
                   x="0"
                   y="0"

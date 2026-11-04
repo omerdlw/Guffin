@@ -7,7 +7,7 @@ import {
   personSwatch,
 } from "@/features/person/credits";
 import { PersonPageChrome } from "@/features/person/header";
-import { PersonViewProvider } from "@/features/person/sections";
+import { PersonViewProvider } from "@/features/person/views";
 import { describePerson, parsePersonId } from "@/features/person/utils";
 import { PersonView } from "@/features/person/view";
 import { project, shareMetadata } from "@/lib/project";

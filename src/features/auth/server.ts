@@ -70,9 +70,9 @@ export async function mutate<T extends object = object>(
   {
     fallback,
     name,
-    perMinute,
-    scope,
-  }: { fallback: string; name: string; perMinute: number; scope: string },
+    perMinute = 120,
+    scope = "account-change",
+  }: { fallback: string; name: string; perMinute?: number; scope?: string },
   work: (context: {
     client: SupabaseClient<Database>;
     userId: string;

@@ -107,9 +107,20 @@ export const GALLERY_TAB_ORDER: readonly GalleryTab[] = [
 
 export const GALLERY_REACH_STEP = 18;
 
+export const THUMBNAIL_WIDTHS = {
+  gallery: {
+    backdrops: ["w300", "w780", "w1280"],
+    posters: ["w185", "w342", "w500"],
+  },
+  wall: {
+    backdrops: ["w300", "w780"],
+    posters: ["w185", "w342"],
+  },
+} as const;
+
 export const REEL_IMAGE_SIZE = "w1280";
 
-export const SLATE_RUNG = 1;
+export const STILL_BADGE_RUNG = 1;
 
 export const REVIEW_DATE_FORMAT = new Intl.DateTimeFormat("en-US", {
   day: "numeric",
@@ -130,12 +141,12 @@ const SORT_LABELS: Record<MovieReviewSort, string> = {
   rating_desc: "Highest rated",
 };
 
-export const SORTS = MOVIE_REVIEW_SORTS.map((sort) => ({
+export const REVIEW_SORT_OPTIONS = MOVIE_REVIEW_SORTS.map((sort) => ({
   label: SORT_LABELS[sort.value],
   value: sort.value,
 }));
 
-export const CHOICE_CLASS = "min-w-0 flex-1 sm:w-44 sm:flex-none";
+export const REVIEW_SELECT_CLASS = "min-w-0 flex-1 sm:w-44 sm:flex-none";
 
 export const SKELETON_FACT_WIDTHS = [
   ["3.5rem", "7rem"],
@@ -156,7 +167,7 @@ export const SKELETON_REVIEW_LINES = [
   ["100%", "100%", "100%", "54%"],
 ] as const;
 
-export const STAGE_POSTER_WIDTHS = ["w185", "w342"] as const;
+export const POSTER_LINK_WIDTHS = ["w185", "w342"] as const;
 
 export const COLLECTION_ICONS = {
   like: { off: "solar:heart-linear", on: "solar:heart-bold" },
@@ -178,8 +189,6 @@ export const COMPACT_NUMBER_FORMAT = new Intl.NumberFormat("en", {
   maximumFractionDigits: 1,
   notation: "compact",
 });
-
-export const EXACT_NUMBER_FORMAT = new Intl.NumberFormat("en");
 
 export const PROVIDER_CATEGORIES: readonly {
   icon: string;

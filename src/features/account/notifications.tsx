@@ -2,6 +2,7 @@
 
 import {
   memo,
+  type MouseEvent,
   type ReactNode,
   useCallback,
   useEffect,
@@ -24,8 +25,16 @@ import { useAuth } from "@/features/auth/provider";
 import { accountHref } from "@/lib/project";
 import { Button, DockAction } from "@/ui/button";
 import { HighlightGroup, SegmentedControl, useHighlight } from "@/ui/form";
-import { AdaptiveImage, Icon } from "@/ui/media";
+import { Icon } from "@/ui/media";
 import { scrollWithin } from "@/ui/surface";
+import {
+  SURFACE_META,
+  SURFACE_SCROLL,
+  SURFACE_TEXT,
+  SURFACE_TILE,
+  SURFACE_TILE_INNER,
+  SURFACE_TITLE,
+} from "@/ui/tokens";
 import {
   deleteAllNotifications,
   deleteNotification,
@@ -42,54 +51,22 @@ import {
   NOTIFICATIONS_TITLE,
   SOCIAL_EVENTS,
 } from "./constants";
+import { AccountAvatarImage, AvatarTile, StatusTile } from "./tiles";
 import type {
+  NotificationFeed,
   NotificationFilter,
   NotificationItem,
   NotificationRowAction,
+  OptimisticChange,
 } from "./types";
 import {
-  announceChange,
-  applyAvatarFallback,
-  getUserAvatarFallbackUrl,
-  getUserAvatarUrl,
-  headlineOf,
-  notificationAge,
-  summaryOf,
+  announceNotificationChange,
+  formatNotificationAge,
+  notificationHeadline,
+  notificationSummary,
 } from "./utils";
-import {
-  SURFACE_META,
-  SURFACE_SCROLL,
-  SURFACE_TEXT,
-  SURFACE_TILE,
-  SURFACE_TILE_INNER,
-  SURFACE_TITLE,
-} from "@/ui/tokens";
 
-function StatusTile({
-  icon,
-  meta,
-  title,
-}: {
-  icon: string;
-  meta: string;
-  title: string;
-}) {
-  return (
-    <div className={`${SURFACE_TILE} w-full`}>
-      <div
-        className={`center size-10 shrink-0 bg-fill text-ink-muted ${SURFACE_TILE_INNER}`}
-      >
-        <Icon icon={icon} size={20} />
-      </div>
-      <div className={SURFACE_TEXT}>
-        <p className={SURFACE_TITLE}>{title}</p>
-        <p className={SURFACE_META}>{meta}</p>
-      </div>
-    </div>
-  );
-}
-
-function ListSkeleton() {
+function NotificationSkeleton() {
   return (
     <div className="flex w-full flex-col gap-2.5">
       {Array.from({ length: 4 }, (_, index) => (
@@ -112,6 +89,24 @@ function ListSkeleton() {
   );
 }
 
+function NotificationBanner({ url }: { url: string }) {
+  return (
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[inherit] select-none"
+    >
+      <div
+        className="ui-fade absolute inset-0 bg-cover bg-center bg-no-repeat opacity-25 group-hover/user:opacity-40 group-focus-visible/user:opacity-40 group-has-focus-visible/user:opacity-40"
+        style={{
+          backgroundImage: `url("${url}")`,
+          WebkitMaskImage: NOTIFICATION_BANNER_FADE,
+        }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/20 to-transparent" />
+    </div>
+  );
+}
+
 const NotificationRow = memo(function NotificationRow({
   notification,
   onDelete,
@@ -126,23 +121,20 @@ const NotificationRow = memo(function NotificationRow({
   const { actor } = notification;
   const highlight = useHighlight(notification.id, "rounded-card bg-fill");
   const href = actor ? accountHref(actor.username || actor.id) : null;
-  const headline = headlineOf(notification);
-  const age = notificationAge(notification.created_at);
+  const headline = notificationHeadline(notification);
+  const age = formatNotificationAge(notification.created_at);
 
   const content: ReactNode = (
     <>
-      <div
-        className={`relative size-10 shrink-0 overflow-hidden bg-fill ${SURFACE_TILE_INNER}`}
-      >
+      <AvatarTile>
         {actor ? (
-          <AdaptiveImage
+          <AccountAvatarImage
+            account={{
+              avatarUrl: actor.avatar_url,
+              displayName: actor.display_name,
+              username: actor.username,
+            }}
             alt={headline}
-            className="size-full rounded-[inherit] object-cover"
-            onError={(event) =>
-              applyAvatarFallback(event, getUserAvatarFallbackUrl(actor))
-            }
-            src={getUserAvatarUrl(actor)}
-            wrapperClassName="size-full rounded-[inherit]"
           />
         ) : (
           <div className="center size-full text-ink-body">
@@ -152,11 +144,11 @@ const NotificationRow = memo(function NotificationRow({
             />
           </div>
         )}
-      </div>
+      </AvatarTile>
       <div className={`${SURFACE_TEXT} h-full`}>
         <span className={SURFACE_TITLE}>{headline}</span>
         <span className={SURFACE_META}>
-          {summaryOf(notification)}
+          {notificationSummary(notification)}
           {age ? ` · ${age}` : ""}
         </span>
       </div>
@@ -168,20 +160,8 @@ const NotificationRow = memo(function NotificationRow({
       className={`${SURFACE_TILE} group/user relative isolate w-full justify-between overflow-hidden`}
       {...highlight.props}
     >
-      {actor && isValidBannerUrl(actor.banner_url) ? (
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[inherit] select-none"
-        >
-          <div
-            className="ui-fade absolute inset-0 bg-cover bg-center bg-no-repeat opacity-25 group-hover/user:opacity-40 group-focus-visible/user:opacity-40 group-has-focus-visible/user:opacity-40"
-            style={{
-              backgroundImage: `url("${actor.banner_url}")`,
-              WebkitMaskImage: NOTIFICATION_BANNER_FADE,
-            }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/20 to-transparent" />
-        </div>
+      {actor?.banner_url && isValidBannerUrl(actor.banner_url) ? (
+        <NotificationBanner url={actor.banner_url} />
       ) : null}
 
       {highlight.node}
@@ -224,33 +204,37 @@ const NotificationRow = memo(function NotificationRow({
   );
 });
 
-export function AccountNotificationsSurface({ close }: { close?: () => void }) {
-  const auth = useAuth();
+function swallowClick(event: MouseEvent<HTMLElement>) {
+  event.preventDefault();
+  event.stopPropagation();
+}
+
+function useNotificationFeed(signedIn: boolean, ready: boolean) {
   const toast = useToast();
-  const signedIn = auth.isReady && auth.isAuthenticated;
-  const [filter, setFilter] = useState<NotificationFilter>("all");
-  const [loading, setLoading] = useState(() => !auth.isReady || signedIn);
-  const [failed, setFailed] = useState(false);
-  const [items, setItems] = useState<NotificationItem[]>([]);
-  const pending = useRef({
+  const [feed, setFeed] = useState<NotificationFeed>({
+    items: [],
+    status: !ready || signedIn ? "loading" : "ready",
+  });
+  const optimisticIds = useRef({
     deleted: new Set<string>(),
     read: new Set<string>(),
   });
 
+  const updateItems = useCallback(
+    (update: (items: NotificationItem[]) => NotificationItem[]) =>
+      setFeed((current) => ({ ...current, items: update(current.items) })),
+    [],
+  );
+
   const load = useCallback(async () => {
     try {
-      const { deleted, read } = pending.current;
-      const list = await fetchNotifications();
-      setItems(
-        list
-          .filter((item) => !deleted.has(item.id))
-          .map((item) => (read.has(item.id) ? { ...item, read: true } : item)),
-      );
-      setFailed(false);
+      const { deleted, read } = optimisticIds.current;
+      const items = (await fetchNotifications())
+        .filter((item) => !deleted.has(item.id))
+        .map((item) => (read.has(item.id) ? { ...item, read: true } : item));
+      setFeed({ items, status: "ready" });
     } catch {
-      setFailed(true);
-    } finally {
-      setLoading(false);
+      setFeed((current) => ({ ...current, status: "failed" }));
     }
   }, []);
 
@@ -266,160 +250,184 @@ export function AccountNotificationsSurface({ close }: { close?: () => void }) {
     { debounceMs: 150 },
   );
 
-  const optimistic = async (
-    apply: () => void,
-    revert: () => void,
-    request: () => Promise<void>,
-    failure: string,
-  ) => {
-    apply();
-    announceChange();
-    try {
-      await request();
-    } catch (error) {
-      revert();
-      announceChange();
-      toast(toUserMessage(error, { fallback: failure }));
-    }
-  };
-
-  const markRead = useCallback<NotificationRowAction>(
-    (id, event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      const setRead = (read: boolean) =>
-        setItems((list) =>
-          list.map((item) => (item.id === id ? { ...item, read } : item)),
-        );
-      void optimistic(
-        () => {
-          pending.current.read.add(id);
-          setRead(true);
-        },
-        () => {
-          pending.current.read.delete(id);
-          setRead(false);
-        },
-        () => markAsRead(id),
-        "Couldn't update this notification",
-      );
+  const applyOptimistically = useCallback(
+    async ({ apply, failure, request, revert }: OptimisticChange) => {
+      apply();
+      announceNotificationChange();
+      try {
+        await request();
+      } catch (error) {
+        revert();
+        announceNotificationChange();
+        toast(toUserMessage(error, { fallback: failure }));
+      }
     },
     [toast],
   );
 
+  const markRead = useCallback<NotificationRowAction>(
+    (id, event) => {
+      swallowClick(event);
+      const setRead = (read: boolean) =>
+        updateItems((items) =>
+          items.map((item) => (item.id === id ? { ...item, read } : item)),
+        );
+      void applyOptimistically({
+        apply: () => {
+          optimisticIds.current.read.add(id);
+          setRead(true);
+        },
+        failure: "Couldn't update this notification",
+        request: () => markAsRead(id),
+        revert: () => {
+          optimisticIds.current.read.delete(id);
+          setRead(false);
+        },
+      });
+    },
+    [applyOptimistically, updateItems],
+  );
+
   const remove = useCallback<NotificationRowAction>(
     (id, event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      const removed = items.find((item) => item.id === id);
-      void optimistic(
-        () => {
-          pending.current.deleted.add(id);
-          setItems((list) => list.filter((item) => item.id !== id));
+      swallowClick(event);
+      const removed = feed.items.find((item) => item.id === id);
+      void applyOptimistically({
+        apply: () => {
+          optimisticIds.current.deleted.add(id);
+          updateItems((items) => items.filter((item) => item.id !== id));
         },
-        () => {
-          pending.current.deleted.delete(id);
-          if (removed) {
-            setItems((list) =>
-              list.some((item) => item.id === id) ? list : [...list, removed],
-            );
-          }
+        failure: "Couldn't delete this notification",
+        request: () => deleteNotification(id),
+        revert: () => {
+          optimisticIds.current.deleted.delete(id);
+          if (!removed) return;
+          updateItems((items) =>
+            items.some((item) => item.id === id) ? items : [...items, removed],
+          );
         },
-        () => deleteNotification(id),
-        "Couldn't delete this notification",
-      );
+      });
     },
-    [items, toast],
+    [applyOptimistically, feed.items, updateItems],
   );
 
   const markAllRead = () => {
-    const previous = items;
-    const unread = items.filter((item) => !item.read).map((item) => item.id);
-    void optimistic(
-      () => {
-        unread.forEach((id) => pending.current.read.add(id));
-        setItems((list) => list.map((item) => ({ ...item, read: true })));
+    const previous = feed.items;
+    const unreadIds = previous.filter((item) => !item.read).map(({ id }) => id);
+    void applyOptimistically({
+      apply: () => {
+        unreadIds.forEach((id) => optimisticIds.current.read.add(id));
+        updateItems((items) => items.map((item) => ({ ...item, read: true })));
       },
-      () => {
-        unread.forEach((id) => pending.current.read.delete(id));
-        setItems(previous);
+      failure: "Couldn't update your notifications",
+      request: markAllAsRead,
+      revert: () => {
+        unreadIds.forEach((id) => optimisticIds.current.read.delete(id));
+        updateItems(() => previous);
       },
-      markAllAsRead,
-      "Couldn't update your notifications",
-    );
+    });
   };
 
   const removeAll = () => {
-    const previous = items;
-    void optimistic(
-      () => {
-        previous.forEach((item) => pending.current.deleted.add(item.id));
-        setItems([]);
+    const previous = feed.items;
+    void applyOptimistically({
+      apply: () => {
+        previous.forEach((item) => optimisticIds.current.deleted.add(item.id));
+        updateItems(() => []);
       },
-      () => {
-        previous.forEach((item) => pending.current.deleted.delete(item.id));
-        setItems(previous);
+      failure: "Couldn't delete your notifications",
+      request: deleteAllNotifications,
+      revert: () => {
+        previous.forEach((item) =>
+          optimisticIds.current.deleted.delete(item.id),
+        );
+        updateItems(() => previous);
       },
-      deleteAllNotifications,
-      "Couldn't delete your notifications",
-    );
+    });
   };
 
-  const unreadCount = items.filter((item) => !item.read).length;
-  const visible = useMemo(
-    () => (filter === "unread" ? items.filter((item) => !item.read) : items),
-    [filter, items],
-  );
+  return { feed, markAllRead, markRead, remove, removeAll };
+}
 
-  let body: ReactNode;
-  if (loading) {
-    body = <ListSkeleton />;
-  } else if (failed) {
-    body = (
+function NotificationList({
+  filter,
+  notifications,
+  onClose,
+  onDelete,
+  onMarkRead,
+  status,
+}: {
+  filter: NotificationFilter;
+  notifications: NotificationItem[];
+  onClose?: () => void;
+  onDelete: NotificationRowAction;
+  onMarkRead: NotificationRowAction;
+  status: NotificationFeed["status"];
+}) {
+  if (status === "loading") return <NotificationSkeleton />;
+
+  if (status === "failed") {
+    return (
       <StatusTile
+        description="Please try again in a moment"
         icon="solar:danger-circle-bold"
-        meta="Please try again in a moment"
         title="Couldn't load notifications"
       />
     );
-  } else if (visible.length === 0) {
-    body = (
+  }
+
+  if (notifications.length === 0) {
+    const unreadOnly = filter === "unread";
+    return (
       <StatusTile
-        icon="solar:bell-bold"
-        meta={
-          filter === "unread"
+        description={
+          unreadOnly
             ? "You are all caught up"
             : "New followers and activity will appear here"
         }
-        title={
-          filter === "unread"
-            ? "No unread notifications"
-            : "No notifications yet"
-        }
+        icon="solar:bell-bold"
+        title={unreadOnly ? "No unread notifications" : "No notifications yet"}
       />
     );
-  } else {
-    body = (
-      <div
-        className={`${SURFACE_SCROLL} max-h-[min(56dvh,26rem)] w-full touch-pan-y`}
-        data-scroll-native
-        key={filter}
-        onWheel={scrollWithin}
-      >
-        <HighlightGroup className="flex min-h-[48px] w-full flex-col justify-center gap-2.5 overflow-visible">
-          {visible.map((notification) => (
-            <NotificationRow
-              key={notification.id}
-              notification={notification}
-              onDelete={remove}
-              onMarkRead={markRead}
-              onNavigate={close}
-            />
-          ))}
-        </HighlightGroup>
-      </div>
-    );
   }
+
+  return (
+    <div
+      className={`${SURFACE_SCROLL} max-h-[min(56dvh,26rem)] w-full touch-pan-y`}
+      data-scroll-native
+      key={filter}
+      onWheel={scrollWithin}
+    >
+      <HighlightGroup className="flex min-h-[48px] w-full flex-col justify-center gap-2.5 overflow-visible">
+        {notifications.map((notification) => (
+          <NotificationRow
+            key={notification.id}
+            notification={notification}
+            onDelete={onDelete}
+            onMarkRead={onMarkRead}
+            onNavigate={onClose}
+          />
+        ))}
+      </HighlightGroup>
+    </div>
+  );
+}
+
+export function AccountNotificationsSurface({ close }: { close?: () => void }) {
+  const auth = useAuth();
+  const signedIn = auth.isReady && auth.isAuthenticated;
+  const [filter, setFilter] = useState<NotificationFilter>("all");
+  const { feed, markAllRead, markRead, remove, removeAll } =
+    useNotificationFeed(signedIn, auth.isReady);
+
+  const unreadCount = feed.items.filter((item) => !item.read).length;
+  const visible = useMemo(
+    () =>
+      filter === "unread"
+        ? feed.items.filter((item) => !item.read)
+        : feed.items,
+    [feed.items, filter],
+  );
 
   return (
     <div className="flex w-full flex-col overflow-hidden">
@@ -428,14 +436,14 @@ export function AccountNotificationsSurface({ close }: { close?: () => void }) {
           <SegmentedControl
             ariaLabel="Filter notifications"
             items={[
-              { count: items.length, key: "all", label: "All" },
+              { count: feed.items.length, key: "all", label: "All" },
               { count: unreadCount, key: "unread", label: "Unread" },
             ]}
             onChange={setFilter}
             round
             value={filter}
           />
-          {items.length > 0 ? (
+          {feed.items.length > 0 ? (
             <div className="flex h-full shrink-0 items-center gap-1.5">
               {unreadCount > 0 ? (
                 <Button
@@ -455,7 +463,14 @@ export function AccountNotificationsSurface({ close }: { close?: () => void }) {
           ) : null}
         </div>
       </DockSurfaceExtension>
-      {body}
+      <NotificationList
+        filter={filter}
+        notifications={visible}
+        onClose={close}
+        onDelete={remove}
+        onMarkRead={markRead}
+        status={feed.status}
+      />
     </div>
   );
 }

@@ -1,4 +1,5 @@
-import type { MouseEvent } from "react";
+import type { Dispatch, MouseEvent, SetStateAction } from "react";
+import type { MutationResult } from "@/features/auth/types";
 import type { Database } from "@/lib/supabase/database.types";
 import type { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { MOVIE_LIBRARY_KINDS, SOCIAL_EVENTS } from "./constants";
@@ -74,9 +75,7 @@ export type AccountRow = Pick<
 
 export interface AvatarSource {
   avatarUrl?: string | null;
-  avatar_url?: string | null;
   displayName?: string | null;
-  display_name?: string | null;
   username?: string | null;
 }
 
@@ -96,12 +95,9 @@ export interface MovieLibraryState {
   watchlist: boolean;
 }
 
-export type MovieLibraryResult =
-  | { state: MovieLibraryState; success: true }
-  | { error: string; success: false };
+export type MovieLibraryResult = MutationResult<{ state: MovieLibraryState }>;
 
-export type DiaryLogResult =
-  { success: true } | { error: string; success: false };
+export type DiaryLogResult = MutationResult;
 
 export type FollowStatus = "accepted" | "pending";
 
@@ -109,13 +105,10 @@ export type AccountClient = Awaited<
   ReturnType<typeof createServerSupabaseClient>
 >;
 
-interface LibraryMarks {
+export type LibraryMarksResult = MutationResult<{
   watched: number[];
   watchlist: number[];
-}
-
-export type LibraryMarksResult =
-  ({ success: true } & LibraryMarks) | { error: string; success: false };
+}>;
 
 export interface FollowUser {
   avatarUrl: string | null;
@@ -165,6 +158,18 @@ export type NotificationRowAction = (
   event: MouseEvent<HTMLButtonElement>,
 ) => void;
 
+export interface NotificationFeed {
+  items: NotificationItem[];
+  status: "failed" | "loading" | "ready";
+}
+
+export interface OptimisticChange {
+  apply: () => void;
+  failure: string;
+  request: () => Promise<void>;
+  revert: () => void;
+}
+
 export type TableRow<T extends keyof Database["public"]["Tables"]> =
   Database["public"]["Tables"][T]["Row"];
 
@@ -174,29 +179,9 @@ export type SetupResult =
   | null;
 
 export interface AccountBioData {
-  account?: {
-    username?: string;
-    displayName?: string;
-    display_name?: string;
-    bio?: string | null;
-    [key: string]: unknown;
-  };
-  profile?: {
-    username?: string;
-    displayName?: string;
-    display_name?: string;
-    bio?: string | null;
-    [key: string]: unknown;
-  };
-  username?: string;
+  bio?: string | null;
   displayName?: string;
-  bio?: string | null;
-  [key: string]: unknown;
-}
-
-export interface AccountBioSurfaceProps {
-  bio?: string | null;
-  data?: AccountBioData;
+  username?: string;
 }
 
 export type SocialTab = "followers" | "following" | "inbox";
@@ -211,6 +196,19 @@ export interface SocialCollection {
   list: FollowUser[];
   next: FollowCursor | null;
   total: number | null;
+}
+
+export interface SocialCollectionController {
+  loadMore: () => void;
+  reload: () => void;
+  setState: Dispatch<SetStateAction<SocialCollection>>;
+  state: SocialCollection;
+}
+
+export interface SocialActionPlan {
+  apply: () => () => void;
+  failure: string;
+  request: () => Promise<void>;
 }
 
 export type SocialPageLoader = (

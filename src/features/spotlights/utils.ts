@@ -1,3 +1,4 @@
+import { toLogline } from "@/lib/format";
 import { type PersonCrewCredit, tmdbImageUrl } from "@/lib/tmdb/shared";
 import {
   DIRECTOR_KNOWN_VOTES,
@@ -8,6 +9,8 @@ import {
   FIRST_CEREMONY_YEAR,
   GENRE_LABELS,
   MAX_FILMS,
+  SPOTLIGHT_GENRE_LIMIT,
+  SPOTLIGHT_LOGLINE_ENOUGH,
   SPOTLIGHT_LOGLINE_LENGTH,
   SWARM_LUMA,
   WALL_COLUMNS,
@@ -27,7 +30,9 @@ import type {
 } from "./types";
 
 export const genreNames = (ids: readonly number[]) =>
-  ids.flatMap((id) => (GENRE_LABELS[id] ? [GENRE_LABELS[id]] : [])).slice(0, 3);
+  ids
+    .flatMap((id) => (GENRE_LABELS[id] ? [GENRE_LABELS[id]] : []))
+    .slice(0, SPOTLIGHT_GENRE_LIMIT);
 
 export const ceremonyYear = (ceremony: number) =>
   FIRST_CEREMONY_YEAR + ceremony - (ceremony >= 3 && ceremony <= 5 ? 2 : 1);
@@ -159,20 +164,8 @@ export const approach = (from: number, to: number, time: number, dt: number) =>
 export const posterOf = (film: Laureate) =>
   tmdbImageUrl("poster", film.posterPath, "w780")!;
 
-export function loglineOf(overview: string | null | undefined): string | null {
-  const flat = overview?.replace(/\s+/g, " ").trim();
-  if (!flat) return null;
-  const sentences = flat.match(/.+?[.!?](?=\s+["“‘']?[A-Z]|$)|.+$/g) ?? [flat];
-  let line = "";
-  for (const sentence of sentences) {
-    const next = `${line} ${sentence.trim()}`.trim();
-    if (line && next.length > SPOTLIGHT_LOGLINE_LENGTH) break;
-    line = next;
-    if (line.length >= 90) break;
-  }
-  if (line.length <= SPOTLIGHT_LOGLINE_LENGTH) return line;
-  return `${line.slice(0, SPOTLIGHT_LOGLINE_LENGTH).replace(/\s+\S*$/, "")}…`;
-}
+export const spotlightLogline = (overview: string | null | undefined) =>
+  toLogline(overview, SPOTLIGHT_LOGLINE_LENGTH, SPOTLIGHT_LOGLINE_ENOUGH);
 
 export function filmographyOf(
   crew: readonly PersonCrewCredit[],

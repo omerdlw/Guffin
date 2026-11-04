@@ -1,14 +1,17 @@
 "use client";
 
-import { type JSX, useMemo, useTransition } from "react";
+import { type JSX, useMemo } from "react";
 import { useDockActionClass } from "@omerdlw/base-framework/modules/dock";
-import { useToast } from "@omerdlw/base-framework/modules/notification";
-import { report, toUserMessage } from "@omerdlw/base-framework/utils";
 import { useRouter } from "next/navigation";
 import { deleteDiaryEntryAction } from "@/features/account/actions";
 import { RatingStars } from "@/features/reviews/rating";
 import { movieHref, reviewHref } from "@/lib/project";
-import { AccountLink, Button, DockAction, useConfirmStep } from "@/ui/button";
+import {
+  AccountLink,
+  Button,
+  DockAction,
+  useConfirmedAction,
+} from "@/ui/button";
 import { cn } from "@/ui/cn";
 import { Icon, MediaCard } from "@/ui/media";
 import { RADIUS } from "@/ui/tokens";
@@ -126,29 +129,11 @@ function DiaryDeleteButton({
   title: string;
 }): JSX.Element {
   const router = useRouter();
-  const toast = useToast();
-  const [confirming, setConfirming] = useConfirmStep();
-  const [busy, startTransition] = useTransition();
-
-  const onClick = () => {
-    if (!confirming) {
-      setConfirming(true);
-      return;
-    }
-    startTransition(async () => {
-      try {
-        const result = await deleteDiaryEntryAction(id);
-        if (!result.success) throw new Error(result.error);
-        router.refresh();
-      } catch (error) {
-        report("DiaryDeleteButton", error);
-        toast(
-          toUserMessage(error, { fallback: "Could not remove this entry" }),
-        );
-      }
-      setConfirming(false);
-    });
-  };
+  const { busy, confirming, confirmThen } = useConfirmedAction({
+    fallback: "Could not remove this entry",
+    name: "DiaryDeleteButton",
+    onSuccess: () => router.refresh(),
+  });
 
   return (
     <Button
@@ -165,7 +150,7 @@ function DiaryDeleteButton({
       )}
       disabled={busy}
       loading={busy}
-      onClick={onClick}
+      onClick={() => confirmThen(() => deleteDiaryEntryAction(id))}
     >
       <Icon
         icon={

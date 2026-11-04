@@ -1,4 +1,4 @@
-import type { AuthState, OAuthProvider, SignInMethod } from "./types";
+import type { AuthState, OAuthProvider, OtpState, SignInMethod } from "./types";
 import { SURFACE_FIELD, SURFACE_PRIMARY, surfaceButton } from "@/ui/tokens";
 
 export const AUTH_CALLBACK_PATH = "/auth/callback";
@@ -88,9 +88,6 @@ export const SIGN_IN_PRIMARY_CLASS = `${SURFACE_PRIMARY} w-full disabled:cursor-
 
 export const SIGN_IN_SECONDARY_CLASS = `${surfaceButton(false)} w-full px-3`;
 
-export const LEGAL_LINK_CLASS =
-  "underline decoration-ink-faint underline-offset-2 hover:text-ink focus-visible:text-ink hover:decoration-ink-muted focus-visible:decoration-ink-muted";
-
 export const OTP_LENGTH = 6;
 
 export const RESEND_COOLDOWN_SECONDS = 60;
@@ -106,4 +103,10 @@ export const OTP_BOX_STYLES = {
   ACTIVE:
     "bg-fill text-ink ring-edge-hover hover:bg-fill-hover focus-visible:bg-fill-hover",
   SUCCESS: "bg-fill-active text-ink ring-edge-focus",
+};
+
+export const INITIAL_OTP_STATE: OtpState = {
+  code: "",
+  focused: false,
+  invalid: false,
 };

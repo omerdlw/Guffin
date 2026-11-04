@@ -95,33 +95,82 @@ export function useAccount(): AccountContextValue {
   return context;
 }
 
-function useInboxCount(enabled: boolean): number {
+function useRemoteCount(
+  fetchCount: () => Promise<number>,
+  event: (typeof SOCIAL_EVENTS)[keyof typeof SOCIAL_EVENTS],
+  enabled: boolean,
+): number {
   const [count, setCount] = useState(0);
 
   const load = useCallback(() => {
-    if (enabled) void fetchInboxCount().then(setCount, () => null);
-  }, [enabled]);
+    if (enabled) void fetchCount().then(setCount, () => null);
+  }, [enabled, fetchCount]);
 
   useEffect(load, [load]);
-  useGlobalEvent(SOCIAL_EVENTS.INBOX_CHANGE, load, { debounceMs: 150 });
+  useGlobalEvent(event, load, { debounceMs: 150 });
 
   return enabled ? count : 0;
+}
+
+function useSignInPrompt({
+  isReady,
+  signedIn,
+}: {
+  isReady: boolean;
+  signedIn: boolean;
+}): void {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { openSurface } = useDockActions();
+  const prompted = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (signedIn || pathname !== ACCOUNT_ENTRY_PATH) {
+      prompted.current = null;
+      return;
+    }
+    if (!isReady || prompted.current === pathname) return;
+
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled || prompted.current === pathname) return;
+      prompted.current = pathname;
+      void openSurface(
+        createSignInSurfaceEntry({ next: getCurrentPath() }),
+      ).then((result) => {
+        if (cancelled) return;
+        if (
+          !succeeded(result) &&
+          window.location.pathname === ACCOUNT_ENTRY_PATH
+        ) {
+          router.replace("/");
+        }
+        prompted.current = null;
+      });
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isReady, openSurface, pathname, router, signedIn]);
 }
 
 function AccountDockRegistration(): null {
   const auth = useAuth();
   const { account } = useAccount();
   const pathname = usePathname();
-  const router = useRouter();
   const { openSurface } = useDockActions();
-  const prompted = useRef<string | null>(null);
 
   const signedIn = auth.isAuthenticated;
   const ownPath = account?.username
     ? accountHref(account.username)
     : ACCOUNT_ENTRY_PATH;
   const ownView = pathname === ACCOUNT_ENTRY_PATH || pathname === ownPath;
-  const inboxCount = useInboxCount(signedIn && Boolean(account?.isPrivate));
+  const inboxCount = useRemoteCount(
+    fetchInboxCount,
+    SOCIAL_EVENTS.INBOX_CHANGE,
+    signedIn && Boolean(account?.isPrivate),
+  );
 
   const openInbox = useCallback(() => {
     if (!account) return;
@@ -164,36 +213,7 @@ function AccountDockRegistration(): null {
     priority: 200,
     source: REGISTRY_SOURCES.DYNAMIC,
   });
-
-  useEffect(() => {
-    if (signedIn || pathname !== ACCOUNT_ENTRY_PATH) {
-      prompted.current = null;
-      return;
-    }
-    if (!auth.isReady || prompted.current === pathname) return;
-
-    let cancelled = false;
-    queueMicrotask(() => {
-      if (cancelled || prompted.current === pathname) return;
-      prompted.current = pathname;
-      void openSurface(
-        createSignInSurfaceEntry({ next: getCurrentPath() }),
-      ).then((result) => {
-        if (cancelled) return;
-        if (
-          !succeeded(result) &&
-          window.location.pathname === ACCOUNT_ENTRY_PATH
-        ) {
-          router.replace("/");
-        }
-        prompted.current = null;
-      });
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [auth.isReady, openSurface, pathname, router, signedIn]);
+  useSignInPrompt({ isReady: auth.isReady, signedIn });
 
   return null;
 }
@@ -218,6 +238,11 @@ function AccountSetupPrompt(): null {
   return null;
 }
 
+function formatBadgeCount(count: number): string | null {
+  if (count <= 0) return null;
+  return count > 99 ? "99+" : String(count);
+}
+
 function AccountDockActions(): null {
   const auth = useAuth();
   const router = useRouter();
@@ -226,19 +251,12 @@ function AccountDockActions(): null {
     (state) =>
       state.activeSurfaceEntry?.component === AccountNotificationsSurface,
   );
-  const [unreadCount, setUnreadCount] = useState(0);
   const signedIn = auth.isReady && auth.isAuthenticated;
-
-  const loadUnread = useCallback(() => {
-    if (auth.isAuthenticated) {
-      void fetchUnreadCount().then(setUnreadCount, () => null);
-    }
-  }, [auth.isAuthenticated]);
-
-  useEffect(loadUnread, [loadUnread]);
-  useGlobalEvent(SOCIAL_EVENTS.NOTIFICATION_CHANGE, loadUnread, {
-    debounceMs: 150,
-  });
+  const unreadCount = useRemoteCount(
+    fetchUnreadCount,
+    SOCIAL_EVENTS.NOTIFICATION_CHANGE,
+    auth.isAuthenticated,
+  );
 
   const toggleNotifications = useCallback(
     (event?: { preventDefault(): void; stopPropagation(): void }) => {
@@ -261,12 +279,7 @@ function AccountDockActions(): null {
   const actions = useMemo(
     () => [
       {
-        badge:
-          unreadCount > 0
-            ? unreadCount > 99
-              ? "99+"
-              : `${unreadCount}`
-            : null,
+        badge: formatBadgeCount(unreadCount),
         icon: NOTIFICATIONS_ICON,
         key: NOTIFICATIONS_ACTION_KEY,
         onClick: toggleNotifications,

@@ -14,12 +14,12 @@ import { readable } from "@/motion/render";
 import { Tilt } from "@/motion/tilt";
 import { AdaptiveImage, Icon } from "@/ui/media";
 import {
+  ARTWORK_MENU_LABELS,
+  ARTWORK_PAGE_PATTERN,
   ARTWORK_STORAGE_KEY,
+  ARTWORK_TARGET_SELECTOR,
   EMPTY_ARTWORK,
-  KEEP,
-  LABELS,
-  PAGE,
-  TARGET,
+  PRELOADED_BACKDROP_LIMIT,
 } from "./constants";
 import type {
   ArtworkContextMenuOptions,
@@ -30,30 +30,30 @@ import type {
   MenuPayload,
 } from "./types";
 import {
+  artworkAttributes,
   artworkKey,
-  artworkTarget,
+  attempt,
   parseArtwork,
   resolveArtwork,
-  safely,
   withArtwork,
   withoutArtwork,
 } from "./utils";
 
-function createArtworkStore(
-  getStorage: () => Storage | null,
-  now: () => number = Date.now,
-): ArtworkStore {
+function createArtworkStore(): ArtworkStore {
   const listeners = new Set<() => void>();
-  let raw: string | null | undefined;
+  let rawValue: string | null | undefined;
   let entries: ArtworkEntries = EMPTY_ARTWORK;
 
+  const getStorage = () =>
+    typeof window === "undefined" ? null : window.localStorage;
+
   const read = (): ArtworkEntries => {
-    const stored = safely(
+    const stored = attempt(
       () => getStorage()?.getItem(ARTWORK_STORAGE_KEY) ?? null,
       null,
     );
-    if (stored !== raw) {
-      raw = stored;
+    if (stored !== rawValue) {
+      rawValue = stored;
       entries = parseArtwork(stored);
     }
     return entries;
@@ -61,14 +61,16 @@ function createArtworkStore(
 
   const write = (next: ArtworkEntries) => {
     if (next === entries) return;
-    safely(() => {
+    attempt(() => {
       const storage = getStorage();
       if (!storage) return;
-      if (Object.keys(next).length === 0)
+      if (Object.keys(next).length === 0) {
         storage.removeItem(ARTWORK_STORAGE_KEY);
-      else storage.setItem(ARTWORK_STORAGE_KEY, JSON.stringify(next));
+      } else {
+        storage.setItem(ARTWORK_STORAGE_KEY, JSON.stringify(next));
+      }
     }, undefined);
-    raw = undefined;
+    rawValue = undefined;
     read();
     listeners.forEach((listener) => listener());
   };
@@ -77,31 +79,22 @@ function createArtworkStore(
     clear: (kind, id, slot) => write(withoutArtwork(read(), kind, id, slot)),
     getSnapshot: read,
     set: (kind, id, slot, path) =>
-      write(withArtwork(read(), kind, id, slot, path, now())),
+      write(withArtwork(read(), kind, id, slot, path, Date.now())),
     subscribe(listener) {
       listeners.add(listener);
       const onStorage = (event: StorageEvent) => {
         if (event.key === null || event.key === ARTWORK_STORAGE_KEY) listener();
       };
-      if (typeof window !== "undefined") {
-        window.addEventListener("storage", onStorage);
-      }
+      window.addEventListener("storage", onStorage);
       return () => {
         listeners.delete(listener);
-        if (typeof window !== "undefined") {
-          window.removeEventListener("storage", onStorage);
-        }
+        window.removeEventListener("storage", onStorage);
       };
     },
   };
 }
 
-const artworkStore = createArtworkStore(() =>
-  typeof window === "undefined" ? null : window.localStorage,
-);
-
-const subscribe = artworkStore.subscribe;
-const getSnapshot = artworkStore.getSnapshot;
+const artworkStore = createArtworkStore();
 
 export function useArtworkPath(
   kind: ArtworkKind,
@@ -110,8 +103,8 @@ export function useArtworkPath(
   fallback: string | null,
 ): string | null {
   const chosen = useSyncExternalStore(
-    subscribe,
-    () => getSnapshot()[artworkKey(kind, id)]?.[slot] ?? null,
+    artworkStore.subscribe,
+    () => artworkStore.getSnapshot()[artworkKey(kind, id)]?.[slot] ?? null,
     () => null,
   );
   return chosen ?? fallback;
@@ -124,17 +117,38 @@ export function useArtworkContextMenu({
 }: ArtworkContextMenuOptions): void {
   const { backdrop: defaultBackdrop, poster: defaultPoster } = defaults;
 
-  const config = useMemo(() => {
-    const payloadOf = (context: ContextMenuContextValue) =>
-      context.payload as MenuPayload | null | undefined;
-
-    return {
+  const config = useMemo(
+    () => ({
       id: `artwork:${kind}:${id}`,
-      target: TARGET,
+      items: ({ payload }: ContextMenuContextValue) => {
+        if (!payload) return [];
+        const { path, slot } = payload as MenuPayload;
+        const fallback = slot === "poster" ? defaultPoster : defaultBackdrop;
+        const entries = artworkStore.getSnapshot();
+        const showing = resolveArtwork(entries, kind, id, slot, fallback);
+        const labels = ARTWORK_MENU_LABELS[slot];
+
+        return [
+          {
+            hidden: path === showing,
+            icon: labels.icon,
+            key: `set-${slot}`,
+            label: labels.set,
+            onSelect: () => artworkStore.set(kind, id, slot, path),
+          },
+          {
+            hidden: entries[artworkKey(kind, id)]?.[slot] === undefined,
+            icon: "solar:restart-bold",
+            key: `restore-${slot}`,
+            label: labels.restore,
+            onSelect: () => artworkStore.clear(kind, id, slot),
+          },
+        ];
+      },
       priority: 10,
       resolvePayload: (event: MouseEvent): MenuPayload | null => {
         const element = (event.target as Element | null)?.closest<HTMLElement>(
-          TARGET,
+          ARTWORK_TARGET_SELECTOR,
         );
         const slot = element?.dataset.artwork;
         const path = element?.dataset.artworkPath;
@@ -143,33 +157,10 @@ export function useArtworkContextMenu({
           ? { path, slot }
           : null;
       },
-      items: (context: ContextMenuContextValue) => {
-        const payload = payloadOf(context);
-        if (!payload) return [];
-        const { path, slot } = payload;
-        const fallback = slot === "poster" ? defaultPoster : defaultBackdrop;
-        const showing = resolveArtwork(getSnapshot(), kind, id, slot, fallback);
-        const labels = LABELS[slot];
-
-        return [
-          {
-            key: `set-${slot}`,
-            hidden: path === showing,
-            icon: labels.icon,
-            label: labels.set,
-            onSelect: () => artworkStore.set(kind, id, slot, path),
-          },
-          {
-            key: `restore-${slot}`,
-            hidden: getSnapshot()[artworkKey(kind, id)]?.[slot] === undefined,
-            icon: "solar:restart-bold",
-            label: labels.restore,
-            onSelect: () => artworkStore.clear(kind, id, slot),
-          },
-        ];
-      },
-    };
-  }, [defaultBackdrop, defaultPoster, id, kind]);
+      target: ARTWORK_TARGET_SELECTOR,
+    }),
+    [defaultBackdrop, defaultPoster, id, kind],
+  );
 
   useContextMenu(config);
 }
@@ -235,7 +226,10 @@ export function ArtworkPrint({
           className="absolute inset-0 overflow-hidden rounded-[inherit]"
           name={part}
         >
-          <div className="absolute inset-0" {...artworkTarget("poster", path)}>
+          <div
+            className="absolute inset-0"
+            {...artworkAttributes("poster", path)}
+          >
             <AdaptiveImage
               alt={alt}
               className="object-cover"
@@ -261,43 +255,50 @@ export function ArtworkPrint({
   );
 }
 
-const held = new Map<string, HTMLImageElement>();
+const preloadedBackdrops = new Map<string, HTMLImageElement>();
 
-function hold(src: string) {
-  if (held.has(src)) return;
+function preloadBackdropImage(src: string) {
+  if (preloadedBackdrops.has(src)) return;
   const image = new Image();
   image.crossOrigin = "anonymous";
   image.decoding = "async";
   image.src = readable(src);
   void image.decode().catch(() => {});
-  held.set(src, image);
-  while (held.size > KEEP) held.delete(held.keys().next().value as string);
-}
-
-async function ready(path: string) {
-  const match = PAGE.exec(path);
-  if (!match) return;
-  const kind = match[1] as "movie" | "person";
-  const id = Number(match[2]);
-  const chosen = artworkStore.getSnapshot()[artworkKey(kind, id)]?.backdrop;
-  if (chosen) {
-    const src = tmdbImageUrl("backdrop", chosen, "original");
-    if (src) hold(src);
-    return;
+  preloadedBackdrops.set(src, image);
+  while (preloadedBackdrops.size > PRELOADED_BACKDROP_LIMIT) {
+    preloadedBackdrops.delete(preloadedBackdrops.keys().next().value as string);
   }
-  const response = await fetch(`/api/backdrop?kind=${kind}&id=${id}`);
-  if (!response.ok) return;
-  const { path: picture } = (await response.json()) as { path: unknown };
-  const src =
-    typeof picture === "string"
-      ? tmdbImageUrl("backdrop", picture, "original")
-      : null;
-  if (src) hold(src);
 }
 
-export function PictureForesight(): null {
+async function fetchBackdropPath(
+  kind: ArtworkKind,
+  id: number,
+): Promise<string | null> {
+  const chosen = artworkStore.getSnapshot()[artworkKey(kind, id)]?.backdrop;
+  if (chosen) return chosen;
+
+  const response = await fetch(`/api/backdrop?kind=${kind}&id=${id}`);
+  if (!response.ok) return null;
+  const { path } = (await response.json()) as { path: unknown };
+  return typeof path === "string" ? path : null;
+}
+
+async function preloadBackdropFor(pagePath: string) {
+  const match = ARTWORK_PAGE_PATTERN.exec(pagePath);
+  if (!match) return;
+  const path = await fetchBackdropPath(
+    match[1] as ArtworkKind,
+    Number(match[2]),
+  );
+  const src = path ? tmdbImageUrl("backdrop", path, "original") : null;
+  if (src) preloadBackdropImage(src);
+}
+
+export function BackdropPreloader(): null {
   useNavigationIntent((path) => {
-    ready(path).catch((error) => report("PictureForesight", error));
+    preloadBackdropFor(path).catch((error) =>
+      report("BackdropPreloader", error),
+    );
   });
   return null;
 }

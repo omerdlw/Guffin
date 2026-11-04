@@ -3,6 +3,7 @@ import type { OAuthProvider } from "@/features/auth/types";
 import { cn } from "@/ui/cn";
 import {
   BROWSER_PATTERNS,
+  DEVICE_ICONS,
   DEVICE_PATTERNS,
   LOCALHOST_ADDRESSES,
   SHORT_DATE_FORMAT,
@@ -42,13 +43,10 @@ export function describeDevice(userAgent: string | null): {
     BROWSER_PATTERNS.find(([matches]) => matches(userAgent))?.[1] ??
     "Web browser";
   const icon =
-    kind === "mobile"
-      ? "solar:smartphone-bold"
-      : kind === "tablet"
-        ? "solar:tablet-bold"
-        : label === "Windows" || label === "Linux"
-          ? "solar:monitor-bold"
-          : "solar:laptop-minimalistic-bold";
+    DEVICE_ICONS[kind] ??
+    (label === "Windows" || label === "Linux"
+      ? "solar:monitor-bold"
+      : "solar:laptop-minimalistic-bold");
   return { icon, title: `${browser} on ${label}` };
 }
 

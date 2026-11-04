@@ -5,6 +5,7 @@ import { RatingStars } from "@/features/reviews/rating";
 import { AvatarStack } from "@/features/social/proof";
 import { accountHref, listHref, movieHref, reviewHref } from "@/lib/project";
 import { AccountLink } from "@/ui/button";
+import { cn } from "@/ui/cn";
 import { Avatar, Carousel, Icon } from "@/ui/media";
 import {
   CAROUSEL_ITEM,
@@ -14,7 +15,12 @@ import {
   TONE,
 } from "@/ui/tokens";
 import { HomeJoin, HomeMembers, HomePulse } from "./community";
-import { CAPTION_CLASS, ROW_ITEM_CLASS } from "./constants";
+import {
+  CAPTION_CLASS,
+  POSTER_SIZES,
+  ROW_ITEM_CLASS,
+  TEXT_LINK_CLASS,
+} from "./constants";
 import { HomeHero, HomeShowing } from "./hero";
 import { Heading, HomePart, HomeSection, HomeStage } from "./motion";
 import type {
@@ -23,12 +29,30 @@ import type {
   HomeFilm,
   HomeList,
   HomeReview,
+  Member,
   PopularFilm,
   RatedFilm,
   RisingFilm,
   SharedFilm,
 } from "./types";
-import { ago, compact, memberFaces } from "./utils";
+import { formatRelativeTime, formatCompact, toAvatarPeople } from "./utils";
+
+function MemberLink({ member }: { member: Member }): JSX.Element {
+  return (
+    <AccountLink
+      className="flex min-w-0 items-center gap-2 font-semibold text-ink-body hover:text-ink focus-visible:text-ink"
+      href={accountHref(member.username)}
+    >
+      <Avatar
+        className="shrink-0 rounded-full"
+        name={member.displayName}
+        size={20}
+        src={member.avatarUrl ?? undefined}
+      />
+      <span className="truncate">{member.displayName}</span>
+    </AccountLink>
+  );
+}
 
 function ListCard({
   index,
@@ -53,30 +77,16 @@ function ListCard({
         <PosterStack paths={list.previews} />
       </AccountLink>
       <h3 className="min-w-0 truncate type-base font-semibold text-ink">
-        <AccountLink
-          className="underline underline-offset-2 decoration-transparent hover:decoration-current focus-visible:decoration-current"
-          href={href}
-        >
+        <AccountLink className={TEXT_LINK_CLASS} href={href}>
           {list.title}
         </AccountLink>
       </h3>
       <div className="flex min-w-0 items-center gap-x-4 type-control text-ink-muted tabular-nums">
-        <AccountLink
-          className="flex min-w-0 items-center gap-2 font-semibold text-ink-body hover:text-ink focus-visible:text-ink"
-          href={accountHref(list.owner.username)}
-        >
-          <Avatar
-            className="shrink-0 rounded-full"
-            name={list.owner.displayName}
-            size={20}
-            src={list.owner.avatarUrl ?? undefined}
-          />
-          <span className="truncate">{list.owner.displayName}</span>
-        </AccountLink>
+        <MemberLink member={list.owner} />
         <span className="shrink-0">{list.films} films</span>
         <span className="inline-flex shrink-0 items-center gap-1">
           <Icon icon="solar:heart-bold" size={13} />
-          {compact(list.likes)}
+          {formatCompact(list.likes)}
         </span>
       </div>
     </HomePart>
@@ -130,18 +140,7 @@ function ReviewCard({
           ) : null}
         </h3>
         <div className="flex min-w-0 items-center gap-2.5 type-control">
-          <AccountLink
-            className="flex min-w-0 items-center gap-2 font-semibold text-ink-body hover:text-ink focus-visible:text-ink"
-            href={accountHref(author.username)}
-          >
-            <Avatar
-              className="shrink-0 rounded-full"
-              name={author.displayName}
-              size={20}
-              src={author.avatarUrl ?? undefined}
-            />
-            <span className="truncate">{author.displayName}</span>
-          </AccountLink>
+          <MemberLink member={author} />
           {review.rating ? (
             <span className="flex shrink-0">
               <RatingStars rating={review.rating} size={12} />
@@ -151,7 +150,7 @@ function ReviewCard({
             className="shrink-0 type-meta text-ink-muted"
             dateTime={review.createdAt}
           >
-            {ago(review.createdAt)}
+            {formatRelativeTime(review.createdAt)}
           </time>
         </div>
         <p className="line-clamp-4 type-copy leading-7 text-pretty text-ink-body">
@@ -160,7 +159,8 @@ function ReviewCard({
         <div className="flex items-center gap-4 type-meta font-medium text-ink-muted tabular-nums">
           <span className="inline-flex items-center gap-1.5">
             <Icon icon="solar:heart-bold" size={13} />
-            {compact(review.likes)} {review.likes === 1 ? "like" : "likes"}
+            {formatCompact(review.likes)}{" "}
+            {review.likes === 1 ? "like" : "likes"}
           </span>
           <AccountLink
             className="text-ink-body underline underline-offset-2 decoration-transparent hover:text-ink focus-visible:text-ink hover:decoration-current focus-visible:decoration-current"
@@ -249,22 +249,19 @@ function HomeRising({ films }: { films: RisingFilm[] }): JSX.Element | null {
   );
 }
 
-function FilmRow({
+function ShelfFrame({
   actions,
-  caption,
-  films,
+  children,
   icon,
   title,
   wide = true,
 }: {
   actions?: ReactNode;
-  caption?: (film: HomeFilm, index: number) => ReactNode;
-  films: HomeFilm[];
+  children: ReactNode;
   icon: string;
   title: string;
   wide?: boolean;
-}): JSX.Element | null {
-  if (films.length === 0) return null;
+}): JSX.Element {
   return (
     <HomeSection className="flex w-full flex-col" cue="row">
       <Heading actions={actions} icon={icon} title={title} />
@@ -275,39 +272,54 @@ function FilmRow({
         label={title}
         part="slide"
       >
-        {films.map((film, index) => (
-          <MoviePosterLink
-            caption={caption?.(film, index)}
-            key={film.id}
-            movie={film}
-            radius={RADIUS.card}
-            sizes="(min-width: 1024px) 18vw, (min-width: 768px) 22vw, 30vw"
-          />
-        ))}
+        {children}
       </Carousel>
     </HomeSection>
   );
 }
 
+function FilmRow<T extends HomeFilm>({
+  caption,
+  films,
+  icon,
+  title,
+}: {
+  caption?: (film: T) => ReactNode;
+  films: T[];
+  icon: string;
+  title: string;
+}): JSX.Element | null {
+  if (films.length === 0) return null;
+  return (
+    <ShelfFrame icon={icon} title={title}>
+      {films.map((film) => (
+        <MoviePosterLink
+          caption={caption?.(film)}
+          key={film.id}
+          movie={film}
+          radius={RADIUS.card}
+          sizes={POSTER_SIZES}
+        />
+      ))}
+    </ShelfFrame>
+  );
+}
+
 function PopularRow({ films }: { films: PopularFilm[] }): JSX.Element | null {
-  const byId = new Map(films.map((film) => [film.id, film]));
   return (
     <FilmRow
-      caption={(film) => {
-        const popular = byId.get(film.id)!;
-        return (
-          <span className={CAPTION_CLASS}>
-            <Icon icon="solar:eye-bold" size={13} />
-            {compact(popular.members)}
-            {popular.rating ? (
-              <>
-                <Icon className="ml-1.5" icon="solar:star-bold" size={12} />
-                {popular.rating.toFixed(1)}
-              </>
-            ) : null}
-          </span>
-        );
-      }}
+      caption={(film) => (
+        <span className={CAPTION_CLASS}>
+          <Icon icon="solar:eye-bold" size={13} />
+          {formatCompact(film.members)}
+          {film.rating ? (
+            <>
+              <Icon className="ml-1.5" icon="solar:star-bold" size={12} />
+              {film.rating.toFixed(1)}
+            </>
+          ) : null}
+        </span>
+      )}
       films={films}
       icon="solar:fire-bold"
       title="Popular this week"
@@ -318,81 +330,65 @@ function PopularRow({ films }: { films: PopularFilm[] }): JSX.Element | null {
 function FriendsRow({ logs }: { logs: FriendLog[] }): JSX.Element | null {
   if (logs.length === 0) return null;
   return (
-    <HomeSection className="flex w-full flex-col" cue="row">
-      <Heading icon="solar:users-group-rounded-bold" title="New from friends" />
-      <Carousel
-        arrowClassName={TONE.arrows}
-        className="rounded-card"
-        itemClassName={ROW_ITEM_CLASS}
-        label="New from friends"
-        part="slide"
-      >
-        {logs.map((log) => (
-          <MoviePosterLink
-            caption={
-              <span className={CAPTION_CLASS}>
-                <Avatar
-                  className="shrink-0 rounded-full"
-                  name={log.author.displayName}
-                  size={18}
-                  src={log.author.avatarUrl ?? undefined}
-                />
-                <span className="min-w-0 truncate">
-                  {log.author.displayName.split(/\s+/)[0]}
-                </span>
-                {log.rating ? (
-                  <span className="flex shrink-0">
-                    <RatingStars rating={log.rating} size={10} />
-                  </span>
-                ) : null}
-                {log.liked ? (
-                  <Icon
-                    className="shrink-0 text-liked"
-                    icon="solar:heart-bold"
-                    size={12}
-                  />
-                ) : null}
-                {log.reviewed ? (
-                  <Icon
-                    className="shrink-0"
-                    icon="solar:document-text-bold"
-                    size={12}
-                  />
-                ) : null}
-                {log.rewatch ? (
-                  <Icon
-                    className="shrink-0"
-                    icon="solar:restart-bold"
-                    size={12}
-                  />
-                ) : null}
-              </span>
-            }
-            detail={`logged by ${log.author.displayName}`}
-            key={log.id}
-            movie={log.film}
-            radius={RADIUS.card}
-            sizes="(min-width: 1024px) 18vw, (min-width: 768px) 22vw, 30vw"
-          />
-        ))}
-      </Carousel>
-    </HomeSection>
+    <ShelfFrame icon="solar:users-group-rounded-bold" title="New from friends">
+      {logs.map((log) => (
+        <MoviePosterLink
+          caption={<FriendLogCaption log={log} />}
+          detail={`logged by ${log.author.displayName}`}
+          key={log.id}
+          movie={log.film}
+          radius={RADIUS.card}
+          sizes={POSTER_SIZES}
+        />
+      ))}
+    </ShelfFrame>
+  );
+}
+
+function FriendLogCaption({ log }: { log: FriendLog }): JSX.Element {
+  const marks = [
+    log.liked && { icon: "solar:heart-bold", tone: "text-liked" },
+    log.reviewed && { icon: "solar:document-text-bold", tone: "" },
+    log.rewatch && { icon: "solar:restart-bold", tone: "" },
+  ].filter((mark) => mark !== false);
+
+  return (
+    <span className={CAPTION_CLASS}>
+      <Avatar
+        className="shrink-0 rounded-full"
+        name={log.author.displayName}
+        size={18}
+        src={log.author.avatarUrl ?? undefined}
+      />
+      <span className="min-w-0 truncate">
+        {log.author.displayName.split(/\s+/)[0]}
+      </span>
+      {log.rating ? (
+        <span className="flex shrink-0">
+          <RatingStars rating={log.rating} size={10} />
+        </span>
+      ) : null}
+      {marks.map((mark) => (
+        <Icon
+          className={cn("shrink-0", mark.tone)}
+          icon={mark.icon}
+          key={mark.icon}
+          size={12}
+        />
+      ))}
+    </span>
   );
 }
 
 function SharedRow({ films }: { films: SharedFilm[] }): JSX.Element | null {
-  const byId = new Map(films.map((film) => [film.id, film]));
   return (
     <FilmRow
-      caption={(film) => {
-        const shared = byId.get(film.id)!;
-        return (
-          <span className={CAPTION_CLASS}>
-            <AvatarStack people={memberFaces(shared.faces)} round size={18} />
-            {shared.friends} friends
-          </span>
-        );
-      }}
+      caption={(film) => (
+        <span className={CAPTION_CLASS}>
+          <AvatarStack people={toAvatarPeople(film.faces)} round size={18} />
+          {film.friends} friends
+        </span>
+      )}
       films={films}
       icon="solar:eye-bold"
       title="Friends are watching"
@@ -401,21 +397,17 @@ function SharedRow({ films }: { films: SharedFilm[] }): JSX.Element | null {
 }
 
 function RatedRow({ films }: { films: RatedFilm[] }): JSX.Element | null {
-  const byId = new Map(films.map((film) => [film.id, film]));
   return (
     <FilmRow
-      caption={(film) => {
-        const rated = byId.get(film.id)!;
-        return (
-          <span className={CAPTION_CLASS}>
-            <Icon className="text-rated" icon="solar:star-bold" size={12} />
-            <span className="text-ink-body">{rated.rating.toFixed(2)}</span>
-            <span className="hidden truncate sm:inline">
-              · {compact(rated.ratings)} ratings
-            </span>
+      caption={(film) => (
+        <span className={CAPTION_CLASS}>
+          <Icon className="text-rated" icon="solar:star-bold" size={12} />
+          <span className="text-ink-body">{film.rating.toFixed(2)}</span>
+          <span className="hidden truncate sm:inline">
+            · {formatCompact(film.ratings)} ratings
           </span>
-        );
-      }}
+        </span>
+      )}
       films={films}
       icon="solar:cup-star-bold"
       title="Highest rated by members"

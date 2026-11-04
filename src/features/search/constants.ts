@@ -101,6 +101,9 @@ export const SEARCH_OVERVIEW_LEAD: Readonly<Record<SearchType, number>> = {
   users: 3,
 };
 
+export const SEARCH_FALLBACK_MESSAGE =
+  "Search is unavailable right now. Please try again in a moment";
+
 export const SEARCH_ICON = "solar:magnifer-linear";
 
 export const SEARCH_CLOSE_ICON = "solar:close-bold";
@@ -159,14 +162,7 @@ export const SEARCH_REGISTRATION = {
   source: REGISTRY_SOURCES.DYNAMIC,
 } as const;
 
-export const SEARCH_FALLBACK_MESSAGE =
-  "Search is unavailable right now. Please try again in a moment";
-
-export const POSTER_WIDTHS = ["w185"] as const;
-
-export const PROFILE_WIDTHS = ["w185"] as const;
-
-export const REVIEW_RESULT_ROW_POSTER_WIDTHS = ["w185"] as const;
+export const RESULT_THUMB_WIDTHS = ["w185"] as const;
 
 export const STILL_TRANSITION = { duration: 0 };
 
@@ -177,6 +173,10 @@ export const CATALOG_PAGES = {
   "vote_count.desc": 25,
 } as const;
 
+export const CATALOG_MATCH_LIMIT = 8;
+
+export const CATALOG_MIN_FILMS = 100;
+
 export const CATALOG_LIFETIME_MS = 6 * 60 * 60 * 1000;
 
 export const INVALID_QUERY_FAILURE: SearchFailure = {
@@ -186,7 +186,7 @@ export const INVALID_QUERY_FAILURE: SearchFailure = {
 
 export const UNAVAILABLE_FAILURE: SearchFailure = {
   code: "unavailable",
-  message: "Search is unavailable right now. Please try again in a moment",
+  message: SEARCH_FALLBACK_MESSAGE,
 };
 
 export const COMMUNITY_CANDIDATES = SEARCH_COMMUNITY_LIMIT * 2;
@@ -195,7 +195,7 @@ export const FAILURE_MESSAGES: Record<SearchFailureCode, string> = {
   aborted: "The search was cancelled",
   invalid_query: "Enter a valid search term",
   rate_limited: USER_MESSAGES.rateLimited,
-  unavailable: "Search is unavailable right now. Please try again in a moment",
+  unavailable: SEARCH_FALLBACK_MESSAGE,
 };
 
 export const FAME_WEIGHT = 0.5;
@@ -225,3 +225,17 @@ export const PUBLIC_CACHE_CONTROL =
   "public, max-age=60, s-maxage=3600, stale-while-revalidate=86400";
 
 export const PRIVATE_CACHE_CONTROL = "private, max-age=30";
+
+export const FAILURE_CODE_BY_TMDB_KIND: Readonly<
+  Record<string, SearchFailureCode>
+> = {
+  invalid_request: "invalid_query",
+  rate_limited: "rate_limited",
+};
+
+export const FAILURE_CODE_BY_STATUS: Readonly<
+  Record<number, SearchFailureCode>
+> = {
+  400: "invalid_query",
+  429: "rate_limited",
+};

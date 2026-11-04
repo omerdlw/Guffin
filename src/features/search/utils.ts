@@ -12,6 +12,7 @@ import {
   ACRONYM_PATTERN,
   ARTICLE_PATTERN,
   DISTANT_MATCH,
+  FAILURE_CODE_BY_TMDB_KIND,
   FAILURE_MESSAGES,
   FRANCHISE_PATTERN,
   MATCH_SCORE,
@@ -65,15 +66,17 @@ export function excerpt(text: string, query: string, max = 140): string {
   return `${start > 0 ? "…" : ""}${flat.slice(start, end).trim()}${end < flat.length ? "…" : ""}`;
 }
 
-export function fold(value: string): string {
+function foldText(value: string): string {
   return value
     .replace(/[ıİ]/g, "i")
     .toLowerCase()
     .normalize("NFD")
     .replace(/\p{M}+/gu, "")
-    .replace(/&/g, " and ")
-    .replace(/[^\p{L}\p{N}]+/gu, " ")
-    .trim();
+    .replace(/[^\p{L}\p{N}]+/gu, " ");
+}
+
+export function fold(value: string): string {
+  return foldText(value.replace(/&/g, " and ")).trim();
 }
 
 function words(folded: string): string[] {
@@ -319,21 +322,12 @@ export function collectAnswers(
   return results;
 }
 
-function foldChar(char: string): string {
-  return char
-    .replace(/[ıİ]/g, "i")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/\p{M}+/gu, "")
-    .replace(/[^\p{L}\p{N}]+/gu, " ");
-}
-
 function folded(text: string): { origin: number[]; value: string } {
   let value = "";
   const origin: number[] = [];
   for (let index = 0; index < text.length;) {
     const char = String.fromCodePoint(text.codePointAt(index) ?? 0);
-    for (const piece of foldChar(char)) {
+    for (const piece of foldText(char)) {
       if (piece === " " && (value === "" || value.endsWith(" "))) continue;
       value += piece;
       origin.push(index);
@@ -387,12 +381,7 @@ export function failUnavailable(
 }
 
 export function toSearchFailure(error: TmdbError): SearchFailure {
-  const code: SearchFailureCode =
-    error.kind === "invalid_request"
-      ? "invalid_query"
-      : error.kind === "rate_limited"
-        ? "rate_limited"
-        : "unavailable";
+  const code = FAILURE_CODE_BY_TMDB_KIND[error.kind] ?? "unavailable";
   return { code, message: FAILURE_MESSAGES[code] };
 }
 

@@ -1,5 +1,6 @@
 import type { ModalContainerProps } from "@omerdlw/base-framework/modules/modal";
 import type { ReactNode } from "react";
+import type { MutationResult } from "@/features/auth/types";
 import type { PopularList } from "@/features/lists/types";
 import type {
   MovieReview,
@@ -48,9 +49,9 @@ export interface RegionProviders {
   stream: ProviderEntry[];
 }
 
-export type WatchProvidersResult =
-  | { regions: Record<string, RegionProviders>; success: true }
-  | { error: string; success: false };
+export type WatchProvidersResult = MutationResult<{
+  regions: Record<string, RegionProviders>;
+}>;
 
 export type Provider = {
   displayPriority: number;
@@ -143,6 +144,11 @@ export type AwardsRequest = Promise<Awards | null>;
 export type MoviePageKind =
   | { kind: "film"; popularLists: Promise<PopularList[]> }
   | { kind: "reviews"; reviewer: string | null; sort: MovieReviewSort };
+
+export type WatchProvidersSource =
+  | { status: "loading" }
+  | { error: string; status: "error" }
+  | { regions: Record<string, RegionProviders>; status: "ready" };
 
 export interface WatchProvidersData {
   movieId: number;

@@ -40,7 +40,7 @@ import {
 } from "@/features/account/constants";
 import { useAccount } from "@/features/account/provider";
 import { useAuth } from "@/features/auth/provider";
-import { createSignInSurfaceEntry } from "@/features/auth/sign-in";
+import { useOpenSignIn } from "@/features/auth/sign-in";
 import { createAccountSettingsSurfaceEntry } from "@/features/settings/surface";
 import { accountHref } from "@/lib/project";
 import { Value } from "@/motion/engine";
@@ -102,21 +102,20 @@ export function useAccountDock(dock: AccountDockConfig | null): void {
   }, [dock, setPageDock]);
 }
 
-function AccountRegistry({
-  account,
+function useFollowToggle({
+  id,
   initialFollowStatus,
   isOwner,
+  username,
 }: {
-  account: AccountData;
+  id: string;
   initialFollowStatus: string | null;
   isOwner: boolean;
-}): null {
+  username: string;
+}) {
   const auth = useAuth();
-  const { openSurface } = useDockActions();
   const toast = useToast();
-  const { avatarUrl, bannerPosition, bannerUrl, displayName, id, username } =
-    account;
-
+  const openSignIn = useOpenSignIn();
   const [followStatus, setFollowStatus] = useState(initialFollowStatus);
   const [syncedStatus, setSyncedStatus] = useState(initialFollowStatus);
   const [isPending, startTransition] = useTransition();
@@ -144,9 +143,7 @@ function AccountRegistry({
       event?.preventDefault();
       event?.stopPropagation();
       if (!auth.isAuthenticated) {
-        void openSurface(
-          createSignInSurfaceEntry({ next: window.location.pathname }),
-        );
+        openSignIn();
         return;
       }
       if (isPending) return;
@@ -182,13 +179,36 @@ function AccountRegistry({
       followStatus,
       id,
       isPending,
-      openSurface,
+      openSignIn,
       setShownStatus,
       shownStatus,
       toast,
       username,
     ],
   );
+
+  return { isPending, shownStatus, toggleFollow };
+}
+
+function AccountRegistry({
+  account,
+  initialFollowStatus,
+  isOwner,
+}: {
+  account: AccountData;
+  initialFollowStatus: string | null;
+  isOwner: boolean;
+}): null {
+  const auth = useAuth();
+  const { openSurface } = useDockActions();
+  const { avatarUrl, bannerPosition, bannerUrl, displayName, id, username } =
+    account;
+  const { isPending, shownStatus, toggleFollow } = useFollowToggle({
+    id,
+    initialFollowStatus,
+    isOwner,
+    username,
+  });
 
   const actions = useMemo(
     () =>

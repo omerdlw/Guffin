@@ -20,11 +20,22 @@ import type {
   ReviewStats,
 } from "./types";
 import {
-  clean,
+  normalizeReviewInput,
   getReviewValidationError,
   isMovieReviewFilter,
   isMovieReviewSort,
 } from "./utils";
+
+function mutateReview<T extends object = object>(
+  name: string,
+  fallback: string,
+  work: Parameters<typeof mutate<T>>[1],
+) {
+  return mutate<T>(
+    { fallback, name, perMinute: 60, scope: "review-change" },
+    work,
+  );
+}
 
 export async function getOwnMovieReviewAction(
   tmdbId: number,
@@ -126,7 +137,7 @@ export async function saveMovieReviewAction(
   tmdbId: number,
   input: ReviewInput,
 ): Promise<ReviewResult> {
-  const review = clean(input);
+  const review = normalizeReviewInput(input);
   const problem = getReviewValidationError({
     content: review.content,
     rating: review.rating,
@@ -134,13 +145,9 @@ export async function saveMovieReviewAction(
   if (!isTmdbId(tmdbId)) return fail("Invalid movie");
   if (problem) return fail(problem);
 
-  return mutate(
-    {
-      fallback: "Could not save your review",
-      name: "Review save",
-      perMinute: 60,
-      scope: "review-change",
-    },
+  return mutateReview(
+    "Review save",
+    "Could not save your review",
     async ({ client, userId }) => {
       const movie = await getMovieDetails(tmdbId);
       if (!movie.success) return fail("Could not load this movie, try again");
@@ -183,13 +190,9 @@ export async function saveListCommentAction(
   if (!isUuid(listId)) return fail("Invalid request");
   if (problem) return fail(problem);
 
-  return mutate(
-    {
-      fallback: "Could not post your comment",
-      name: "List comment",
-      perMinute: 60,
-      scope: "review-change",
-    },
+  return mutateReview(
+    "List comment",
+    "Could not post your comment",
     async ({ client, userId }) => {
       const { data: list, error: listError } = await client
         .from("lists")
@@ -216,13 +219,9 @@ export async function saveListCommentAction(
 
 export async function deleteReviewAction(id: string): Promise<ReviewResult> {
   if (!isUuid(id)) return fail("Invalid request");
-  return mutate(
-    {
-      fallback: "Could not delete this review",
-      name: "Review delete",
-      perMinute: 60,
-      scope: "review-change",
-    },
+  return mutateReview(
+    "Review delete",
+    "Could not delete this review",
     async ({ client, userId }) => {
       const { error } = await client
         .from("reviews")
@@ -240,13 +239,9 @@ export async function setReviewLikeAction(
   liked: boolean,
 ): Promise<ReviewResult> {
   if (!isUuid(reviewId)) return fail("Invalid request");
-  return mutate(
-    {
-      fallback: "Could not update your like",
-      name: "Review like",
-      perMinute: 60,
-      scope: "review-change",
-    },
+  return mutateReview(
+    "Review like",
+    "Could not update your like",
     async ({ client, userId }) => {
       const { error } = liked
         ? await client

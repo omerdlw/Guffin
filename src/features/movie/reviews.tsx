@@ -17,16 +17,14 @@ import {
   REVIEW_EVENTS,
   REVIEWS_PAGE_SIZE,
 } from "@/features/reviews/constants";
-import {
-  createReviewEditorSurfaceEntry,
-  ReviewActions,
-  ReviewBody,
-} from "@/features/reviews/controls";
+import { ReviewActions, ReviewBody } from "@/features/reviews/controls";
+import { createReviewEditorSurfaceEntry } from "@/features/reviews/editor";
 import { RatingStars, Star } from "@/features/reviews/rating";
 import type { MovieReview, MovieReviewSort } from "@/features/reviews/types";
 import {
   isMovieReviewFilter,
   isMovieReviewSort,
+  isRated,
 } from "@/features/reviews/utils";
 import { accountHref, movieReviewsHref } from "@/lib/project";
 import { AccountLink, Button } from "@/ui/button";
@@ -34,13 +32,22 @@ import { Select } from "@/ui/form";
 import { Avatar, Icon } from "@/ui/media";
 import { TONE } from "@/ui/tokens";
 import {
-  CHOICE_CLASS,
+  REVIEW_SELECT_CLASS,
   DIGEST_LIGHTS,
   DIGEST_SHOWN,
   REVIEW_DATE_FORMAT,
-  SORTS,
+  REVIEW_SORT_OPTIONS,
 } from "./constants";
 import type { ReviewDigest, ReviewsPage, ReviewsQuery } from "./types";
+import { emptyReviewsMessage } from "./utils";
+
+function useReviewRefresh(): number {
+  const [version, setVersion] = useState(0);
+  useGlobalEvent<{ reason?: string }>(REVIEW_EVENTS.CHANGE, (payload) => {
+    if (payload?.reason !== "like") setVersion((current) => current + 1);
+  });
+  return version;
+}
 
 function LitStar({ fill, index }: { fill: number; index: number }) {
   return (
@@ -75,10 +82,8 @@ function LitStars({
   first: number;
   rating: number | null;
 }): JSX.Element {
-  if (rating === null || !Number.isFinite(rating) || rating <= 0) {
-    return <RatingStars rating={rating} />;
-  }
-  const value = Math.min(5, Math.max(0, rating));
+  if (!isRated(rating)) return <RatingStars rating={rating} />;
+  const value = Math.min(5, rating);
   return (
     <span
       aria-label={`${value} out of 5`}
@@ -110,10 +115,7 @@ function ReviewCard({
   const router = useRouter();
   const { openSurface } = useDockActions();
   const profile = accountHref(review.author.username);
-  const hasRating =
-    review.rating !== null &&
-    Number.isFinite(review.rating) &&
-    review.rating > 0;
+  const hasRating = isRated(review.rating);
 
   return (
     <DetailPart
@@ -254,7 +256,7 @@ export function MovieReviewDigest({
   title: string;
 }): JSX.Element | null {
   const [digest, setDigest] = useState<ReviewDigest | null>(null);
-  const [version, setVersion] = useState(0);
+  const version = useReviewRefresh();
 
   useEffect(() => {
     let cancelled = false;
@@ -284,10 +286,6 @@ export function MovieReviewDigest({
       cancelled = true;
     };
   }, [movieId, version]);
-
-  useGlobalEvent<{ reason?: string }>(REVIEW_EVENTS.CHANGE, (payload) => {
-    if (payload?.reason !== "like") setVersion((current) => current + 1);
-  });
 
   if (!digest) return null;
   const { popular, recent, viewerId } = digest;
@@ -320,7 +318,7 @@ export function MovieReviewDigest({
   );
 }
 
-function Stats({
+function ReviewStats({
   stats,
 }: {
   stats: { average: number | null; rated: number; total: number };
@@ -342,7 +340,7 @@ function Stats({
   );
 }
 
-function Account({
+function ReviewerChip({
   name,
   onClear,
 }: {
@@ -386,7 +384,7 @@ export function MovieReviews({
   const { filter, sort, username } = query;
   const key = `${filter}:${sort}:${username ?? ""}`;
   const [page, setPage] = useState<ReviewsPage | null>(null);
-  const [version, setVersion] = useState(0);
+  const version = useReviewRefresh();
   const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
@@ -419,10 +417,6 @@ export function MovieReviews({
       cancelled = true;
     };
   }, [filter, key, movieId, sort, username, version]);
-
-  useGlobalEvent<{ reason?: string }>(REVIEW_EVENTS.CHANGE, (payload) => {
-    if (payload?.reason !== "like") setVersion((current) => current + 1);
-  });
 
   const change = (patch: Partial<ReviewsQuery>) =>
     setQuery((current) => ({ ...current, ...patch }));
@@ -469,7 +463,7 @@ export function MovieReviews({
   return (
     <DetailSection className="flex w-full flex-col" cue="board">
       <Heading
-        actions={page ? <Stats stats={page.stats} /> : null}
+        actions={page ? <ReviewStats stats={page.stats} /> : null}
         icon="solar:chat-round-line-bold"
         title="Reviews"
       />
@@ -480,7 +474,7 @@ export function MovieReviews({
       >
         <Select
           ariaLabel="Filter reviews"
-          className={CHOICE_CLASS}
+          className={REVIEW_SELECT_CLASS}
           classNames={TONE.select}
           onChange={(value) =>
             isMovieReviewFilter(value) && change({ filter: value })
@@ -491,16 +485,18 @@ export function MovieReviews({
         />
         <Select
           ariaLabel="Sort reviews"
-          className={CHOICE_CLASS}
+          className={REVIEW_SELECT_CLASS}
           classNames={TONE.select}
           onChange={(value) =>
             isMovieReviewSort(value) && change({ sort: value })
           }
-          options={SORTS}
+          options={REVIEW_SORT_OPTIONS}
           size="sm"
           value={sort}
         />
-        {username ? <Account name={username} onClear={clearAccount} /> : null}
+        {username ? (
+          <ReviewerChip name={username} onClear={clearAccount} />
+        ) : null}
       </DetailPart>
 
       {page ? (
@@ -527,11 +523,7 @@ export function MovieReviews({
               className="py-10 text-center type-body text-ink-muted"
               name="review"
             >
-              {filter !== "all"
-                ? "No entries match this filter"
-                : username
-                  ? "No entry from this account yet"
-                  : "No reviews yet. Be the first."}
+              {emptyReviewsMessage(filter, username)}
             </DetailPart>
           )}
         </DetailSwap>

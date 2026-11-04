@@ -1,5 +1,6 @@
 import type { JSX, ReactNode } from "react";
 import { RatingStars, Star } from "@/features/reviews/rating";
+import { pluralize } from "@/lib/format";
 import { accountHref, movieHref } from "@/lib/project";
 import { tmdbImageUrl } from "@/lib/tmdb/shared";
 import { AccountLink } from "@/ui/button";
@@ -11,9 +12,10 @@ import {
   DIARY_DIGEST_MONTH_FORMAT,
   PEOPLE_COLUMNS,
   PROFILE_GRID,
-  RATING_SLOTS,
+  POSTER_STACK_SLOTS,
   STAT_AFTER_CLASS,
   STAT_CELL_CLASS,
+  STAR_COUNT,
   STAT_LABEL_CLASS,
 } from "./constants";
 import { TileActions } from "./controls";
@@ -26,7 +28,7 @@ import type {
   SectionCue,
   TileSource,
 } from "./types";
-import { countLabel, posterImage, starsLabel } from "./utils";
+import { posterImage, starsLabel } from "./utils";
 
 export function ViewAll({
   href,
@@ -102,17 +104,7 @@ export function CountLink({
   count: number;
   href: string;
 }): JSX.Element {
-  return (
-    <AccountLink
-      className={cn(
-        STAT_AFTER_CLASS,
-        "text-ink-muted hover:text-ink focus-visible:text-ink",
-      )}
-      href={href}
-    >
-      {count.toLocaleString("en-US")}
-    </AccountLink>
-  );
+  return <ViewAll href={href} label={count.toLocaleString("en-US")} />;
 }
 
 export function EmptyState({
@@ -216,12 +208,12 @@ export function DiaryDigest({
 
   return (
     <div className="flex flex-col gap-5">
-      {months.map((month) => {
+      {months.map((month, monthIndex) => {
         const date = new Date(`${month.key}-01T00:00:00Z`);
         return (
           <AccountPart
             className="flex gap-3"
-            index={months.indexOf(month)}
+            index={monthIndex}
             key={month.key}
             name="row"
           >
@@ -293,7 +285,7 @@ export function RatingsChart({
               name="bar"
             >
               <Tooltip
-                text={`${starsLabel((index + 1) / 2)} · ${countLabel(count, "rating")}`}
+                text={`${starsLabel((index + 1) / 2)} · ${pluralize(count, "rating")}`}
               >
                 <span className="group/bar flex h-full w-full items-end">
                   {count ? (
@@ -313,7 +305,7 @@ export function RatingsChart({
         <div aria-hidden="true" className="flex justify-between">
           <Star fill={1} size={9} />
           <span className="flex gap-px">
-            {Array.from({ length: 5 }, (_, index) => (
+            {Array.from({ length: STAR_COUNT }, (_, index) => (
               <Star fill={1} key={index} size={9} />
             ))}
           </span>
@@ -441,13 +433,13 @@ export function PosterStack({
 }): JSX.Element {
   return (
     <div aria-hidden="true" className={cn("flex w-full", className)}>
-      {Array.from({ length: RATING_SLOTS }, (_, index) => {
+      {Array.from({ length: POSTER_STACK_SLOTS }, (_, index) => {
         const path = paths[index] ?? null;
         return (
           <div
             className="relative aspect-[2/3] w-[28%] shrink-0 overflow-hidden rounded-thumb bg-plate not-first:-ml-[10%]"
             key={index}
-            style={{ zIndex: RATING_SLOTS - index }}
+            style={{ zIndex: POSTER_STACK_SLOTS - index }}
           >
             {path ? (
               <AdaptiveImage

@@ -1,52 +1,16 @@
 "use client";
 
-import {
-  type FormEvent,
-  type JSX,
-  useCallback,
-  useEffect,
-  useState,
-  useTransition,
-} from "react";
+import { type JSX, useState, useTransition } from "react";
 import { globalEvents } from "@omerdlw/base-framework/events";
-import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
-import {
-  type SurfaceEntry,
-  useDockActionClass,
-  useDockActions,
-  useDockTheme,
-} from "@omerdlw/base-framework/modules/dock";
 import { useToast } from "@omerdlw/base-framework/modules/notification";
 import { report, toUserMessage } from "@omerdlw/base-framework/utils";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/features/auth/provider";
-import { createSignInSurfaceEntry } from "@/features/auth/sign-in";
-import { Button, DockAction, useConfirmStep } from "@/ui/button";
+import { useOpenSignIn } from "@/features/auth/sign-in";
+import { Button, useConfirmedAction } from "@/ui/button";
 import { cn } from "@/ui/cn";
-import { Textarea } from "@/ui/form";
 import { Icon } from "@/ui/media";
-import { SurfacePart, SurfaceStage } from "@/ui/surface";
-import {
-  deleteReviewAction,
-  getOwnMovieReviewAction,
-  saveListCommentAction,
-  saveMovieReviewAction,
-  setReviewLikeAction,
-} from "./actions";
-import {
-  REVIEW_EDITOR_SURFACE_WIDTH,
-  REVIEW_EVENTS,
-  REVIEW_MAX_LENGTH,
-} from "./constants";
-import { RatingSelector } from "./rating";
-import type { ReviewEditorData, ReviewInput } from "./types";
-import { getReviewValidationError, primaryLabel } from "./utils";
-import {
-  SURFACE_FIELD,
-  SURFACE_PRIMARY,
-  SURFACE_STACK,
-  surfaceButton,
-} from "@/ui/tokens";
+import { deleteReviewAction, setReviewLikeAction } from "./actions";
+import { REVIEW_EVENTS } from "./constants";
 
 export function useLikeToggle({
   count: initialCount,
@@ -63,7 +27,7 @@ export function useLikeToggle({
 }) {
   const router = useRouter();
   const toast = useToast();
-  const { openSurface } = useDockActions();
+  const openSignIn = useOpenSignIn();
   const [busy, startTransition] = useTransition();
   const [seen, setSeen] = useState({
     count: initialCount,
@@ -78,11 +42,7 @@ export function useLikeToggle({
 
   const toggle = () => {
     if (!signedIn) {
-      void openSurface(
-        createSignInSurfaceEntry({
-          next: window.location.pathname + window.location.search,
-        }),
-      );
+      openSignIn();
       return;
     }
     const previous = { count, liked };
@@ -102,268 +62,6 @@ export function useLikeToggle({
   };
 
   return { busy, count, liked, toggle };
-}
-
-export function createReviewEditorSurfaceEntry(
-  data: ReviewEditorData,
-): SurfaceEntry {
-  const editing = data.review !== null;
-  const noun = data.kind === "list" ? "Comment" : "Review";
-  return {
-    component: ReviewEditorSurface,
-    description: data.title,
-    icon: "solar:pen-new-square-bold",
-    props: { data },
-    title: `${editing ? "Edit" : "Add"} ${noun}`,
-    width: REVIEW_EDITOR_SURFACE_WIDTH,
-  };
-}
-
-function ReviewEditorSurface({
-  data,
-}: {
-  data: ReviewEditorData;
-}): JSX.Element {
-  const toast = useToast();
-  const { closeSurface } = useDockActions();
-  const isList = data.kind === "list";
-  const editing = data.review !== null;
-
-  const [content, setContent] = useState(data.review?.content ?? "");
-  const [rating, setRating] = useState<number | null>(
-    data.kind === "movie" ? (data.review?.rating ?? null) : null,
-  );
-  const [isSpoiler, setIsSpoiler] = useState(
-    data.kind === "movie" ? Boolean(data.review?.isSpoiler) : false,
-  );
-  const [saving, setSaving] = useState(false);
-
-  const text = content.trim();
-  const problem = getReviewValidationError({
-    allowRating: !isList,
-    content,
-    rating,
-    requireText: isList,
-    textLabel: isList ? "comment" : "review",
-  });
-
-  async function submit(event: FormEvent) {
-    event.preventDefault();
-    if (saving) return;
-    if (problem) {
-      toast(problem);
-      return;
-    }
-
-    setSaving(true);
-    try {
-      if (data.kind === "list") {
-        const result = await saveListCommentAction(data.listId, text);
-        if (!result.success) throw new Error(result.error);
-        data.onSaved?.();
-      } else {
-        const next: ReviewInput = {
-          content: text,
-          isSpoiler: text ? isSpoiler : false,
-          rating,
-        };
-        const result = await saveMovieReviewAction(data.movieId, next);
-        if (!result.success) throw new Error(result.error);
-        data.onSaved?.(next);
-      }
-      globalEvents.emit(REVIEW_EVENTS.CHANGE, { reason: "save" });
-      closeSurface?.();
-    } catch (error) {
-      report("ReviewEditorSurface save", error);
-      toast(toUserMessage(error, { fallback: "Could not save" }));
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  return (
-    <SurfaceStage>
-      <form onSubmit={submit}>
-        <div className={SURFACE_STACK}>
-          {!isList ? (
-            <SurfacePart className="flex w-full justify-center" name="item">
-              <RatingSelector
-                disabled={saving}
-                onChange={setRating}
-                value={rating}
-              />
-            </SurfacePart>
-          ) : null}
-
-          <SurfacePart className="relative w-full" name="item">
-            <Textarea
-              aria-label={isList ? "Comment" : "Review"}
-              className={`${SURFACE_FIELD} min-h-[130px] w-full p-4 pb-9 type-body`}
-              disabled={saving}
-              maxHeight={260}
-              maxLength={REVIEW_MAX_LENGTH}
-              minHeight={130}
-              onChange={(event) => {
-                setContent(event.target.value);
-                if (!event.target.value.trim()) setIsSpoiler(false);
-              }}
-              placeholder={
-                isList
-                  ? `Share your thoughts on ${data.title}`
-                  : `Add your thoughts about ${data.title} (optional)`
-              }
-              value={content}
-            />
-            <div className="pointer-events-none absolute right-3.5 bottom-2.5 type-meta font-medium text-ink-muted select-none">
-              {problem && (text || rating !== null) ? (
-                <span className="font-semibold text-danger">{problem}</span>
-              ) : text ? (
-                <span>
-                  {text.length} / {REVIEW_MAX_LENGTH}
-                </span>
-              ) : null}
-            </div>
-          </SurfacePart>
-
-          <div className="flex w-full gap-2.5">
-            {!isList ? (
-              <SurfacePart className="min-w-0 flex-1" name="item">
-                <Button
-                  aria-checked={isSpoiler}
-                  className={`${surfaceButton(Boolean(isSpoiler && text))} w-full`}
-                  disabled={!text || saving}
-                  onClick={() => setIsSpoiler((current) => !current)}
-                  role="switch"
-                >
-                  <Icon icon="solar:eye-closed-linear" size={15} />
-                  {isSpoiler && text ? "Contains Spoilers" : "Mark as Spoiler"}
-                </Button>
-              </SurfacePart>
-            ) : null}
-            <SurfacePart className="min-w-0 flex-1" name="item">
-              <Button
-                className={`${SURFACE_PRIMARY} w-full`}
-                disabled={Boolean(problem)}
-                loading={saving}
-                type="submit"
-              >
-                {primaryLabel({
-                  editing,
-                  isList,
-                  ratingOnly: rating !== null && !text,
-                })}
-              </Button>
-            </SurfacePart>
-          </div>
-        </div>
-      </form>
-    </SurfaceStage>
-  );
-}
-
-export function MovieAction({
-  hasProviders,
-  movieId,
-  onOpenProviders,
-  title,
-}: {
-  hasProviders: boolean;
-  movieId: number;
-  onOpenProviders: () => void;
-  title: string;
-}): JSX.Element | null {
-  const auth = useAuth();
-  const actionClass = useDockActionClass();
-  const { slots } = useDockTheme();
-  const { openSurface } = useDockActions();
-  const userId = auth.isAuthenticated ? (auth.user?.id ?? null) : null;
-  const key = userId ? `${userId}:${movieId}` : null;
-
-  const [own, setOwn] = useState<{
-    key: string;
-    review: ReviewInput | null;
-  } | null>(null);
-  const [version, setVersion] = useState(0);
-
-  useEffect(() => {
-    if (!key) return;
-    let cancelled = false;
-
-    getOwnMovieReviewAction(movieId)
-      .then((result) => {
-        if (cancelled) return;
-        if (result.success) setOwn({ key, review: result.review });
-        else report("MovieAction load", result.error);
-      })
-      .catch((error) => report("MovieAction load", error));
-
-    return () => {
-      cancelled = true;
-    };
-  }, [key, movieId, version]);
-
-  useGlobalEvent(key ? REVIEW_EVENTS.CHANGE : null, () =>
-    setVersion((current) => current + 1),
-  );
-
-  const loaded = own?.key === key;
-  const review = loaded ? own.review : null;
-
-  const openEditor = useCallback(() => {
-    void openSurface(
-      createReviewEditorSurfaceEntry({
-        kind: "movie",
-        movieId,
-        onSaved: (saved) => key && setOwn({ key, review: saved }),
-        review,
-        title,
-      }),
-    );
-  }, [key, movieId, openSurface, review, title]);
-
-  if (!auth.isReady) return null;
-
-  const providers = hasProviders ? (
-    <Button
-      className={actionClass({
-        className: userId ? slots.actionFill : "w-full",
-      })}
-      onClick={onOpenProviders}
-      type="button"
-    >
-      <Icon icon="solar:tv-bold" size={16} />
-      <span className={slots.actionLabel}>Where to watch?</span>
-    </Button>
-  ) : null;
-
-  const wrap = (content: JSX.Element | null) =>
-    content ? <DockAction>{content}</DockAction> : null;
-
-  if (!userId) return wrap(providers);
-
-  const write = (
-    <Button
-      className={actionClass({
-        className: providers ? slots.actionFill : "w-full",
-      })}
-      disabled={!loaded}
-      onClick={openEditor}
-      type="button"
-    >
-      <Icon icon="solar:pen-new-square-bold" size={16} />
-      <span className={slots.actionLabel}>
-        {review ? "Edit Review" : "Add Review"}
-      </span>
-    </Button>
-  );
-
-  if (!providers) return wrap(write);
-  return wrap(
-    <div className={slots.actionRow}>
-      {write}
-      {providers}
-    </div>,
-  );
 }
 
 export function ReviewBody({
@@ -415,9 +113,14 @@ export function ReviewActions({
   signedIn: boolean;
 }): JSX.Element {
   const router = useRouter();
-  const toast = useToast();
-  const [confirming, setConfirming] = useConfirmStep();
-  const [busy, startTransition] = useTransition();
+  const { busy, confirming, confirmThen } = useConfirmedAction({
+    fallback: "Could not delete this review",
+    name: "ReviewActions delete",
+    onSuccess: () => {
+      router.refresh();
+      globalEvents.emit(REVIEW_EVENTS.CHANGE, { reason: "delete" });
+    },
+  });
   const likes = useLikeToggle({
     count: likesCount,
     liked: initialLiked,
@@ -432,27 +135,7 @@ export function ReviewActions({
     signedIn,
   });
   const { count, liked } = likes;
-
-  const remove = () => {
-    if (!confirming) {
-      setConfirming(true);
-      return;
-    }
-    startTransition(async () => {
-      try {
-        const result = await deleteReviewAction(id);
-        if (!result.success) throw new Error(result.error);
-        router.refresh();
-        globalEvents.emit(REVIEW_EVENTS.CHANGE, { reason: "delete" });
-      } catch (error) {
-        report("ReviewActions delete", error);
-        toast(
-          toUserMessage(error, { fallback: "Could not delete this review" }),
-        );
-      }
-      setConfirming(false);
-    });
-  };
+  const remove = () => confirmThen(() => deleteReviewAction(id));
 
   const like = cn(
     "inline-flex h-8 cursor-pointer items-center gap-1.5 px-2 type-meta font-semibold disabled:cursor-wait",

@@ -27,7 +27,7 @@ import { StickyAside } from "./stage";
 import type { AwardsGrouping, Fact, FactName } from "./types";
 import { hasAwards } from "./utils";
 
-function Row({
+function FactRow({
   children,
   index,
   label,
@@ -61,7 +61,7 @@ function Row({
   );
 }
 
-export function FactNames({
+function FactNames({
   index,
   max,
   names,
@@ -118,24 +118,32 @@ export function FactNames({
   );
 }
 
-export function FactText({
-  children,
-  index,
-}: {
-  children: string;
-  index: number;
-}) {
+function FactText({ children, index }: { children: string; index: number }) {
   return <DetailExpose hover index={index} part="value" text={children} />;
 }
 
-export function DetailFacts({ facts }: { facts: readonly Fact[] }) {
+export const namesFact = (
+  label: string,
+  max: number,
+  names: readonly FactName[],
+): Fact => ({
+  label,
+  value: (index) => <FactNames index={index} max={max} names={names} />,
+});
+
+export const textFact = (label: string, text: string): Fact => ({
+  label,
+  value: (index) => <FactText index={index}>{text}</FactText>,
+});
+
+function DetailFacts({ facts }: { facts: readonly Fact[] }) {
   return (
     <div className={SIDEBAR_FACTS_CLASS}>
       <dl className="flex flex-col sm:max-lg:flex-1">
         {facts.map((fact, index) => (
-          <Row index={index} key={fact.label} label={fact.label}>
+          <FactRow index={index} key={fact.label} label={fact.label}>
             {fact.value(index)}
-          </Row>
+          </FactRow>
         ))}
       </dl>
     </div>

@@ -614,6 +614,11 @@ export function useHighlight(key: string, className?: string) {
   };
 }
 
+export function useHighlightReset() {
+  const tracker = use(HighlightContext);
+  return { onPointerEnter: () => tracker?.hover(null) };
+}
+
 interface SegmentedItem<K extends string> {
   count?: number;
   icon?: string;

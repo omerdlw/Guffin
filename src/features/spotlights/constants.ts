@@ -578,6 +578,10 @@ export const CATALOG_KEEP_SECONDS = 7 * 24 * 60 * 60;
 
 export const SPOTLIGHT_LOGLINE_LENGTH = 200;
 
+export const SPOTLIGHT_LOGLINE_ENOUGH = 90;
+
+export const SPOTLIGHT_GENRE_LIMIT = 3;
+
 export const DIRECTOR_KNOWN_VOTES = 50;
 
 export const GESTURE_THRESHOLD = 28;
@@ -606,3 +610,10 @@ export const TOP_100_KEYS: Record<string, number> = {
   ArrowRight: 1,
   ArrowUp: -WALL_COLUMNS,
 };
+
+export const WHEEL_DELTA_UNITS: Readonly<Record<number, number>> = {
+  1: 32,
+  2: 400,
+};
+
+export const URL_SYNC_DELAY_MS = 500;

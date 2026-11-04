@@ -1,5 +1,5 @@
 import { isTmdbImagePath } from "@/lib/tmdb/shared";
-import { ARTWORK_MAX_ENTRIES, EMPTY_ARTWORK, SLOTS } from "./constants";
+import { ARTWORK_MAX_ENTRIES, ARTWORK_SLOTS, EMPTY_ARTWORK } from "./constants";
 import type {
   ArtworkEntries,
   ArtworkEntry,
@@ -11,11 +11,11 @@ export function artworkKey(kind: ArtworkKind, id: number): string {
   return `${kind}:${id}`;
 }
 
-function isKey(key: string): boolean {
+function isArtworkKey(key: string): boolean {
   return /^(?:movie|person):[1-9]\d{0,9}$/.test(key);
 }
 
-function sanitize(value: unknown): ArtworkEntry | null {
+function parseEntry(value: unknown): ArtworkEntry | null {
   if (typeof value !== "object" || value === null) return null;
   const raw = value as Record<string, unknown>;
   const entry: ArtworkEntry = {
@@ -24,14 +24,14 @@ function sanitize(value: unknown): ArtworkEntry | null {
         ? raw.updatedAt
         : 0,
   };
-  for (const slot of SLOTS) {
+  for (const slot of ARTWORK_SLOTS) {
     const path = raw[slot];
     if (isTmdbImagePath(path)) entry[slot] = path;
   }
   return entry.poster || entry.backdrop ? entry : null;
 }
 
-function prune(entries: Record<string, ArtworkEntry>): ArtworkEntries {
+function pruneEntries(entries: Record<string, ArtworkEntry>): ArtworkEntries {
   return Object.fromEntries(
     Object.entries(entries)
       .sort(([, a], [, b]) => b.updatedAt - a.updatedAt)
@@ -46,10 +46,10 @@ export function parseArtwork(raw: string | null): ArtworkEntries {
     if (typeof parsed !== "object" || parsed === null) return EMPTY_ARTWORK;
     const entries: Record<string, ArtworkEntry> = {};
     for (const [key, value] of Object.entries(parsed)) {
-      const entry = isKey(key) ? sanitize(value) : null;
+      const entry = isArtworkKey(key) ? parseEntry(value) : null;
       if (entry) entries[key] = entry;
     }
-    return prune(entries);
+    return pruneEntries(entries);
   } catch {
     return EMPTY_ARTWORK;
   }
@@ -65,7 +65,7 @@ export function withArtwork(
 ): ArtworkEntries {
   if (!isTmdbImagePath(path)) return entries;
   const key = artworkKey(kind, id);
-  return prune({
+  return pruneEntries({
     ...entries,
     [key]: { ...entries[key], [slot]: path, updatedAt: now },
   });
@@ -99,7 +99,7 @@ export function resolveArtwork(
   return entries[artworkKey(kind, id)]?.[slot] ?? fallback;
 }
 
-export function safely<T>(run: () => T, fallback: T): T {
+export function attempt<T>(run: () => T, fallback: T): T {
   try {
     return run();
   } catch {
@@ -107,7 +107,7 @@ export function safely<T>(run: () => T, fallback: T): T {
   }
 }
 
-export function artworkTarget(slot: ArtworkSlot, path: string | null) {
+export function artworkAttributes(slot: ArtworkSlot, path: string | null) {
   return path
     ? { "data-artwork": slot, "data-artwork-path": path }
     : ({} as Record<string, never>);

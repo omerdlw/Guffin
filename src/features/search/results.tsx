@@ -11,6 +11,7 @@ import Link from "next/link";
 import { useArtworkPath } from "@/features/artwork/artwork";
 import { departmentRole } from "@/features/person/utils";
 import { RatingStars } from "@/features/reviews/rating";
+import { pluralize } from "@/lib/format";
 import { accountHref, listHref, personHref, reviewHref } from "@/lib/project";
 import { tmdbImageSrcSet, tmdbImageUrl } from "@/lib/tmdb/shared";
 import { POINTS } from "@/motion/constants";
@@ -20,9 +21,7 @@ import { Avatar, Icon, MediaCard } from "@/ui/media";
 import { RADIUS } from "@/ui/tokens";
 import {
   HIGHLIGHT_HALO,
-  POSTER_WIDTHS,
-  PROFILE_WIDTHS,
-  REVIEW_RESULT_ROW_POSTER_WIDTHS,
+  RESULT_THUMB_WIDTHS,
   STILL_TRANSITION,
 } from "./constants";
 import type {
@@ -95,6 +94,29 @@ function ResultRow({
   );
 }
 
+function ResultThumb({
+  fallbackIcon,
+  kind,
+  path,
+}: {
+  fallbackIcon: string;
+  kind: "poster" | "profile";
+  path: string | null;
+}) {
+  return (
+    <MediaCard
+      fallbackIcon={fallbackIcon}
+      fallbackIconSize={16}
+      image={{
+        sizes: "32px",
+        src: tmdbImageUrl(kind, path, "w185"),
+        srcSet: tmdbImageSrcSet(kind, path, RESULT_THUMB_WIDTHS) ?? undefined,
+      }}
+      radius={RADIUS.thumb}
+    />
+  );
+}
+
 function Highlight({
   query,
   text,
@@ -125,7 +147,7 @@ export function ListResultRow({
   onNavigated?: () => void;
   query?: string;
 }) {
-  const films = `${list.itemsCount} ${list.itemsCount === 1 ? "film" : "films"}`;
+  const films = pluralize(list.itemsCount, "film");
 
   return (
     <ResultRow
@@ -142,17 +164,10 @@ export function ListResultRow({
       }
       onNavigated={onNavigated}
       thumb={
-        <MediaCard
+        <ResultThumb
           fallbackIcon="solar:list-bold"
-          fallbackIconSize={16}
-          image={{
-            sizes: "32px",
-            src: tmdbImageUrl("poster", list.posterPath, "w185"),
-            srcSet:
-              tmdbImageSrcSet("poster", list.posterPath, POSTER_WIDTHS) ??
-              undefined,
-          }}
-          radius={RADIUS.thumb}
+          kind="poster"
+          path={list.posterPath}
         />
       }
       title={<Highlight query={query} text={list.title} />}
@@ -191,17 +206,10 @@ export function PersonResultRow({
       }
       onNavigated={onNavigated}
       thumb={
-        <MediaCard
+        <ResultThumb
           fallbackIcon="solar:user-bold"
-          fallbackIconSize={16}
-          image={{
-            sizes: "32px",
-            src: tmdbImageUrl("profile", photoPath, "w185"),
-            srcSet:
-              tmdbImageSrcSet("profile", photoPath, PROFILE_WIDTHS) ??
-              undefined,
-          }}
-          radius={RADIUS.thumb}
+          kind="profile"
+          path={photoPath}
         />
       }
       title={<Highlight query={query} text={person.name} />}
@@ -246,20 +254,10 @@ export function ReviewResultRow({
       }
       onNavigated={onNavigated}
       thumb={
-        <MediaCard
+        <ResultThumb
           fallbackIcon="solar:chat-round-bold"
-          fallbackIconSize={16}
-          image={{
-            sizes: "32px",
-            src: tmdbImageUrl("poster", review.posterPath, "w185"),
-            srcSet:
-              tmdbImageSrcSet(
-                "poster",
-                review.posterPath,
-                REVIEW_RESULT_ROW_POSTER_WIDTHS,
-              ) ?? undefined,
-          }}
-          radius={RADIUS.thumb}
+          kind="poster"
+          path={review.posterPath}
         />
       }
       title={
@@ -283,7 +281,7 @@ export function UserResultRow({
   query?: string;
   user: UserSearchHit;
 }) {
-  const followers = `${user.followersCount} ${user.followersCount === 1 ? "follower" : "followers"}`;
+  const followers = pluralize(user.followersCount, "follower");
 
   return (
     <ResultRow

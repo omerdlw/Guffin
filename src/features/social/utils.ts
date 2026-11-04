@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
-import { GAP, OVERLAP } from "./constants";
+import { pluralize } from "@/lib/format";
+import { AVATAR_CUTOUT_GAP, AVATAR_OVERLAP } from "./constants";
 import type {
   Friend,
   MovieProofRow,
@@ -58,14 +59,21 @@ export function buildMovieSocialProof(
   };
 }
 
-export function formatNames(names: readonly string[], shown = 2): string {
-  if (names.length <= shown) {
-    return names.length <= 1
-      ? (names[0] ?? "")
-      : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+const othersLabel = (count: number) =>
+  `${count} ${count === 1 ? "other" : "others"}`;
+
+export function formatNames(
+  names: readonly string[],
+  shown = 2,
+  total = names.length,
+): string {
+  const hidden = total - Math.min(names.length, shown);
+  if (hidden > 0) {
+    return `${names.slice(0, shown).join(", ")} and ${othersLabel(hidden)}`;
   }
-  const rest = names.length - shown;
-  return `${names.slice(0, shown).join(", ")} and ${rest} ${rest === 1 ? "other" : "others"}`;
+  return names.length <= 1
+    ? (names[0] ?? "")
+    : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
 }
 
 export function matchesTab(friend: Friend, tab: ProofTab): boolean {
@@ -110,9 +118,7 @@ export function describeProof(proof: MovieSocialProof): {
     details.push(`${counts.liked} liked`);
   }
   if (counts.reviews > 0) {
-    details.push(
-      `${counts.reviews} ${counts.reviews === 1 ? "review" : "reviews"}`,
-    );
+    details.push(pluralize(counts.reviews, "review"));
   }
   if (lead !== "watchlist" && counts.watchlist > 0) {
     details.push(`${counts.watchlist} to watch`);
@@ -125,9 +131,9 @@ export function describeProof(proof: MovieSocialProof): {
 }
 
 export function cutout(size: number, round: boolean): CSSProperties {
-  const overlap = Math.round(size * OVERLAP);
+  const overlap = Math.round(size * AVATAR_OVERLAP);
   const mask = round
-    ? `radial-gradient(circle at ${overlap - size / 2}px 50%, transparent ${size / 2 + GAP}px, #000 ${size / 2 + GAP + 0.5}px)`
-    : `linear-gradient(to right, transparent ${overlap + GAP}px, #000 ${overlap + GAP}px)`;
+    ? `radial-gradient(circle at ${overlap - size / 2}px 50%, transparent ${size / 2 + AVATAR_CUTOUT_GAP}px, #000 ${size / 2 + AVATAR_CUTOUT_GAP + 0.5}px)`
+    : `linear-gradient(to right, transparent ${overlap + AVATAR_CUTOUT_GAP}px, #000 ${overlap + AVATAR_CUTOUT_GAP}px)`;
   return { WebkitMaskImage: mask, maskImage: mask };
 }

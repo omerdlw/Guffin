@@ -1,8 +1,8 @@
-type LegalBlock =
+export type LegalBlock =
   | { kind: "paragraph"; text: string }
   | { kind: "list"; items: readonly string[] };
 
-interface LegalSection {
+export interface LegalSection {
   blocks: readonly LegalBlock[];
   title: string;
 }

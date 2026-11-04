@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useId, useState } from "react";
+import { type ReactNode, useState } from "react";
 import { usePage } from "@omerdlw/base-framework/kernel";
 import {
   type AmbientPalette,
@@ -12,7 +12,6 @@ import {
   useDeparture,
   useNavigationPayload,
 } from "@omerdlw/base-framework/modules/navigation";
-import { LayoutGroup } from "motion/react";
 import {
   ArtworkPrint,
   useArtworkContextMenu,
@@ -39,16 +38,16 @@ import { readable } from "@/motion/render";
 import { Button } from "@/ui/button";
 import { cn } from "@/ui/cn";
 import { Tooltip } from "@/ui/feedback";
-import { SlidingHighlight } from "@/ui/form";
+import { HighlightGroup, useHighlight } from "@/ui/form";
 import { Icon } from "@/ui/media";
 import { PROSE_CLASS, RULE_GAP, TONE } from "@/ui/tokens";
 import { PERSON_FALLBACK_ICON, PERSON_LINKS_CLASS } from "./constants";
 import { countFilms, getBackdropPath, personSwatch } from "./credits";
 import { createPersonBioSurfaceEntry } from "./sections";
 import type { SocialLink } from "./types";
-import { describePerson, nameClass, yearsLabel } from "./utils";
+import { describePerson, personNameClass, formatYears } from "./utils";
 
-function Rule({
+function HeaderRule({
   links,
   name,
   role,
@@ -67,68 +66,63 @@ function Rule({
         />
       ) : null}
       <DetailPart className="h-px min-w-6 flex-1 bg-grade/40" name="rule" />
-      {links.length > 0 ? <Links links={links} name={name} /> : null}
+      {links.length > 0 ? <ProfileLinks links={links} name={name} /> : null}
     </div>
   );
 }
 
-function Links({
+function ProfileLink({
+  index,
+  link,
+  name,
+}: {
+  index: number;
+  link: SocialLink;
+  name: string;
+}) {
+  const highlight = useHighlight(link.key, "rounded-full bg-fill-hover");
+
+  return (
+    <li className="relative isolate">
+      {highlight.node}
+      <DetailPart index={index} name="link">
+        <Tooltip position="top" text={link.label}>
+          <a
+            aria-label={`${name} on ${link.label}`}
+            className="cine-fade center relative z-10 size-9 rounded-full text-ink-body hover:text-ink focus-visible:text-ink"
+            href={link.url}
+            referrerPolicy="no-referrer"
+            rel="noopener noreferrer"
+            target="_blank"
+            {...highlight.props}
+          >
+            <Icon icon={link.icon} size={20} />
+          </a>
+        </Tooltip>
+      </DetailPart>
+    </li>
+  );
+}
+
+function ProfileLinks({
   links,
   name,
 }: {
   links: readonly SocialLink[];
   name: string;
 }) {
-  const highlightGroupId = useId();
-  const [hoveredLink, setHoveredLink] = useState<string | null>(null);
-  const [focusedLink, setFocusedLink] = useState<string | null>(null);
   return (
-    <LayoutGroup id={`person-links-${highlightGroupId}`}>
-      <ul
-        aria-label="Profiles"
-        className={PERSON_LINKS_CLASS}
-        onBlurCapture={(event) => {
-          if (
-            !(event.relatedTarget instanceof Node) ||
-            !event.currentTarget.contains(event.relatedTarget)
-          ) {
-            setFocusedLink(null);
-          }
-        }}
-        onPointerLeave={() => setHoveredLink(null)}
-      >
+    <HighlightGroup>
+      <ul aria-label="Profiles" className={PERSON_LINKS_CLASS}>
         {links.map((link, index) => (
-          <li className="relative isolate" key={link.key}>
-            {(hoveredLink ?? focusedLink) === link.key ? (
-              <SlidingHighlight
-                className="rounded-full bg-fill-hover"
-                layoutId="person-links-highlight"
-              />
-            ) : null}
-            <DetailPart index={index} name="link">
-              <Tooltip position="top" text={link.label}>
-                <a
-                  aria-label={`${name} on ${link.label}`}
-                  className="cine-fade center relative z-10 size-9 rounded-full text-ink-body hover:text-ink focus-visible:text-ink"
-                  href={link.url}
-                  onFocus={() => setFocusedLink(link.key)}
-                  onPointerEnter={() => setHoveredLink(link.key)}
-                  referrerPolicy="no-referrer"
-                  rel="noopener noreferrer"
-                  target="_blank"
-                >
-                  <Icon icon={link.icon} size={20} />
-                </a>
-              </Tooltip>
-            </DetailPart>
-          </li>
+          <ProfileLink index={index} key={link.key} link={link} name={name} />
         ))}
       </ul>
-    </LayoutGroup>
+    </HighlightGroup>
   );
 }
 
-function Bio({
+function BiographyExcerpt({
   excerpt,
   full,
   name,
@@ -188,13 +182,13 @@ export function PersonHeader({
     <>
       <DetailBloom
         as="h1"
-        className={nameClass(name)}
+        className={personNameClass(name)}
         part="title"
         text={name}
       />
-      <Rule links={links} name={name} role={role} />
+      <HeaderRule links={links} name={name} role={role} />
       {biography && excerpt ? (
-        <Bio
+        <BiographyExcerpt
           excerpt={excerpt}
           full={biography}
           name={name}
@@ -208,7 +202,7 @@ export function PersonHeader({
 export function AgeCount({ index, value }: { index: number; value: number }) {
   return (
     <DetailCount
-      format={yearsLabel}
+      format={formatYears}
       hover
       index={index}
       part="value"

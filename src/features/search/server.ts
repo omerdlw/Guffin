@@ -11,6 +11,8 @@ import {
 } from "@/lib/tmdb/server";
 import {
   CATALOG_LIFETIME_MS,
+  CATALOG_MATCH_LIMIT,
+  CATALOG_MIN_FILMS,
   CATALOG_PAGES,
   COMMUNITY_CANDIDATES,
   COMMUNITY_SEARCH_TYPES,
@@ -31,13 +33,13 @@ import {
   YEAR_BONUS,
 } from "./constants";
 import type {
-  CatalogFilm,
+  FilmCandidate,
   ListSearchResponse,
   MovieSearchResponse,
   PersonSearchResponse,
   ReviewSearchResponse,
   SearchFailure,
-  SearchFilm,
+  SearchOptions,
   SearchRunner,
   SearchType,
   UserSearchResponse,
@@ -58,9 +60,9 @@ import {
   toSearchFailure,
 } from "./utils";
 
-let loaded: { at: number; films: Promise<CatalogFilm[]> } | null = null;
+let catalogCache: { at: number; films: Promise<FilmCandidate[]> } | null = null;
 
-async function load(): Promise<CatalogFilm[]> {
+async function loadCatalog(): Promise<FilmCandidate[]> {
   const requests = Object.entries(CATALOG_PAGES).flatMap(([sort, pages]) =>
     Array.from({ length: pages }, (_, index) =>
       discoverMovies({
@@ -71,7 +73,7 @@ async function load(): Promise<CatalogFilm[]> {
   );
   const pages = await Promise.all(requests);
 
-  const films = new Map<number, CatalogFilm>();
+  const films = new Map<number, FilmCandidate>();
   for (const page of pages) {
     if (!page.success) continue;
     for (const movie of page.data.results) {
@@ -86,22 +88,22 @@ async function load(): Promise<CatalogFilm[]> {
       });
     }
   }
-  if (films.size < 100) loaded = null;
+  if (films.size < CATALOG_MIN_FILMS) catalogCache = null;
   return [...films.values()];
 }
 
-function catalog(): Promise<CatalogFilm[]> {
-  if (!loaded || Date.now() - loaded.at > CATALOG_LIFETIME_MS) {
-    loaded = { at: Date.now(), films: load() };
+function getCatalog(): Promise<FilmCandidate[]> {
+  if (!catalogCache || Date.now() - catalogCache.at > CATALOG_LIFETIME_MS) {
+    catalogCache = { at: Date.now(), films: loadCatalog() };
   }
-  return loaded.films;
+  return catalogCache.films;
 }
 
 async function catalogMatches(
   query: string,
-  limit = 8,
-): Promise<CatalogFilm[]> {
-  const films = await catalog().catch(() => []);
+  limit = CATALOG_MATCH_LIMIT,
+): Promise<FilmCandidate[]> {
+  const films = await getCatalog().catch(() => []);
   return films
     .map((film) => ({ film, match: textMatch(film.title, query) }))
     .filter(({ match }) => match >= MATCH_SCORE.phraseStart)
@@ -112,9 +114,7 @@ async function catalogMatches(
 
 export async function searchUserHits(
   query: string,
-  options: { page?: number; signal?: AbortSignal } = {},
 ): Promise<Result<UserSearchResponse, SearchFailure>> {
-  void options;
   const text = prepareQuery(query, { handle: true });
   if (!text) return err(INVALID_QUERY_FAILURE);
 
@@ -157,9 +157,7 @@ export async function searchUserHits(
 
 export async function searchListHits(
   query: string,
-  options: { page?: number; signal?: AbortSignal } = {},
 ): Promise<Result<ListSearchResponse, SearchFailure>> {
-  void options;
   const text = prepareQuery(query);
   if (!text) return err(INVALID_QUERY_FAILURE);
 
@@ -207,9 +205,7 @@ export async function searchListHits(
 
 export async function searchReviewHits(
   query: string,
-  options: { page?: number; signal?: AbortSignal } = {},
 ): Promise<Result<ReviewSearchResponse, SearchFailure>> {
-  void options;
   const text = prepareQuery(query);
   if (!text) return err(INVALID_QUERY_FAILURE);
 
@@ -265,7 +261,7 @@ export async function searchReviewHits(
 async function standoutCredits(
   query: string,
   signal?: AbortSignal,
-): Promise<{ films: SearchFilm[]; score: number } | null> {
+): Promise<{ films: FilmCandidate[]; score: number } | null> {
   const found = await searchPeople(query, { signal });
   if (!found.success) return null;
 
@@ -304,7 +300,7 @@ async function standoutCredits(
 
 export async function searchMovieHits(
   query: string,
-  options: { page?: number; signal?: AbortSignal } = {},
+  options: SearchOptions = {},
 ): Promise<Result<MovieSearchResponse, SearchFailure>> {
   const dated = splitYear(query);
   const first = (options.page ?? 1) === 1;
@@ -342,8 +338,8 @@ export async function searchMovieHits(
       ? standout
       : null;
   const creditIds = new Set(credited?.films.map((film) => film.id));
-  const rows = new Map<number, { film: SearchFilm; order: number }>();
-  const add = (film: SearchFilm, order: number) => {
+  const rows = new Map<number, { film: FilmCandidate; order: number }>();
+  const add = (film: FilmCandidate, order: number) => {
     if (!rows.has(film.id)) rows.set(film.id, { film, order });
   };
   for (const { results } of pages) {
@@ -402,7 +398,7 @@ export async function searchMovieHits(
 
 export async function searchPersonHits(
   query: string,
-  options: { page?: number; signal?: AbortSignal } = {},
+  options: SearchOptions = {},
 ): Promise<Result<PersonSearchResponse, SearchFailure>> {
   const result = await searchPeople(query, options);
   if (!result.success) return err(toSearchFailure(result.error));

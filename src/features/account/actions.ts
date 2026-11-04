@@ -6,7 +6,11 @@ import {
   ok as okResult,
   type Result,
 } from "@omerdlw/base-framework/result";
-import { report, toUserMessage } from "@omerdlw/base-framework/utils";
+import {
+  report,
+  toUserMessage,
+  UserError,
+} from "@omerdlw/base-framework/utils";
 import { revalidatePath } from "next/cache";
 import { getOptionalUser, mutate, requireUser } from "@/features/auth/server";
 import type { MutationResult as ActionResult } from "@/features/auth/types";
@@ -21,9 +25,12 @@ import { getMovieDetails, movieSnapshot } from "@/lib/tmdb/server";
 import type { MovieDetails } from "@/lib/tmdb/shared";
 import {
   COUNT_HEAD_OPTIONS,
+  DIARY_INSERT_ERRORS,
   EMPTY_MOVIE_LIBRARY,
   LIBRARY_MARKS_MAX,
+  LIBRARY_TABLES,
   LIBRARY_UPSERT_OPTIONS,
+  MOVIE_LIBRARY_KINDS,
 } from "./constants";
 import { rememberWatchedPayload, updateAccount } from "./server";
 import type {
@@ -37,187 +44,188 @@ import type {
   MovieLibraryResult,
   MovieLibraryState,
 } from "./types";
-import {
-  isDiaryDate,
-  isMovieLibraryKind,
-  libraryFail,
-  librarySuccess,
-  remove,
-} from "./utils";
+import { isDiaryDate, isMovieLibraryKind } from "./utils";
 
 function revalidateAccount(username?: string | null): void {
   if (username) revalidatePath(accountHref(username));
   revalidatePath("/account");
 }
 
+async function runAccountAction<T>(
+  { code, fallback, name }: { code: string; fallback: string; name: string },
+  work: () => Promise<Result<T>>,
+): Promise<Result<T>> {
+  try {
+    return await work();
+  } catch (error: unknown) {
+    report(name, error);
+    return err(toUserMessage(error, { fallback }), code);
+  }
+}
+
+async function requireFollowTarget(followingId: string) {
+  const user = await requireUser();
+  if (!followingId || followingId === user.id) {
+    throw new UserError("Invalid follow target");
+  }
+  return user;
+}
+
 export async function followUserAction(
   followingId: string,
   targetUsername?: string,
 ): Promise<Result<FollowStatus>> {
-  try {
-    const user = await requireUser();
-    if (!followingId || followingId === user.id) {
-      return err("Invalid follow target");
-    }
-
-    const client = await createServerSupabaseClient();
-    const { data: targets, error: targetError } = await client.rpc(
-      "get_account_follow_target",
-      { p_user_id: followingId },
-    );
-    if (targetError) throw targetError;
-    if (!targets?.[0]) return err("Account not found");
-
-    const status: FollowStatus = targets[0].is_private ? "pending" : "accepted";
-    const { error } = await client
-      .from("account_follows")
-      .upsert(
-        { follower_id: user.id, following_id: followingId, status },
-        { onConflict: "follower_id,following_id" },
+  return runAccountAction(
+    {
+      code: "FOLLOW_FAILED",
+      fallback: "Couldn't follow this account. Please try again",
+      name: "AccountAction follow",
+    },
+    async () => {
+      const user = await requireFollowTarget(followingId);
+      const client = await createServerSupabaseClient();
+      const { data: targets, error: targetError } = await client.rpc(
+        "get_account_follow_target",
+        { p_user_id: followingId },
       );
-    if (error) throw error;
+      if (targetError) throw targetError;
+      if (!targets?.[0]) throw new UserError("Account not found");
 
-    revalidateAccount(targetUsername);
-    return okResult(status);
-  } catch (error: unknown) {
-    report("AccountAction follow", error);
-    return err(
-      toUserMessage(error, {
-        fallback: "Couldn't follow this account. Please try again",
-      }),
-      "FOLLOW_FAILED",
-    );
-  }
+      const status: FollowStatus = targets[0].is_private
+        ? "pending"
+        : "accepted";
+      const { error } = await client
+        .from("account_follows")
+        .upsert(
+          { follower_id: user.id, following_id: followingId, status },
+          { onConflict: "follower_id,following_id" },
+        );
+      if (error) throw error;
+
+      revalidateAccount(targetUsername);
+      return okResult(status);
+    },
+  );
 }
 
 export async function unfollowUserAction(
   followingId: string,
   targetUsername?: string,
 ): Promise<Result<null>> {
-  try {
-    const user = await requireUser();
-    if (!followingId || followingId === user.id) {
-      return err("Invalid follow target");
-    }
+  return runAccountAction(
+    {
+      code: "UNFOLLOW_FAILED",
+      fallback: "Couldn't unfollow this account. Please try again",
+      name: "AccountAction unfollow",
+    },
+    async () => {
+      const user = await requireFollowTarget(followingId);
+      const client = await createServerSupabaseClient();
+      const { error } = await client
+        .from("account_follows")
+        .delete()
+        .eq("follower_id", user.id)
+        .eq("following_id", followingId);
+      if (error) throw error;
 
-    const client = await createServerSupabaseClient();
-    const { error } = await client
-      .from("account_follows")
-      .delete()
-      .eq("follower_id", user.id)
-      .eq("following_id", followingId);
-    if (error) throw error;
-
-    revalidateAccount(targetUsername);
-    return okResult(null);
-  } catch (error: unknown) {
-    report("AccountAction unfollow", error);
-    return err(
-      toUserMessage(error, {
-        fallback: "Couldn't unfollow this account. Please try again",
-      }),
-      "UNFOLLOW_FAILED",
-    );
-  }
+      revalidateAccount(targetUsername);
+      return okResult(null);
+    },
+  );
 }
 
 export async function updateAccountAction(
   input: AccountPatchInput,
 ): Promise<Result<CurrentAccount>> {
-  try {
-    const user = await requireUser();
-    const client = await createServerSupabaseClient();
-    const { account } = await updateAccount({ client, input, userId: user.id });
-    if (!account) {
-      return err("Your account couldn't be updated. Please try again");
-    }
+  const fallback = "Your account couldn't be updated. Please try again";
+  return runAccountAction(
+    { code: "ACCOUNT_UPDATE_FAILED", fallback, name: "AccountAction update" },
+    async () => {
+      const user = await requireUser();
+      const client = await createServerSupabaseClient();
+      const { account } = await updateAccount({
+        client,
+        input,
+        userId: user.id,
+      });
+      if (!account) return err(fallback);
 
-    revalidateAccount(account.username);
-    return okResult(account);
-  } catch (error: unknown) {
-    report("AccountAction update account", error);
-    return err(
-      toUserMessage(error, {
-        fallback: "Your account couldn't be updated. Please try again",
-      }),
-      "ACCOUNT_UPDATE_FAILED",
-    );
-  }
+      revalidateAccount(account.username);
+      return okResult(account);
+    },
+  );
 }
 
-async function readState(
+async function readLibraryState(
   client: AccountClient,
   accountId: string,
   tmdbId: number,
 ): Promise<MovieLibraryState> {
-  const [liked, watched, watchlist] = await Promise.all([
-    client
-      .from("account_likes")
-      .select("tmdb_id", COUNT_HEAD_OPTIONS)
-      .eq("account_id", accountId)
-      .eq("tmdb_id", tmdbId),
-    client
-      .from("account_watched")
-      .select("tmdb_id", COUNT_HEAD_OPTIONS)
-      .eq("account_id", accountId)
-      .eq("tmdb_id", tmdbId),
-    client
-      .from("account_watchlist")
-      .select("tmdb_id", COUNT_HEAD_OPTIONS)
-      .eq("account_id", accountId)
-      .eq("tmdb_id", tmdbId),
-  ]);
+  const results = await Promise.all(
+    MOVIE_LIBRARY_KINDS.map((kind) =>
+      client
+        .from(LIBRARY_TABLES[kind])
+        .select("tmdb_id", COUNT_HEAD_OPTIONS)
+        .eq("account_id", accountId)
+        .eq("tmdb_id", tmdbId),
+    ),
+  );
 
-  for (const result of [liked, watched, watchlist]) {
-    if (result.error) throw result.error;
-  }
-
-  return {
-    liked: (liked.count ?? 0) > 0,
-    watched: (watched.count ?? 0) > 0,
-    watchlist: (watchlist.count ?? 0) > 0,
-  };
+  const state = { ...EMPTY_MOVIE_LIBRARY };
+  MOVIE_LIBRARY_KINDS.forEach((kind, index) => {
+    const { count, error } = results[index];
+    if (error) throw error;
+    state[kind] = (count ?? 0) > 0;
+  });
+  return state;
 }
 
-function add(
+async function readMarkedIds(
+  client: AccountClient,
+  table: typeof LIBRARY_TABLES.watched | typeof LIBRARY_TABLES.watchlist,
+  accountId: string,
+  tmdbIds: number[],
+): Promise<number[]> {
+  const { data, error } = await client
+    .from(table)
+    .select("tmdb_id")
+    .eq("account_id", accountId)
+    .in("tmdb_id", tmdbIds);
+  if (error) throw error;
+  return data.map((row) => row.tmdb_id);
+}
+
+function writeLibraryEntry(
   client: AccountClient,
   accountId: string,
   tmdbId: number,
   kind: MovieLibraryKind,
-  movie: MovieDetails,
+  movie: MovieDetails | null,
 ) {
-  const row = {
-    account_id: accountId,
-    tmdb_id: tmdbId,
-    ...movieSnapshot(movie),
-  };
-
-  switch (kind) {
-    case "liked":
-      return client.from("account_likes").upsert(row, LIBRARY_UPSERT_OPTIONS);
-    case "watched":
-      return client.from("account_watched").upsert(row, LIBRARY_UPSERT_OPTIONS);
-    case "watchlist":
-      return client
-        .from("account_watchlist")
-        .upsert(row, LIBRARY_UPSERT_OPTIONS);
+  const table = client.from(LIBRARY_TABLES[kind]);
+  if (!movie) {
+    return table.delete().eq("account_id", accountId).eq("tmdb_id", tmdbId);
   }
+  return table.upsert(
+    { account_id: accountId, tmdb_id: tmdbId, ...movieSnapshot(movie) },
+    LIBRARY_UPSERT_OPTIONS,
+  );
 }
 
 export async function getMovieLibraryAction(
   tmdbId: number,
 ): Promise<MovieLibraryResult> {
   try {
-    if (!isTmdbId(tmdbId)) return libraryFail("Invalid movie");
+    if (!isTmdbId(tmdbId)) return fail("Invalid movie");
 
     const user = await getOptionalUser();
-    if (!user) return librarySuccess(EMPTY_MOVIE_LIBRARY);
+    if (!user) return ok({ state: EMPTY_MOVIE_LIBRARY });
 
     const client = await createServerSupabaseClient();
-    return librarySuccess(await readState(client, user.id, tmdbId));
+    return ok({ state: await readLibraryState(client, user.id, tmdbId) });
   } catch (error) {
     report("MovieLibrary read", error);
-    return libraryFail(
+    return fail(
       toUserMessage(error, { fallback: "Could not load your library" }),
     );
   }
@@ -232,41 +240,24 @@ export async function getLibraryMarksAction(
       tmdbIds.length > LIBRARY_MARKS_MAX ||
       !tmdbIds.every(isTmdbId)
     ) {
-      return { error: "Invalid request", success: false };
+      return fail("Invalid request");
     }
 
     const user = await getOptionalUser();
-    if (!user || tmdbIds.length === 0) {
-      return { success: true, watched: [], watchlist: [] };
-    }
+    if (!user || tmdbIds.length === 0)
+      return ok({ watched: [], watchlist: [] });
 
     const client = await createServerSupabaseClient();
     const [watched, watchlist] = await Promise.all([
-      client
-        .from("account_watched")
-        .select("tmdb_id")
-        .eq("account_id", user.id)
-        .in("tmdb_id", tmdbIds),
-      client
-        .from("account_watchlist")
-        .select("tmdb_id")
-        .eq("account_id", user.id)
-        .in("tmdb_id", tmdbIds),
+      readMarkedIds(client, LIBRARY_TABLES.watched, user.id, tmdbIds),
+      readMarkedIds(client, LIBRARY_TABLES.watchlist, user.id, tmdbIds),
     ]);
-    if (watched.error) throw watched.error;
-    if (watchlist.error) throw watchlist.error;
-
-    return {
-      success: true,
-      watched: watched.data.map((row) => row.tmdb_id),
-      watchlist: watchlist.data.map((row) => row.tmdb_id),
-    };
+    return ok({ watched, watchlist });
   } catch (error) {
     report("MovieLibrary marks", error);
-    return {
-      error: toUserMessage(error, { fallback: "Could not load your library" }),
-      success: false,
-    };
+    return fail(
+      toUserMessage(error, { fallback: "Could not load your library" }),
+    );
   }
 }
 
@@ -277,32 +268,34 @@ export async function setMovieLibraryAction(
 ): Promise<MovieLibraryResult> {
   try {
     if (!isTmdbId(tmdbId) || !isMovieLibraryKind(kind)) {
-      return libraryFail("Invalid request");
+      return fail("Invalid request");
     }
 
     const user = await requireUser();
     const limit = await checkRateLimit(`library:${user.id}`, 120);
-    if (!limit.success)
-      return libraryFail("Too many requests, slow down a little");
+    if (!limit.success) return fail("Too many requests, slow down a little");
 
     let movie: MovieDetails | null = null;
     if (active) {
       const result = await getMovieDetails(tmdbId);
-      if (!result.success)
-        return libraryFail("Could not load this movie, try again");
+      if (!result.success) return fail("Could not load this movie, try again");
       movie = result.data;
     }
 
     const client = await createServerSupabaseClient();
-    const { error } = movie
-      ? await add(client, user.id, tmdbId, kind, movie)
-      : await remove(client, user.id, tmdbId, kind);
+    const { error } = await writeLibraryEntry(
+      client,
+      user.id,
+      tmdbId,
+      kind,
+      movie,
+    );
     if (error) throw error;
 
-    return librarySuccess(await readState(client, user.id, tmdbId));
+    return ok({ state: await readLibraryState(client, user.id, tmdbId) });
   } catch (error) {
     report("MovieLibrary write", error);
-    return libraryFail(
+    return fail(
       toUserMessage(error, { fallback: "Could not update your library" }),
     );
   }
@@ -314,19 +307,15 @@ export async function logMovieToDiaryAction(
 ): Promise<DiaryLogResult> {
   try {
     if (!isTmdbId(tmdbId) || !isDiaryDate(watchedOn)) {
-      return { error: "Invalid request", success: false };
+      return fail("Invalid request");
     }
 
     const user = await requireUser();
     const limit = await checkRateLimit(`diary:${user.id}`, 60);
-    if (!limit.success) {
-      return { error: "Too many requests, slow down a little", success: false };
-    }
+    if (!limit.success) return fail("Too many requests, slow down a little");
 
     const result = await getMovieDetails(tmdbId);
-    if (!result.success) {
-      return { error: "Could not load this movie, try again", success: false };
-    }
+    if (!result.success) return fail("Could not load this movie, try again");
 
     const { backdrop_path, payload, poster_path, release_date, title } =
       movieSnapshot(result.data);
@@ -343,29 +332,18 @@ export async function logMovieToDiaryAction(
     });
 
     if (error) {
-      if (error.message.includes("DIARY_DATE_IN_FUTURE")) {
-        return {
-          error: "You cannot log a movie in the future",
-          success: false,
-        };
-      }
-      if (error.message.includes("DIARY_DATE_BEFORE_LATEST_ENTRY")) {
-        return {
-          error: "This movie is already logged on a later day",
-          success: false,
-        };
-      }
+      const known = Object.keys(DIARY_INSERT_ERRORS).find((code) =>
+        error.message.includes(code),
+      );
+      if (known) return fail(DIARY_INSERT_ERRORS[known]);
       throw error;
     }
 
     await rememberWatchedPayload(client, user.id, tmdbId, payload);
-    return { success: true };
+    return ok();
   } catch (error) {
     report("MovieDiary write", error);
-    return {
-      error: toUserMessage(error, { fallback: "Could not log this movie" }),
-      success: false,
-    };
+    return fail(toUserMessage(error, { fallback: "Could not log this movie" }));
   }
 }
 
@@ -379,8 +357,6 @@ export async function setFavoriteAction(
     {
       fallback: "Could not update your favorites",
       name: "Favorite write",
-      perMinute: 120,
-      scope: "account-change",
     },
     async ({ client, userId }) => {
       if (!pinned) {
@@ -406,7 +382,10 @@ export async function setFavoriteAction(
       }
 
       const used = new Set(rows.map((row) => row.position));
-      const position = [1, 2, 3, 4, 5].find((slot) => !used.has(slot));
+      const position = Array.from(
+        { length: FAVORITES_MAX },
+        (_, index) => index + 1,
+      ).find((slot) => !used.has(slot));
       if (!position) return fail("Your favorites are full");
 
       const { error } = await client
@@ -429,8 +408,6 @@ export async function deleteDiaryEntryAction(
     {
       fallback: "Could not remove this entry",
       name: "Diary delete",
-      perMinute: 120,
-      scope: "account-change",
     },
     async ({ client, userId }) => {
       const { error } = await client

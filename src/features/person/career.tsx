@@ -1,9 +1,8 @@
 "use client";
 
-import { type MouseEvent, useEffect, useId, useRef, useState } from "react";
+import { type MouseEvent, useEffect, useRef, useState } from "react";
 import {
   animate,
-  LayoutGroup,
   motion,
   useMotionValue,
   useReducedMotion,
@@ -19,7 +18,7 @@ import { useEngine } from "@/motion/react";
 import { clamp, layoutTop, step } from "@/motion/utils";
 import { useDockLinkClick } from "@/ui/button";
 import { cn } from "@/ui/cn";
-import { SlidingHighlight } from "@/ui/form";
+import { HighlightGroup, useHighlight } from "@/ui/form";
 import { Icon } from "@/ui/media";
 import { TONE } from "@/ui/tokens";
 import {
@@ -29,16 +28,16 @@ import {
   MAX_TIMELINE_TITLES,
   TIMELINE_SPINE_CLASS,
 } from "./constants";
-import { usePersonView } from "./sections";
+import { usePersonView } from "./views";
 import type {
   Career as CareerData,
   CareerYear,
   TimelineCredit,
   TimelineYear,
 } from "./types";
-import { labelStep } from "./utils";
+import { chartLabelStep, filmCountLabel } from "./utils";
 
-function Roll({ year }: { year: number }) {
+function YearRoll({ year }: { year: number }) {
   const reduced = useReducedMotion();
   const shown = useMotionValue(year);
   const text = useTransform(shown, (value) => `${Math.round(value)}`);
@@ -58,7 +57,7 @@ function Roll({ year }: { year: number }) {
   return <motion.span>{text}</motion.span>;
 }
 
-function Career({
+function CareerChart({
   onOpen,
   peak,
   years,
@@ -68,7 +67,7 @@ function Career({
   years: readonly CareerYear[];
 }) {
   const [active, setActive] = useState(peak);
-  const every = labelStep(years.length);
+  const every = chartLabelStep(years.length);
   const current = years.find((item) => item.year === active) ?? years[0];
   const hidden = Math.max(0, current.films.length - MAX_TIMELINE_TITLES);
 
@@ -88,16 +87,12 @@ function Career({
       <DetailPart className="flex min-h-14 items-end gap-6" name="readout">
         <div className="flex min-w-0 items-end gap-5">
           <span className="font-zuume type-display-sm leading-crop font-bold text-ink tabular-nums sm:type-display-md">
-            <Roll year={current.year} />
+            <YearRoll year={current.year} />
           </span>
           <span className="flex min-w-0 flex-col gap-1 pb-0.5">
             <span className={`${TONE.label} text-ink-muted`}>
               {current.year === peak ? "Peak · " : ""}
-              {current.count === 0
-                ? "No films"
-                : current.count === 1
-                  ? "1 film"
-                  : `${current.count} films`}
+              {filmCountLabel(current.count)}
             </span>
             <span className="truncate type-body font-medium text-ink-body">
               {current.films.slice(0, MAX_TIMELINE_TITLES).join(" · ") || " "}
@@ -130,7 +125,7 @@ function Career({
             >
               {item.count > 0 ? (
                 <button
-                  aria-label={`${item.year}: ${item.count} ${item.count === 1 ? "film" : "films"}, ${item.films[0]}`}
+                  aria-label={`${item.year}: ${filmCountLabel(item.count)}, ${item.films[0]}`}
                   className="group flex h-full w-full cursor-pointer items-end outline-none"
                   data-own-focus=""
                   data-cursor="idle"
@@ -210,40 +205,38 @@ export function PersonCareer({ career }: { career: CareerData }) {
         icon="solar:chart-2-bold"
         title="Career"
       />
-      <Career onOpen={openTimeline} peak={career.peak} years={career.years} />
+      <CareerChart
+        onOpen={openTimeline}
+        peak={career.peak}
+        years={career.years}
+      />
     </DetailSection>
   );
 }
 
 function TimelineRow({
   credit,
-  highlighted,
-  onFocus,
-  onPointerEnter,
+  highlightKey,
 }: {
   credit: TimelineCredit;
-  highlighted: boolean;
-  onFocus: () => void;
-  onPointerEnter: () => void;
+  highlightKey: string;
 }) {
   const href = movieHref(credit.id);
   const handleClick = useDockLinkClick(href);
+  const highlight = useHighlight(
+    highlightKey,
+    "rounded-tile bg-fill-hover ring-1 ring-edge-hover ring-inset",
+  );
 
   return (
     <Link
       className="group relative isolate flex items-center gap-4 rounded-tile p-1 pr-3"
       href={href}
       onClick={handleClick}
-      onFocus={onFocus}
-      onPointerEnter={onPointerEnter}
       prefetch={false}
+      {...highlight.props}
     >
-      {highlighted ? (
-        <SlidingHighlight
-          className="rounded-tile bg-fill-hover ring-1 ring-edge-hover ring-inset"
-          layoutId="timeline-row-highlight"
-        />
-      ) : null}
+      {highlight.node}
       <PosterThumb
         className="pointer-events-none relative z-10 w-14 rounded-thumb sm:w-16"
         movieId={credit.id}
@@ -264,7 +257,7 @@ function TimelineRow({
   );
 }
 
-function Progress({ list }: { list: HTMLOListElement | null }) {
+function SpineProgress({ list }: { list: HTMLOListElement | null }) {
   const engine = useEngine();
   const fill = useRef<HTMLSpanElement>(null);
 
@@ -308,10 +301,6 @@ function Progress({ list }: { list: HTMLOListElement | null }) {
 
 export function PersonTimeline({ years }: { years: TimelineYear[] }) {
   const [list, setList] = useState<HTMLOListElement | null>(null);
-  const highlightGroupId = useId();
-  const [hoveredRow, setHoveredRow] = useState<string | null>(null);
-  const [focusedRow, setFocusedRow] = useState<string | null>(null);
-  const activeRow = hoveredRow ?? focusedRow;
   if (years.length === 0) return null;
 
   const films = years.reduce((total, { credits }) => total + credits.length, 0);
@@ -320,24 +309,13 @@ export function PersonTimeline({ years }: { years: TimelineYear[] }) {
     <DetailSection className="flex w-full flex-col" cue="timeline">
       <Heading icon="solar:sort-by-time-bold" title={`Timeline (${films})`} />
 
-      <LayoutGroup id={`person-timeline-${highlightGroupId}`}>
-        <ol
-          className="relative flex flex-col"
-          onBlurCapture={(event) => {
-            if (
-              !event.currentTarget.contains(event.relatedTarget as Node | null)
-            ) {
-              setFocusedRow(null);
-            }
-          }}
-          onPointerLeave={() => setHoveredRow(null)}
-          ref={setList}
-        >
+      <HighlightGroup>
+        <ol className="relative flex flex-col" ref={setList}>
           <DetailPart
             className={`absolute top-2 bottom-0 w-px bg-line ${TIMELINE_SPINE_CLASS}`}
             name="spine"
           >
-            <Progress list={list} />
+            <SpineProgress list={list} />
           </DetailPart>
           {years.map(({ credits, year }, index) => (
             <li data-year={year ?? "undated"} key={year ?? "undated"}>
@@ -359,30 +337,25 @@ export function PersonTimeline({ years }: { years: TimelineYear[] }) {
                   name="stamp"
                 />
                 <ul className="flex min-w-0 flex-1 flex-col gap-1 pl-4 sm:pl-6">
-                  {credits.map((credit, at) => {
-                    const rowId = `${year ?? "undated"}:${credit.key}`;
-                    return (
-                      <DetailPart
-                        as="li"
-                        index={at}
-                        key={credit.key}
-                        name="entry"
-                      >
-                        <TimelineRow
-                          credit={credit}
-                          highlighted={activeRow === rowId}
-                          onFocus={() => setFocusedRow(rowId)}
-                          onPointerEnter={() => setHoveredRow(rowId)}
-                        />
-                      </DetailPart>
-                    );
-                  })}
+                  {credits.map((credit, at) => (
+                    <DetailPart
+                      as="li"
+                      index={at}
+                      key={credit.key}
+                      name="entry"
+                    >
+                      <TimelineRow
+                        credit={credit}
+                        highlightKey={`${year ?? "undated"}:${credit.key}`}
+                      />
+                    </DetailPart>
+                  ))}
                 </ul>
               </DetailSection>
             </li>
           ))}
         </ol>
-      </LayoutGroup>
+      </HighlightGroup>
     </DetailSection>
   );
 }

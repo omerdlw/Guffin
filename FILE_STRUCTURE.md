@@ -88,20 +88,23 @@ guffin/
     │
     ├── features/                ── Ürün alanları (her birinde types · constants · utils)
     │   ├── artwork/             artwork: kullanıcının seçtiği afiş/arka plan (depo, bağlam menüsü, bileşenler)
-    │   ├── auth/                client · provider · server · sign-in · verification
+    │   ├── auth/                client · provider · server · sign-in · verification · notice
     │   ├── account/             Oturum açmış kullanıcı: client · provider (+ guard, realtime)
-    │   │                        actions · server · notifications · social · setup
+    │   │                        actions · server · notifications · social · setup · tiles
     │   ├── profile/             /account/[username] sayfaları: server · view · motion · skeleton
-    │   │                        hero · shell · controls · blocks · diary · activity · lists
+    │   │                        overview · hero · shell · controls · filter-bar · blocks · diary
+    │   │                        activity · calendar · reviews · lists
     │   ├── settings/            Ayarlar yüzeyi: surface · shared · identity · security
+    │   │                        passkeys · providers · sessions
     │   ├── detail/              Film ve kişi sayfasının ortak iskeleti (ödüller dahil):
-    │   │                        layout · stage · awards · motion
-    │   ├── movie/               actions · view · skeleton · reviews · cast · media · stage · watch-providers
-    │   ├── person/              credits · view · skeleton · header · career · sections
+    │   │                        layout · stage · gallery · awards · motion
+    │   ├── movie/               actions · server · view · skeleton · reviews · cast · media · gallery
+    │   │                        views · collection · stage · watch-providers
+    │   ├── person/              credits · view · views · skeleton · header · career · sections
     │   ├── home/                server · view · skeleton · motion · hero · community
     │   ├── search/              hooks · server · action · results
-    │   ├── lists/               actions · popular · buttons · form · order · picker
-    │   ├── reviews/             actions · server · rating · controls
+    │   ├── lists/               actions · server · popular · buttons · form · order · picker
+    │   ├── reviews/             actions · server · rating · controls · editor · movie-action
     │   ├── social/              actions · proof
     │   ├── legal/               view (metinler `constants.ts`'te)
     │   └── spotlights/          Oscar, yönetmenler, Top 100:
@@ -136,6 +139,7 @@ guffin/
         ├── env.ts               Ortam değişkenleri, oturum çerezi sabitleri
         ├── project.ts           Site bilgisi, paylaşım metadata'sı, rota yardımcıları (`movieHref`…)
         ├── http.ts              İstemci `requestJson`, `readParam`, `isUuid`
+        ├── format.ts            `pluralize`, `toLogline`
         ├── security.ts          Redis, hız sınırı, güvenlik başlıkları, aynı kaynak, güvenli fetch, API hata yanıtı
         ├── supabase/            browser · server (+ proxy) · database.types
         └── tmdb/                api · schemas · awards · server · shared

@@ -6,11 +6,23 @@ import type { Database, Json } from "@/lib/supabase/database.types";
 import { PUBLIC_ACCOUNT_FIELDS } from "./constants";
 import type { AccountPatchInput, CurrentAccount, PublicAccount } from "./types";
 import {
+  mergeAccountPatch,
   normalizeAccountPatch,
-  readAccountPatchField,
   toCurrentAccount,
   toPublicAccount,
 } from "./utils";
+
+async function readAccountEmail(
+  client: SupabaseClient<Database>,
+  accountId: string,
+): Promise<string | null> {
+  const { data } = await client
+    .from("account_emails")
+    .select("email")
+    .eq("account_id", accountId)
+    .maybeSingle();
+  return data?.email ?? null;
+}
 
 export async function getCurrentAccount({
   client,
@@ -19,23 +31,14 @@ export async function getCurrentAccount({
   client: SupabaseClient<Database>;
   userId: string;
 }): Promise<{ account: CurrentAccount }> {
-  const [accountResult, emailResult] = await Promise.all([
+  const [accountResult, email] = await Promise.all([
     client.from("accounts").select("*").eq("id", userId).single(),
-    client
-      .from("account_emails")
-      .select("email")
-      .eq("account_id", userId)
-      .maybeSingle(),
+    readAccountEmail(client, userId),
   ]);
 
   if (accountResult.error) throw accountResult.error;
 
-  return {
-    account: toCurrentAccount(
-      accountResult.data,
-      emailResult.data?.email ?? null,
-    ),
-  };
+  return { account: toCurrentAccount(accountResult.data, email) };
 }
 
 export async function getPublicAccount({
@@ -45,11 +48,7 @@ export async function getPublicAccount({
   client: SupabaseClient<Database>;
   username?: string | null;
 }): Promise<PublicAccount | null> {
-  if (!client) throw new Error("Account client is required");
-
-  const identifier = String(username || "")
-    .trim()
-    .toLowerCase();
+  const identifier = (username ?? "").trim().toLowerCase();
   if (!identifier) return null;
 
   let query = client.from("accounts").select(PUBLIC_ACCOUNT_FIELDS);
@@ -82,36 +81,9 @@ export async function updateAccount({
 
   if (fetchError) throw fetchError;
 
-  const mergedInput: AccountPatchInput = {
-    avatarUrl: readAccountPatchField(input, "avatarUrl", current?.avatar_url),
-    backgroundUrl: readAccountPatchField(
-      input,
-      "backgroundUrl",
-      current?.background_url,
-    ),
-    bannerPosition: readAccountPatchField(
-      input,
-      "bannerPosition",
-      current?.banner_position,
-    ),
-    bannerUrl: readAccountPatchField(input, "bannerUrl", current?.banner_url),
-    bio: readAccountPatchField(input, "bio", current?.bio),
-    displayName: readAccountPatchField(
-      input,
-      "displayName",
-      current?.display_name || undefined,
-    ),
-    isPrivate: readAccountPatchField(input, "isPrivate", current?.is_private),
-    username: readAccountPatchField(
-      input,
-      "username",
-      current?.username || undefined,
-    ),
-  };
+  const patch = normalizeAccountPatch(mergeAccountPatch(current, input));
 
-  const patch = normalizeAccountPatch(mergedInput);
-
-  const [updateResult, emailResult] = await Promise.all([
+  const [updateResult, email] = await Promise.all([
     client.rpc("update_account", {
       p_avatar_url: patch.avatarUrl,
       p_background_url: patch.backgroundUrl,
@@ -122,11 +94,7 @@ export async function updateAccount({
       p_is_private: patch.isPrivate,
       p_username: patch.username,
     }),
-    client
-      .from("account_emails")
-      .select("email")
-      .eq("account_id", userId)
-      .maybeSingle(),
+    readAccountEmail(client, userId),
   ]);
 
   if (updateResult.error) {
@@ -140,12 +108,7 @@ export async function updateAccount({
     ? updateResult.data[0]
     : updateResult.data;
 
-  return {
-    account: toCurrentAccount(
-      updatedAccountRow,
-      emailResult.data?.email ?? null,
-    ),
-  };
+  return { account: toCurrentAccount(updatedAccountRow, email) };
 }
 
 export async function rememberWatchedPayload(

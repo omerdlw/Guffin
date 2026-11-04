@@ -44,6 +44,12 @@ export const LAST_ACCOUNT_STORAGE_KEY = "GUFFIN_LAST_ACCOUNT";
 
 export const MOVIE_LIBRARY_KINDS = ["liked", "watched", "watchlist"] as const;
 
+export const LIBRARY_TABLES = {
+  liked: "account_likes",
+  watched: "account_watched",
+  watchlist: "account_watchlist",
+} as const;
+
 export const EMPTY_MOVIE_LIBRARY: MovieLibraryState = Object.freeze({
   liked: false,
   watched: false,
@@ -111,3 +117,16 @@ export const SOCIAL_SECONDARY_BUTTON = `${SOCIAL_BUTTON} text-ink-body ring-1 ri
 export const SOCIAL_MUTED_BUTTON = `${SOCIAL_BUTTON} text-ink-muted ring-1 ring-edge-hover ring-inset cursor-default`;
 
 export const SOCIAL_ROW = `${SURFACE_TILE} w-full`;
+
+export const FOLLOWS_URL = "/api/social/follows";
+export const NOTIFICATIONS_URL = "/api/notifications";
+export const SILENT_UNAUTHORIZED = { notifyOnUnauthorized: false } as const;
+export const SILENT_READ = {
+  notifyOnError: false,
+  notifyOnUnauthorized: false,
+} as const;
+
+export const DIARY_INSERT_ERRORS: Record<string, string> = {
+  DIARY_DATE_BEFORE_LATEST_ENTRY: "This movie is already logged on a later day",
+  DIARY_DATE_IN_FUTURE: "You cannot log a movie in the future",
+};

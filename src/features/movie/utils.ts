@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import type { FactName } from "@/features/detail/types";
+import { pluralize } from "@/lib/format";
 import { personHref } from "@/lib/project";
 import {
   type MovieDetails,
@@ -14,7 +15,6 @@ import {
   CAST_BLUR_STEPS,
   CREW_JOB_PRIORITY,
   DOCK_DIRECTOR_LIMIT,
-  EXACT_NUMBER_FORMAT,
   FALLBACK_REGION,
   MOVIE_CERTIFICATION_REGION,
   MOVIE_DATE_FORMAT,
@@ -25,23 +25,28 @@ import {
   MOVIE_WRITER_LIMIT,
   PROVIDER_SEARCH_URLS,
   RELEASE_TYPE_PRIORITY,
+  THUMBNAIL_WIDTHS,
   WRITING_JOBS,
 } from "./constants";
 import type {
+  FilmStats,
   GalleryTab,
   MovieCrewEntry,
+  PeopleTab,
+  PersonEntry,
   Provider,
   ProviderEntry,
   RegionProviders,
 } from "./types";
 
-export const titleClass = (title: string) => headlineClass(title, [26, 37, 49]);
+export const movieTitleClass = (title: string) =>
+  headlineClass(title, [26, 37, 49]);
 
 export function parseMovieId(raw: string): number | null {
   return /^[1-9]\d{0,9}$/.test(raw) ? Number(raw) : null;
 }
 
-function formatRuntime(minutes: number | null): string | null {
+export function formatRuntime(minutes: number | null): string | null {
   if (!minutes || minutes <= 0) return null;
   const hours = Math.floor(minutes / 60);
   const rest = minutes % 60;
@@ -78,11 +83,11 @@ export function getWriters(movie: MovieDetails, limit = MOVIE_WRITER_LIMIT) {
   ).slice(0, limit);
 }
 
-export function getCast(movie: MovieDetails) {
+function getCast(movie: MovieDetails) {
   return uniqueById([...movie.credits.cast].sort((a, b) => a.order - b.order));
 }
 
-export function getCrew(movie: MovieDetails): MovieCrewEntry[] {
+function getCrew(movie: MovieDetails): MovieCrewEntry[] {
   const people = new Map<number, MovieCrewEntry & { rank: number }>();
   const rankOf = (job: string | null) => {
     const index = job ? CREW_JOB_PRIORITY.indexOf(job) : -1;
@@ -206,7 +211,7 @@ export function movieSwatch(
   );
 }
 
-export const safeProviderLink = (value: string | null | undefined) =>
+export const sanitizeProviderLink = (value: string | null | undefined) =>
   typeof value === "string" && value.startsWith("https://www.themoviedb.org/")
     ? value
     : null;
@@ -242,31 +247,23 @@ export function compactCells(count: number, hasMore: boolean): CSSProperties {
   } as CSSProperties;
 }
 
-export function galleryThumbnail(tab: GalleryTab, path: string) {
+export function thumbnailFor(
+  variant: "gallery" | "wall",
+  tab: GalleryTab,
+  path: string,
+) {
+  const widths = THUMBNAIL_WIDTHS[variant];
   if (tab === "backdrops") {
     return {
       crossOrigin: "anonymous" as const,
       src: tmdbImageUrl("backdrop", path, "w780"),
-      srcSet: tmdbImageSrcSet("backdrop", path, ["w300", "w780", "w1280"]),
+      srcSet: tmdbImageSrcSet("backdrop", path, widths.backdrops) ?? undefined,
     };
   }
   return {
+    crossOrigin: undefined,
     src: tmdbImageUrl("poster", path, "w342"),
-    srcSet: tmdbImageSrcSet("poster", path, ["w185", "w342", "w500"]),
-  };
-}
-
-export function wallThumbnail(tab: GalleryTab, path: string) {
-  if (tab === "backdrops") {
-    return {
-      crossOrigin: "anonymous" as const,
-      src: tmdbImageUrl("backdrop", path, "w780"),
-      srcSet: tmdbImageSrcSet("backdrop", path, ["w300", "w780"]),
-    };
-  }
-  return {
-    src: tmdbImageUrl("poster", path, "w342"),
-    srcSet: tmdbImageSrcSet("poster", path, ["w185", "w342"]),
+    srcSet: tmdbImageSrcSet("poster", path, widths.posters) ?? undefined,
   };
 }
 
@@ -276,26 +273,26 @@ export function galleryOriginal(tab: GalleryTab, path: string) {
     : tmdbImageUrl("poster", path, "original");
 }
 
-export const pluralType = (type: string) =>
+export const pluralizeVideoType = (type: string) =>
   type.endsWith("s") ? type : `${type}s`;
 
-export const pictureOf = (src: string | null) => (src ? readable(src) : null);
+export const readableUrl = (src: string | null) => (src ? readable(src) : null);
 
-export const moneyLabel = (amount: number) => formatMoney(amount) ?? "$0";
+export const formatMoneyOrZero = (amount: number) =>
+  formatMoney(amount) ?? "$0";
 
-export const asName = (person: { id: number; name: string }): FactName => ({
+export const toFactName = (person: { id: number; name: string }): FactName => ({
   href: personHref(person.id),
   text: person.name,
 });
 
-export const capitalize = (text: string) =>
+export const capitalizeWords = (text: string) =>
   text.replace(
     /(^|\s)(\S)/g,
     (_, space: string, letter: string) => `${space}${letter.toUpperCase()}`,
   );
 
-export const membersLabel = (count: number) =>
-  `${EXACT_NUMBER_FORMAT.format(count)} ${count === 1 ? "member" : "members"}`;
+export const formatMembers = (count: number) => pluralize(count, "member");
 
 export function providerHref(
   provider: ProviderEntry,
@@ -328,4 +325,50 @@ export function pickRegion(codes: readonly string[]): string {
   const own = language.split("-")[1]?.toUpperCase();
   if (own && codes.includes(own)) return own;
   return codes.includes(FALLBACK_REGION) ? FALLBACK_REGION : (codes[0] ?? "");
+}
+
+export function toPersonEntries(movie: MovieDetails): {
+  cast: PersonEntry[];
+  crew: PersonEntry[];
+} {
+  return {
+    cast: getCast(movie).map((member) => ({
+      id: member.id,
+      key: member.creditId,
+      name: member.name,
+      profilePath: member.profilePath,
+      subtitle: member.character ?? "Cast",
+    })),
+    crew: getCrew(movie).map((member) => ({
+      id: member.id,
+      key: `${member.id}-${member.creditId}`,
+      name: member.name,
+      profilePath: member.profilePath,
+      subtitle: member.jobs,
+    })),
+  };
+}
+
+export function hasFilmStats(stats: FilmStats | null): stats is FilmStats {
+  return stats !== null && stats.watched + stats.listed + stats.liked > 0;
+}
+
+export function peopleTabs(
+  cast: readonly PersonEntry[],
+  crew: readonly PersonEntry[],
+): { key: PeopleTab; label: string }[] {
+  return [
+    ...(cast.length ? [{ key: "cast" as const, label: "Cast" }] : []),
+    ...(crew.length ? [{ key: "crew" as const, label: "Crew" }] : []),
+  ];
+}
+
+export function emptyReviewsMessage(
+  filter: string,
+  username: string | null,
+): string {
+  if (filter !== "all") return "No entries match this filter";
+  return username
+    ? "No entry from this account yet"
+    : "No reviews yet. Be the first.";
 }

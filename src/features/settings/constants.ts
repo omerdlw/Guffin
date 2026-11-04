@@ -50,6 +50,11 @@ export const DEVICE_PATTERNS: [
   [/Linux/i, "Linux", "desktop"],
 ];
 
+export const DEVICE_ICONS: Readonly<Record<string, string>> = {
+  mobile: "solar:smartphone-bold",
+  tablet: "solar:tablet-bold",
+};
+
 export const BROWSER_PATTERNS: [(userAgent: string) => boolean, string][] = [
   [(ua) => /Arc\//i.test(ua), "Arc"],
   [(ua) => /Edg\//i.test(ua), "Edge"],

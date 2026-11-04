@@ -6,6 +6,18 @@ import type { MediaCardAspect } from "@/ui/media";
 
 export type AwardsGrouping = "organizations" | "projects" | "timeline";
 
+export interface AwardsFilters {
+  grouping: AwardsGrouping;
+  organizationId: string;
+  winsOnly: boolean;
+}
+
+export interface AwardStat {
+  label: string;
+  strong?: boolean;
+  value: number;
+}
+
 export interface AwardItem {
   category: string;
   ceremony: string;

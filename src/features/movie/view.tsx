@@ -1,14 +1,13 @@
 import "server-only";
 import { type JSX, Suspense } from "react";
-import { report } from "@omerdlw/base-framework/utils";
 import { notFound } from "next/navigation";
 import {
   DetailAwards,
   DetailLayout,
   DetailSidebar,
-  FactNames,
-  FactText,
   Heading,
+  namesFact,
+  textFact,
 } from "@/features/detail/layout";
 import {
   DetailBloom,
@@ -18,14 +17,12 @@ import {
 } from "@/features/detail/motion";
 import type { Fact } from "@/features/detail/types";
 import { hasAwards } from "@/features/detail/utils";
-import {
-  getMoviePopularLists,
-  MoviePopularLists,
-} from "@/features/lists/popular";
+import { MoviePopularLists } from "@/features/lists/popular";
+import { getMoviePopularLists } from "@/features/lists/server";
 import type { MovieReviewSort } from "@/features/reviews/types";
 import { MovieSocialProof } from "@/features/social/proof";
+import { pluralize } from "@/lib/format";
 import { movieHref } from "@/lib/project";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 import {
   getAmbientPalette,
   getMovieAwards,
@@ -51,49 +48,38 @@ import {
   TONE,
 } from "@/ui/tokens";
 import { MoviePeople } from "./cast";
+import { MovieCollectionActions } from "./collection";
 import {
   AFTER_TAGLINE,
   COMPACT_NUMBER_FORMAT,
-  EXACT_NUMBER_FORMAT,
   MAX_VISIBLE_GENRES,
   MAX_VISIBLE_PEOPLE,
   MAX_VISIBLE_TAGS,
   TAGLINE_CLASS,
 } from "./constants";
+import { MovieGallery, MovieGalleryWall, MovieVideos } from "./gallery";
 import {
   MoneyCount,
   MovieBackdropHero,
-  MovieGallery,
-  MovieGalleryWall,
   MoviePoster,
   MovieProjection,
-  MovieVideos,
-  MovieViewProvider,
-  MovieViews,
-  ReelProvider,
 } from "./media";
+import { MovieViewProvider, MovieViews, ReelProvider } from "./views";
 import { MovieReviewDigest, MovieReviews } from "./reviews";
+import { getFilmStats } from "./server";
 import {
   AwardsAction,
-  MovieCollectionActions,
   MoviePageChrome,
   MoviePosterLink,
   MovieStage,
 } from "./stage";
-import type {
-  AwardsRequest,
-  FilmStats,
-  MoviePageKind,
-  PersonEntry,
-} from "./types";
+import type { AwardsRequest, FilmStats, MoviePageKind } from "./types";
 import {
-  asName,
-  capitalize,
+  capitalizeWords,
+  formatMembers,
   formatMoney,
   formatReleaseDate,
-  getCast,
   getCertification,
-  getCrew,
   getDirectors,
   getGalleryImages,
   getOriginalLanguageName,
@@ -102,36 +88,12 @@ import {
   getTags,
   getVideoTypes,
   getWriters,
-  membersLabel,
+  hasFilmStats,
   movieSwatch,
-  titleClass,
+  movieTitleClass,
+  toFactName,
+  toPersonEntries,
 } from "./utils";
-
-async function getFilmStats(tmdbId: number): Promise<FilmStats | null> {
-  try {
-    const client = await createServerSupabaseClient();
-    const { data, error } = await client
-      .from("film_stats")
-      .select(
-        "watched_count, liked_count, listed_count, watchlist_count, reviews_count, ratings",
-      )
-      .eq("tmdb_id", tmdbId)
-      .maybeSingle();
-    if (error) throw error;
-    if (!data) return null;
-    return {
-      liked: data.liked_count,
-      listed: data.listed_count,
-      ratings: data.ratings,
-      reviews: data.reviews_count,
-      watched: data.watched_count,
-      watchlist: data.watchlist_count,
-    };
-  } catch (error) {
-    report("Film stats read", error);
-    return null;
-  }
-}
 
 function MovieAwards({ awards }: { awards: AwardsRequest }): JSX.Element {
   return (
@@ -152,6 +114,60 @@ async function MovieAwardsAction({
   return <AwardsAction />;
 }
 
+function pluralLabel(count: number, one: string, many: string): string {
+  return count > 1 ? many : one;
+}
+
+function buildFacts(movie: MovieDetails): Fact[] {
+  const directors = getDirectors(movie);
+  const writers = getWriters(movie);
+  const certification = getCertification(movie);
+  const language = getOriginalLanguageName(movie);
+  const released = formatReleaseDate(movie.releaseDate);
+  const tags = getTags(movie);
+  const genres = movie.genres.map((genre) => ({ text: genre.name }));
+
+  const facts: (Fact | false | null | "")[] = [
+    genres.length > 0 &&
+      namesFact(
+        pluralLabel(genres.length, "Genre", "Genres"),
+        MAX_VISIBLE_GENRES,
+        genres,
+      ),
+    tags.length > 0 &&
+      namesFact(
+        "Tags",
+        MAX_VISIBLE_TAGS,
+        tags.map((tag) => ({ text: capitalizeWords(tag) })),
+      ),
+    directors.length > 0 &&
+      namesFact(
+        pluralLabel(directors.length, "Director", "Directors"),
+        MAX_VISIBLE_PEOPLE,
+        directors.map(toFactName),
+      ),
+    writers.length > 0 &&
+      namesFact(
+        pluralLabel(writers.length, "Writer", "Writers"),
+        MAX_VISIBLE_PEOPLE,
+        writers.map(toFactName),
+      ),
+    released && textFact("Released", released),
+    certification && textFact("Rated", certification),
+    language && textFact("Language", language),
+    movie.status !== "Unknown" && textFact("Status", movie.status),
+    formatMoney(movie.budget) && {
+      label: "Budget",
+      value: (index) => <MoneyCount index={index} value={movie.budget ?? 0} />,
+    },
+    formatMoney(movie.revenue) && {
+      label: "Revenue",
+      value: (index) => <MoneyCount index={index} value={movie.revenue ?? 0} />,
+    },
+  ];
+  return facts.filter((fact): fact is Fact => Boolean(fact));
+}
+
 function MovieSidebar({
   awards,
   movie,
@@ -159,104 +175,8 @@ function MovieSidebar({
   awards: Promise<Awards | null>;
   movie: MovieDetails;
 }): JSX.Element {
-  const directors = getDirectors(movie);
-  const writers = getWriters(movie);
-  const certification = getCertification(movie);
-  const language = getOriginalLanguageName(movie);
-  const released = formatReleaseDate(movie.releaseDate);
-  const budget = formatMoney(movie.budget);
-  const revenue = formatMoney(movie.revenue);
-  const tags = getTags(movie);
-  const genres = movie.genres.map((genre) => genre.name);
-
-  const facts: Fact[] = [];
-  if (genres.length > 0) {
-    facts.push({
-      label: genres.length > 1 ? "Genres" : "Genre",
-      value: (index) => (
-        <FactNames
-          max={MAX_VISIBLE_GENRES}
-          names={genres.map((text) => ({ text }))}
-          index={index}
-        />
-      ),
-    });
-  }
-  if (tags.length > 0) {
-    facts.push({
-      label: "Tags",
-      value: (index) => (
-        <FactNames
-          max={MAX_VISIBLE_TAGS}
-          names={tags.map((tag) => ({ text: capitalize(tag) }))}
-          index={index}
-        />
-      ),
-    });
-  }
-  if (directors.length > 0) {
-    facts.push({
-      label: directors.length > 1 ? "Directors" : "Director",
-      value: (index) => (
-        <FactNames
-          max={MAX_VISIBLE_PEOPLE}
-          names={directors.map(asName)}
-          index={index}
-        />
-      ),
-    });
-  }
-  if (writers.length > 0) {
-    facts.push({
-      label: writers.length > 1 ? "Writers" : "Writer",
-      value: (index) => (
-        <FactNames
-          max={MAX_VISIBLE_PEOPLE}
-          names={writers.map(asName)}
-          index={index}
-        />
-      ),
-    });
-  }
-  if (released) {
-    facts.push({
-      label: "Released",
-      value: (index) => <FactText index={index}>{released}</FactText>,
-    });
-  }
-  if (certification) {
-    facts.push({
-      label: "Rated",
-      value: (index) => <FactText index={index}>{certification}</FactText>,
-    });
-  }
-  if (language) {
-    facts.push({
-      label: "Language",
-      value: (index) => <FactText index={index}>{language}</FactText>,
-    });
-  }
-  if (movie.status !== "Unknown") {
-    facts.push({
-      label: "Status",
-      value: (index) => <FactText index={index}>{movie.status}</FactText>,
-    });
-  }
-  if (budget) {
-    facts.push({
-      label: "Budget",
-      value: (index) => <MoneyCount index={index} value={movie.budget ?? 0} />,
-    });
-  }
-  if (revenue) {
-    facts.push({
-      label: "Revenue",
-      value: (index) => <MoneyCount index={index} value={movie.revenue ?? 0} />,
-    });
-  }
-
   return (
-    <DetailSidebar facts={facts}>
+    <DetailSidebar facts={buildFacts(movie)}>
       <MoviePoster awards={awards} movie={movie} />
       <MovieCollectionActions movieId={movie.id}>
         <Suspense fallback={null}>
@@ -268,21 +188,21 @@ function MovieSidebar({
   );
 }
 
-const STATS = [
+const FILM_STAT_ROWS = [
   {
     icon: "solar:eye-bold",
-    label: (stats: FilmStats) => `Watched by ${membersLabel(stats.watched)}`,
+    label: (stats: FilmStats) => `Watched by ${formatMembers(stats.watched)}`,
     value: (stats: FilmStats) => stats.watched,
   },
   {
     icon: "solar:widget-bold",
     label: (stats: FilmStats) =>
-      `Appears in ${EXACT_NUMBER_FORMAT.format(stats.listed)} ${stats.listed === 1 ? "list" : "lists"}`,
+      `Appears in ${pluralize(stats.listed, "list")}`,
     value: (stats: FilmStats) => stats.listed,
   },
   {
     icon: "solar:heart-bold",
-    label: (stats: FilmStats) => `Liked by ${membersLabel(stats.liked)}`,
+    label: (stats: FilmStats) => `Liked by ${formatMembers(stats.liked)}`,
     value: (stats: FilmStats) => stats.liked,
   },
 ] as const;
@@ -292,16 +212,16 @@ function MovieStats({
 }: {
   stats: FilmStats | null;
 }): JSX.Element | null {
-  if (!stats || stats.watched + stats.listed + stats.liked === 0) return null;
+  if (!hasFilmStats(stats)) return null;
 
   return (
     <div className="relative flex shrink-0 items-center gap-5">
-      {STATS.map((stat) => (
-        <DetailPart key={stat.icon} name="stat">
-          <Tooltip position="top" text={stat.label(stats)}>
+      {FILM_STAT_ROWS.map((row) => (
+        <DetailPart key={row.icon} name="stat">
+          <Tooltip position="top" text={row.label(stats)}>
             <span className="flex cursor-help items-center gap-1.5 type-control leading-5 font-medium text-ink-body tabular-nums">
-              <Icon className="text-ink-muted" icon={stat.icon} size={16} />
-              {COMPACT_NUMBER_FORMAT.format(stat.value(stats))}
+              <Icon className="text-ink-muted" icon={row.icon} size={16} />
+              {COMPACT_NUMBER_FORMAT.format(row.value(stats))}
             </span>
           </Tooltip>
         </DetailPart>
@@ -346,6 +266,67 @@ function MovieRecommendations({
   );
 }
 
+function MovieHeader({
+  movie,
+  page,
+  stats,
+}: {
+  movie: MovieDetails;
+  page: MoviePageKind;
+  stats: FilmStats | null;
+}): JSX.Element {
+  const title = (
+    <DetailBloom
+      as="h1"
+      className={movieTitleClass(movie.title)}
+      part="title"
+      text={movie.title}
+    />
+  );
+
+  return (
+    <>
+      {page.kind === "reviews" ? (
+        <AccountLink
+          className="ui-fade hover:opacity-80 focus-visible:opacity-80"
+          href={movieHref(movie.id)}
+        >
+          {title}
+        </AccountLink>
+      ) : (
+        title
+      )}
+      {movie.tagline || movie.overview || hasFilmStats(stats) ? (
+        <div className={`${RULE_GAP} relative flex w-full items-center gap-5`}>
+          <DetailPart className="h-px flex-1 bg-grade/40" name="rule" />
+          <MovieStats stats={stats} />
+        </div>
+      ) : null}
+      {movie.tagline ? (
+        <DetailText
+          as="p"
+          by="char"
+          className={`${TAGLINE_CLASS} opacity-90`}
+          part="tagline"
+          text={movie.tagline}
+        />
+      ) : null}
+      {movie.overview ? (
+        <DetailText
+          as="p"
+          className={cn(
+            PROSE_CLASS,
+            "opacity-70",
+            movie.tagline && AFTER_TAGLINE,
+          )}
+          part="overview"
+          text={movie.overview}
+        />
+      ) : null}
+    </>
+  );
+}
+
 function MovieView({
   awards,
   images,
@@ -360,32 +341,9 @@ function MovieView({
   stats: FilmStats | null;
 }): JSX.Element {
   const backdrop = tmdbImageUrl("backdrop", movie.backdropPath, "original");
-
-  const cast: PersonEntry[] = getCast(movie).map((member) => ({
-    id: member.id,
-    key: member.creditId,
-    name: member.name,
-    profilePath: member.profilePath,
-    subtitle: member.character ?? "Cast",
-  }));
-  const crew: PersonEntry[] = getCrew(movie).map((member) => ({
-    id: member.id,
-    key: `${member.id}-${member.creditId}`,
-    name: member.name,
-    profilePath: member.profilePath,
-    subtitle: member.jobs,
-  }));
-
-  const hasStats = !!stats && stats.watched + stats.listed + stats.liked > 0;
-
-  const title = (
-    <DetailBloom
-      as="h1"
-      className={titleClass(movie.title)}
-      part="title"
-      text={movie.title}
-    />
-  );
+  const { cast, crew } = toPersonEntries(movie);
+  const backdrops = getGalleryImages(images);
+  const posters = getPosterImages(images);
 
   return (
     <ReelProvider>
@@ -403,49 +361,7 @@ function MovieView({
           }
           backdrop={backdrop ? <MovieBackdropHero movie={movie} /> : null}
           className="movie-page"
-          header={
-            <>
-              {page.kind === "reviews" ? (
-                <AccountLink
-                  className="ui-fade hover:opacity-80 focus-visible:opacity-80"
-                  href={movieHref(movie.id)}
-                >
-                  {title}
-                </AccountLink>
-              ) : (
-                title
-              )}
-              {movie.tagline || movie.overview || hasStats ? (
-                <div
-                  className={`${RULE_GAP} relative flex w-full items-center gap-5`}
-                >
-                  <DetailPart className="h-px flex-1 bg-grade/40" name="rule" />
-                  <MovieStats stats={stats} />
-                </div>
-              ) : null}
-              {movie.tagline ? (
-                <DetailText
-                  as="p"
-                  by="char"
-                  className={`${TAGLINE_CLASS} opacity-90`}
-                  part="tagline"
-                  text={movie.tagline}
-                />
-              ) : null}
-              {movie.overview ? (
-                <DetailText
-                  as="p"
-                  className={cn(
-                    PROSE_CLASS,
-                    "opacity-70",
-                    movie.tagline && AFTER_TAGLINE,
-                  )}
-                  part="overview"
-                  text={movie.overview}
-                />
-              ) : null}
-            </>
-          }
+          header={<MovieHeader movie={movie} page={page} stats={stats} />}
           intermission={<MovieProjection movie={movie} />}
           main={
             page.kind === "reviews" ? (
@@ -469,8 +385,8 @@ function MovieView({
                     <>
                       <MoviePeople cast={cast} crew={crew} />
                       <MovieGallery
-                        backdrops={getGalleryImages(images)}
-                        posters={getPosterImages(images)}
+                        backdrops={backdrops}
+                        posters={posters}
                         title={movie.title}
                       />
                       <MovieVideos
@@ -487,8 +403,8 @@ function MovieView({
           sidebar={<MovieSidebar awards={awards} movie={movie} />}
           wall={
             <MovieGalleryWall
-              backdrops={getGalleryImages(images)}
-              posters={getPosterImages(images)}
+              backdrops={backdrops}
+              posters={posters}
               title={movie.title}
             />
           }

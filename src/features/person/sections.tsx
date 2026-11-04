@@ -1,18 +1,9 @@
 "use client";
 
-import {
-  createContext,
-  type JSX,
-  type ReactNode,
-  use,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { type JSX, useEffect, useMemo, useState } from "react";
 import type { SurfaceEntry } from "@omerdlw/base-framework/modules/dock";
 import { useModal } from "@omerdlw/base-framework/modules/modal";
-import { artworkTarget } from "@/features/artwork/utils";
+import { artworkAttributes } from "@/features/artwork/utils";
 import { WALL_SIZES } from "@/features/detail/constants";
 import { Heading } from "@/features/detail/layout";
 import {
@@ -20,18 +11,11 @@ import {
   DetailSection,
   DetailSwap,
 } from "@/features/detail/motion";
-import {
-  DetailAction,
-  DetailViews,
-  GalleryWall,
-  ImageModal,
-  useLead,
-  WallButton,
-} from "@/features/detail/stage";
+import { GalleryWall, ImageModal, WallButton } from "@/features/detail/gallery";
+import { useLead } from "@/features/detail/stage";
 import type { ImageModalData, WallSet } from "@/features/detail/types";
 import { MoviePosterLink } from "@/features/movie/stage";
 import {
-  type Awards,
   type PersonImage,
   tmdbImageSrcSet,
   tmdbImageUrl,
@@ -48,120 +32,15 @@ import {
   PERSON_DEFAULT_SORT,
   PERSON_FILMOGRAPHY_PREVIEW,
   SORT_OPTIONS,
-  VIEW_ACTIONS,
 } from "./constants";
 import { sortFilmography } from "./credits";
 import type {
-  AwardTotals,
   FilmographyGroup,
   FilmographySort,
   GalleryTab,
   PersonBioData,
-  PersonViewKey,
-  PersonViewState,
 } from "./types";
-import { isFilmographySort, shelves } from "./utils";
-
-const PersonViewContext = createContext<PersonViewState | null>(null);
-
-export function PersonViewProvider({
-  awards,
-  children,
-  hasTimeline,
-}: {
-  awards: Promise<Awards | null>;
-  children: ReactNode;
-  hasTimeline: boolean;
-}) {
-  const [view, setView] = useState<PersonViewKey>("main");
-  const [focusYear, setFocusYear] = useState<number | null>(null);
-  const [totals, setTotals] = useState<AwardTotals | null>(null);
-
-  useEffect(() => {
-    let current = true;
-    void awards.then((resolved) => {
-      if (!current) return;
-      setTotals(
-        resolved && resolved.organizations.length > 0
-          ? { nominations: resolved.nominations, wins: resolved.wins }
-          : null,
-      );
-    });
-    return () => {
-      current = false;
-    };
-  }, [awards]);
-
-  const toggle = useCallback((target: Exclude<PersonViewKey, "main">) => {
-    setFocusYear(null);
-    setView((current) => (current === target ? "main" : target));
-  }, []);
-  const openTimeline = useCallback((year: number) => {
-    setFocusYear(year);
-    setView("timeline");
-  }, []);
-
-  const value = useMemo(
-    () => ({
-      awards: totals,
-      focusYear,
-      hasTimeline,
-      openTimeline,
-      toggle,
-      view,
-    }),
-    [focusYear, hasTimeline, openTimeline, toggle, totals, view],
-  );
-  return <PersonViewContext value={value}>{children}</PersonViewContext>;
-}
-
-export function usePersonView(): PersonViewState {
-  const state = use(PersonViewContext);
-  if (!state) {
-    throw new Error("usePersonView needs a PersonViewProvider above it");
-  }
-  return state;
-}
-
-export function PersonViews({
-  views,
-}: {
-  views: Record<PersonViewKey, ReactNode>;
-}) {
-  const { focusYear, view } = usePersonView();
-
-  return (
-    <DetailViews
-      focus={focusYear === null ? null : `[data-year="${focusYear}"]`}
-      shown={view}
-      views={views}
-    />
-  );
-}
-
-export function PersonViewActions(): JSX.Element | null {
-  const { awards, hasTimeline, toggle, view } = usePersonView();
-  const shown = VIEW_ACTIONS.filter(({ key }) =>
-    key === "timeline" ? hasTimeline : awards !== null,
-  );
-  if (shown.length === 0) return null;
-
-  return (
-    <div className="flex gap-3">
-      {shown.map(({ icon, key, label }) => (
-        <DetailAction
-          active={view === key}
-          grow
-          hoverLabel={view === key ? "Back" : undefined}
-          icon={icon}
-          key={key}
-          label={label}
-          onClick={() => toggle(key)}
-        />
-      ))}
-    </div>
-  );
-}
+import { isFilmographySort, buildGalleryShelves } from "./utils";
 
 export function PersonFilmography({
   groups,
@@ -278,7 +157,7 @@ export function PersonGallery({
   const [openImage] = useModal(ImageModal);
   const lead = useLead();
   useEffect(() => () => lead(null), [lead]);
-  const tabs = shelves(backdrops, portraits);
+  const tabs = buildGalleryShelves(backdrops, portraits);
   const [tab, setTab] = useState<GalleryTab>(tabs[0]?.[0] ?? "portraits");
   if (tabs.length === 0) return null;
 
@@ -341,7 +220,7 @@ export function PersonGallery({
               return (
                 <MediaCard
                   key={path}
-                  {...artworkTarget(portrait ? "poster" : "backdrop", path)}
+                  {...artworkAttributes(portrait ? "poster" : "backdrop", path)}
                   aspect={view.aspect}
                   data-still={path}
                   image={{ sizes: view.sizes, src: full }}
@@ -374,38 +253,40 @@ export function PersonGalleryWall({
   name: string;
   portraits: PersonImage[];
 }) {
-  const sets: WallSet[] = shelves(backdrops, portraits).map(([key, paths]) => {
-    const view = GALLERY_VIEWS[key];
-    const portrait = key === "portraits";
-    return {
-      aspect: view.aspect,
-      key,
-      label: view.label,
-      noun: view.noun,
-      pictures: paths.map((path) =>
-        portrait
-          ? {
-              full: tmdbImageUrl("profile", path, "original"),
-              lead: tmdbImageUrl("profile", path, "w185"),
-              path,
-              sizes: WALL_SIZES.poster,
-              src: tmdbImageUrl("profile", path, "h632"),
-            }
-          : {
-              crossOrigin: "anonymous" as const,
-              full: tmdbImageUrl("backdrop", path, "original"),
-              lead: tmdbImageUrl("backdrop", path, "w300"),
-              path,
-              sizes: WALL_SIZES.video,
-              src: tmdbImageUrl("backdrop", path, "w780"),
-              srcSet:
-                tmdbImageSrcSet("backdrop", path, ["w300", "w780"]) ??
-                undefined,
-            },
-      ),
-      slot: portrait ? "poster" : "backdrop",
-    };
-  });
+  const sets: WallSet[] = buildGalleryShelves(backdrops, portraits).map(
+    ([key, paths]) => {
+      const view = GALLERY_VIEWS[key];
+      const portrait = key === "portraits";
+      return {
+        aspect: view.aspect,
+        key,
+        label: view.label,
+        noun: view.noun,
+        pictures: paths.map((path) =>
+          portrait
+            ? {
+                full: tmdbImageUrl("profile", path, "original"),
+                lead: tmdbImageUrl("profile", path, "w185"),
+                path,
+                sizes: WALL_SIZES.poster,
+                src: tmdbImageUrl("profile", path, "h632"),
+              }
+            : {
+                crossOrigin: "anonymous" as const,
+                full: tmdbImageUrl("backdrop", path, "original"),
+                lead: tmdbImageUrl("backdrop", path, "w300"),
+                path,
+                sizes: WALL_SIZES.video,
+                src: tmdbImageUrl("backdrop", path, "w780"),
+                srcSet:
+                  tmdbImageSrcSet("backdrop", path, ["w300", "w780"]) ??
+                  undefined,
+              },
+        ),
+        slot: portrait ? "poster" : "backdrop",
+      };
+    },
+  );
   return <GalleryWall back={`Back to ${name}`} sets={sets} title={name} />;
 }
 

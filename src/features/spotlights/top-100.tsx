@@ -24,35 +24,24 @@ import {
 import type { MovieLibraryKind } from "@/features/account/types";
 import { applyMovieLibraryChange } from "@/features/account/utils";
 import { useAuth } from "@/features/auth/provider";
-import { createSignInSurfaceEntry } from "@/features/auth/sign-in";
+import { useOpenSignIn } from "@/features/auth/sign-in";
 import { CANON_HREF, movieHref } from "@/lib/project";
 import { tmdbImageUrl } from "@/lib/tmdb/shared";
 import { useAnyStage } from "@/motion/react";
 import { Button, DockAction } from "@/ui/button";
 import { cn } from "@/ui/cn";
 import { Icon } from "@/ui/media";
-import { TOP_100_FILTERS, TOP_100_KEYS } from "./constants";
+import { TOP_100_FILTERS, TOP_100_KEYS, WHEEL_DELTA_UNITS } from "./constants";
 import { Wall } from "./gl-wall";
 import { mountSpotlight, SalonPart, SalonStage, SpotlightDock } from "./shell";
 import type { CanonFilm, FilmMarks, Filter, Marks } from "./types";
 
 const NONE: ReadonlySet<number> = new Set();
 
-function Canon({ films }: { films: CanonFilm[] }): JSX.Element {
-  const reduced = Boolean(useReducedMotion());
-  const stage = useAnyStage();
+function useCanonMarks(films: CanonFilm[]) {
   const auth = useAuth();
   const toast = useToast();
-  const { navigate, openSurface } = useDockActions();
-  const canvas = useRef<HTMLCanvasElement>(null);
-  const tip = useRef<HTMLDivElement>(null);
-  const wall = useRef<Wall | null>(null);
-  const selectedRef = useRef(0);
-  const [selected, setSelected] = useState(0);
-  const [hovered, setHovered] = useState(-1);
-  const [opened, setOpened] = useState(false);
-  const [failed, setFailed] = useState(false);
-  const [filter, setFilter] = useState<Filter>("all");
+  const openSignIn = useOpenSignIn();
   const [pending, setPending] = useState(false);
   const [marks, setMarks] = useState<Marks>({
     account: null,
@@ -69,106 +58,6 @@ function Canon({ films }: { films: CanonFilm[] }): JSX.Element {
     () => films.filter((film) => watched.has(film.id)).length,
     [films, watched],
   );
-  const film = films[selected]!;
-  const pointed = hovered >= 0 ? films[hovered] : undefined;
-
-  const pick = useCallback((index: number, glide = true) => {
-    selectedRef.current = index;
-    setSelected(index);
-    wall.current?.select(index, glide);
-  }, []);
-
-  useEffect(() => {
-    const element = canvas.current;
-    if (!element) return;
-    const { renderer: scene, dispose } = mountSpotlight(
-      stage,
-      element,
-      (canvas, loop) =>
-        Wall.create(
-          canvas,
-          films,
-          { hovered: setHovered, opened: () => setOpened(true) },
-          loop,
-        ),
-      2,
-    );
-    if (!scene) {
-      setFailed(true);
-      setOpened(true);
-      return dispose;
-    }
-    wall.current = scene;
-    scene.select(selectedRef.current, false);
-
-    let captured: number | null = null;
-    const down = (event: PointerEvent) => {
-      if (event.button !== 0) return;
-      captured = event.pointerId;
-      element.setPointerCapture(event.pointerId);
-      scene.point(event.clientX, event.clientY);
-      scene.grab(event.clientX, event.clientY);
-    };
-    const move = (event: PointerEvent) => {
-      if (event.pointerType === "mouse" || captured === event.pointerId) {
-        scene.point(event.clientX, event.clientY);
-      }
-      if (captured === event.pointerId) {
-        scene.drag(event.clientX, event.clientY);
-        element.dataset.cursor = "drag";
-      }
-      const box = tip.current;
-      if (box) {
-        const flip = event.clientX > window.innerWidth - 280;
-        box.style.transform = `translate3d(${event.clientX + (flip ? -18 : 18)}px, ${event.clientY + 18}px, 0) translateX(${flip ? "-100%" : "0"})`;
-      }
-    };
-    const up = (event: PointerEvent) => {
-      if (captured !== event.pointerId) return;
-      captured = null;
-      delete element.dataset.cursor;
-      if (event.pointerType !== "mouse") scene.point(null, null);
-      if (!scene.drop()) return;
-      const index = scene.filmAt(event.clientX, event.clientY);
-      if (index < 0) return;
-      if (index === selectedRef.current)
-        void navigate(movieHref(films[index]!.id));
-      else pick(index);
-    };
-    const cancel = (event: PointerEvent) => {
-      if (captured !== event.pointerId) return;
-      captured = null;
-      delete element.dataset.cursor;
-      scene.drop();
-    };
-    const leave = () => scene.point(null, null);
-    const wheel = (event: WheelEvent) => {
-      event.preventDefault();
-      const unit = event.deltaMode === 1 ? 32 : event.deltaMode === 2 ? 400 : 1;
-      const [dx, dy] = event.shiftKey
-        ? [event.deltaY, event.deltaX]
-        : [event.deltaX, event.deltaY];
-      scene.scroll(dx * unit, dy * unit);
-    };
-    element.addEventListener("pointerdown", down);
-    element.addEventListener("pointermove", move);
-    element.addEventListener("pointerup", up);
-    element.addEventListener("pointercancel", cancel);
-    element.addEventListener("pointerleave", leave);
-    element.addEventListener("wheel", wheel, { passive: false });
-    return () => {
-      element.removeEventListener("pointerdown", down);
-      element.removeEventListener("pointermove", move);
-      element.removeEventListener("pointerup", up);
-      element.removeEventListener("pointercancel", cancel);
-      element.removeEventListener("pointerleave", leave);
-      element.removeEventListener("wheel", wheel);
-      dispose();
-      wall.current = null;
-    };
-  }, [films, navigate, pick, stage]);
-
-  useEffect(() => wall.current?.setReduced(reduced), [reduced]);
 
   useEffect(() => {
     if (!account) return;
@@ -192,29 +81,6 @@ function Canon({ films }: { films: CanonFilm[] }): JSX.Element {
     };
   }, [account, ids]);
 
-  useEffect(() => {
-    const scene = wall.current;
-    if (!scene) return;
-    scene.setMarks(
-      known
-        ? films.map<FilmMarks>((entry) => {
-            const seen = watched.has(entry.id);
-            return {
-              listed: listed.has(entry.id),
-              match: filter === "all" || (filter === "seen") === seen,
-              seen,
-            };
-          })
-        : null,
-    );
-  }, [films, filter, known, listed, watched]);
-
-  const signIn = useCallback(() => {
-    void openSurface(
-      createSignInSurfaceEntry({ next: window.location.pathname }),
-    );
-  }, [openSurface]);
-
   const toggle = useCallback(
     async (
       target: CanonFilm,
@@ -222,7 +88,7 @@ function Canon({ films }: { films: CanonFilm[] }): JSX.Element {
     ) => {
       if (!auth.isReady || pending) return;
       if (!account) {
-        signIn();
+        openSignIn();
         return;
       }
       const before = marks;
@@ -263,8 +129,248 @@ function Canon({ films }: { films: CanonFilm[] }): JSX.Element {
         setPending(false);
       }
     },
-    [account, auth.isReady, listed, marks, pending, signIn, toast, watched],
+    [account, auth.isReady, listed, marks, openSignIn, pending, toast, watched],
   );
+
+  return {
+    account,
+    known,
+    listed,
+    pending,
+    ready: auth.isReady,
+    seenCount,
+    toggle,
+    watched,
+  };
+}
+
+function bindWallPointer(
+  element: HTMLCanvasElement,
+  scene: Wall,
+  {
+    onSelect,
+    openFilm,
+    selected,
+    tip,
+  }: {
+    onSelect: (index: number) => void;
+    openFilm: (index: number) => void;
+    selected: () => number;
+    tip: HTMLElement | null;
+  },
+): () => void {
+  let captured: number | null = null;
+  const stopDragging = () => {
+    captured = null;
+    delete element.dataset.cursor;
+  };
+
+  const down = (event: PointerEvent) => {
+    if (event.button !== 0) return;
+    captured = event.pointerId;
+    element.setPointerCapture(event.pointerId);
+    scene.point(event.clientX, event.clientY);
+    scene.grab(event.clientX, event.clientY);
+  };
+  const move = (event: PointerEvent) => {
+    if (event.pointerType === "mouse" || captured === event.pointerId) {
+      scene.point(event.clientX, event.clientY);
+    }
+    if (captured === event.pointerId) {
+      scene.drag(event.clientX, event.clientY);
+      element.dataset.cursor = "drag";
+    }
+    if (tip) {
+      const flip = event.clientX > window.innerWidth - 280;
+      tip.style.transform = `translate3d(${event.clientX + (flip ? -18 : 18)}px, ${event.clientY + 18}px, 0) translateX(${flip ? "-100%" : "0"})`;
+    }
+  };
+  const up = (event: PointerEvent) => {
+    if (captured !== event.pointerId) return;
+    stopDragging();
+    if (event.pointerType !== "mouse") scene.point(null, null);
+    if (!scene.drop()) return;
+    const index = scene.filmAt(event.clientX, event.clientY);
+    if (index < 0) return;
+    if (index === selected()) openFilm(index);
+    else onSelect(index);
+  };
+  const cancel = (event: PointerEvent) => {
+    if (captured !== event.pointerId) return;
+    stopDragging();
+    scene.drop();
+  };
+  const leave = () => scene.point(null, null);
+  const wheel = (event: WheelEvent) => {
+    event.preventDefault();
+    const unit = WHEEL_DELTA_UNITS[event.deltaMode] ?? 1;
+    const [dx, dy] = event.shiftKey
+      ? [event.deltaY, event.deltaX]
+      : [event.deltaX, event.deltaY];
+    scene.scroll(dx * unit, dy * unit);
+  };
+
+  element.addEventListener("pointerdown", down);
+  element.addEventListener("pointermove", move);
+  element.addEventListener("pointerup", up);
+  element.addEventListener("pointercancel", cancel);
+  element.addEventListener("pointerleave", leave);
+  element.addEventListener("wheel", wheel, { passive: false });
+  return () => {
+    element.removeEventListener("pointerdown", down);
+    element.removeEventListener("pointermove", move);
+    element.removeEventListener("pointerup", up);
+    element.removeEventListener("pointercancel", cancel);
+    element.removeEventListener("pointerleave", leave);
+    element.removeEventListener("wheel", wheel);
+  };
+}
+
+function SeenPanel({
+  count,
+  filter,
+  onFilter,
+  opened,
+  total,
+}: {
+  count: number;
+  filter: Filter;
+  onFilter: (filter: Filter) => void;
+  opened: boolean;
+  total: number;
+}): JSX.Element {
+  return (
+    <div
+      className={cn(
+        "fixed top-[clamp(1.25rem,4.5svh,2.5rem)] right-4 z-10 flex flex-col items-end gap-3 [transition:opacity_1.2s] sm:right-8",
+        opened ? "opacity-100" : "pointer-events-none opacity-0",
+      )}
+    >
+      <p className="flex items-end gap-2.5 text-ink">
+        <span className="font-zuume type-display-sm leading-crop lg:type-display-md font-bold tabular-nums">
+          {count}
+        </span>
+        <span className="pb-1 type-meta leading-none text-ink-muted">
+          of {total} seen
+        </span>
+      </p>
+      <span
+        aria-hidden="true"
+        className="relative block h-px w-36 bg-fill-active"
+      >
+        <span
+          className="absolute inset-y-0 left-0 bg-ink-body transition-[width] duration-settle ease-out-quint"
+          style={{ width: `${(count / total) * 100}%` }}
+        />
+      </span>
+      <div aria-label="Show" className="flex gap-4 type-meta" role="radiogroup">
+        {TOP_100_FILTERS.map((option) => (
+          <button
+            aria-checked={filter === option.value}
+            className={cn(
+              "py-1 [transition:color_0.3s]",
+              filter === option.value
+                ? "text-ink"
+                : "text-ink-body hover:text-ink focus-visible:text-ink",
+            )}
+            key={option.value}
+            onClick={() => onFilter(option.value)}
+            role="radio"
+            type="button"
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Canon({ films }: { films: CanonFilm[] }): JSX.Element {
+  const reduced = Boolean(useReducedMotion());
+  const stage = useAnyStage();
+  const { navigate } = useDockActions();
+  const canvas = useRef<HTMLCanvasElement>(null);
+  const tip = useRef<HTMLDivElement>(null);
+  const wall = useRef<Wall | null>(null);
+  const selectedRef = useRef(0);
+  const [view, setView] = useState({
+    failed: false,
+    hovered: -1,
+    opened: false,
+    selected: 0,
+  });
+  const [filter, setFilter] = useState<Filter>("all");
+  const { account, known, listed, pending, ready, seenCount, toggle, watched } =
+    useCanonMarks(films);
+  const { failed, hovered, opened, selected } = view;
+  const film = films[selected]!;
+  const pointed = hovered >= 0 ? films[hovered] : undefined;
+  const patchView = (patch: Partial<typeof view>) =>
+    setView((current) => ({ ...current, ...patch }));
+
+  const pick = useCallback((index: number, glide = true) => {
+    selectedRef.current = index;
+    setView((current) => ({ ...current, selected: index }));
+    wall.current?.select(index, glide);
+  }, []);
+
+  useEffect(() => {
+    const element = canvas.current;
+    if (!element) return;
+    const { renderer: scene, dispose } = mountSpotlight(
+      stage,
+      element,
+      (canvas, loop) =>
+        Wall.create(
+          canvas,
+          films,
+          {
+            hovered: (index) => patchView({ hovered: index }),
+            opened: () => patchView({ opened: true }),
+          },
+          loop,
+        ),
+      2,
+    );
+    if (!scene) {
+      patchView({ failed: true, opened: true });
+      return dispose;
+    }
+    wall.current = scene;
+    scene.select(selectedRef.current, false);
+
+    const unbind = bindWallPointer(element, scene, {
+      onSelect: pick,
+      openFilm: (index) => void navigate(movieHref(films[index]!.id)),
+      selected: () => selectedRef.current,
+      tip: tip.current,
+    });
+    return () => {
+      unbind();
+      dispose();
+      wall.current = null;
+    };
+  }, [films, navigate, pick, stage]);
+
+  useEffect(() => wall.current?.setReduced(reduced), [reduced]);
+
+  useEffect(() => {
+    const scene = wall.current;
+    if (!scene) return;
+    scene.setMarks(
+      known
+        ? films.map<FilmMarks>((entry) => {
+            const seen = watched.has(entry.id);
+            return {
+              listed: listed.has(entry.id),
+              match: filter === "all" || (filter === "seen") === seen,
+              seen,
+            };
+          })
+        : null,
+    );
+  }, [films, filter, known, listed, watched]);
 
   const onKey = (event: KeyboardEvent<HTMLCanvasElement>) => {
     if (event.key in TOP_100_KEYS) {
@@ -280,7 +386,7 @@ function Canon({ films }: { films: CanonFilm[] }): JSX.Element {
   const control = useMemo(
     () => (
       <WallAction
-        disabled={!auth.isReady || pending || (account !== null && !known)}
+        disabled={!ready || pending || (account !== null && !known)}
         listed={listed.has(film.id)}
         onOpen={() => void navigate(movieHref(film.id))}
         onToggle={(kind) => void toggle(film, kind)}
@@ -288,17 +394,7 @@ function Canon({ films }: { films: CanonFilm[] }): JSX.Element {
         title={film.title}
       />
     ),
-    [
-      account,
-      auth.isReady,
-      film,
-      known,
-      listed,
-      navigate,
-      pending,
-      toggle,
-      watched,
-    ],
+    [account, film, known, listed, navigate, pending, ready, toggle, watched],
   );
 
   return (
@@ -326,53 +422,13 @@ function Canon({ films }: { films: CanonFilm[] }): JSX.Element {
         {failed ? <PlainWall films={films} watched={watched} /> : null}
 
         {known ? (
-          <div
-            className={cn(
-              "fixed top-[clamp(1.25rem,4.5svh,2.5rem)] right-4 z-10 flex flex-col items-end gap-3 [transition:opacity_1.2s] sm:right-8",
-              opened ? "opacity-100" : "pointer-events-none opacity-0",
-            )}
-          >
-            <p className="flex items-end gap-2.5 text-ink">
-              <span className="font-zuume type-display-sm leading-crop lg:type-display-md font-bold tabular-nums">
-                {seenCount}
-              </span>
-              <span className="pb-1 type-meta leading-none text-ink-muted">
-                of {films.length} seen
-              </span>
-            </p>
-            <span
-              aria-hidden="true"
-              className="relative block h-px w-36 bg-fill-active"
-            >
-              <span
-                className="absolute inset-y-0 left-0 bg-ink-body transition-[width] duration-settle ease-out-quint"
-                style={{ width: `${(seenCount / films.length) * 100}%` }}
-              />
-            </span>
-            <div
-              aria-label="Show"
-              className="flex gap-4 type-meta"
-              role="radiogroup"
-            >
-              {TOP_100_FILTERS.map((option) => (
-                <button
-                  aria-checked={filter === option.value}
-                  className={cn(
-                    "py-1 [transition:color_0.3s]",
-                    filter === option.value
-                      ? "text-ink"
-                      : "text-ink-body hover:text-ink focus-visible:text-ink",
-                  )}
-                  key={option.value}
-                  onClick={() => setFilter(option.value)}
-                  role="radio"
-                  type="button"
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          </div>
+          <SeenPanel
+            count={seenCount}
+            filter={filter}
+            onFilter={setFilter}
+            opened={opened}
+            total={films.length}
+          />
         ) : null}
       </SalonPart>
 

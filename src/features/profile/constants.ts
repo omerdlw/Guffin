@@ -130,6 +130,42 @@ export const ACTIVITY_SORTS = [
   { label: "Oldest first", value: "oldest" },
 ] as const satisfies readonly FilterOption[];
 
+export const MEDIA_SORT_COLUMNS = {
+  added_asc: ["added", true],
+  added_desc: ["added", false],
+  release_asc: ["release_date", true],
+  release_desc: ["release_date", false],
+  title_asc: ["title", true],
+  title_desc: ["title", false],
+} as const;
+
+export const LIST_SORT_COLUMNS = {
+  created_asc: ["created_at", true],
+  created_desc: ["created_at", false],
+  items_desc: ["items_count", false],
+  likes_desc: ["likes_count", false],
+  title_asc: ["title", true],
+  updated_desc: ["updated_at", false],
+} as const;
+
+export const REVIEW_SORT_COLUMNS = {
+  likes_desc: ["likes_count", false],
+  newest: ["updated_at", false],
+  oldest: ["updated_at", true],
+  rating_asc: ["rating", true],
+  rating_desc: ["rating", false],
+} as const;
+
+export const LIST_PREVIEW_POSTERS = 5;
+
+export const DIARY_MONTH_LIMIT = 400;
+
+export const LIST_COMMENTS_LIMIT = 50;
+
+export const PALETTE_REVALIDATE_SECONDS = 60 * 60 * 24 * 7;
+
+export const OVERVIEW_WATCHLIST = 5;
+
 export const PROFILE_GRID =
   "grid grid-cols-3 gap-2.5 sm:grid-cols-4 sm:gap-3 md:grid-cols-5 lg:grid-cols-6";
 
@@ -195,7 +231,9 @@ export const DIARY_DIGEST_MONTH_FORMAT = new Intl.DateTimeFormat("en-US", {
 
 export const PEOPLE_COLUMNS = 6;
 
-export const RATING_SLOTS = 5;
+export const POSTER_STACK_SLOTS = 5;
+
+export const STAR_COUNT = 5;
 
 export const ANY_OPTION = "__any__";
 
@@ -210,6 +248,20 @@ export const FILTER_BAR_LOOK = {
   select: "min-w-0 md:w-44 md:flex-none lg:w-48",
   share: "md:w-auto md:flex-1 lg:w-48 lg:flex-none",
   ...TONE.select,
+} as const;
+
+export const PAGE_STEP_CLASS =
+  "center size-9 shrink-0 rounded-full type-meta font-semibold ring-1 ring-inset";
+
+export const PAGE_IDLE_CLASS =
+  "text-ink-body ring-edge hover:text-ink focus-visible:text-ink";
+
+export const PAGE_CURRENT_CLASS = "text-ink ring-edge-focus";
+
+export const LIBRARY_KIND_BY_SOURCE = {
+  likes: "liked",
+  watched: "watched",
+  watchlist: "watchlist",
 } as const;
 
 export const SECTION_TABS = [

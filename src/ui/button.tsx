@@ -9,9 +9,12 @@ import {
   type Ref,
   useEffect,
   useState,
+  useTransition,
 } from "react";
 import { useDockActions } from "@omerdlw/base-framework/modules/dock";
+import { useToast } from "@omerdlw/base-framework/modules/notification";
 import { useTheme } from "@omerdlw/base-framework/theme";
+import { report, toUserMessage } from "@omerdlw/base-framework/utils";
 import Link from "next/link";
 import { Magnet } from "@/motion/tilt";
 import { cn } from "./cn";
@@ -192,4 +195,41 @@ export function useConfirmStep(
   }, [confirming, resetMs]);
 
   return [confirming, setConfirming];
+}
+
+export function useConfirmedAction({
+  fallback,
+  name,
+  onSuccess,
+}: {
+  fallback: string;
+  name: string;
+  onSuccess?: () => void;
+}) {
+  const toast = useToast();
+  const [confirming, setConfirming] = useConfirmStep();
+  const [busy, startTransition] = useTransition();
+
+  const run = (work: () => Promise<{ error?: string; success: boolean }>) =>
+    startTransition(async () => {
+      try {
+        const result = await work();
+        if (!result.success) throw new Error(result.error);
+        onSuccess?.();
+      } catch (error) {
+        report(name, error);
+        toast(toUserMessage(error, { fallback }));
+      }
+      setConfirming(false);
+    });
+
+  const confirmThen = (work: Parameters<typeof run>[0]) => {
+    if (!confirming) {
+      setConfirming(true);
+      return;
+    }
+    run(work);
+  };
+
+  return { busy, confirming, confirmThen, run };
 }

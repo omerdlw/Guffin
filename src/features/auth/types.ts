@@ -57,14 +57,19 @@ export interface VerificationData {
   onVerified?: () => Promise<void> | void;
 }
 
-export interface OtpBoxesProps {
+export interface OtpState {
   code: string;
+  focused: boolean;
+  invalid: boolean;
+}
+
+export type VerificationBusy = "resending" | "submitting" | null;
+
+export interface OtpBoxesProps extends OtpState {
   disabled?: boolean;
-  hasError?: boolean;
   inputRef: RefObject<HTMLInputElement | null>;
-  isFocused: boolean;
   onCodeChange: (value?: string) => void;
-  setIsFocused: (focused: boolean) => void;
+  onFocusChange: (focused: boolean) => void;
 }
 
 export interface VerificationSurfaceProps {

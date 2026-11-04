@@ -33,6 +33,7 @@ import {
   SalonStage,
   SpotlightDock,
   useGestureStep,
+  useSyncedSearchParam,
 } from "./shell";
 import type { Laureate } from "./types";
 import { ordinal, posterOf } from "./utils";
@@ -415,13 +416,8 @@ function Oscars({
       .filter((next): next is Laureate => Boolean(next))
       .map(posterOf);
     foundry.current?.show(posterOf(film), String(film.ceremonyYear), around);
-    const timer = setTimeout(() => {
-      const url = new URL(window.location.href);
-      url.searchParams.set("ceremony", String(film.ceremony));
-      window.history.replaceState(window.history.state, "", url);
-    }, 500);
-    return () => clearTimeout(timer);
   }, [film, index, laureates]);
+  useSyncedSearchParam("ceremony", String(film.ceremony));
 
   return (
     <>

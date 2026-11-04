@@ -6,7 +6,7 @@ import { bindScore } from "@/motion/react";
 import { defineScore } from "@/motion/score";
 import { Icon } from "@/ui/media";
 import { TONE } from "@/ui/tokens";
-import { roomOf } from "./utils";
+import { ambientImage } from "./utils";
 
 const HOME = defineScore({
   cast: {
@@ -75,7 +75,7 @@ export function HomeStage({
   const [lead, setLead] = useState<string | null>(null);
 
   return (
-    <HomeStageRoot grade={lead ?? roomOf(backdrop)}>
+    <HomeStageRoot grade={lead ?? ambientImage(backdrop)}>
       <Room />
       <LeadContext value={setLead}>{children}</LeadContext>
     </HomeStageRoot>

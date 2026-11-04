@@ -28,6 +28,16 @@ export async function signInSeedAccount(email: string): Promise<void> {
   });
 }
 
+export async function hasAccountUsername(): Promise<boolean> {
+  const response = await requestJson<{
+    account: { username: string | null } | null;
+  }>("/api/account/me", {
+    notifyOnError: false,
+    notifyOnUnauthorized: false,
+  }).catch(() => null);
+  return Boolean(response?.account?.username);
+}
+
 export async function verifyEmailOtp(
   client: AuthClient,
   email: string,

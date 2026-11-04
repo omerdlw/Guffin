@@ -31,9 +31,6 @@ export interface MutualFollowers {
   total: number;
 }
 
-export type SocialResult<T extends object> =
-  ({ success: true } & T) | { error: string; success: false };
-
 export interface MovieProofRow {
   account_id: string;
   avatar_url: string | null;

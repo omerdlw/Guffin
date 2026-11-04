@@ -14,9 +14,10 @@ import type { MovieDetails } from "@/lib/tmdb/shared";
 import {
   LIST_COLUMNS,
   LIST_ITEMS_MAX,
+  LIST_RATE_LIMIT_PER_MINUTE,
   LIST_TITLE_MAX,
   MAX_LISTS,
-  PREVIEW_BATCH,
+  PREVIEW_POSTERS,
 } from "./constants";
 import type {
   ListInput,
@@ -26,10 +27,14 @@ import type {
   MovieListChangeResult,
   MovieListsResult,
 } from "./types";
-import { cleanList, messageFor, summarize } from "./utils";
+import { readListPreviews } from "./server";
+import { listErrorMessage, sanitizeListInput, toListSummary } from "./utils";
 
-async function limited(userId: string) {
-  const limit = await checkRateLimit(`lists:${userId}`, 60);
+async function isWithinRateLimit(userId: string) {
+  const limit = await checkRateLimit(
+    `lists:${userId}`,
+    LIST_RATE_LIMIT_PER_MINUTE,
+  );
   return limit.success;
 }
 
@@ -67,6 +72,42 @@ async function readList(
   return data as ListRecord | null;
 }
 
+async function getMemberships(
+  client: ListsClient,
+  rows: readonly ListRecord[],
+  tmdbId: number,
+): Promise<string[]> {
+  if (rows.length === 0) return [];
+  const { data, error } = await client
+    .from("list_items")
+    .select("list_id")
+    .eq("tmdb_id", tmdbId)
+    .in(
+      "list_id",
+      rows.map((row) => row.id),
+    );
+  if (error) throw error;
+  return (data ?? []).map((item: { list_id: string }) => item.list_id);
+}
+
+async function getManyListPreviews(
+  client: ListsClient,
+  rows: readonly ListRecord[],
+): Promise<Map<string, (string | null)[]>> {
+  const ids = rows.filter((row) => row.items_count > 0).map((row) => row.id);
+  return readListPreviews(client, ids, PREVIEW_POSTERS, { dropEmpty: true });
+}
+
+async function getListPreviews(client: ListsClient, listId: string) {
+  const { data } = await client
+    .from("list_items")
+    .select("poster_path")
+    .eq("list_id", listId)
+    .order("position", { ascending: true })
+    .limit(PREVIEW_POSTERS);
+  return (data ?? []).map((item) => item.poster_path).filter(Boolean);
+}
+
 export async function getMovieListsAction(
   tmdbId: number,
 ): Promise<MovieListsResult> {
@@ -90,73 +131,16 @@ export async function getMovieListsAction(
       getManyListPreviews(client, rows),
     ]);
 
-    return {
-      lists: rows.map((row) => summarize(row, previews.get(row.id) ?? [])),
+    return ok({
+      lists: rows.map((row) => toListSummary(row, previews.get(row.id) ?? [])),
       memberships,
-      success: true,
-    };
+    });
   } catch (error) {
     report("MovieLists read", error);
     return fail(
       toUserMessage(error, { fallback: "Could not load your lists" }),
     );
   }
-}
-
-async function getMemberships(
-  client: ListsClient,
-  rows: readonly ListRecord[],
-  tmdbId: number,
-): Promise<string[]> {
-  if (rows.length === 0) return [];
-  const { data, error } = await client
-    .from("list_items")
-    .select("list_id")
-    .eq("tmdb_id", tmdbId)
-    .in(
-      "list_id",
-      rows.map((row) => row.id),
-    );
-  if (error) throw error;
-  return (data ?? []).map((item: { list_id: string }) => item.list_id);
-}
-
-async function getManyListPreviews(
-  client: ListsClient,
-  rows: readonly ListRecord[],
-): Promise<Map<string, string[]>> {
-  const ids = rows.filter((row) => row.items_count > 0).map((row) => row.id);
-  const batches: string[][] = [];
-  for (let at = 0; at < ids.length; at += PREVIEW_BATCH) {
-    batches.push(ids.slice(at, at + PREVIEW_BATCH));
-  }
-  const results = await Promise.all(
-    batches.map((batch) =>
-      client.rpc("get_list_previews", { p_limit: 4, p_list_ids: batch }),
-    ),
-  );
-
-  const previews = new Map<string, string[]>();
-  for (const { data, error } of results) {
-    if (error) throw error;
-    for (const item of data ?? []) {
-      if (!item.poster_path) continue;
-      const posters = previews.get(item.list_id) ?? [];
-      posters.push(item.poster_path);
-      previews.set(item.list_id, posters);
-    }
-  }
-  return previews;
-}
-
-async function getListPreviews(client: ListsClient, listId: string) {
-  const { data } = await client
-    .from("list_items")
-    .select("poster_path")
-    .eq("list_id", listId)
-    .order("position", { ascending: true })
-    .limit(4);
-  return (data ?? []).map((item) => item.poster_path).filter(Boolean);
 }
 
 export async function setMovieListMembershipAction(
@@ -168,7 +152,7 @@ export async function setMovieListMembershipAction(
     if (!isTmdbId(tmdbId) || !isUuid(listId)) return fail("Invalid request");
 
     const user = await requireUser();
-    if (!(await limited(user.id))) {
+    if (!(await isWithinRateLimit(user.id))) {
       return fail("Too many requests, slow down a little");
     }
 
@@ -194,10 +178,10 @@ export async function setMovieListMembershipAction(
     const list = await readList(client, listId, user.id);
     if (!list) return fail("That list no longer exists");
     const previews = await getListPreviews(client, listId);
-    return { inList: active, list: summarize(list, previews), success: true };
+    return ok({ inList: active, list: toListSummary(list, previews) });
   } catch (error) {
     report("MovieLists write", error);
-    return fail(messageFor(error, "Could not update your list"));
+    return fail(listErrorMessage(error, "Could not update your list"));
   }
 }
 
@@ -213,7 +197,7 @@ export async function createMovieListAction(
     }
 
     const user = await requireUser();
-    if (!(await limited(user.id))) {
+    if (!(await isWithinRateLimit(user.id))) {
       return fail("Too many requests, slow down a little");
     }
 
@@ -238,14 +222,13 @@ export async function createMovieListAction(
 
     const list = await readList(client, listId, user.id);
     const previews = await getListPreviews(client, listId);
-    return {
+    return ok({
       inList: true,
-      list: summarize(list ?? (created.data as ListRecord), previews),
-      success: true,
-    };
+      list: toListSummary(list ?? (created.data as ListRecord), previews),
+    });
   } catch (error) {
     report("MovieLists create", error);
-    return fail(messageFor(error, "Could not create your list"));
+    return fail(listErrorMessage(error, "Could not create your list"));
   }
 }
 
@@ -258,8 +241,6 @@ export async function setListLikeAction(
     {
       fallback: "Could not update your like",
       name: "List like",
-      perMinute: 120,
-      scope: "account-change",
     },
     async ({ client, userId }) => {
       const { data: list, error: listError } = await client
@@ -295,7 +276,7 @@ export async function saveListAction(
   id: string | null,
   input: ListInput,
 ): Promise<ActionResult<{ slug: string }>> {
-  const list = cleanList(input);
+  const list = sanitizeListInput(input);
   if (!list || (id !== null && !isUuid(id))) {
     return fail("Give the list a name of up to 120 characters");
   }
@@ -304,8 +285,6 @@ export async function saveListAction(
     {
       fallback: "Could not save your list",
       name: "List save",
-      perMinute: 120,
-      scope: "account-change",
     },
     async ({ client, userId }) => {
       const row = {
@@ -340,8 +319,6 @@ export async function deleteListAction(listId: string): Promise<ActionResult> {
     {
       fallback: "Could not delete this list",
       name: "List delete",
-      perMinute: 120,
-      scope: "account-change",
     },
     async ({ client, userId }) => {
       const { error } = await client
@@ -363,8 +340,6 @@ export async function getListOrderAction(
     {
       fallback: "Could not load this list",
       name: "List order read",
-      perMinute: 120,
-      scope: "account-change",
     },
     async ({ client, userId }) => {
       const list = await client
@@ -412,8 +387,6 @@ export async function reorderListAction(
     {
       fallback: "Could not save the new order",
       name: "List reorder",
-      perMinute: 120,
-      scope: "account-change",
     },
     async ({ client }) => {
       const { error } = await client.rpc("reorder_list_items", {

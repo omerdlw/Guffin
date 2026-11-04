@@ -20,7 +20,7 @@ import {
   AccountProvider,
   SocialRealtimeSync,
 } from "@/features/account/provider";
-import { PictureForesight } from "@/features/artwork/artwork";
+import { BackdropPreloader } from "@/features/artwork/artwork";
 import { AuthListener, AuthProvider } from "@/features/auth/provider";
 import { SearchDockCommand } from "@/features/search/action";
 import { project } from "@/lib/project";
@@ -106,7 +106,7 @@ export function Providers({ children }: { children: ReactNode }): JSX.Element {
       <AccountGuard />
       <SearchDockCommand />
       <SocialRealtimeSync />
-      <PictureForesight />
+      <BackdropPreloader />
       <EngineProvider drive>
         {children}
         <TintedFavicon />

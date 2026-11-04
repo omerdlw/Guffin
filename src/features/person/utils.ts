@@ -1,3 +1,4 @@
+import { pluralize } from "@/lib/format";
 import type {
   PersonCastCredit,
   PersonCrewCredit,
@@ -26,7 +27,8 @@ import type {
   SourceCredit,
 } from "./types";
 
-export const nameClass = (name: string) => headlineClass(name, [20, 30, 42]);
+export const personNameClass = (name: string) =>
+  headlineClass(name, [20, 30, 42]);
 
 export function parsePersonId(raw: string): number | null {
   return /^[1-9]\d{0,9}$/.test(raw) ? Number(raw) : null;
@@ -84,7 +86,7 @@ export function describePerson(
   return [
     departmentRole(person.knownForDepartment),
     lifeSpan(person),
-    films ? `${films} ${films === 1 ? "film" : "films"}` : null,
+    films ? pluralize(films, "film") : null,
   ]
     .filter(Boolean)
     .join(" · ");
@@ -132,7 +134,7 @@ export function excerptBiography(
   };
 }
 
-export function labelStep(count: number) {
+export function chartLabelStep(count: number) {
   const steps = [1, 2, 5, 10, 20, 50];
   return steps.find((each) => Math.ceil(count / each) <= 9) ?? 50;
 }
@@ -272,9 +274,9 @@ export function backdropScore(
   return impact * weight;
 }
 
-export const yearsLabel = (count: number) => `${count} years`;
+export const formatYears = (count: number) => `${count} years`;
 
-export const shelves = (
+export const buildGalleryShelves = (
   backdrops: string[],
   portraits: PersonImage[],
 ): [GalleryTab, string[]][] =>
@@ -287,3 +289,6 @@ export const shelves = (
       ["backdrops", backdrops],
     ] as [GalleryTab, string[]][]
   ).filter(([, paths]) => paths.length > 0);
+
+export const filmCountLabel = (count: number) =>
+  count === 0 ? "No films" : pluralize(count, "film");

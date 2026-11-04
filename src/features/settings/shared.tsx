@@ -11,7 +11,12 @@ import { cn } from "@/ui/cn";
 import { Icon } from "@/ui/media";
 import { MARK_TONE_CLASS } from "./constants";
 import type { AuthSession, MarkTone } from "./types";
-import { SURFACE_TILE_INNER } from "@/ui/tokens";
+import {
+  SURFACE_PANEL,
+  SURFACE_STACK,
+  SURFACE_TILE,
+  SURFACE_TILE_INNER,
+} from "@/ui/tokens";
 
 export function Mark({
   icon,
@@ -32,6 +37,46 @@ export function Mark({
     >
       <Icon className="ui-glyph center" icon={icon} size={size} />
     </span>
+  );
+}
+
+export function PanelNotice({ icon, text }: { icon: string; text: string }) {
+  return (
+    <div
+      className={cn(
+        SURFACE_PANEL,
+        "flex flex-col items-center gap-2 p-6 text-center",
+      )}
+    >
+      <Icon className="text-ink-muted" icon={icon} size={22} />
+      <span className="type-meta font-medium text-ink-muted">{text}</span>
+    </div>
+  );
+}
+
+export function PanelSkeleton({ detailed = false }: { detailed?: boolean }) {
+  return (
+    <div className={SURFACE_STACK}>
+      {[0, 1].map((index) => (
+        <div className={cn(SURFACE_TILE, "h-[52px] pr-1.5")} key={index}>
+          <div className="size-10 shrink-0 rounded-inset bg-fill-hover" />
+          {detailed ? (
+            <div className="flex flex-1 flex-col gap-1.5">
+              <div className="h-3.5 w-28 rounded-full bg-fill-hover" />
+              <div className="h-2.5 w-40 rounded-full bg-fill-hover" />
+            </div>
+          ) : (
+            <div className="h-3.5 w-28 flex-1 rounded-full bg-fill-hover" />
+          )}
+          <div
+            className={cn(
+              "shrink-0 rounded-inset bg-fill-hover",
+              detailed ? "h-10 w-20" : "size-10",
+            )}
+          />
+        </div>
+      ))}
+    </div>
   );
 }
 

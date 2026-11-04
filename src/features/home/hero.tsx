@@ -10,6 +10,7 @@ import { useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { DetailBackdrop } from "@/features/detail/stage";
 import { MoviePosterLink } from "@/features/movie/stage";
+import { formatRuntime } from "@/features/movie/utils";
 import { AvatarStack } from "@/features/social/proof";
 import { movieHref } from "@/lib/project";
 import { tmdbImageUrl } from "@/lib/tmdb/shared";
@@ -20,6 +21,7 @@ import { Carousel, Icon } from "@/ui/media";
 import { pageBodyClass, PRIMARY, PROSE_CLASS, RADIUS, TONE } from "@/ui/tokens";
 import {
   FALLBACK_ICON,
+  POSTER_SIZES,
   REEL_CYCLE_MS,
   REEL_IMAGE_SIZE,
   ROW_ITEM_CLASS,
@@ -34,12 +36,11 @@ import {
 } from "./motion";
 import type { Feature, FilmShelf, ShowingFilm } from "./types";
 import {
-  compact,
-  reasonOf,
-  releaseDay,
-  roomOf,
-  runtime,
-  titleClass,
+  formatCompact,
+  featureReason,
+  formatReleaseDay,
+  ambientImage,
+  featureTitleClass,
 } from "./utils";
 
 function FilmDock({ film, shown }: { film: Feature; shown: boolean }): null {
@@ -120,15 +121,15 @@ function SocialLine({ film }: { film: Feature }): JSX.Element | null {
 }
 
 function Synopsis({ film }: { film: Feature }): JSX.Element {
-  const facts = [film.year, film.genres.join(", "), runtime(film.runtime)]
+  const facts = [film.year, film.genres.join(", "), formatRuntime(film.runtime)]
     .filter(Boolean)
     .join(" · ");
   return (
     <div className="flex flex-col">
       <HomePart as="p" className={`${TONE.label} text-grade`} name="reason">
-        {reasonOf(film)}
+        {featureReason(film)}
       </HomePart>
-      <h2 className={cn(titleClass(film.title), "mt-4")}>
+      <h2 className={cn(featureTitleClass(film.title), "mt-4")}>
         <Link
           className="ui-fade hover:opacity-80 focus-visible:opacity-80"
           href={movieHref(film.id)}
@@ -245,51 +246,58 @@ function Reels({
   );
 }
 
-export function HomeHero({
-  features,
-}: {
-  features: Feature[];
-}): JSX.Element | null {
-  const reduced = Boolean(useReducedMotion());
-  const setLead = useHomeLead();
+function useOnScreen() {
   const root = useRef<HTMLDivElement>(null);
-  const [active, setActive] = useState(0);
-  const [hovered, setHovered] = useState(false);
-  const [inView, setInView] = useState(true);
-  const [visible, setVisible] = useState(true);
-  const film = features[active] ?? features[0];
-  const paused = reduced || hovered || !inView || !visible;
+  const [presence, setPresence] = useState({ inView: true, visible: true });
 
   useEffect(() => {
     const element = root.current;
     if (!element) return;
     const observer = new IntersectionObserver(
-      ([entry]) => setInView(Boolean(entry?.isIntersecting)),
+      ([entry]) =>
+        setPresence((current) => ({
+          ...current,
+          inView: Boolean(entry?.isIntersecting),
+        })),
       { threshold: 0.25 },
     );
     observer.observe(element);
-    const sync = () => setVisible(document.visibilityState === "visible");
-    document.addEventListener("visibilitychange", sync);
+    const syncVisibility = () =>
+      setPresence((current) => ({
+        ...current,
+        visible: document.visibilityState === "visible",
+      }));
+    document.addEventListener("visibilitychange", syncVisibility);
     return () => {
       observer.disconnect();
-      document.removeEventListener("visibilitychange", sync);
+      document.removeEventListener("visibilitychange", syncVisibility);
     };
   }, []);
 
-  const left = useRef(REEL_CYCLE_MS);
+  return { ...presence, root };
+}
+
+function useReelCycle(features: Feature[], paused: boolean) {
+  const [active, setActive] = useState(0);
+  const timeLeft = useRef(REEL_CYCLE_MS);
+
   useEffect(() => {
-    left.current = REEL_CYCLE_MS;
+    timeLeft.current = REEL_CYCLE_MS;
   }, [active]);
+
   useEffect(() => {
     if (paused || features.length < 2) return;
-    const started = performance.now();
+    const startedAt = performance.now();
     const timer = setTimeout(
       () => setActive((index) => (index + 1) % features.length),
-      left.current,
+      timeLeft.current,
     );
     return () => {
       clearTimeout(timer);
-      left.current = Math.max(0, left.current - (performance.now() - started));
+      timeLeft.current = Math.max(
+        0,
+        timeLeft.current - (performance.now() - startedAt),
+      );
     };
   }, [active, features.length, paused]);
 
@@ -304,13 +312,28 @@ export function HomeHero({
     image.src = src;
   }, [active, features]);
 
+  return [active, setActive] as const;
+}
+
+export function HomeHero({
+  features,
+}: {
+  features: Feature[];
+}): JSX.Element | null {
+  const reducedMotion = Boolean(useReducedMotion());
+  const setLead = useHomeLead();
+  const [hovered, setHovered] = useState(false);
+  const { inView, root, visible } = useOnScreen();
+  const paused = reducedMotion || hovered || !inView || !visible;
+  const [active, setActive] = useReelCycle(features, paused);
+  const film = features[active] ?? features[0];
+
   useEffect(() => {
-    if (film) setLead(roomOf(film.backdropPath));
+    if (film) setLead(ambientImage(film.backdropPath));
   }, [film, setLead]);
 
   if (!film) return null;
-  const first = features[0]!;
-  const src = tmdbImageUrl("backdrop", first.backdropPath, "original")!;
+  const src = tmdbImageUrl("backdrop", features[0]!.backdropPath, "original")!;
   const reel =
     active === 0
       ? null
@@ -348,7 +371,9 @@ export function HomeHero({
 
 function Caption({ film, shelf }: { film: ShowingFilm; shelf: FilmShelf }) {
   const date =
-    shelf === "soon" && film.releaseDate ? releaseDay(film.releaseDate) : null;
+    shelf === "soon" && film.releaseDate
+      ? formatReleaseDay(film.releaseDate)
+      : null;
   return (
     <span className="flex min-h-5 min-w-0 items-center gap-1.5 type-meta font-medium text-ink-muted tabular-nums">
       {date ? <span className="text-ink-body">{date}</span> : null}
@@ -356,7 +381,7 @@ function Caption({ film, shelf }: { film: ShowingFilm; shelf: FilmShelf }) {
         <span className="inline-flex min-w-0 items-center gap-1 truncate">
           {date ? "·" : null}
           <Icon icon="solar:clock-circle-bold" size={12} />
-          {compact(film.waiting)} want to see
+          {formatCompact(film.waiting)} want to see
         </span>
       ) : null}
     </span>
@@ -373,50 +398,46 @@ export function HomeShowing({
   const [shelf, setShelf] = useState<FilmShelf>(
     theatres.length > 0 ? "theatres" : "soon",
   );
-  const films = shelf === "theatres" ? theatres : soon;
   if (theatres.length + soon.length === 0) return null;
 
-  const items = [
-    ...(theatres.length > 0
-      ? [{ key: "theatres" as const, label: "In theatres" }]
-      : []),
-    ...(soon.length > 0
-      ? [{ key: "soon" as const, label: "Coming soon" }]
-      : []),
-  ];
+  const shelves = [
+    { films: theatres, key: "theatres" as const, label: "In theatres" },
+    { films: soon, key: "soon" as const, label: "Coming soon" },
+  ].filter((entry) => entry.films.length > 0);
+  const current = shelves.find((entry) => entry.key === shelf) ?? shelves[0];
 
   return (
     <HomeSection className="flex w-full flex-col" cue="shelf">
       <Heading
         actions={
-          items.length > 1 ? (
+          shelves.length > 1 ? (
             <SegmentedControl
               ariaLabel="Showing"
               className={TONE.tabs}
-              items={items}
+              items={shelves}
               onChange={setShelf}
-              value={shelf}
+              value={current.key}
             />
           ) : null
         }
         icon="solar:clapperboard-play-bold"
         title="At the cinema"
       />
-      <HomeSwap cue="slides" id={shelf}>
+      <HomeSwap cue="slides" id={current.key}>
         <Carousel
           arrowClassName={TONE.arrows}
           className="rounded-card"
           itemClassName={ROW_ITEM_CLASS}
-          label={shelf === "theatres" ? "In theatres" : "Coming soon"}
+          label={current.label}
           part="slide"
         >
-          {films.map((film) => (
+          {current.films.map((film) => (
             <MoviePosterLink
-              caption={<Caption film={film} shelf={shelf} />}
+              caption={<Caption film={film} shelf={current.key} />}
               key={film.id}
               movie={film}
               radius={RADIUS.card}
-              sizes="(min-width: 1024px) 18vw, (min-width: 768px) 22vw, 30vw"
+              sizes={POSTER_SIZES}
             />
           ))}
         </Carousel>

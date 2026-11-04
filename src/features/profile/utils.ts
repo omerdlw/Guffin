@@ -6,6 +6,8 @@ import { readParam, type SearchParams } from "@/lib/http";
 import { tmdbImageSrcSet, tmdbImageUrl } from "@/lib/tmdb/shared";
 import {
   ACTIVITY_GROUPS,
+  CALENDAR_MONTH_FORMAT,
+  DAY_MS,
   ACTIVITY_SORTS,
   DEFAULT_DISPLAY_NAME,
   DIARY_DAY_FORMAT,
@@ -19,9 +21,12 @@ import {
   REVIEW_KINDS,
   REVIEW_SORTS,
 } from "./constants";
+import type { ListFormData } from "@/features/lists/types";
 import type {
   AccountData,
+  ActivityDays,
   ActivityFilters,
+  CalendarDay,
   ActivityItem,
   ActivityRow,
   Filterable,
@@ -161,7 +166,9 @@ export function posterImage(path: string | null, sizes = POSTER_SIZES) {
   };
 }
 
-export function leveller(counts: readonly number[]): (count: number) => number {
+function activityLevelResolver(
+  counts: readonly number[],
+): (count: number) => number {
   const active = counts.filter(Boolean).sort((a, b) => a - b);
   const at = (share: number) =>
     active[Math.floor(share * (active.length - 1))] ?? 0;
@@ -169,9 +176,6 @@ export function leveller(counts: readonly number[]): (count: number) => number {
   return (count) =>
     count === 0 ? 0 : 1 + steps.filter((step) => count > step).length;
 }
-
-export const countLabel = (count: number, one: string, many = `${one}s`) =>
-  `${count.toLocaleString("en-US")} ${count === 1 ? one : many}`;
 
 export const starsLabel = (value: number) =>
   `${"★".repeat(Math.floor(value))}${value % 1 ? "½" : ""}`;
@@ -361,4 +365,47 @@ export function followButtonOf(
   return { icon: "solar:user-plus-bold", tooltip: `Follow @${username}` };
 }
 
-export const capsWidth = (text: string) => `${(text.length * 8.2) / 16}rem`;
+export const toListFormEntry = (
+  list: Pick<
+    ListCardData,
+    | "description"
+    | "id"
+    | "isPrivate"
+    | "isRanked"
+    | "itemsCount"
+    | "slug"
+    | "title"
+  >,
+): NonNullable<ListFormData["list"]> => ({
+  description: list.description,
+  id: list.id,
+  isPrivate: list.isPrivate,
+  isRanked: list.isRanked,
+  itemsCount: list.itemsCount,
+  slug: list.slug,
+  title: list.title,
+});
+
+export function buildCalendar(days: ActivityDays) {
+  const level = activityLevelResolver(days.counts);
+  const from = Date.parse(`${days.from}T00:00:00Z`);
+  const weeks: { days: (CalendarDay | null)[]; month: string | null }[] = [];
+
+  days.counts.forEach((count, index) => {
+    if (index % 7 === 0) weeks.push({ days: [], month: null });
+    const week = weeks[weeks.length - 1];
+    const date = new Date(from + index * DAY_MS);
+    if (date.getUTCDate() === 1) {
+      week.month = CALENDAR_MONTH_FORMAT.format(date);
+    }
+    week.days.push({ count, date, level: level(count) });
+  });
+
+  const last = weeks[weeks.length - 1];
+  while (last && last.days.length < 7) last.days.push(null);
+
+  return {
+    total: days.counts.reduce((sum, count) => sum + count, 0),
+    weeks,
+  };
+}

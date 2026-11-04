@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useAccount } from "@/features/account/provider";
 import { cn } from "@/ui/cn";
 import { BackdropHeroSkeleton } from "@/ui/media";
-import { SkeletonBlock, SkeletonLines } from "@/ui/skeleton";
+import { SkeletonBlock, SkeletonLines, skeletonTextWidth } from "@/ui/skeleton";
 import {
   CALENDAR_CELL,
   DIARY_COLUMNS,
@@ -29,7 +29,6 @@ import {
   SOLID_TINT,
 } from "./constants";
 import type { AccountSkeletonSection, Copy } from "./types";
-import { capsWidth } from "./utils";
 
 function Bar({
   className,
@@ -134,7 +133,7 @@ function Section({
     <section className="flex w-full min-w-0 flex-col">
       <div className="relative mb-4 flex min-h-7 items-end justify-between gap-4 pb-2">
         <div className="flex h-4 items-center">
-          <Bar width={capsWidth(title)} />
+          <Bar width={skeletonTextWidth(title)} />
         </div>
         {after ? (
           <div className="flex h-4 items-center">

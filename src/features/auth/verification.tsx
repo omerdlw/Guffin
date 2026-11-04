@@ -9,21 +9,24 @@ import {
 } from "@omerdlw/base-framework/modules/dock";
 import { useToast } from "@omerdlw/base-framework/modules/notification";
 import { createAccountSetupSurfaceEntry } from "@/features/account/setup";
-import { requestJson } from "@/lib/http";
 import { cn } from "@/ui/cn";
 import { Loader } from "@/ui/feedback";
 import { Input } from "@/ui/form";
-import { requestEmailAuth, verifyEmailOtp } from "./client";
+import { hasAccountUsername, requestEmailAuth, verifyEmailOtp } from "./client";
 import {
   AUTO_FOCUS_DELAY_MS,
   ERROR_RESET_DELAY_MS,
+  INITIAL_OTP_STATE,
   OTP_BOX_STYLES,
   OTP_LENGTH,
   RESEND_COOLDOWN_SECONDS,
 } from "./constants";
+import { SupabaseSetupNotice } from "./notice";
 import { useAuth } from "./provider";
 import type {
   OtpBoxesProps,
+  OtpState,
+  VerificationBusy,
   VerificationData,
   VerificationSurfaceProps,
 } from "./types";
@@ -33,7 +36,6 @@ import {
   normalizeOtpValue,
   sanitizeNextPath,
 } from "./utils";
-import { SURFACE_PANEL } from "@/ui/tokens";
 
 export function createVerificationSurfaceEntry(
   data: VerificationData,
@@ -47,40 +49,34 @@ export function createVerificationSurfaceEntry(
   };
 }
 
-function useResendTimer(cooldownSeconds: number) {
-  const [resendAvailableAt, setResendAvailableAt] = useState(
-    () => Date.now() + cooldownSeconds * 1000,
-  );
+function useResendCooldown(cooldownSeconds: number) {
+  const startCooldown = () => Date.now() + cooldownSeconds * 1000;
+  const [availableAt, setAvailableAt] = useState(startCooldown);
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
-    if (!resendAvailableAt) return;
     const intervalId = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(intervalId);
-  }, [resendAvailableAt]);
+  }, []);
 
-  const resendRemainingSeconds = Math.max(
-    0,
-    Math.ceil((resendAvailableAt - now) / 1000),
-  );
-  const canResend = resendRemainingSeconds === 0;
+  const remainingSeconds = Math.max(0, Math.ceil((availableAt - now) / 1000));
 
-  const resetTimer = useCallback(() => {
-    setResendAvailableAt(Date.now() + cooldownSeconds * 1000);
+  const restart = useCallback(() => {
+    setAvailableAt(Date.now() + cooldownSeconds * 1000);
     setNow(Date.now());
   }, [cooldownSeconds]);
 
-  return { resendRemainingSeconds, canResend, resetTimer };
+  return { canResend: remainingSeconds === 0, remainingSeconds, restart };
 }
 
 function OtpBoxes({
   code,
   disabled,
-  hasError,
+  focused,
   inputRef,
-  isFocused,
+  invalid,
   onCodeChange,
-  setIsFocused,
+  onFocusChange,
 }: OtpBoxesProps) {
   const activeIndex = Math.min(code.length, OTP_LENGTH - 1);
 
@@ -94,9 +90,9 @@ function OtpBoxes({
         disabled={disabled}
         inputMode="numeric"
         maxLength={OTP_LENGTH}
-        onBlur={() => setIsFocused(false)}
+        onBlur={() => onFocusChange(false)}
         onChange={(event) => onCodeChange(event.target.value)}
-        onFocus={() => setIsFocused(true)}
+        onFocus={() => onFocusChange(true)}
         onPaste={(event) => {
           event.preventDefault();
           onCodeChange(event.clipboardData?.getData("text"));
@@ -107,18 +103,16 @@ function OtpBoxes({
       <div className="grid grid-cols-6 gap-1.5 @[280px]:gap-2.5 overflow-visible">
         {Array.from({ length: OTP_LENGTH }).map((_, index) => {
           const digit = code[index] || "";
-          const isActive = isFocused && activeIndex === index;
-          const isSuccess = digit && !hasError;
-          const isError = hasError && digit;
+          const isActive = focused && activeIndex === index;
 
           return (
             <div
               key={`otp-box-${index}`}
               className={cn(
                 OTP_BOX_STYLES.BASE,
-                isError && OTP_BOX_STYLES.ERROR,
+                invalid && digit && OTP_BOX_STYLES.ERROR,
                 isActive && !digit && OTP_BOX_STYLES.ACTIVE,
-                isSuccess && OTP_BOX_STYLES.SUCCESS,
+                digit && !invalid && OTP_BOX_STYLES.SUCCESS,
               )}
             >
               {digit ? (
@@ -150,20 +144,12 @@ function VerificationSurface({ close, data }: VerificationSurfaceProps) {
   const postAuthRedirect = sanitizeNextPath(next, "/account");
 
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const submitInFlight = useRef(false);
-  const lastSubmittedCode = useRef("");
+  const submission = useRef({ inFlight: false, lastCode: "" });
   const resetErrorTimeout = useRef<number | null>(null);
 
-  const [code, setCode] = useState("");
-  const [isFocused, setIsFocused] = useState(false);
-  const [hasCodeError, setHasCodeError] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isResending, setIsResending] = useState(false);
-
-  const { resendRemainingSeconds, canResend, resetTimer } = useResendTimer(
-    RESEND_COOLDOWN_SECONDS,
-  );
-  const isBusy = isSubmitting || isResending;
+  const [otp, setOtp] = useState<OtpState>(INITIAL_OTP_STATE);
+  const [busy, setBusy] = useState<VerificationBusy>(null);
+  const cooldown = useResendCooldown(RESEND_COOLDOWN_SECONDS);
 
   useEffect(() => {
     const focusTimer = window.setTimeout(
@@ -172,24 +158,24 @@ function VerificationSurface({ close, data }: VerificationSurfaceProps) {
     );
     return () => {
       window.clearTimeout(focusTimer);
-      if (resetErrorTimeout.current)
+      if (resetErrorTimeout.current) {
         window.clearTimeout(resetErrorTimeout.current);
+      }
     };
   }, []);
 
-  const sendCode = useCallback(async () => {
-    if (isBusy || !canResend || !auth.client) return;
+  const resendCode = async () => {
+    if (busy || !cooldown.canResend || !auth.client) return;
 
-    setIsResending(true);
+    setBusy("resending");
     try {
       await requestEmailAuth(auth.client, {
         createUser: true,
         email,
         emailRedirectTo: getAuthCallbackUrl(postAuthRedirect),
       });
-      setCode("");
-      setHasCodeError(false);
-      resetTimer();
+      setOtp(INITIAL_OTP_STATE);
+      cooldown.restart();
     } catch (error) {
       toast(
         getAuthErrorMessage(
@@ -198,145 +184,101 @@ function VerificationSurface({ close, data }: VerificationSurfaceProps) {
         ),
       );
     } finally {
-      setIsResending(false);
+      setBusy(null);
     }
-  }, [
-    auth.client,
-    canResend,
-    email,
-    isBusy,
-    postAuthRedirect,
-    resetTimer,
-    toast,
-  ]);
+  };
 
-  const completeVerification = useCallback(
-    async (value: string) => {
-      const normalizedCode = normalizeOtpValue(value);
+  const rejectCode = (error: unknown) => {
+    submission.current.lastCode = "";
+    setOtp((current) => ({ ...current, invalid: true }));
+    toast(
+      getAuthErrorMessage(error, "That code didn't work. Please try again"),
+    );
 
-      if (
-        !auth.client ||
-        normalizedCode.length !== OTP_LENGTH ||
-        isBusy ||
-        submitInFlight.current ||
-        lastSubmittedCode.current === normalizedCode
-      )
-        return;
+    if (resetErrorTimeout.current) {
+      window.clearTimeout(resetErrorTimeout.current);
+    }
+    resetErrorTimeout.current = window.setTimeout(() => {
+      setOtp(INITIAL_OTP_STATE);
+      inputRef.current?.focus?.();
+      resetErrorTimeout.current = null;
+    }, ERROR_RESET_DELAY_MS);
+  };
 
-      lastSubmittedCode.current = normalizedCode;
-      submitInFlight.current = true;
-      setIsSubmitting(true);
+  const completeVerification = async (value: string) => {
+    const code = normalizeOtpValue(value);
+    if (
+      !auth.client ||
+      code.length !== OTP_LENGTH ||
+      busy ||
+      submission.current.inFlight ||
+      submission.current.lastCode === code
+    ) {
+      return;
+    }
 
-      try {
-        await verifyEmailOtp(auth.client, email, normalizedCode);
+    submission.current = { inFlight: true, lastCode: code };
+    setBusy("submitting");
 
-        if (onVerified) {
-          await onVerified();
-          close?.({ success: true });
-          return;
-        }
+    try {
+      await verifyEmailOtp(auth.client, email, code);
 
-        const me = await requestJson<{
-          account: { username: string | null } | null;
-        }>("/api/account/me", {
-          notifyOnError: false,
-          notifyOnUnauthorized: false,
-        }).catch(() => null);
-        const hasUsername = Boolean(me?.account?.username);
-
-        if (!hasUsername) {
-          openSurface(createAccountSetupSurfaceEntry());
-          return;
-        }
-
+      if (onVerified) {
+        await onVerified();
+        close?.({ success: true });
+      } else if (await hasAccountUsername()) {
         close?.({ success: true });
         window.location.replace(postAuthRedirect);
-      } catch (error) {
-        lastSubmittedCode.current = "";
-        setHasCodeError(true);
-        toast(
-          getAuthErrorMessage(error, "That code didn't work. Please try again"),
-        );
-
-        if (resetErrorTimeout.current)
-          window.clearTimeout(resetErrorTimeout.current);
-
-        resetErrorTimeout.current = window.setTimeout(() => {
-          setCode("");
-          setHasCodeError(false);
-          setIsFocused(false);
-          inputRef.current?.focus?.();
-          resetErrorTimeout.current = null;
-        }, ERROR_RESET_DELAY_MS);
-      } finally {
-        submitInFlight.current = false;
-        setIsSubmitting(false);
+      } else {
+        openSurface(createAccountSetupSurfaceEntry());
       }
-    },
-    [
-      auth.client,
-      close,
-      onVerified,
-      email,
-      isBusy,
-      openSurface,
-      postAuthRedirect,
-      toast,
-    ],
-  );
+    } catch (error) {
+      rejectCode(error);
+    } finally {
+      submission.current.inFlight = false;
+      setBusy(null);
+    }
+  };
 
-  const handleCodeChange = useCallback(
-    (value?: string) => {
-      const normalizedValue = normalizeOtpValue(value);
-      setCode(normalizedValue);
-      if (normalizedValue.length === OTP_LENGTH) {
-        completeVerification(normalizedValue);
-      }
-    },
-    [completeVerification],
-  );
+  const changeCode = (value?: string) => {
+    const code = normalizeOtpValue(value);
+    setOtp((current) => ({ ...current, code }));
+    if (code.length === OTP_LENGTH) void completeVerification(code);
+  };
 
-  if (!auth.isConfigured) {
-    return (
-      <p className={`${SURFACE_PANEL} px-4 py-3 type-body text-ink-body`}>
-        Configure the Supabase variables in .env.local first
-      </p>
-    );
-  }
+  if (!auth.isConfigured) return <SupabaseSetupNotice />;
+
+  const resendLabel = cooldown.canResend
+    ? "Resend"
+    : `${cooldown.remainingSeconds}s`;
 
   return (
     <>
       <DockSurfaceAction>
         <DockSurfaceHeaderButton
-          disabled={isBusy || !canResend}
-          onClick={sendCode}
+          disabled={Boolean(busy) || !cooldown.canResend}
+          onClick={resendCode}
         >
-          {isResending ? (
-            <Loader>Resend</Loader>
-          ) : canResend ? (
-            "Resend"
-          ) : (
-            `${resendRemainingSeconds}s`
-          )}
+          {busy === "resending" ? <Loader>Resend</Loader> : resendLabel}
         </DockSurfaceHeaderButton>
       </DockSurfaceAction>
 
       <form
-        aria-busy={isBusy}
+        aria-busy={Boolean(busy)}
         className="flex flex-col gap-2.5"
         onSubmit={(event) => {
           event.preventDefault();
-          completeVerification(code);
+          void completeVerification(otp.code);
         }}
       >
         <OtpBoxes
-          code={code}
-          disabled={isBusy}
-          hasError={hasCodeError}
+          {...otp}
+          disabled={Boolean(busy)}
           inputRef={inputRef}
-          isFocused={isFocused}
-          onCodeChange={handleCodeChange}
-          setIsFocused={setIsFocused}
+          onCodeChange={changeCode}
+          onFocusChange={(focused) =>
+            setOtp((current) => ({ ...current, focused }))
+          }
         />
       </form>
     </>

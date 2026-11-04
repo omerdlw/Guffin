@@ -1,6 +1,13 @@
 "use client";
 
-import { useActionState, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useActionState,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { globalEvents } from "@omerdlw/base-framework/events";
 import {
   DOCK_EVENTS,
@@ -14,6 +21,7 @@ import { Button } from "@/ui/button";
 import { Spinner } from "@/ui/feedback";
 import { Input } from "@/ui/form";
 import { Icon } from "@/ui/media";
+import { INLINE_LINK } from "@/ui/tokens";
 import {
   requestEmailAuth,
   signInSeedAccount,
@@ -22,7 +30,6 @@ import {
 } from "./client";
 import {
   AUTH_INPUT_CLASS,
-  LEGAL_LINK_CLASS,
   OAUTH_PROVIDERS,
   REDIRECT_TIMEOUT_MS,
   SIGN_IN_METHODS,
@@ -30,6 +37,7 @@ import {
   SIGN_IN_SECONDARY_CLASS,
   SIGN_IN_SURFACE_WIDTH,
 } from "./constants";
+import { SupabaseSetupNotice } from "./notice";
 import { useAuth } from "./provider";
 import type {
   EmailResult,
@@ -45,7 +53,6 @@ import {
   sanitizeNextPath,
 } from "./utils";
 import { createVerificationSurfaceEntry } from "./verification";
-import { SURFACE_PANEL } from "@/ui/tokens";
 
 function showSigningIn(description: string) {
   globalEvents.emit(DOCK_EVENTS.STATUS_SET, {
@@ -119,7 +126,7 @@ function SignInSurface({ close, data = {} }: SignInSurfaceProps) {
     [],
   );
 
-  async function signIn(method: OAuthProvider | "passkey") {
+  async function startSignIn(method: OAuthProvider | "passkey") {
     if (!auth.client) return;
     setActive(method);
     showSigningIn(
@@ -156,7 +163,7 @@ function SignInSurface({ close, data = {} }: SignInSurfaceProps) {
     }
   }
 
-  function select(method: SignInMethod) {
+  function selectMethod(method: SignInMethod) {
     if (active) return;
     if (method === "email") {
       openSurface(
@@ -167,16 +174,10 @@ function SignInSurface({ close, data = {} }: SignInSurfaceProps) {
       );
       return;
     }
-    void signIn(method);
+    void startSignIn(method);
   }
 
-  if (!auth.isConfigured) {
-    return (
-      <p className={`${SURFACE_PANEL} px-4 py-3 type-body text-ink-body`}>
-        Configure the Supabase variables in .env.local first
-      </p>
-    );
-  }
+  if (!auth.isConfigured) return <SupabaseSetupNotice />;
 
   return (
     <div className="flex flex-col gap-2.5">
@@ -184,7 +185,7 @@ function SignInSurface({ close, data = {} }: SignInSurfaceProps) {
         busy={active === "passkey"}
         disabled={Boolean(active)}
         method="passkey"
-        onSelect={select}
+        onSelect={selectMethod}
         primary
       />
       <div className="grid w-full grid-cols-2 gap-2.5">
@@ -194,14 +195,14 @@ function SignInSurface({ close, data = {} }: SignInSurfaceProps) {
             disabled={Boolean(active)}
             key={method}
             method={method}
-            onSelect={select}
+            onSelect={selectMethod}
           />
         ))}
       </div>
       <p className="px-4 pt-0.5 text-center type-label text-balance text-ink-muted">
         By continuing you agree to the{" "}
         <Link
-          className={LEGAL_LINK_CLASS}
+          className={INLINE_LINK}
           href="/terms"
           onClick={() => close?.()}
           prefetch={false}
@@ -210,7 +211,7 @@ function SignInSurface({ close, data = {} }: SignInSurfaceProps) {
         </Link>{" "}
         and the{" "}
         <Link
-          className={LEGAL_LINK_CLASS}
+          className={INLINE_LINK}
           href="/privacy"
           onClick={() => close?.()}
           prefetch={false}
@@ -318,4 +319,15 @@ export function createSignInSurfaceEntry(data: SignInData = {}): SurfaceEntry {
     title: "Sign In",
     width: SIGN_IN_SURFACE_WIDTH,
   };
+}
+
+export function useOpenSignIn(): () => void {
+  const { openSurface } = useDockActions();
+  return useCallback(() => {
+    void openSurface(
+      createSignInSurfaceEntry({
+        next: window.location.pathname + window.location.search,
+      }),
+    );
+  }, [openSurface]);
 }

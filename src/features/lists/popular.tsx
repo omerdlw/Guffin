@@ -1,72 +1,16 @@
-import "server-only";
 import type { JSX } from "react";
-import { report } from "@omerdlw/base-framework/utils";
 import { PosterStack } from "@/features/profile/blocks";
+import { pluralize } from "@/lib/format";
 import { accountHref, listHref } from "@/lib/project";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { Header } from "@/motion/kit";
 import { StagePart, StageSection } from "@/motion/react";
 import { AccountLink } from "@/ui/button";
 import { Avatar, Icon } from "@/ui/media";
 import { TONE } from "@/ui/tokens";
-import { COMPACT_COUNT_FORMAT, POPULAR_LISTS_SHOWN } from "./constants";
-import type { PopularList, PopularListRow } from "./types";
+import { COMPACT_COUNT_FORMAT } from "./constants";
+import type { PopularList } from "./types";
 
-export async function getMoviePopularLists(
-  tmdbId: number,
-): Promise<PopularList[]> {
-  try {
-    const client = await createServerSupabaseClient();
-    const { data, error } = await client
-      .from("lists")
-      .select(
-        "id, slug, title, description, items_count, likes_count, reviews_count, owner:accounts!lists_account_id_fkey!inner(username, display_name, avatar_url), list_items!inner(tmdb_id)",
-      )
-      .eq("list_items.tmdb_id", tmdbId)
-      .eq("is_private", false)
-      .order("likes_count", { ascending: false })
-      .order("items_count", { ascending: false })
-      .limit(POPULAR_LISTS_SHOWN);
-    if (error) throw error;
-    const rows = ((data ?? []) as unknown as PopularListRow[]).filter(
-      (row) => row.owner?.username,
-    );
-    if (rows.length === 0) return [];
-
-    const previews = new Map<string, (string | null)[]>();
-    const { data: items, error: previewError } = await client.rpc(
-      "get_list_previews",
-      { p_limit: 5, p_list_ids: rows.map((row) => row.id) },
-    );
-    if (previewError) throw previewError;
-    for (const item of items ?? []) {
-      const posters = previews.get(item.list_id) ?? [];
-      posters.push(item.poster_path);
-      previews.set(item.list_id, posters);
-    }
-
-    return rows.map((row) => ({
-      description: row.description ?? "",
-      id: row.id,
-      itemsCount: row.items_count,
-      likesCount: row.likes_count,
-      owner: {
-        avatarUrl: row.owner?.avatar_url ?? null,
-        displayName: row.owner?.display_name || row.owner?.username || "",
-        username: row.owner?.username ?? "",
-      },
-      previews: previews.get(row.id) ?? [],
-      reviewsCount: row.reviews_count,
-      slug: row.slug,
-      title: row.title,
-    }));
-  } catch (error) {
-    report("Popular lists read", error);
-    return [];
-  }
-}
-
-function ListRow({
+function PopularListItem({
   index,
   list,
 }: {
@@ -111,10 +55,7 @@ function ListRow({
             />
             <span className="truncate">{list.owner.displayName}</span>
           </AccountLink>
-          <span>
-            {list.itemsCount.toLocaleString("en-US")}{" "}
-            {list.itemsCount === 1 ? "film" : "films"}
-          </span>
+          <span>{pluralize(list.itemsCount, "film")}</span>
           <span className="inline-flex items-center gap-1">
             <Icon icon="solar:heart-bold" size={14} />
             {COMPACT_COUNT_FORMAT.format(list.likesCount)}
@@ -152,7 +93,7 @@ export async function MoviePopularLists({
       />
       <ul className={`flex flex-col divide-y ${TONE.rules}`}>
         {resolved.map((list, index) => (
-          <ListRow index={index} key={list.id} list={list} />
+          <PopularListItem index={index} key={list.id} list={list} />
         ))}
       </ul>
     </StageSection>

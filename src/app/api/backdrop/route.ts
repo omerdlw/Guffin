@@ -8,7 +8,7 @@ import { getMovieDetails, getPersonDetails } from "@/lib/tmdb/server";
 const CACHE_CONTROL =
   "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800";
 
-async function pictureOf(kind: string, raw: string): Promise<string | null> {
+async function readableUrl(kind: string, raw: string): Promise<string | null> {
   if (kind === "movie") {
     const id = parseMovieId(raw);
     const result = id === null ? null : await getMovieDetails(id);
@@ -34,7 +34,7 @@ export async function GET(request: Request): Promise<Response> {
   }
 
   return NextResponse.json(
-    { path: await pictureOf(kind, id) },
+    { path: await readableUrl(kind, id) },
     { headers: { "Cache-Control": CACHE_CONTROL } },
   );
 }

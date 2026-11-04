@@ -9,6 +9,31 @@ import type {
   ReviewStats,
 } from "./types";
 
+function toMovieReview(
+  row: ReviewRow,
+  author: NonNullable<ReviewRow["author"]>,
+  liked: boolean,
+  lovedBy: ReadonlySet<string>,
+): MovieReview {
+  return {
+    author: {
+      avatarUrl: author.avatar_url,
+      displayName: author.display_name || author.username,
+      id: author.id,
+      username: author.username,
+    },
+    authorLiked: lovedBy.has(author.id),
+    content: row.content,
+    createdAt: row.created_at,
+    id: row.id,
+    isSpoiler: row.is_spoiler,
+    liked,
+    likesCount: row.likes_count,
+    rating: row.rating === null ? null : Number(row.rating),
+    updatedAt: row.updated_at,
+  };
+}
+
 export async function getMovieReviews({
   client,
   filter = "all",
@@ -78,25 +103,7 @@ export async function getMovieReviews({
   return {
     reviews: rows.flatMap((row) =>
       row.author
-        ? [
-            {
-              authorLiked: lovedBy.has(row.author.id),
-              author: {
-                avatarUrl: row.author.avatar_url,
-                displayName: row.author.display_name || row.author.username,
-                id: row.author.id,
-                username: row.author.username,
-              },
-              content: row.content,
-              createdAt: row.created_at,
-              id: row.id,
-              isSpoiler: row.is_spoiler,
-              liked: liked.has(row.id),
-              likesCount: row.likes_count,
-              rating: row.rating === null ? null : Number(row.rating),
-              updatedAt: row.updated_at,
-            },
-          ]
+        ? [toMovieReview(row, row.author, liked.has(row.id), lovedBy)]
         : [],
     ),
     total: count ?? 0,

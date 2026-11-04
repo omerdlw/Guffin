@@ -1,3 +1,4 @@
+import { pluralize } from "@/lib/format";
 import type { Awards } from "@/lib/tmdb/shared";
 import { CURVE } from "@/motion/time";
 import { clamp } from "@/motion/utils";
@@ -6,7 +7,7 @@ import {
   BACKDROP_DEFOCUS_TO,
   CARD_IMAGE_PATH,
 } from "./constants";
-import type { AwardGroup, AwardItem, AwardsGrouping } from "./types";
+import type { AwardGroup, AwardItem, AwardsGrouping, AwardStat } from "./types";
 
 export function flattenAwards(awards: Awards): AwardItem[] {
   return awards.organizations.flatMap((organization) =>
@@ -124,8 +125,44 @@ export function wonAcademyAward(awards: Awards): boolean {
   );
 }
 
-export function plural(count: number, one: string, many: string): string {
-  return `${count} ${count === 1 ? one : many}`;
+export function summarizeAwardGroup({ nominations, wins }: AwardGroup): string {
+  return [
+    wins > 0 ? pluralize(wins, "win", "wins") : null,
+    nominations > 0
+      ? pluralize(nominations, "nomination", "nominations")
+      : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
+
+export function countAwardTitles(items: readonly AwardItem[]): number {
+  return new Set(
+    items.map((item) => item.projectId ?? item.project).filter(Boolean),
+  ).size;
+}
+
+export function buildAwardStats(
+  awards: Awards,
+  titleCount: number | null,
+): AwardStat[] {
+  const organizations = awards.organizations.length;
+  return [
+    {
+      label: awards.wins === 1 ? "Win" : "Wins",
+      strong: true,
+      value: awards.wins,
+    },
+    {
+      label: awards.nominations === 1 ? "Nomination" : "Nominations",
+      value: awards.nominations,
+    },
+    ...(titleCount ? [{ label: "Titles", value: titleCount }] : []),
+    {
+      label: organizations === 1 ? "Organization" : "Organizations",
+      value: organizations,
+    },
+  ];
 }
 
 export const hasAwards = (awards: Awards | null): awards is Awards =>

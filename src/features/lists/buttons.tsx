@@ -7,11 +7,9 @@ import {
 } from "@omerdlw/base-framework/modules/dock";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/features/auth/provider";
-import { createSignInSurfaceEntry } from "@/features/auth/sign-in";
-import {
-  createReviewEditorSurfaceEntry,
-  useLikeToggle,
-} from "@/features/reviews/controls";
+import { useOpenSignIn } from "@/features/auth/sign-in";
+import { useLikeToggle } from "@/features/reviews/controls";
+import { createReviewEditorSurfaceEntry } from "@/features/reviews/editor";
 import { Button } from "@/ui/button";
 import { Icon } from "@/ui/media";
 import { setListLikeAction } from "./actions";
@@ -26,17 +24,14 @@ export function ListCommentAction({
   const router = useRouter();
   const actionClass = useDockActionClass();
   const { openSurface } = useDockActions();
+  const openSignIn = useOpenSignIn();
   if (!auth.isReady) return null;
 
   const editing = target.content !== null;
 
   const open = () => {
     if (!auth.isAuthenticated) {
-      void openSurface(
-        createSignInSurfaceEntry({
-          next: window.location.pathname + window.location.search,
-        }),
-      );
+      openSignIn();
       return;
     }
     void openSurface(
