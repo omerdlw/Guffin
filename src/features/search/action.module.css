@@ -1,0 +1,44 @@
+/* While a search is in flight, a band of the grade sweeps across the field. */
+@layer components {
+  .scan {
+    isolation: isolate;
+    overflow: clip;
+    position: relative;
+  }
+  .scan::after {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgb(var(--grade, var(--ink-rgb)) / 0.15),
+      transparent
+    );
+    content: "";
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    transition: opacity var(--step-0) var(--ease-fade);
+    width: 50%;
+  }
+  .scan[data-busy]::after {
+    animation: scan var(--step-3) var(--ease-in-out-cubic) infinite;
+    opacity: 1;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .scan::after {
+      animation: none !important;
+    }
+    .scan[data-busy]::after {
+      opacity: 0;
+    }
+  }
+}
+
+@keyframes scan {
+  from {
+    translate: -100% 0;
+  }
+  to {
+    translate: 300% 0;
+  }
+}

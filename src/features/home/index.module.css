@@ -1,0 +1,21 @@
+/* The index: the row pointed at stays in focus, its neighbours step back. */
+@layer components {
+  :global([data-cinematic]) .row {
+    transition:
+      opacity var(--step-1) var(--ease-phosphor),
+      filter var(--step-1) var(--ease-phosphor);
+  }
+  :global([data-cinematic])
+    .index:has(.row:is(:hover, :focus-visible))
+    .row:not(:is(:hover, :focus-visible)) {
+    filter: blur(var(--haze-1));
+    opacity: 0.4;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :global([data-cinematic])
+      .index:has(.row:is(:hover, :focus-visible))
+      .row:not(:is(:hover, :focus-visible)) {
+      filter: none;
+    }
+  }
+}

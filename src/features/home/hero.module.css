@@ -1,0 +1,31 @@
+@layer components {
+  /* The strip: the chosen frame opens a golden ratio wider than the rest. */
+  :global([data-cinematic]) .frame {
+    flex: 1 1 0%;
+    min-width: 0;
+    transition: flex-grow var(--step-1) var(--ease-out-quint);
+  }
+  :global([data-cinematic]) .frame[data-on] {
+    flex-grow: 2.618;
+  }
+
+  /* The reel: a hairline that fills while the frame is on screen. */
+  .reel {
+    animation: reel linear both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :global([data-cinematic]) .frame {
+      transition: none;
+    }
+    .reel {
+      animation: none;
+    }
+  }
+}
+
+@keyframes reel {
+  from {
+    transform: scaleX(0);
+  }
+}

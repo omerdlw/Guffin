@@ -1,0 +1,26 @@
+@import "tailwindcss";
+@source "../../node_modules/@omerdlw/base-framework";
+
+@import "../design/styles/index.css";
+
+@layer base {
+  html,
+  body {
+    overscroll-behavior: none;
+    background: var(--page);
+  }
+
+  * {
+    outline: 0;
+  }
+}
+
+* {
+  -ms-overflow-style: none;
+  box-sizing: border-box;
+  scrollbar-width: none;
+}
+
+*::-webkit-scrollbar {
+  display: none;
+}

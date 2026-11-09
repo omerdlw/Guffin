@@ -1,0 +1,20 @@
+/* The text caret in a code cell: a slow breath, not a hard blink. */
+@layer components {
+  .caret {
+    animation: caret var(--step-1) var(--ease-in-out-cubic) infinite alternate;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .caret {
+      animation: none !important;
+    }
+  }
+}
+
+@keyframes caret {
+  from {
+    opacity: 0.85;
+  }
+  to {
+    opacity: 0.15;
+  }
+}

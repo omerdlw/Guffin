@@ -1,0 +1,79 @@
+@layer components {
+  .content {
+    position: relative;
+    max-width: min(16rem, calc(100vw - 1.5rem));
+    padding: 6px 12px 7px;
+    border-radius: var(--radius-card);
+    background: var(--glass);
+    box-shadow: inset 0 0 0 1px var(--edge);
+    color: var(--ink-lead);
+    font-size: var(--type-meta);
+    font-weight: 500;
+    line-height: var(--type-meta--line-height);
+    text-wrap: balance;
+    -webkit-backdrop-filter: blur(24px) saturate(1.5);
+    backdrop-filter: blur(24px) saturate(1.5);
+  }
+  .ink {
+    display: block;
+    -webkit-mask-image: linear-gradient(90deg, #000 45%, transparent 55%);
+    mask-image: linear-gradient(90deg, #000 45%, transparent 55%);
+    -webkit-mask-size: 220% 100%;
+    mask-size: 220% 100%;
+  }
+  .meta {
+    margin-left: 6px;
+    color: var(--ink-muted);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .content[data-state="delayed-open"],
+  .content[data-state="instant-open"] {
+    animation: open var(--step-n1) var(--ease-out-cream) both;
+  }
+  .content:is([data-state="delayed-open"], [data-state="instant-open"]) .ink {
+    animation: light var(--step-0) var(--ease-out-cream) both;
+  }
+  .content[data-state="closed"] {
+    animation: close var(--step-n3) var(--ease-in-cubic) both;
+  }
+  .dock {
+    z-index: 200;
+  }
+  /* The reticle draws its own label for the target it owns. */
+  :global(html.reticle) .content[data-cursor-owned] {
+    display: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .content,
+    .ink {
+      animation: none !important;
+    }
+    .ink {
+      -webkit-mask-image: none;
+      mask-image: none;
+    }
+  }
+}
+
+@keyframes open {
+  from {
+    opacity: 0;
+    scale: 0.96;
+  }
+}
+@keyframes light {
+  from {
+    -webkit-mask-position: 100% 0;
+    mask-position: 100% 0;
+  }
+  to {
+    -webkit-mask-position: 0 0;
+    mask-position: 0 0;
+  }
+}
+@keyframes close {
+  to {
+    opacity: 0;
+  }
+}

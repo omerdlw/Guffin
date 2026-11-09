@@ -1,0 +1,127 @@
+/*
+ * The cinematic layer: the shared vocabulary of a scene that is composed
+ * around pictures (`[data-cinematic]`, `.ui-motion`, `.ui-scene`).
+ *
+ *   .cine-card       a target whose descendants react when it is pointed at
+ *   .cine-fade       colour and opacity on the scene's two beats
+ *   .cine-press      a raised control: lifts on hover, sinks on press
+ *   .cine-zoom       a picture inside a card that leans in on hover
+ *   .cine-afterglow  the warm ring left on a card that is pointed at
+ *   .cine-turn       a chevron that turns over
+ *
+ * These are part of the system (several features compose them), so they
+ * live here rather than beside one component.
+ */
+
+@layer components {
+  html:has([data-cinematic]) {
+    overflow-anchor: none;
+  }
+
+  [data-cinematic] ::selection {
+    background: var(--selection);
+  }
+
+  /* A picture develops: it arrives soft and a little large, then settles. */
+  [data-cinematic] img[data-state] {
+    transition:
+      opacity var(--step-2) var(--ease-fade),
+      transform var(--step-3) var(--ease-out-cream),
+      scale var(--step-3) var(--ease-out-cream);
+  }
+  [data-cinematic] img[data-state="loading"] {
+    transform: scale(1.08);
+  }
+  [data-cinematic] img[data-state="loaded"] {
+    transform: none;
+  }
+
+  :is([data-cinematic], .ui-motion, .ui-scene)
+    :is(.cine-card:is(:hover, :focus-visible), [data-active] .cine-card)
+    img.cine-zoom {
+    scale: 1.04;
+  }
+  :is([data-cinematic], .ui-motion, .ui-scene) .cine-card img.cine-zoom {
+    transition:
+      opacity var(--step-2) var(--ease-fade),
+      transform var(--step-3) var(--ease-out-cream),
+      scale var(--step-3) var(--ease-out-cream);
+  }
+
+  [data-cinematic] .cine-fade {
+    transition:
+      background-color var(--touch-out) var(--ease-phosphor),
+      color var(--touch-out) var(--ease-phosphor),
+      box-shadow var(--touch-out) var(--ease-phosphor),
+      opacity var(--touch-out) var(--ease-phosphor),
+      text-decoration-color var(--touch-out) var(--ease-phosphor),
+      outline-color var(--touch-out) var(--ease-phosphor),
+      outline-offset var(--touch-out) var(--ease-out-cream),
+      scale var(--press-t) var(--ease-out-cream),
+      filter var(--press-t) var(--ease-out-cream);
+  }
+  [data-cinematic] .cine-fade:is(:hover, :focus-visible),
+  [data-cinematic] .cine-card:is(:hover, :focus-visible) .cine-fade {
+    transition-duration:
+      var(--touch-in), var(--touch-in), var(--touch-in), var(--touch-in),
+      var(--touch-in), var(--touch-in), var(--touch-in), var(--press-t),
+      var(--press-t);
+    transition-timing-function: var(--ease-out-cream);
+  }
+
+  :is([data-cinematic], .ui-motion, .ui-scene) .cine-afterglow {
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 1px
+      color-mix(in oklab, rgb(var(--grade, var(--ink-rgb))) 55%, #ffc48c);
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    transition: opacity var(--step-3) var(--ease-phosphor);
+  }
+  :is([data-cinematic], .ui-motion, .ui-scene)
+    :is(.cine-card:is(:hover, :focus-visible), [data-active] .cine-card)
+    .cine-afterglow {
+    opacity: 0.55;
+    transition-duration: var(--step-1);
+    transition-timing-function: var(--ease-out-cream);
+  }
+
+  [data-cinematic] .cine-press {
+    transition:
+      background-color var(--touch-out) var(--ease-phosphor),
+      color var(--touch-out) var(--ease-phosphor),
+      box-shadow var(--touch-out) var(--ease-phosphor),
+      transform var(--press-out) var(--ease-out-cream),
+      outline-color var(--touch-out) var(--ease-phosphor),
+      outline-offset var(--touch-out) var(--ease-out-cream),
+      filter var(--press-out) var(--ease-out-cream);
+  }
+  [data-cinematic] .cine-press:is(:hover, :focus-visible) {
+    transform: translateY(-2px);
+    transition-duration:
+      var(--touch-in), var(--touch-in), var(--touch-in), var(--press-out),
+      var(--touch-in), var(--touch-in), var(--press-out);
+    transition-timing-function: var(--ease-out-cream);
+  }
+  [data-cinematic] .cine-press:active {
+    filter: blur(var(--haze-n1));
+    transform: scale(var(--press));
+    transition-duration: var(--press-in);
+  }
+
+  [data-cinematic] .cine-turn {
+    transition:
+      color var(--step-1) var(--ease-out-cream),
+      transform var(--step-1) var(--ease-out-cream);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-cinematic] *,
+    [data-cinematic] *::before,
+    [data-cinematic] *::after {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+}

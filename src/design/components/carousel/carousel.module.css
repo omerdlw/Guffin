@@ -1,0 +1,23 @@
+/* A carousel slide sizes its frames from its own width, rounded to whole
+   pixels, so a row of posters never lands on a half-pixel seam. */
+
+@layer components {
+  :global([data-cinematic]) .slide {
+    container-type: inline-size;
+  }
+  :global([data-cinematic]) .slide :global(.aspect-video) {
+    aspect-ratio: auto;
+    height: round(100cqw * 9 / 16, 1px);
+  }
+  :global([data-cinematic]) .slide :global(.aspect-\[2\/3\]) {
+    aspect-ratio: auto;
+    height: round(100cqw * 3 / 2, 1px);
+  }
+}
+
+/* A slide is flush with its neighbours, so its focus outline is drawn inside. */
+:global(:where(.account-page, .home-page, .movie-page, .person-page))
+  .slide
+  :focus-visible {
+  outline-offset: calc(var(--focus-width) * -1);
+}

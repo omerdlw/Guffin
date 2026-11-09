@@ -1,0 +1,32 @@
+/* The reticle's label: words roll in from the direction of travel. */
+@layer components {
+  .in {
+    animation: in var(--step-0) var(--ease-out-quint) both;
+  }
+  .out {
+    animation: out var(--step-n1) var(--ease-in-cubic) both;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .in {
+      animation: none;
+    }
+    .out {
+      display: none;
+    }
+  }
+}
+
+@keyframes in {
+  from {
+    filter: blur(4px);
+    opacity: 0;
+    transform: translateY(var(--from, 0.7em));
+  }
+}
+@keyframes out {
+  to {
+    filter: blur(4px);
+    opacity: 0;
+    transform: translateY(var(--to, -0.7em));
+  }
+}

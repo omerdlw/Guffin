@@ -1,0 +1,19 @@
+/*
+ * The Guffin Design System stylesheet. Imported once, by src/app/globals.css.
+ *
+ *   tokens       the vocabulary: type, radius, easing, geometry, colour roles
+ *   themes       the palettes that give each role its value, per theme
+ *   utilities    type-*, duration-*, the page plan
+ *   interaction  hover / focus / press / disabled, for every control
+ *   cinematic    the shared vocabulary of picture-led scenes
+ *   effects      effects composed by more than one feature
+ *
+ * Styles that belong to one component live next to it as `*.module.css`.
+ */
+
+@import "./tokens.css";
+@import "./themes.css";
+@import "./utilities.css";
+@import "./interaction.css";
+@import "./cinematic.css";
+@import "./effects.css";

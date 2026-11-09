@@ -1,0 +1,31 @@
+@layer components {
+  /* One band of a stepped blur: each layer blurs more and shows a thinner strip. */
+  .blur {
+    -webkit-backdrop-filter: blur(var(--blur));
+    backdrop-filter: blur(var(--blur));
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      transparent var(--m0),
+      #000 var(--m1),
+      #000 var(--m2),
+      transparent var(--m3)
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      transparent var(--m0),
+      #000 var(--m1),
+      #000 var(--m2),
+      transparent var(--m3)
+    );
+  }
+  /* A photograph's scrim is dark in either theme. */
+  .sheen {
+    background: linear-gradient(
+      to top,
+      rgb(0 0 0 / 0.42),
+      rgb(0 0 0 / 0.14) 34%,
+      transparent 50%
+    );
+    border-radius: inherit;
+  }
+}

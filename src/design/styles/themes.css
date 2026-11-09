@@ -1,0 +1,143 @@
+/*
+ * Palettes. Each theme declares every role on its own terms; neither is
+ * computed from the other. Dark is near-black with off-white ink, and its
+ * surfaces are light breathed onto the page. Light is paper with near-black
+ * ink, and its layers are lifted sheets of frosted white with crisp edges, so
+ * it reads as high contrast rather than as the dark theme turned over.
+ *
+ * Tune a value here and every component that names the role follows. When a
+ * theme needs a role the other does not, add it to both, with the value that
+ * is right for each.
+ *
+ * The theme is `data-theme` on <html>, set before first paint
+ * (src/lib/theme.ts). Dark is the fallback. Text on a photograph takes
+ * `.on-photo`, which keeps the dark palette for that subtree in either theme.
+ */
+
+@layer base {
+  :root,
+  :root[data-theme="light"] .on-photo {
+    color-scheme: dark;
+
+    --ink-rgb: 252 252 251;
+    --page: var(--ambient-shadow, #000);
+
+    --ink: rgb(var(--ink-rgb));
+    --ink-lead: rgb(var(--ink-rgb) / 0.9);
+    --ink-body: rgb(var(--ink-rgb) / 0.7);
+    --ink-muted: rgb(var(--ink-rgb) / 0.5);
+    --ink-faint: rgb(var(--ink-rgb) / 0.3);
+
+    --fill: rgb(var(--ink-rgb) / 0.05);
+    --fill-hover: rgb(var(--ink-rgb) / 0.1);
+    --fill-active: rgb(var(--ink-rgb) / 0.15);
+    --edge: rgb(var(--ink-rgb) / 0.05);
+    --edge-hover: rgb(var(--ink-rgb) / 0.1);
+    --edge-focus: rgb(var(--ink-rgb) / 0.15);
+    --rule: rgb(var(--ink-rgb) / 0.05);
+    --line: rgb(var(--ink-rgb) / 0.1);
+    --plate: color-mix(in srgb, var(--ink) 5%, var(--page));
+
+    --glass: color-mix(in srgb, var(--page) 70%, transparent);
+    --veil: color-mix(in srgb, var(--page) 60%, transparent);
+    --dim: color-mix(in srgb, var(--page) 30%, transparent);
+
+    --primary: var(--ink);
+    --primary-hover: rgb(var(--ink-rgb) / 0.9);
+    --on-primary: var(--page);
+    --on-accent: var(--page);
+    --sheen-primary: 0 0 0;
+
+    --focus-ring: rgb(var(--ink-rgb) / 0.2);
+    --selection: rgb(var(--grade, var(--ink-rgb)) / 0.3);
+
+    --watched: #00e054;
+    --listed: #40bcf4;
+    --liked: #ff9010;
+    --rated: oklch(82.8% 0.189 84.429);
+    --danger: oklch(70.4% 0.191 22.216);
+    --award: #e9c46a;
+
+    /* the room: tint washes, region glows, sheen, vignette */
+    --wash-tint-a: 10%;
+    --wash-tint-b: 5%;
+    --wash-top: 0%;
+    --wash-right: 0%;
+    --wash-left: 0%;
+    --wash-bottom: 0%;
+    --sheen-a: 0.018;
+    --vignette-rgb: 0 0 0;
+    --vignette-a: 0.4;
+    --vignette-edge: 0.1;
+
+    /* bridges for @omerdlw/base-framework, which reads these by name */
+    --white: var(--ink);
+    --black: var(--page);
+  }
+
+  /* The page is the ambient shadow's hue lifted to paper (L 0.95); its
+     chroma follows the picture, kept between a hint and a clear tint. */
+  :root[data-theme="light"] {
+    color-scheme: light;
+
+    --ink-rgb: 17 19 24;
+    --page: oklch(
+      from var(--ambient-shadow, #f7f6f3) 0.95
+        clamp(0.012, calc(c * 0.7), 0.045) h
+    );
+
+    /* deeper ink and wider steps than dark: paper needs more contrast */
+    --ink: rgb(var(--ink-rgb));
+    --ink-lead: rgb(var(--ink-rgb) / 0.9);
+    --ink-body: rgb(var(--ink-rgb) / 0.74);
+    --ink-muted: rgb(var(--ink-rgb) / 0.56);
+    --ink-faint: rgb(var(--ink-rgb) / 0.32);
+
+    /* surfaces are a whisper of ink; edges carry the definition */
+    --fill: rgb(var(--ink-rgb) / 0.04);
+    --fill-hover: rgb(var(--ink-rgb) / 0.07);
+    --fill-active: rgb(var(--ink-rgb) / 0.1);
+    --edge: rgb(var(--ink-rgb) / 0.08);
+    --edge-hover: rgb(var(--ink-rgb) / 0.12);
+    --edge-focus: rgb(var(--ink-rgb) / 0.2);
+    --rule: rgb(var(--ink-rgb) / 0.08);
+    --line: rgb(var(--ink-rgb) / 0.12);
+    --plate: color-mix(in oklab, #fff 70%, var(--page));
+
+    /* layers are frosted white sheets lifted off the paper */
+    --glass: rgb(255 255 255 / 0.72);
+    --veil: rgb(255 255 255 / 0.6);
+    --dim: rgb(var(--ink-rgb) / 0.2);
+
+    --primary: var(--ink);
+    --primary-hover: color-mix(in oklab, var(--ink) 86%, #fff);
+    --on-primary: #fff;
+    --on-accent: #fff;
+    --sheen-primary: 255 255 255;
+
+    --focus-ring: rgb(var(--ink-rgb) / 0.35);
+
+    --watched: oklch(62% 0.19 150);
+    --listed: oklch(60% 0.14 236);
+    --liked: oklch(66% 0.18 52);
+    --rated: oklch(70% 0.16 82);
+    --danger: oklch(58% 0.21 26);
+    --award: oklch(68% 0.12 85);
+
+    --wash-tint-a: 16%;
+    --wash-tint-b: 10%;
+    --wash-top: 26%;
+    --wash-right: 22%;
+    --wash-left: 20%;
+    --wash-bottom: 22%;
+    --sheen-a: 0.4;
+    --vignette-rgb: 22 24 29;
+    --vignette-a: 0.07;
+    --vignette-edge: 0.02;
+  }
+
+  /* A photograph is dark whatever the theme. */
+  :root[data-theme="light"] .on-photo {
+    --page: #0b0c0e;
+  }
+}

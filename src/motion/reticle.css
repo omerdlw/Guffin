@@ -1,0 +1,22 @@
+/*
+ * The reticle replaces the system pointer while it is on (`html.reticle`,
+ * toggled by cursor.tsx). Global by nature: it targets the document.
+ * `[data-reticle-off]` hands a subtree back to the system pointer.
+ */
+
+html.reticle,
+html.reticle *:not([data-reticle-off], [data-reticle-off] *, nextjs-portal) {
+  cursor: none !important;
+}
+
+/* The Next.js dev overlay is not drawn by the reticle, so it keeps the system
+   pointer; its shadow tree inherits this from the host. */
+html.reticle nextjs-portal {
+  cursor: auto;
+}
+
+@layer base {
+  html.reticle [data-reticle-off] {
+    cursor: auto;
+  }
+}

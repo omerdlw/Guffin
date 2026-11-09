@@ -1,0 +1,89 @@
+import { err } from "@omerdlw/base-framework/result";
+import type { Result } from "@omerdlw/base-framework/result";
+import { personDetailsSchema, personSearchPageSchema } from "./schemas";
+import {
+  type PersonDetails,
+  type PersonSearchPage,
+  TMDB_DEFAULT_LANGUAGE,
+  TMDB_REVALIDATE,
+  tmdbCacheTag,
+} from "./shared";
+import {
+  checkLanguage,
+  checkSearchInput,
+  isTmdbId,
+  type TmdbError,
+  type TmdbTransport,
+  tmdbErrors,
+} from "./transport";
+
+export interface PersonDetailsOptions {
+  language?: string;
+  signal?: AbortSignal;
+}
+
+export interface PersonSearchOptions extends PersonDetailsOptions {
+  page?: number;
+}
+
+const PEOPLE_APPENDED_RESOURCES = [
+  "movie_credits",
+  "tv_credits",
+  "images",
+  "external_ids",
+].join(",");
+
+export interface PeopleApi {
+  getDetails(
+    id: number,
+    options?: PersonDetailsOptions,
+  ): Promise<Result<PersonDetails, TmdbError>>;
+  search(
+    query: string,
+    options?: PersonSearchOptions,
+  ): Promise<Result<PersonSearchPage, TmdbError>>;
+}
+
+export function createPeopleApi(transport: TmdbTransport): PeopleApi {
+  return {
+    async getDetails(id, { language = TMDB_DEFAULT_LANGUAGE, signal } = {}) {
+      if (!isTmdbId(id)) {
+        return err(
+          tmdbErrors.invalidRequest("Person id must be a positive integer"),
+        );
+      }
+      const languageError = checkLanguage(language);
+      if (languageError) return err(languageError);
+
+      return transport.request({
+        path: `/person/${id}`,
+        query: { language, append_to_response: PEOPLE_APPENDED_RESOURCES },
+        schema: personDetailsSchema,
+        revalidate: TMDB_REVALIDATE.person,
+        tags: [tmdbCacheTag("person", id)],
+        signal,
+      });
+    },
+
+    async search(
+      query,
+      { language = TMDB_DEFAULT_LANGUAGE, page = 1, signal } = {},
+    ) {
+      const checked = checkSearchInput(query, page, language);
+      if ("error" in checked) return err(checked.error);
+
+      return transport.request({
+        path: "/search/person",
+        query: {
+          query: checked.query,
+          language,
+          page,
+          include_adult: false,
+        },
+        schema: personSearchPageSchema,
+        revalidate: TMDB_REVALIDATE.search,
+        signal,
+      });
+    },
+  };
+}
