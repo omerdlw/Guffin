@@ -16,7 +16,7 @@ export const SURFACE_STACK = "flex w-full flex-col gap-2.5";
 /** The radius of a frame inside a tile: a card less the tile's padding. */
 export const SURFACE_TILE_INNER = "rounded-inset";
 /** The room a row leaves after its text, for a trailing check or count. */
-export const SURFACE_TILE_END = "pr-3.5";
+export const SURFACE_TILE_END = "pr-5";
 export const SURFACE_POSTER = "h-[60px] w-10 shrink-0 overflow-hidden";
 export const SURFACE_TEXT =
   "flex min-w-0 flex-1 flex-col justify-center text-left";

@@ -7,6 +7,7 @@ export default defineConfig({
   },
   test: {
     environment: "node",
+    server: { deps: { inline: ["@omerdlw/base-framework"] } },
     include: ["src/**/*.test.ts"],
   },
 });

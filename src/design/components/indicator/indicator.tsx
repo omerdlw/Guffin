@@ -1,7 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef, useState } from "react";
-import { motion, useReducedMotion } from "motion/react";
+import { motion, useReducedMotion } from "@/motion/lib";
 import { SPRING } from "@/motion/time";
 import { cn } from "../../foundations/cn";
 
@@ -35,14 +35,22 @@ export function SlidingHighlight({
 }
 
 export interface PillBox {
+  /** Set when the strip wraps onto rows: the pill then follows y and height too. */
+  height?: number;
   width: number;
   x: number;
+  y?: number;
 }
 
-/** Measures the element matching `selector` inside the list, again when `key` changes. */
+/**
+ * Measures the element matching `selector` inside the list, again when `key`
+ * changes. `wrapping` also measures the row (y, height), for a list that can
+ * break onto several rows or stack; its pill then needs no `inset-y`.
+ */
 export function useSlidingPill<T extends HTMLElement>(
   selector: string,
   key: unknown,
+  { wrapping = false }: { wrapping?: boolean } = {},
 ) {
   const ref = useRef<T>(null);
   const [box, setBox] = useState<PillBox | null>(null);
@@ -53,9 +61,22 @@ export function useSlidingPill<T extends HTMLElement>(
     const measure = () => {
       const chosen = list.querySelector<HTMLElement>(selector);
       if (!chosen) return;
-      const next = { width: chosen.offsetWidth, x: chosen.offsetLeft };
+      const next: PillBox = wrapping
+        ? {
+            height: chosen.offsetHeight,
+            width: chosen.offsetWidth,
+            x: chosen.offsetLeft,
+            y: chosen.offsetTop,
+          }
+        : { width: chosen.offsetWidth, x: chosen.offsetLeft };
       setBox((prev) =>
-        prev && prev.x === next.x && prev.width === next.width ? prev : next,
+        prev &&
+        prev.x === next.x &&
+        prev.y === next.y &&
+        prev.width === next.width &&
+        prev.height === next.height
+          ? prev
+          : next,
       );
     };
     measure();
@@ -63,7 +84,7 @@ export function useSlidingPill<T extends HTMLElement>(
     observer.observe(list);
     for (const child of list.children) observer.observe(child);
     return () => observer.disconnect();
-  }, [key, selector]);
+  }, [key, selector, wrapping]);
 
   return { box, ref };
 }
@@ -79,9 +100,17 @@ export function SlidingPill({
   const reduced = useReducedMotion();
   return (
     <motion.span
-      animate={{ width: box.width, x: box.x }}
+      animate={
+        box.height === undefined
+          ? { width: box.width, x: box.x }
+          : { height: box.height, width: box.width, x: box.x, y: box.y }
+      }
       aria-hidden="true"
-      className={cn("pointer-events-none absolute left-0", className)}
+      className={cn(
+        "pointer-events-none absolute left-0",
+        box.height !== undefined && "top-0",
+        className,
+      )}
       data-pill=""
       initial={false}
       transition={reduced ? { duration: 0 } : SPRING.follow}

@@ -17,11 +17,12 @@ import {
   useEscapeKey,
 } from "@omerdlw/base-framework/hooks";
 import { Z_INDEX } from "@omerdlw/base-framework/tokens";
-import { AnimatePresence, LayoutGroup, motion } from "motion/react";
+import { AnimatePresence, LayoutGroup, motion } from "@/motion/lib";
 import { createPortal } from "react-dom";
 import { POINTS } from "@/motion/constants";
 import { step } from "@/motion/utils";
 import { cn } from "../../foundations/cn";
+import { useScrollLock } from "../../hooks/use-scroll-lock";
 import { Icon } from "../icon";
 import { SlidingHighlight } from "../indicator";
 import {
@@ -189,28 +190,7 @@ export function Select<T extends string = string>({
     };
   }, [anchored, isOpen, place, placement]);
 
-  useEffect(() => {
-    if (!isOpen || placement !== "popover") return;
-    const onWheel = (event: WheelEvent) => {
-      event.preventDefault();
-      const box = menuRef.current;
-      if (!box?.contains(event.target as Node)) return;
-      const step = event.deltaMode === 1 ? 16 : 1;
-      box.scrollTop += event.deltaY * step;
-    };
-    const onTouchMove = (event: TouchEvent) => {
-      if (!menuRef.current?.contains(event.target as Node)) {
-        event.preventDefault();
-      }
-    };
-    const listener = { capture: true, passive: false } as const;
-    window.addEventListener("wheel", onWheel, listener);
-    window.addEventListener("touchmove", onTouchMove, listener);
-    return () => {
-      window.removeEventListener("wheel", onWheel, listener);
-      window.removeEventListener("touchmove", onTouchMove, listener);
-    };
-  }, [isOpen, placement]);
+  useScrollLock(isOpen);
 
   const choose = (option: SelectOption<T>) => {
     if (option.disabled) return;

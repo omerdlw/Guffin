@@ -11,7 +11,6 @@ import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
 import { useDockActions } from "@omerdlw/base-framework/modules/dock";
 import { useToast } from "@omerdlw/base-framework/modules/notification";
 import { report, toUserMessage } from "@omerdlw/base-framework/utils";
-import { useRouter } from "next/navigation";
 import {
   getMovieLibraryAction,
   logMovieToDiaryAction,
@@ -125,7 +124,7 @@ function useMovieLibrary(
 function useDiaryLog(movieId: number, key: string | null) {
   const auth = useAuth();
   const toast = useToast();
-  const router = useRouter();
+  const { navigate } = useDockActions();
   const openSignIn = useOpenSignIn();
   const [logging, setLogging] = useState(false);
 
@@ -140,7 +139,7 @@ function useDiaryLog(movieId: number, key: string | null) {
     try {
       const result = await logMovieToDiaryAction(movieId, localDiaryDate());
       if (result.success) {
-        router.push("/account");
+        void navigate("/account");
         return;
       }
       toast(result.error);
@@ -149,7 +148,7 @@ function useDiaryLog(movieId: number, key: string | null) {
       toast(toUserMessage(error, { fallback: "Could not log this movie" }));
     }
     setLogging(false);
-  }, [auth.isReady, key, logging, movieId, openSignIn, router, toast]);
+  }, [auth.isReady, key, logging, movieId, navigate, openSignIn, toast]);
 
   return { logToDiary, logging };
 }

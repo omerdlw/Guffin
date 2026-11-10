@@ -11,10 +11,10 @@ import { useToast } from "@omerdlw/base-framework/modules/notification";
 import { createAccountSetupSurfaceEntry } from "@/features/account/setup";
 import { Input } from "@/design/components/input";
 import { Loader } from "@/design/components/loader";
+import { SurfaceAnchor } from "@/design/components/surface";
 import { cn } from "@/design/foundations/cn";
 import { hasAccountUsername, requestEmailAuth, verifyEmailOtp } from "./client";
 import {
-  AUTO_FOCUS_DELAY_MS,
   ERROR_RESET_DELAY_MS,
   INITIAL_OTP_STATE,
   OTP_BOX_STYLES,
@@ -156,12 +156,7 @@ function VerificationSurface({ close, data }: VerificationSurfaceProps) {
   const cooldown = useResendCooldown(RESEND_COOLDOWN_SECONDS);
 
   useEffect(() => {
-    const focusTimer = window.setTimeout(
-      () => inputRef.current?.focus?.(),
-      AUTO_FOCUS_DELAY_MS,
-    );
     return () => {
-      window.clearTimeout(focusTimer);
       if (resetErrorTimeout.current) {
         window.clearTimeout(resetErrorTimeout.current);
       }
@@ -258,6 +253,7 @@ function VerificationSurface({ close, data }: VerificationSurfaceProps) {
 
   return (
     <>
+      <SurfaceAnchor />
       <DockSurfaceAction>
         <DockSurfaceHeaderButton
           disabled={Boolean(busy) || !cooldown.canResend}

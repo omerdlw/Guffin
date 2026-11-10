@@ -98,10 +98,13 @@ export const SOCIAL_TAB_LABELS: Record<SocialTab, string> = {
   inbox: "Follow Requests",
 };
 
-/** A social action: the control ladder's md height, nested in its tile. */
-export const SOCIAL_BUTTON = "min-w-[6rem] rounded-inset";
+/**
+ * A social action: 36px with the `thumb` radius, so it sits in its tile with
+ * 8px on every side and the corners stay concentric (card 16 = thumb 8 + 8).
+ */
+export const SOCIAL_BUTTON = "min-w-[5.5rem]";
 
-export const SOCIAL_ROW = tileVariants({ className: "w-full" });
+export const SOCIAL_ROW = tileVariants({ className: "w-full pr-2" });
 
 export const FOLLOWS_URL = "/api/social/follows";
 export const NOTIFICATIONS_URL = "/api/notifications";

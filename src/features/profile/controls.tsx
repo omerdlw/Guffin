@@ -30,6 +30,9 @@ import { SlidingPill, useSlidingPill } from "@/design/components/indicator";
 import { DockLink } from "@/design/components/link";
 import { cn } from "@/design/foundations/cn";
 import { useConfirmedAction } from "@/design/hooks/use-confirm";
+import { MEDIA_TYPE_COPY } from "@/features/media/constants";
+import { MediaTypeSwitch, useVitrin } from "@/features/media/media-type";
+import { withVitrin } from "@/features/media/utils";
 import { TV_ENABLED } from "@/lib/env";
 import {
   LIBRARY_KIND_BY_SOURCE,
@@ -37,9 +40,10 @@ import {
   PAGE_IDLE_CLASS,
   PAGE_STEP_CLASS,
   SECTION_TABS,
-  TV_SECTION_TABS,
   TILE_ACTION_LABELS,
+  TV_SECTION_TABS,
 } from "./constants";
+import type { MediaType } from "@/features/media/types";
 import type { SectionKey, TileSource } from "./types";
 import { pageWindow } from "./utils";
 
@@ -141,6 +145,15 @@ export function Pagination({
   );
 }
 
+/**
+ * Below the desktop width the tabs sit on two balanced rows whose tabs share
+ * their row equally: a 60-column grid divides evenly for 3, 4, 5 or 6 a row.
+ */
+function spanOf(index: number, count: number): number {
+  const first = Math.ceil(count / 2);
+  return Math.floor(60 / (index < first ? first : count - first));
+}
+
 export function AccountSectionTabs({
   username,
 }: {
@@ -148,6 +161,7 @@ export function AccountSectionTabs({
 }): JSX.Element {
   const active = useSelectedLayoutSegment() as SectionKey;
   const base = accountHref(username);
+  const { asked, choose: chooseVitrin, value: vitrin } = useVitrin();
   const [chosen, setChosen] = useState<SectionKey>(active);
   const [prevActive, setPrevActive] = useState<SectionKey>(active);
   if (active !== prevActive) {
@@ -158,6 +172,7 @@ export function AccountSectionTabs({
   const { box: pill, ref: listRef } = useSlidingPill<HTMLUListElement>(
     "[data-chosen]",
     chosen,
+    { wrapping: true },
   );
 
   const navRef = useRef<HTMLElement>(null);
@@ -178,52 +193,77 @@ export function AccountSectionTabs({
     setChosen(key);
   };
 
+  const tabs = SECTION_TABS.filter(
+    (section) =>
+      !section.key ||
+      !TV_SECTION_TABS.has(section.key) ||
+      (TV_ENABLED && vitrin === "tv"),
+  );
+  const hrefFor = (key: SectionKey) => {
+    const path = key ? `${base}/${key}` : base;
+    if (!TV_ENABLED) return path;
+    return vitrin === "movie" && asked === "movie"
+      ? `${path}?v=movie`
+      : withVitrin(path, vitrin);
+  };
+  const switchVitrin = (next: MediaType) =>
+    chooseVitrin(
+      next,
+      next === "movie" && active && TV_SECTION_TABS.has(active)
+        ? base
+        : undefined,
+    );
+
   return (
-    <nav
-      aria-label="Profile sections"
-      className="flex w-full overflow-x-auto px-4 pt-4 pb-6 [scrollbar-width:none] sm:px-6 sm:pt-5"
-      ref={navRef}
-    >
-      <ul
-        className="relative mx-auto flex h-10 w-max shrink-0 items-stretch gap-0.5 rounded-full bg-veil p-1 ring-1 ring-edge-hover in-data-backdrop:backdrop-blur-xl in-data-backdrop:backdrop-saturate-150 ring-inset select-none"
-        ref={listRef}
+    <div className="flex w-full items-stretch justify-center gap-2 px-4 pt-4 pb-6 sm:px-6 sm:pt-5 lg:items-center">
+      {TV_ENABLED ? (
+        <MediaTypeSwitch onChange={switchVitrin} value={vitrin} />
+      ) : null}
+      <nav
+        aria-label="Profile sections"
+        className="relative flex min-w-0 flex-1 lg:max-w-full lg:flex-none lg:overflow-x-auto lg:[scrollbar-width:none]"
+        ref={navRef}
       >
-        {pill ? (
-          <SlidingPill
-            box={pill}
-            className="inset-y-1 rounded-full bg-grade/15"
-          />
-        ) : null}
-        {SECTION_TABS.filter(
-          (section) =>
-            TV_ENABLED || !section.key || !TV_SECTION_TABS.has(section.key),
-        ).map((section) => {
-          const isChosen = section.key === chosen;
-          return (
-            <li
-              className="flex"
-              data-chosen={isChosen ? "" : undefined}
-              key={section.label}
-              onClick={choose(section.key)}
-            >
-              <DockLink
-                aria-current={section.key === active ? "page" : undefined}
-                className={cn(
-                  "relative inline-flex items-center rounded-full px-4 type-control font-medium whitespace-nowrap",
-                  isChosen
-                    ? "text-ink"
-                    : "text-ink-body hover:text-ink focus-visible:text-ink",
-                  isChosen && !pill && "bg-grade/15",
-                )}
-                href={section.key ? `${base}/${section.key}` : base}
+        <ul
+          className="relative grid w-full grid-cols-60 items-stretch gap-y-0.5 rounded-panel bg-veil p-1 lg:flex lg:h-10 lg:w-max lg:shrink-0 lg:gap-0.5 lg:rounded-full ring-1 ring-edge-hover in-data-backdrop:backdrop-saturate-150 ring-inset select-none"
+          ref={listRef}
+        >
+          {pill ? (
+            <SlidingPill box={pill} className="rounded-full bg-grade/15" />
+          ) : null}
+          {tabs.map((section, index) => {
+            const isChosen = section.key === chosen;
+            const label =
+              section.key === "watched"
+                ? MEDIA_TYPE_COPY[vitrin].label
+                : section.label;
+            return (
+              <li
+                className="flex h-8 lg:flex-none"
+                data-chosen={isChosen ? "" : undefined}
+                key={section.key ?? "profile"}
+                onClick={choose(section.key)}
+                style={{ gridColumn: `span ${spanOf(index, tabs.length)}` }}
               >
-                {section.label}
-              </DockLink>
-            </li>
-          );
-        })}
-      </ul>
-    </nav>
+                <DockLink
+                  aria-current={section.key === active ? "page" : undefined}
+                  className={cn(
+                    "relative inline-flex flex-1 items-center justify-center rounded-full px-1 type-meta sm:px-4 sm:type-control font-medium whitespace-nowrap",
+                    isChosen
+                      ? "text-ink"
+                      : "text-ink-body hover:text-ink focus-visible:text-ink",
+                    isChosen && !pill && "bg-grade/15",
+                  )}
+                  href={hrefFor(section.key)}
+                >
+                  {label}
+                </DockLink>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+    </div>
   );
 }
 

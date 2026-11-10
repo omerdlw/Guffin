@@ -14,13 +14,10 @@ import {
 import {
   WALL_BAND,
   WALL_EDGE,
-  WALL_FOCUS,
   WALL_GLOW,
-  WALL_GLOW_RUNG,
   WALL_LIGHT,
   WALL_RETURN_MARGIN,
   WALL_ROOM,
-  WALL_SOFT_RUNG,
   WALL_SWEEP,
 } from "./constants";
 import { useExposure } from "./expose";
@@ -42,7 +39,7 @@ import type {
   WallStageProps,
   WallState,
 } from "./types";
-import { clearMask, elapsed, haze, setMask, within } from "./utils";
+import { clearMask, elapsed, setMask, within } from "./utils";
 
 const WallContext = createContext<WallState | null>(null);
 
@@ -140,7 +137,6 @@ function bloom({ print, light }: Exposure, progress: number) {
   }
   const time = elapsed(CURVE.silk, progress);
   const sweep = CURVE.glide(within(time, WALL_SWEEP));
-  const focus = CURVE.silk(within(time, WALL_FOCUS));
   const edge = (100 + WALL_EDGE) * sweep;
 
   setMask(
@@ -148,7 +144,7 @@ function bloom({ print, light }: Exposure, progress: number) {
     `linear-gradient(90deg, #000 ${edge - WALL_EDGE}%, transparent ${edge}%)`,
   );
   print.style.opacity = "1";
-  print.style.filter = `blur(${((1 - focus) * haze(WALL_SOFT_RUNG)).toFixed(2)}px)`;
+  print.style.filter = "none";
 
   setMask(
     light,
@@ -157,7 +153,7 @@ function bloom({ print, light }: Exposure, progress: number) {
   light.style.opacity = (
     sweep <= 0 || sweep >= 1 ? 0 : Math.sin(Math.PI * sweep) ** 0.6
   ).toFixed(3);
-  light.style.filter = `blur(${((1 - focus) * haze(WALL_GLOW_RUNG)).toFixed(2)}px)`;
+  light.style.filter = "none";
 }
 
 export function Bloom({ part, text, as: Tag = "span", className }: BloomProps) {

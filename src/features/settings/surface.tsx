@@ -24,7 +24,6 @@ import {
   SETTINGS_OVERVIEW,
   SETTINGS_SECTIONS,
 } from "./constants";
-import { AppearancePanel } from "./appearance";
 import { MediaForm, ProfileForm } from "./identity";
 import { PasskeysPanel } from "./passkeys";
 import { ProvidersPanel } from "./providers";
@@ -113,8 +112,6 @@ function Panel({
       return <Overview />;
     case "account":
       return <ProfileForm onSaved={done} />;
-    case "appearance":
-      return <AppearancePanel />;
     case "avatar-background":
       return <MediaForm onSaved={done} />;
     case "email":

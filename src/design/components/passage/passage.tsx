@@ -1,0 +1,118 @@
+"use client";
+
+import { type JSX, useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
+import { useOptionalNavigation } from "@omerdlw/base-framework/modules/navigation";
+import { PASSAGE_GLOW, PASSAGE_LAYER } from "@/motion/constants";
+import { useEngine } from "@/motion/react";
+import { passageOf } from "@/motion/passage";
+import { changesPage, leavesPage, plainClick, step } from "@/motion/utils";
+
+/** A plain link that has not changed the page by now was not a navigation. */
+const PLAIN_LINK_PATIENCE_RUNG = 2;
+
+/** How far the light behind the veil sinks back as the page comes through. */
+const GLOW_TRAVEL = 0.18;
+
+/**
+ * The page-to-page transition. Mount it once, inside the engine provider.
+ *
+ * It draws the veil of the passage engine (`@/motion/passage`) and ties it to
+ * navigation: every trip that changes the page raises the veil while the
+ * page leaves (the route is not asked for until the screen is covered), and
+ * the next page's stage lifts it as it opens. Links, the dock, `navigate()`
+ * and the back button all take the same road. A plain link has no hold, so
+ * its click raises the veil instead (the capture phase sees it before the
+ * router takes the click over); a click that goes on to a trip finds the veil
+ * already rising, and one that goes nowhere lets it back down.
+ *
+ *   <EngineProvider drive>
+ *     {children}
+ *     <Passage />
+ *   </EngineProvider>
+ *
+ * A page that opens with a scene of its own (a marquee) asks the veil to stay
+ * with `Handoff` / `Marquee`; a page that does not gets a short grace.
+ */
+export function Passage(): JSX.Element {
+  const engine = useEngine();
+  const navigation = useOptionalNavigation();
+  const pathname = usePathname();
+  const veil = useRef<HTMLDivElement>(null);
+  const glow = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const passage = passageOf(engine);
+    let queued = false;
+    const paint = () => {
+      queued = false;
+      const sheet = veil.current;
+      const light = glow.current;
+      if (!sheet || !light) return;
+      const cover = passage.cover.current;
+      const moving = passage.cover.moving;
+      sheet.style.visibility = cover <= 0.001 ? "hidden" : "visible";
+      sheet.style.opacity = cover.toFixed(4);
+      sheet.style.willChange = moving ? "opacity" : "auto";
+      light.style.transform = `scale(${(1 + (1 - cover) * GLOW_TRAVEL).toFixed(4)})`;
+    };
+    const draw = () => {
+      if (queued) return;
+      queued = true;
+      engine.clock.once("render", paint);
+    };
+    draw();
+    return passage.cover.subscribe(draw);
+  }, [engine]);
+
+  useEffect(() => {
+    const passage = passageOf(engine);
+    return navigation.hold((trip) => {
+      if (!changesPage(trip)) return;
+      trip.signal.addEventListener("abort", () => passage.abandon(), {
+        once: true,
+      });
+      return passage.close();
+    });
+  }, [engine, navigation]);
+
+  useEffect(() => {
+    passageOf(engine).land();
+  }, [engine, pathname]);
+
+  useEffect(() => {
+    const passage = passageOf(engine);
+    const press = (event: MouseEvent) => {
+      if (!plainClick(event)) return;
+      const target = event.target instanceof Element ? event.target : null;
+      const link = target?.closest("a[href]");
+      if (!(link instanceof HTMLAnchorElement) || !leavesPage(link)) return;
+      const from = location.pathname;
+      void passage.close();
+      setTimeout(
+        () => {
+          if (location.pathname === from) passage.abandon();
+        },
+        step(PLAIN_LINK_PATIENCE_RUNG) * 1000,
+      );
+    };
+    document.addEventListener("click", press, true);
+    return () => document.removeEventListener("click", press, true);
+  }, [engine]);
+
+  return (
+    <div
+      aria-hidden="true"
+      className="pointer-events-none fixed inset-0 bg-page"
+      data-passage=""
+      ref={veil}
+      style={{ opacity: 0, visibility: "hidden", zIndex: PASSAGE_LAYER }}
+    >
+      <div
+        className="absolute inset-0"
+        ref={glow}
+        style={{ background: PASSAGE_GLOW }}
+      />
+    </div>
+  );
+}

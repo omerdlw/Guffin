@@ -41,9 +41,7 @@ import {
 import { useAccount } from "@/features/account/provider";
 import { useAuth } from "@/features/auth/provider";
 import { useOpenSignIn } from "@/features/auth/sign-in";
-import { MediaTypeAction } from "@/features/media/media-type";
 import { createAccountSettingsSurfaceEntry } from "@/features/settings/surface";
-import { TV_ENABLED } from "@/lib/env";
 import { accountHref } from "@/lib/project";
 import { Value } from "@/motion/engine";
 import { ScopeProvider, useEngine, useScope } from "@/motion/react";
@@ -82,20 +80,12 @@ function AccountDockProvider({
   );
   const [pageDock, setPageDock] = useState<AccountDockConfig | null>(null);
   const slots = useMemo(() => ({ setPageDock }), []);
-  const vitrin = useMemo(() => (TV_ENABLED ? <MediaTypeAction /> : null), []);
-
-  const config = useMemo(() => {
-    if (!pageDock && !vitrin) return {};
-    const action = vitrin ? (
-      <div className="flex flex-col gap-2.5">
-        {pageDock?.action ? <div key="page">{pageDock.action}</div> : null}
-        <div key="vitrin">{vitrin}</div>
-      </div>
-    ) : (
-      pageDock?.action
-    );
-    return { ambient: false, dock: { ...card, ...pageDock, action } };
-  }, [card, pageDock, vitrin]);
+  /* The card is always this account's: a page adds its action to it. Without
+     a config the dock falls back to the static "Account" placeholder. */
+  const config = useMemo(
+    () => ({ ambient: false, dock: { ...card, ...pageDock } }),
+    [card, pageDock],
+  );
   usePage(config, { priority: 260 });
 
   return <AccountDockContext value={slots}>{children}</AccountDockContext>;

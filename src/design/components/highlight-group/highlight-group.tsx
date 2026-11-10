@@ -9,7 +9,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { LayoutGroup } from "motion/react";
+import { LayoutGroup } from "@/motion/lib";
 import { SlidingHighlight } from "../indicator";
 
 /*

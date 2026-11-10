@@ -1,5 +1,5 @@
 import "server-only";
-import { type JSX, Suspense } from "react";
+import type { JSX } from "react";
 import { notFound } from "next/navigation";
 import { ArtworkPrint } from "@/features/artwork/artwork";
 import { ensureCatalogEntry } from "@/features/catalog/server";
@@ -80,9 +80,8 @@ import {
   SeasonWatchAction,
   SeasonWatchedStat,
 } from "./episodes";
-import { EpisodeHeatmap } from "./rating";
 import { type ShelfProgress, SeasonShelf } from "./seasons";
-import { getEpisodeStats, getSeasonStills, getShowTracking } from "./server";
+import { getSeasonStills, getShowTracking } from "./server";
 import { ShowPageChrome } from "./stage";
 import { ShowStatusAction } from "./status";
 import type {
@@ -102,7 +101,6 @@ import {
   isAired,
   showStatusText,
   splitSeasons,
-  toHeatmapRows,
   toShowPersonEntries,
 } from "./utils";
 
@@ -308,16 +306,6 @@ function Recommendations({ show }: { show: ShowDetails }): JSX.Element | null {
   );
 }
 
-async function ShowHeatmap({ show }: { show: ShowDetails }) {
-  const stats = await getEpisodeStats(show.id);
-  return (
-    <EpisodeHeatmap
-      rows={toHeatmapRows(show.seasons, stats)}
-      showId={show.id}
-    />
-  );
-}
-
 /** Seasons in shelf order (regular, then specials) and the viewer's ticks. */
 function seasonShelf(show: ShowDetails, tracking: ShowTracking | null) {
   const { regular, specials } = splitSeasons(show.seasons);
@@ -438,9 +426,6 @@ export async function ShowPageContent({
                             watchedBySeason={watchedBySeason}
                           />
                           <MoviePeople cast={cast} crew={crew} now={false} />
-                          <Suspense fallback={null}>
-                            <ShowHeatmap show={show} />
-                          </Suspense>
                           <MovieGallery
                             backdrops={backdrops}
                             posters={posters}

@@ -15,6 +15,7 @@
     "seed": "node --max-old-space-size=8192 scripts/seed/run.mjs",
     "seed:setup": "node scripts/seed/setup.mjs",
     "seed:env": "node scripts/seed/local-env.mjs",
+    "seed:catalog": "node scripts/seed/catalog.mjs",
     "seed:verify": "node scripts/seed/verify.mjs",
     "seed:clean": "node scripts/seed/clean.mjs",
     "seed:probe": "node scripts/seed/probe.mjs",
@@ -22,8 +23,6 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@colineapp/liquid-glass": "^0.3.0",
-    "@hashintel/refractive": "^0.0.5",
     "@iconify-icon/react": "^3.0.6",
     "@omerdlw/base-framework": "^3.0.1",
     "@radix-ui/react-tooltip": "1.4.1",

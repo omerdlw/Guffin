@@ -25,7 +25,7 @@ import {
   FOUNDRY_TILT,
   FOUNDRY_UNIFORMS,
 } from "./constants";
-import { Bloom, createLoop, loadBitmap } from "./gl";
+import { Bloom, loadBitmap } from "./gl";
 import type { FoundryEvents, FoundryPlate, Loop, LoopFactory } from "./types";
 import { approach, smooth } from "./utils";
 
@@ -333,7 +333,7 @@ export class Foundry {
     canvas: HTMLCanvasElement,
     font: string,
     events: FoundryEvents,
-    loop: LoopFactory = createLoop,
+    loop: LoopFactory,
   ): Foundry | null {
     const gl = canvas.getContext("webgl2", {
       alpha: false,
@@ -487,7 +487,6 @@ export class Foundry {
     if (!context) return;
     context.fillStyle = "#000";
     context.fillRect(0, 0, FOUNDRY_ENGRAVE_WIDTH, height);
-    context.filter = `blur(${(height * 0.018).toFixed(2)}px)`;
     context.font = face;
     context.letterSpacing = `${Math.round(size * 0.1)}px`;
     context.textAlign = "center";

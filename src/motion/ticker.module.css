@@ -18,14 +18,12 @@
 
 @keyframes in {
   from {
-    filter: blur(4px);
     opacity: 0;
     transform: translateY(var(--from, 0.7em));
   }
 }
 @keyframes out {
   to {
-    filter: blur(4px);
     opacity: 0;
     transform: translateY(var(--to, -0.7em));
   }

@@ -9,7 +9,6 @@ import { CONTINUE_WATCHING_LIMIT, SEASON_STILL_LIMIT } from "./constants";
 import type {
   AiredEpisode,
   ContinueItem,
-  EpisodeStat,
   SeasonSummary,
   ShowTracking,
   TvClient,
@@ -143,29 +142,6 @@ export async function getShowTracking(
   } catch (error) {
     report("Show tracking read", error);
     return null;
-  }
-}
-
-/** Guffin's rating spread per episode, for the season heatmap. */
-export async function getEpisodeStats(showId: number): Promise<EpisodeStat[]> {
-  try {
-    const client = await createServerSupabaseClient();
-    const { data, error } = await client
-      .from("episode_stats")
-      .select("season_number, episode_number, ratings_count, rating_average")
-      .eq("show_id", showId)
-      .gt("ratings_count", 0)
-      .limit(5000);
-    if (error) throw error;
-    return data.map((row) => ({
-      season: row.season_number,
-      episode: row.episode_number,
-      count: row.ratings_count ?? 0,
-      average: row.rating_average === null ? null : Number(row.rating_average),
-    }));
-  } catch (error) {
-    report("Episode stats read", error);
-    return [];
   }
 }
 

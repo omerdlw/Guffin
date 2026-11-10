@@ -18,7 +18,7 @@ import {
   useDockSelector,
 } from "@omerdlw/base-framework/modules/dock";
 import { ACTION_TONE_CLASS } from "@omerdlw/base-framework/tokens";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "@/motion/lib";
 import { usePathname } from "next/navigation";
 import {
   MoviePosterLink,
@@ -370,13 +370,7 @@ function PagerButton({
   );
 }
 
-function SearchAction({
-  autoFocus = false,
-  onClose,
-}: {
-  autoFocus?: boolean;
-  onClose?: () => void;
-} = {}) {
+function SearchAction({ onClose }: { onClose?: () => void } = {}) {
   const { navigate } = useDockActions();
   const actionClass = useDockActionClass();
   const listId = useId();
@@ -521,11 +515,10 @@ function SearchAction({
             aria-controls={listId}
             aria-expanded={hitCount > 0}
             aria-label="Search movies, people, users, lists and reviews"
-            autoFocus={autoFocus}
             autoCapitalize="off"
             autoComplete="off"
             autoCorrect="off"
-            className="h-10 rounded-card bg-fill pr-12 pl-11 text-ink ring-1 ring-edge ring-inset outline-none type-body placeholder:text-ink-muted hover:bg-fill-hover hover:ring-edge-hover focus:bg-fill-hover"
+            className="pr-12 pl-11"
             enterKeyHint="search"
             maxLength={SEARCH_MAX_QUERY_LENGTH}
             name="search"
@@ -700,7 +693,7 @@ export function SearchDockCommand(): null {
     () =>
       open
         ? {
-            action: <SearchAction autoFocus onClose={close} />,
+            action: <SearchAction onClose={close} />,
             ...(frontPath ? { path: frontPath } : {}),
           }
         : null,

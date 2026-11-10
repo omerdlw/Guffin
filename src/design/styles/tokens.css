@@ -77,12 +77,18 @@
 
   --ease-*: initial;
   --ease-out-expo: var(--curve-expo);
-  --ease-out-quart: cubic-bezier(0.3, 0.7, 0.4, 1);
+  /*
+   * The three CSS-only curves are measured like the engine's: the share of
+   * the time used when each reaches 50% / 90% of the way is quart 26 / 58,
+   * cream 28 / 60 and phosphor 31 / 64. A curve that reaches 90% before half
+   * of its time leaves the second half of a long fade as an invisible tail.
+   */
+  --ease-out-quart: cubic-bezier(0.3, 0.41, 0.28, 1);
   --ease-out-quint: var(--curve-silk);
   --ease-in-out-cubic: var(--curve-glide);
   --ease-in-cubic: cubic-bezier(0.5, 0, 1, 1);
-  --ease-out-cream: cubic-bezier(0.25, 0.55, 0.2, 1);
-  --ease-phosphor: cubic-bezier(0.2, 0.45, 0.2, 1);
+  --ease-out-cream: cubic-bezier(0.33, 0.45, 0.34, 1);
+  --ease-phosphor: cubic-bezier(0.32, 0.36, 0.39, 1);
   --ease-fade: var(--curve-fade);
 
   --default-transition-duration: var(--step-n2);

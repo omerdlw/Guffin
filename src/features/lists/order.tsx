@@ -7,7 +7,7 @@ import {
 } from "@omerdlw/base-framework/modules/dock";
 import { useToast } from "@omerdlw/base-framework/modules/notification";
 import { report, toUserMessage } from "@omerdlw/base-framework/utils";
-import { Reorder, useDragControls } from "motion/react";
+import { Reorder, useDragControls } from "@/motion/lib";
 import { useRouter } from "next/navigation";
 import { tmdbImageUrl } from "@/lib/tmdb/shared";
 import { Button } from "@/design/components/button";

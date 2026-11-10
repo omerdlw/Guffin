@@ -136,7 +136,7 @@ function Figure({ count, label }: { count: number; label: string }) {
       <span className="type-title font-semibold text-ink tabular-nums sm:type-heading">
         {count.toLocaleString("en-US")}
       </span>
-      <span className="type-micro font-semibold whitespace-nowrap text-ink-muted uppercase group-hover/stat:text-ink-body group-focus-visible/stat:text-ink-body group-has-focus-visible/stat:text-ink-body min-[400px]:tracking-label lg:tracking-[0.04em] xl:tracking-[0.08em]">
+      <span className="type-micro font-semibold whitespace-nowrap text-ink-muted uppercase group-hover/stat:text-ink-body group-focus-visible/stat:text-ink-body group-has-focus-visible/stat:text-ink-body tracking-[0.04em]">
         {label}
       </span>
     </>
@@ -191,9 +191,11 @@ export function ProfileStats({
 
 export function ProfileStatRow({ children }: { children: ReactNode }) {
   return (
-    <ul className="grid w-full auto-cols-fr grid-flow-col divide-x divide-rule">
-      {children}
-    </ul>
+    <div className="@container w-full">
+      <ul className="grid grid-cols-3 gap-y-fib-4 [&>li]:border-rule [&>li:not(:nth-child(3n+1))]:border-l @lg:flex @lg:[&>li]:flex-auto @lg:[&>li+li]:border-l">
+        {children}
+      </ul>
+    </div>
   );
 }
 
@@ -375,7 +377,7 @@ export function PosterTile({
         tooltip={item.pinned ? `${label} · Favorite` : label}
       />
       {rank !== undefined ? (
-        <span className="pointer-events-none absolute top-2 left-2 center h-6 min-w-6 rounded-thumb bg-glass px-1.5 type-label font-semibold text-ink tabular-nums ring-1 ring-edge-hover backdrop-blur-sm">
+        <span className="pointer-events-none absolute top-2 left-2 center h-6 min-w-6 rounded-thumb bg-glass px-1.5 type-label font-semibold text-ink tabular-nums ring-1 ring-edge-hover">
           {rank}
         </span>
       ) : null}

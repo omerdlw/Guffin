@@ -38,7 +38,7 @@
     --line: rgb(var(--ink-rgb) / 0.1);
     --plate: color-mix(in srgb, var(--ink) 5%, var(--page));
 
-    --glass: color-mix(in srgb, var(--page) 70%, transparent);
+    --glass: color-mix(in srgb, var(--ink) 4%, var(--page));
     --veil: color-mix(in srgb, var(--page) 60%, transparent);
     --dim: color-mix(in srgb, var(--page) 30%, transparent);
 
@@ -48,7 +48,9 @@
     --on-accent: var(--page);
     --sheen-primary: 0 0 0;
 
-    --focus-ring: rgb(var(--ink-rgb) / 0.2);
+    /* 3:1 against the page or better (WCAG 1.4.11): 4.3:1 on black */
+    --focus-ring: rgb(var(--ink-rgb) / 0.45);
+    --focus-ring-grade: rgb(var(--grade, var(--ink-rgb)) / 0.7);
     --selection: rgb(var(--grade, var(--ink-rgb)) / 0.3);
 
     --watched: #00e054;
@@ -104,9 +106,11 @@
     --line: rgb(var(--ink-rgb) / 0.12);
     --plate: color-mix(in oklab, #fff 70%, var(--page));
 
-    /* layers are frosted white sheets lifted off the paper */
-    --glass: rgb(255 255 255 / 0.72);
-    --veil: rgb(255 255 255 / 0.6);
+    /* layers are the paper's own tint, barely lifted, the way dark glass is
+       a breath of ink on the page: the dock and menus read as the page's own
+       colour, set apart by their edge */
+    --glass: color-mix(in oklab, #fff 8%, var(--page));
+    --veil: color-mix(in oklab, var(--page) 60%, transparent);
     --dim: rgb(var(--ink-rgb) / 0.2);
 
     --primary: var(--ink);
@@ -115,7 +119,10 @@
     --on-accent: #fff;
     --sheen-primary: 255 255 255;
 
-    --focus-ring: rgb(var(--ink-rgb) / 0.35);
+    /* 4:1 on paper. The grade is as light as the paper, so it cannot carry
+       the ring here: a graded page keeps the ink ring. */
+    --focus-ring: rgb(var(--ink-rgb) / 0.55);
+    --focus-ring-grade: var(--focus-ring);
 
     --watched: oklch(62% 0.19 150);
     --listed: oklch(60% 0.14 236);

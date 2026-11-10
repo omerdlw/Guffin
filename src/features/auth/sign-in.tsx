@@ -21,6 +21,7 @@ import { Button } from "@/design/components/button";
 import { Icon } from "@/design/components/icon";
 import { Input } from "@/design/components/input";
 import { Spinner } from "@/design/components/loader";
+import { SurfaceAnchor } from "@/design/components/surface";
 import {
   requestEmailAuth,
   signInSeedAccount,
@@ -179,6 +180,7 @@ function SignInSurface({ close, data = {} }: SignInSurfaceProps) {
 
   return (
     <div className="flex flex-col gap-2.5">
+      <SurfaceAnchor />
       <MethodButton
         busy={active === "passkey"}
         disabled={Boolean(active)}
@@ -276,10 +278,10 @@ function EmailSignInSurface({ data = {} }: SignInSurfaceProps) {
 
   return (
     <form action={submit} className="flex flex-col gap-2.5">
+      <SurfaceAnchor />
       <Input
         aria-label="Email"
         autoComplete="email"
-        autoFocus
         className={AUTH_INPUT_CLASS}
         disabled={pending}
         name="email"

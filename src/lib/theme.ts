@@ -29,8 +29,27 @@ function resolve(choice: ThemeChoice): Theme {
   return matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
 }
 
+/**
+ * Swaps the theme with every transition switched off for one frame. Colour
+ * roles fade over `settle`, so without this each control crossfades on its own
+ * clock and the switch smears across the page. The attribute is read by
+ * interaction.css. It must be in force before the palette changes, so each
+ * step is flushed; transitions come back after the next frame.
+ */
+function paint(theme: Theme) {
+  const root = document.documentElement;
+  if (root.dataset.theme === theme) return;
+  root.dataset.themeSwitching = "";
+  void getComputedStyle(root).color;
+  root.dataset.theme = theme;
+  void getComputedStyle(root).color;
+  requestAnimationFrame(() =>
+    requestAnimationFrame(() => delete root.dataset.themeSwitching),
+  );
+}
+
 function apply() {
-  document.documentElement.dataset.theme = resolve(read());
+  paint(resolve(read()));
   for (const listener of listeners) listener();
 }
 
@@ -41,7 +60,7 @@ export function setThemeChoice(choice: ThemeChoice) {
   } catch {
     /* storage can be blocked; the choice then lasts until reload */
   }
-  document.documentElement.dataset.theme = resolve(choice);
+  paint(resolve(choice));
   for (const listener of listeners) listener();
 }
 

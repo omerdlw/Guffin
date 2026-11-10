@@ -26,6 +26,12 @@
     .block::after {
       animation: shimmer var(--step-3) var(--ease-in-out-cubic) infinite;
     }
+    /* Off screen (an image still waiting for its lazy load) the shimmer rests:
+       a hundred running glints are a hundred layers the page repaints and
+       composites every frame, for nobody. */
+    .block[data-far]::after {
+      animation: none;
+    }
   }
 
   .pulse {

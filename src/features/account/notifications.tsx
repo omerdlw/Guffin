@@ -37,7 +37,10 @@ import {
   SURFACE_TEXT,
   SURFACE_TILE_INNER,
   SURFACE_TITLE,
+  SurfaceAnchor,
+  SurfaceSearch,
   tileVariants,
+  useSurfaceSearch,
 } from "@/design/components/surface";
 import { cn } from "@/design/foundations/cn";
 import {
@@ -103,7 +106,7 @@ const NotificationRow = memo(function NotificationRow({
   onNavigate?: () => void;
 }) {
   const { actor } = notification;
-  const highlight = useHighlight(notification.id, "rounded-card bg-fill");
+  const highlight = useHighlight(notification.id);
   const href = actor ? accountHref(actor.username || actor.id) : null;
   const headline = notificationHeadline(notification);
   const age = formatNotificationAge(notification.created_at);
@@ -143,7 +146,7 @@ const NotificationRow = memo(function NotificationRow({
     <div
       className={tileVariants({
         className:
-          "group/user relative isolate w-full justify-between overflow-hidden",
+          "group/user relative isolate w-full justify-between",
       })}
       {...highlight.props}
     >
@@ -163,28 +166,30 @@ const NotificationRow = memo(function NotificationRow({
         </div>
       )}
 
-      <div className="relative z-10 flex shrink-0 items-center gap-1.5">
+      <div className="relative z-10 flex shrink-0 items-center gap-0.5">
         {notification.read ? null : (
           <Button
             aria-label="Mark as read"
-            className="rounded-inset"
+            className={SURFACE_TILE_INNER}
             icon
-            intent="chosen"
+            intent="ghost"
+            size="chrome"
             onClick={(event) => onMarkRead(notification.id, event)}
             title="Mark as read"
           >
-            <Icon icon="solar:check-circle-bold" size={16} />
+            <Icon icon="solar:check-read-linear" size={18} />
           </Button>
         )}
         <Button
           aria-label="Delete notification"
-          className="rounded-inset"
+          className={SURFACE_TILE_INNER}
           icon
           intent="ghost"
+          size="chrome"
           onClick={(event) => onDelete(notification.id, event)}
           title="Delete notification"
         >
-          <Icon icon="solar:trash-bin-trash-bold" size={16} />
+          <Icon icon="solar:trash-bin-minimalistic-linear" size={18} />
         </Button>
       </div>
     </div>
@@ -339,14 +344,16 @@ function useNotificationFeed(signedIn: boolean, ready: boolean) {
 function NotificationList({
   filter,
   notifications,
+  query,
   onClose,
   onDelete,
   onMarkRead,
   status,
 }: {
   filter: NotificationFilter;
-  notifications: NotificationItem[];
+  notifications: readonly NotificationItem[];
   onClose?: () => void;
+  query: string;
   onDelete: NotificationRowAction;
   onMarkRead: NotificationRowAction;
   status: NotificationFeed["status"];
@@ -359,6 +366,16 @@ function NotificationList({
         description="Please try again in a moment"
         icon="solar:danger-circle-bold"
         title="Couldn't load notifications"
+      />
+    );
+  }
+
+  if (notifications.length === 0 && query) {
+    return (
+      <StatusTile
+        description={`Nothing matches “${query}”`}
+        icon="solar:magnifer-linear"
+        title="No results"
       />
     );
   }
@@ -399,6 +416,9 @@ function NotificationList({
   );
 }
 
+const notificationText = (item: NotificationItem) =>
+  `${notificationHeadline(item)} ${notificationSummary(item)} ${item.actor?.username ?? ""}`;
+
 export function AccountNotificationsSurface({ close }: { close?: () => void }) {
   const auth = useAuth();
   const signedIn = auth.isReady && auth.isAuthenticated;
@@ -415,8 +435,15 @@ export function AccountNotificationsSurface({ close }: { close?: () => void }) {
     [feed.items, filter],
   );
 
+  const search = useSurfaceSearch(
+    visible,
+    notificationText,
+    feed.items.length,
+  );
+
   return (
     <div className="flex w-full flex-col overflow-hidden">
+      <SurfaceAnchor />
       <DockSurfaceExtension align="left" id="account-notifications-toolbar">
         <div className="flex h-8 w-full items-center justify-between gap-2 select-none">
           <SegmentedControl
@@ -447,9 +474,18 @@ export function AccountNotificationsSurface({ close }: { close?: () => void }) {
           ) : null}
         </div>
       </DockSurfaceExtension>
+      {search.enabled && feed.status === "ready" ? (
+        <SurfaceSearch
+          className="mb-2.5"
+          label="Search notifications"
+          onChange={search.setQuery}
+          value={search.query}
+        />
+      ) : null}
       <NotificationList
         filter={filter}
-        notifications={visible}
+        notifications={search.matches}
+        query={search.searching ? search.query.trim() : ""}
         onClose={close}
         onDelete={remove}
         onMarkRead={markRead}

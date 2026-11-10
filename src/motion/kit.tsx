@@ -55,7 +55,6 @@ import {
   clamp,
   elapsed,
   handsOf,
-  haze,
   reach,
   staggered,
   step,
@@ -216,7 +215,7 @@ function come(el: HTMLElement, t: number, rung: number | null, travel: number) {
   const eased = CURVE.silk(t);
   el.style.opacity = clamp(eased * PHI, 0, 1).toFixed(3);
   if (rung === null) el.style.removeProperty("filter");
-  else el.style.filter = `blur(${((1 - eased) * haze(rung)).toFixed(2)}px)`;
+  else el.style.filter = "none";
   el.style.transform = `translate3d(0, ${((1 - eased) * travel).toFixed(2)}px, 0)`;
 }
 
@@ -346,7 +345,7 @@ export function Header({
               style={{ opacity: 0 }}
             >
               <span
-                className="absolute -top-px right-full h-[3px] w-16 blur-[1.5px]"
+                className="absolute -top-px right-full h-[3px] w-16"
                 style={{
                   background:
                     "linear-gradient(to right, transparent, color-mix(in oklch, var(--light, #fcfcfb) 90%, transparent))",

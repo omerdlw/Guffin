@@ -6,7 +6,7 @@ import {
   useDockActions,
   useDockRegistration,
 } from "@omerdlw/base-framework/modules/dock";
-import { useReducedMotion } from "motion/react";
+import { useReducedMotion } from "@/motion/lib";
 import { DetailBackdrop } from "@/features/detail/stage";
 import { MoviePosterLink } from "@/features/movie/stage";
 import { formatRuntime } from "@/features/movie/utils";

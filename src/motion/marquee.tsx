@@ -13,6 +13,7 @@ import {
   MARQUEE_EDGES,
   MARQUEE_FADE,
   MARQUEE_GLARE,
+  MARQUEE_GLARE_GAIN,
   MARQUEE_GLOW,
   MARQUEE_HEIGHT,
   MARQUEE_LEADING,
@@ -33,11 +34,13 @@ import {
   MARQUEE_TRACK_FOCUS,
   MARQUEE_TRACK_OPEN,
   MARQUEE_TRACK_REST,
+  MARQUEE_UNSEEN,
   MARQUEE_WASH,
   MARQUEE_WASH_LEVEL,
   PHI,
 } from "./constants";
 import { Value } from "./engine";
+import { passageOf } from "./passage";
 import { useAnyStage, useEngine, usePartOf, useScrollDriver } from "./react";
 import { PATIENCE } from "./stage";
 import { CURVE } from "./time";
@@ -47,7 +50,6 @@ import {
   clamp,
   coverOf,
   elapsed,
-  haze,
   marqueeHold,
   pictureIn,
   step,
@@ -194,6 +196,10 @@ export function Marquee({
   useEffect(() => {
     if (engine.reduced.get()) skip(true);
   }, [engine]);
+
+  useEffect(() => {
+    if (!skipped) passageOf(engine).keep();
+  }, [engine, skipped]);
 
   useEffect(() => {
     if (skipped || gone) return;
@@ -373,7 +379,7 @@ export function Marquee({
       const { enter, leave } = live.current;
       const u = enter <= 0 ? 0 : enter >= 1 ? 1 : elapsed(CURVE.pour, enter);
       const developed = values.lit.current;
-      const dive = CURVE.dolly(within(u, MARQUEE_DIVE));
+      const dive = CURVE.glide(within(u, MARQUEE_DIVE));
       const open = CURVE.silk(within(u, MARQUEE_SPREAD));
       const away = CURVE.fade(within(u, MARQUEE_FADE));
       const glare = Math.sin(Math.PI * within(u, MARQUEE_GLARE));
@@ -397,6 +403,24 @@ export function Marquee({
       const settle = 1 + (size - 1) * away;
       const slip = 1 - dive;
       const { frame, picture } = set;
+
+      const present = (1 - away) * (1 - leave);
+      const alpha = developed * present;
+      glow.style.opacity = (
+        0.9 *
+        developed *
+        (1 - CURVE.silk(within(u, [0, 0.5]))) *
+        (1 - leave)
+      ).toFixed(3);
+      glow.style.transform = `scale(${(1 + dive * 1.6).toFixed(3)})`;
+      if (alpha < MARQUEE_UNSEEN) {
+        if (canvas.style.opacity !== "0") canvas.style.opacity = "0";
+        if (away >= 1 && !live.current.gone) {
+          live.current.gone = true;
+          setGone(true);
+        }
+        return;
+      }
 
       const now = performance.now();
       if (now - sampled > MARQUEE_LIGHT_EVERY) {
@@ -465,17 +489,20 @@ export function Marquee({
       }
 
       c.globalCompositeOperation = "source-over";
-      c.save();
-      c.beginPath();
-      c.rect(frame.left, frame.top, frame.width, frame.height);
-      c.clip();
-      zoom();
-      c.lineWidth = 1 / scale;
-      c.lineJoin = "round";
-      c.strokeStyle = light.rim;
-      c.globalAlpha = MARQUEE_RIM_LEVEL;
-      letters((char, x, y) => c.strokeText(char, x, y));
-      c.restore();
+      const rim = MARQUEE_RIM_LEVEL * (1 - dive);
+      if (rim > MARQUEE_UNSEEN) {
+        c.save();
+        c.beginPath();
+        c.rect(frame.left, frame.top, frame.width, frame.height);
+        c.clip();
+        zoom();
+        c.lineWidth = 1 / scale;
+        c.lineJoin = "round";
+        c.strokeStyle = light.rim;
+        c.globalAlpha = rim;
+        letters((char, x, y) => c.strokeText(char, x, y));
+        c.restore();
+      }
 
       if (edge > 0.001 && cover) {
         c.globalCompositeOperation = "destination-out";
@@ -488,24 +515,17 @@ export function Marquee({
         c.globalCompositeOperation = "source-over";
       }
 
-      const present = (1 - away) * (1 - leave);
-      const soft =
-        (1 - developed) * haze(4) +
-        dive * haze(3) * (1 - away) +
-        left * haze(6) * away;
       const level = (1 + glare * 0.4) * (1 - away * (1 - dark));
-      canvas.style.opacity = (developed * present).toFixed(3);
-      canvas.style.filter =
-        soft > 0.2 || glare > 0.01
-          ? `blur(${soft.toFixed(2)}px) brightness(${level.toFixed(3)})`
-          : "";
-      glow.style.opacity = (
-        0.9 *
-        developed *
-        (1 - CURVE.silk(within(u, [0, 0.5]))) *
-        (1 - leave)
-      ).toFixed(3);
-      glow.style.transform = `scale(${(1 + dive * 1.6).toFixed(3)})`;
+      if (Math.abs(level - 1) > 0.005) {
+        c.globalCompositeOperation = "source-atop";
+        c.globalAlpha =
+          level < 1 ? 1 - level : Math.min(1, (level - 1) * MARQUEE_GLARE_GAIN);
+        c.fillStyle = level < 1 ? "#000" : "#fff";
+        c.fillRect(0, 0, set.width, set.height);
+        c.globalAlpha = 1;
+        c.globalCompositeOperation = "source-over";
+      }
+      canvas.style.opacity = alpha.toFixed(3);
 
       if (away >= 1 && !live.current.gone) {
         live.current.gone = true;

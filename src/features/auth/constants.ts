@@ -92,8 +92,6 @@ export const RESEND_COOLDOWN_SECONDS = 60;
 
 export const ERROR_RESET_DELAY_MS = 700;
 
-export const AUTO_FOCUS_DELAY_MS = 150;
-
 export const OTP_BOX_STYLES = {
   BASE: "center h-11 @[280px]:h-14 rounded-card type-base @[280px]:type-title font-semibold text-ink-body ring-1 ring-inset ring-edge hover:text-ink focus-visible:text-ink",
   ERROR:

@@ -18,15 +18,26 @@ import {
   SURFACE_META,
   SURFACE_STACK,
   SURFACE_TEXT,
-  SURFACE_TILE_INNER,
   SURFACE_TITLE,
   rowVariants,
   tileVariants,
 } from "@/design/components/surface";
 import { cn } from "@/design/foundations/cn";
 import { PROVIDER_LABELS } from "./constants";
-import { Mark } from "./shared";
 import { providerOf } from "./utils";
+
+/** A provider's own glyph, bare: no tile behind it. */
+function ProviderGlyph({ provider }: { provider: OAuthProvider }) {
+  return (
+    <span className="center size-8 shrink-0 text-ink-body ui-fade group-hover/connect:text-ink group-focus-visible/connect:text-ink">
+      <Icon
+        className="ui-glyph center"
+        icon={PROVIDER_LABELS[provider].icon}
+        size={28}
+      />
+    </span>
+  );
+}
 
 function ConnectedRow({
   busy,
@@ -42,23 +53,40 @@ function ConnectedRow({
   const highlight = useHighlight(provider);
   return (
     <div
-      className={cn(tileVariants(), "relative isolate")}
+      className={cn(
+        tileVariants(),
+        "group/connect relative isolate",
+      )}
       {...highlight.props}
     >
       {highlight.node}
-      <Mark icon={PROVIDER_LABELS[provider].icon} size={18} />
+      <ProviderGlyph provider={provider} />
       <span className={SURFACE_TEXT}>
         <span className={SURFACE_TITLE}>{PROVIDER_LABELS[provider].label}</span>
         <span className={SURFACE_META}>Connected</span>
       </span>
       <Button
-        className={SURFACE_TILE_INNER}
-        intent="neutral"
+        aria-label={`Disconnect ${PROVIDER_LABELS[provider].label}`}
+        className="group/chip"
         disabled={disabled}
+        icon
+        intent="ghost"
         loading={busy}
         onClick={onUnlink}
+        shape="pill"
+        size="chrome"
+        title="Disconnect"
       >
-        Disconnect
+        <Icon
+          className="center absolute ui-fade group-hover/chip:opacity-0 group-focus-visible/chip:opacity-0"
+          icon="solar:link-bold"
+          size={16}
+        />
+        <Icon
+          className="center absolute opacity-0 ui-fade group-hover/chip:opacity-100 group-focus-visible/chip:opacity-100"
+          icon="solar:link-broken-linear"
+          size={16}
+        />
       </Button>
     </div>
   );
@@ -78,24 +106,27 @@ function ConnectRow({
   const highlight = useHighlight(provider);
   return (
     <Button
-      className={rowVariants()}
+      className={rowVariants({ className: "group/connect pr-3" })}
       disabled={disabled}
       loading={busy}
       onClick={onLink}
       {...highlight.props}
     >
       {highlight.node}
-      <Mark icon={PROVIDER_LABELS[provider].icon} size={18} />
+      <ProviderGlyph provider={provider} />
       <span className={SURFACE_TEXT}>
-        <span className={SURFACE_TITLE}>
+        <span
+          className={cn(
+            SURFACE_TITLE,
+            "text-ink-body ui-fade group-hover/connect:text-ink group-focus-visible/connect:text-ink",
+          )}
+        >
           Connect {PROVIDER_LABELS[provider].label}
         </span>
       </span>
-      <Icon
-        className="center shrink-0 text-ink-muted group-hover:text-ink group-focus-visible:text-ink group-has-focus-visible:text-ink"
-        icon="solar:link-linear"
-        size={16}
-      />
+      <span className="center size-9 shrink-0 rounded-full text-ink-muted ui-fade hover:bg-fill-hover hover:text-ink">
+        <Icon className="center" icon="solar:link-linear" size={16} />
+      </span>
     </Button>
   );
 }

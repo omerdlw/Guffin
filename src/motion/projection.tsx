@@ -32,7 +32,9 @@ import {
   PROJECTION_LEVEL_WIDTHS,
   PROJECTION_LINGER,
   PROJECTION_MAX_TEXTURE,
+  PROJECTION_PIXEL_BUDGET,
   PROJECTION_SETTLING_MS,
+  PROJECTION_SOFT_FROM,
   PROJECTION_STREAK_GAIN,
   PROJECTION_TRAIL_MAX,
   PROJECTION_UNIFORMS,
@@ -181,11 +183,11 @@ void main() {
   float smear = length(motion / max(abs(vec2(slopeX.x, slopeY.y)), vec2(1e-6)));
   vec3 color;
   if (smear > 0.75) {
-    float taps = clamp(ceil(smear / 2.5) + 2.0, 3.0, 16.0);
+    float taps = clamp(ceil(smear / 2.5) + 2.0, 3.0, 10.0);
     float start = fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715))));
     float total = 0.0;
     color = vec3(0.0);
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < 10; i++) {
       if (float(i) >= taps) break;
       float t = (float(i) + start) / taps - 0.5;
       float w = 1.0 - t * t * 2.0;
@@ -431,6 +433,12 @@ function project(
     );
   };
 
+  /*
+   * The pixel density the canvas is drawn at. Once the picture has gone soft
+   * on the way out of the hero there is no detail left to resolve, so the
+   * shader (the cost of a frame here) runs at one pixel per CSS pixel.
+   */
+  let density: number = PROJECTION_DEVICE_CAP;
   let bounds: DOMRect | null = null;
   let boundsAt = Number.NaN;
   let settling = 0;
@@ -444,7 +452,12 @@ function project(
 
   const draw = () => {
     if (resized) {
-      fitCanvas(canvas, PROJECTION_DEVICE_CAP);
+      // The shader runs once per pixel: keep the canvas within a budget
+      // however wide the band is (it bleeds far past the column).
+      const area = canvas.clientWidth * canvas.clientHeight;
+      const budget =
+        area > 0 ? Math.sqrt(PROJECTION_PIXEL_BUDGET / area) : density;
+      fitCanvas(canvas, Math.max(1, Math.min(density, budget)));
       resized = false;
     }
     gl.viewport(0, 0, canvas.width, canvas.height);
@@ -505,6 +518,12 @@ function project(
     const nextDefocus = reduced ? 0 : (defocusAt.current?.(scrollY.get()) ?? 0);
     if (Math.abs(nextDefocus - defocus) > 0.0005) {
       defocus = nextDefocus;
+      dirty = true;
+    }
+    const wanted = defocus > PROJECTION_SOFT_FROM ? 1 : PROJECTION_DEVICE_CAP;
+    if (wanted !== density) {
+      density = wanted;
+      resized = true;
       dirty = true;
     }
 
@@ -916,7 +935,7 @@ export function Projection({
     const amount = reduced ? 0 : (focusRef.current?.(y) ?? 0);
     return amount < 0.002
       ? "none"
-      : `blur(${(amount * 14).toFixed(2)}px) saturate(${(1 - amount * 0.35).toFixed(3)})`;
+      : `saturate(${(1 - amount * 0.35).toFixed(3)})`;
   });
 
   useEffect(() => {

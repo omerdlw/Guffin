@@ -11,13 +11,13 @@ export const layerVariants = variants("", {
       shell: "bg-glass ring-1 ring-edge-hover ring-inset backdrop-saturate-150",
       /** a floating pill: dock controls, breadcrumbs, toasts */
       float:
-        "bg-glass ring-1 ring-edge-hover ring-inset backdrop-blur-lg backdrop-saturate-150",
+        "bg-glass ring-1 ring-edge-hover ring-inset backdrop-saturate-150",
       /** a tooltip */
-      tip: "bg-glass text-ink-lead ring-1 ring-edge ring-inset backdrop-blur-xl backdrop-saturate-150",
+      tip: "bg-glass text-ink-lead ring-1 ring-edge ring-inset backdrop-saturate-150",
       /** a veil laid over a picture, behind a layer */
-      veil: "bg-veil backdrop-blur-md",
+      veil: "bg-veil",
       /** a layer left under the top one */
-      dim: "bg-dim backdrop-blur-xs",
+      dim: "bg-dim",
     },
   },
 });

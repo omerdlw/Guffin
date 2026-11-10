@@ -6,7 +6,7 @@ import {
   AnimatePresence,
   motion,
   useReducedMotion,
-} from "motion/react";
+} from "@/motion/lib";
 import { useArtworkPath } from "@/features/artwork/artwork";
 import { departmentRole } from "@/features/person/utils";
 import { RatingStars } from "@/features/reviews/rating";

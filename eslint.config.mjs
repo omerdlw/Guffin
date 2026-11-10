@@ -1,13 +1,18 @@
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 
-function layer(files, banned, message) {
+const MOTION_LIBRARY = ["motion", "motion/react", "framer-motion"];
+
+function layer(files, banned, message, paths = []) {
   return {
     files,
     rules: {
       "no-restricted-imports": [
         "error",
-        { patterns: [{ group: banned, message }] },
+        {
+          paths: paths.map((name) => ({ name, message })),
+          ...(banned.length ? { patterns: [{ group: banned, message }] } : {}),
+        },
       ],
     },
   };
@@ -34,7 +39,14 @@ const eslintConfig = defineConfig([
   layer(
     ["src/features/**/*.{ts,tsx}"],
     ["@/app/**"],
-    "Features cannot depend on the app layer.",
+    "Features cannot depend on the app layer, and take animation primitives from @/motion/lib, never from the library itself.",
+    MOTION_LIBRARY,
+  ),
+  layer(
+    ["src/design/**/*.{ts,tsx}", "src/app/**/*.{ts,tsx}"],
+    [],
+    "Take animation primitives from @/motion/lib, never from the library itself.",
+    MOTION_LIBRARY,
   ),
   layer(
     [

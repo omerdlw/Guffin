@@ -1,7 +1,7 @@
 "use client";
 
 import { useModal } from "@omerdlw/base-framework/modules/modal";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion } from "@/motion/lib";
 import { ArtworkPrint, useArtworkPath } from "@/features/artwork/artwork";
 import { ImageModal } from "@/features/detail/gallery";
 import { useMediaType } from "@/features/media/context";
@@ -54,10 +54,10 @@ function Slate({ title }: { title: string }) {
     <AnimatePresence>
       {reel ? (
         <motion.div
-          animate={{ filter: "blur(0px)", opacity: 1, y: 0 }}
+          animate={{ opacity: 1, y: 0 }}
           className={`absolute top-6 right-4 z-20 flex items-center gap-1 p-1 sm:right-6 lg:right-8 ${TONE.glass}`}
-          exit={{ filter: "blur(6px)", opacity: 0, y: -8 }}
-          initial={{ filter: "blur(6px)", opacity: 0, y: -8 }}
+          exit={{ opacity: 0, y: -8 }}
+          initial={{ opacity: 0, y: -8 }}
           transition={{
             duration: step(STILL_BADGE_RUNG),
             ease: [...POINTS.expo],

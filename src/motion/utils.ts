@@ -13,6 +13,7 @@ import {
   FILM_PAGE,
   KIT_TAKES_A_HAND,
   KIT_WIPE_EDGE,
+  LAYER_MEMORY_MS,
   MARQUEE_DEVELOP_RUNG,
   MARQUEE_REST_RUNG,
   PHI,
@@ -186,13 +187,31 @@ export function pullSpring(
 
 export const unitClamp = (n: number) => Math.max(0, Math.min(n, 1));
 
+/*
+ * Whether an element is itself a raised layer (positioned, at or above the
+ * dock backdrop). Reading it costs a getComputedStyle, which forces a style
+ * recalculation whenever the page has written styles since the last frame;
+ * the cursor asks for every ancestor of the element under the pointer on
+ * every move, so the answer is kept for a moment. Layers come and go by
+ * mounting, not by restyling, so a short memory is safe.
+ */
+const raised = new WeakMap<Element, { at: number; layer: boolean }>();
+
+function isLayer(node: Element, now: number) {
+  const known = raised.get(node);
+  if (known && now - known.at < LAYER_MEMORY_MS) return known.layer;
+  const style = getComputedStyle(node);
+  const layer =
+    style.position !== "static" &&
+    Number.parseInt(style.zIndex, 10) >= Z_INDEX.DOCK_BACKDROP;
+  raised.set(node, { at: now, layer });
+  return layer;
+}
+
 export function layerOf(from: Element): HTMLElement | null {
+  const now = performance.now();
   for (let node: Element | null = from; node; node = node.parentElement) {
-    const style = getComputedStyle(node);
-    if (style.position === "static") continue;
-    if (Number.parseInt(style.zIndex, 10) >= Z_INDEX.DOCK_BACKDROP) {
-      return node instanceof HTMLElement ? node : null;
-    }
+    if (isLayer(node, now)) return node instanceof HTMLElement ? node : null;
   }
   return null;
 }
@@ -386,6 +405,22 @@ export const dissolve = (progress: number) =>
 
 export const changesPage = (trip: NavigationTrip) =>
   pathOf(trip.to) !== pathOf(trip.from);
+
+/** A left click with no modifier: the one that lets a link change the page. */
+export const plainClick = (event: MouseEvent) =>
+  event.button === 0 &&
+  !event.metaKey &&
+  !event.ctrlKey &&
+  !event.shiftKey &&
+  !event.altKey;
+
+/** Whether following this link would show another page of this site. */
+export function leavesPage(link: HTMLAnchorElement) {
+  if (link.target && link.target !== "_self") return false;
+  if (link.hasAttribute("download")) return false;
+  const url = new URL(link.href, location.href);
+  return url.origin === location.origin && url.pathname !== location.pathname;
+}
 
 export function styleOf(initial: Css): CSSProperties {
   return {
@@ -604,7 +639,7 @@ export const lit = (p: number) => clamp(p * PHI, 0, 1);
 
 export const left = (p: number) => 1 - p;
 
-const veil = (rung: number) => `blur(${haze(rung).toFixed(2)}px)`;
+const veil = (_rung: number) => "none";
 
 export const hazy = (rung = 3) => ({ opacity: 0, filter: veil(rung) }) as const;
 

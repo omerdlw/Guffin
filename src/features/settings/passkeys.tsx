@@ -108,7 +108,6 @@ export function PasskeysPanel({
               <div className={SURFACE_STACK} key={passkey.id}>
                 <Input
                   aria-label="Passkey name"
-                  autoFocus
                   className={INPUT_CLASS}
                   onChange={(event) =>
                     setEditing({ id: passkey.id, name: event.target.value })

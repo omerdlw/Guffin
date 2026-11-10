@@ -434,77 +434,59 @@ export const FOUNDRY_RAIL = 0.13;
 
 export const FOUNDRY_ENGRAVE_WIDTH = 2048;
 
-export const MAX_PRINTS = 100;
+/** Perspective strength: how fast a film shrinks as it recedes down the beam. */
+export const TUNNEL_PERSPECTIVE = 0.55;
 
-export const WALL_COLUMNS = 10;
+/** How many films ahead of the one in the gate are drawn. */
+export const TUNNEL_REACH = 9;
 
-export const WALL_GAP = 0.2;
+/** How far, in films, a poster swings from the axis to its place in the beam. */
+export const TUNNEL_ENVELOPE = 1.1;
 
-export const WALL_RATIO = 2 / 3;
+/** Sideways swing of the films ahead, in poster widths and heights. */
+export const TUNNEL_SWING = { x: 1.15, y: 0.3 };
 
-export const WALL_UNIFORMS = [
-  "uRes",
-  "uPitch",
-  "uPan",
-  "uFocus",
-  "uLens",
-  "uRadius",
-  "uBulge",
-  "uLamp",
-  "uPrints",
-  "uState",
-  "uRank",
-  "uCount",
-  "uMarks",
-  "uSelected",
-  "uOpen",
-  "uNumbers",
-  "uTime",
-  "uLoupe",
-  "uLoupeIndex",
-  "uLoupeMix",
-  "uDigits",
-] as const;
+/** Films a poster takes to leave: it fades and swings out of the beam. */
+export const TUNNEL_PASS = 0.9;
 
-export const WALL_UNIT = { digits: 2, loupe: 1, prints: 0 } as const;
+export const TUNNEL_GOLDEN = 2.399963;
 
-export const WALL_IN_FLIGHT = 6;
+/** Dust motes hanging in the beam. */
+export const TUNNEL_DUST = 150;
 
-export const WALL_MIP_EVERY_MS = 300;
+/** Films flown per pixel of wheel, and per pixel of a drag. */
+export const TUNNEL_WHEEL = 1 / 260;
 
-export const WALL_ARRIVE_S = 0.6;
+export const TUNNEL_DRAG = 1 / 230;
 
-export const WALL_LOUPE_WAIT_MS = 110;
+/** Seconds the pointer takes to settle the camera sway, and the sway in pixels. */
+export const TUNNEL_SWAY = { pixels: 14, seconds: 0.5 };
 
-export const WALL_LOUPE_FADE_S = 0.26;
+/** Rates (per second) at which the camera follows its target. */
+export const TUNNEL_RATE = { drag: 22, free: 8, snap: 6 };
 
-export const WALL_LOUPE = { height: 1050, width: 700 };
+/** Quiet after the last wheel event before the camera settles on a film. */
+export const TUNNEL_SNAP_MS = 110;
 
-export const WALL_OPEN_READY = 40;
+export const TUNNEL_FLING_S = 0.18;
 
-export const WALL_OPEN_PATIENCE_MS = 3500;
+export const TUNNEL_ARRIVE_S = 1.1;
 
-export const WALL_LAMP_S = 1.1;
+export const TUNNEL_OPEN_READY = 6;
 
-export const WALL_WAVE_AT = 0.55;
+export const TUNNEL_OPEN_PATIENCE_MS = 2500;
 
-export const WALL_WAVE_S = 2.8;
+export const TUNNEL_LOADS = 4;
 
-export const WALL_NUMBERS_S = 1.2;
+export const TUNNEL_SHARP_WAIT_MS = 140;
 
-export const WALL_BULGE = 0.16;
+export const TUNNEL_SHARP_KEPT = 4;
 
-export const WALL_LENS = { near: 0.42, rest: 0.26 };
+export const TUNNEL_CLICK_SLOP = 6;
 
-export const WALL_RADIUS = 0.3;
+export const TUNNEL_FADE_S = 0.35;
 
-export const WALL_INERTIA = 3.2;
-
-export const WALL_GLIDE_S = 0.9;
-
-export const WALL_WHEEL_S = 0.12;
-
-export const WALL_CLICK_SLOP = 6;
+export const TUNNEL_DOCK_SETTLE_MS = 160;
 
 export const BLOOM_LEVELS = 6;
 
@@ -555,11 +537,14 @@ export const TOP_100_FILTERS: readonly { label: string; value: Filter }[] = [
   { label: "To watch", value: "unseen" },
 ];
 
+/** Steps toward No. 1; the countdown ends there. */
 export const TOP_100_KEYS: Record<string, number> = {
-  ArrowDown: WALL_COLUMNS,
+  ArrowDown: 1,
   ArrowLeft: -1,
   ArrowRight: 1,
-  ArrowUp: -WALL_COLUMNS,
+  ArrowUp: -1,
+  PageDown: 1,
+  PageUp: -1,
 };
 
 export const WHEEL_DELTA_UNITS: Readonly<Record<number, number>> = {

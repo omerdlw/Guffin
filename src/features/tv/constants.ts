@@ -57,18 +57,6 @@ export const TRACKING_ERRORS: Record<string, string> = {
   INVALID_STATUS: "Pick a status from the list",
 };
 
-export const HEATMAP_STEPS = [
-  { min: 4.5, className: "bg-grade text-on-accent" },
-  { min: 4, className: "bg-grade/70 text-on-accent" },
-  { min: 3.5, className: "bg-grade/45 text-ink" },
-  { min: 3, className: "bg-grade/30 text-ink" },
-  { min: 2, className: "bg-grade/15 text-ink-body" },
-  { min: 0, className: "bg-fill-active text-ink-body" },
-] as const;
-
-/** A cell nobody has rated yet. */
-export const HEATMAP_EMPTY = "bg-fill text-ink-faint";
-
 export const SHOW_FALLBACK_ICON = "solar:tv-bold";
 
 export const SHOW_CERTIFICATION_REGION = "US";

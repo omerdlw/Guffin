@@ -16,6 +16,38 @@ export const CARRY_FADE_RUNG = 0;
 
 export const CARRY_LAYER = Z_INDEX.DOCK_BACKDROP - 10;
 
+/*
+ * The passage: the veil that carries one page into the next. It rises while
+ * the page leaves, stays while the route loads and lifts when the next page's
+ * stage opens. It sits above the page and under the marquee, so a title can
+ * still be developing on it.
+ */
+export const PASSAGE_LAYER = Z_INDEX.DOCK_BACKDROP - 30;
+
+/** Rising over a page that is still leaving. */
+export const PASSAGE_CLOSE_RUNG = 0;
+
+/** Rising over a page that is already gone (a plain link, a refresh). */
+export const PASSAGE_QUICK_RUNG = -2;
+
+/** Lifting as the next page opens. */
+export const PASSAGE_OPEN_RUNG = 2;
+
+/** Lifting for a trip that never landed. */
+export const PASSAGE_ABANDON_RUNG = -1;
+
+/** How long a route with no opening of its own may keep the veil. */
+export const PASSAGE_GRACE_RUNG = 1;
+
+/** A veil is never kept longer than this, whatever the page does. */
+export const PASSAGE_PATIENCE_RUNG = 5;
+
+/** A trip that is replaced by another lets the veil stay this long (rungs). */
+export const PASSAGE_DEBOUNCE_RUNG = -3;
+
+/** The light the veil carries: the page's own tint, thin, centred on the title. */
+export const PASSAGE_GLOW = `radial-gradient(64% 52% at 50% 46%, color-mix(in oklch, var(--ambient-vibrant-70, transparent) 14%, transparent), transparent 74%)`;
+
 export const TINT_LIGHTNESS = 0.74;
 
 export const TINT_CHROMA = 0.1;
@@ -161,6 +193,12 @@ export const CURSOR_TURN = 9;
 
 export const CURSOR_STILL = 0.01;
 
+/** How long the cursor trusts what it read of the element under it (box, corner) before reading it again. */
+export const CURSOR_REREAD_MS = 120;
+
+/** How long a "this element is (not) a raised layer" answer is kept; layers come and go by mounting, not by restyling. */
+export const LAYER_MEMORY_MS = 750;
+
 export const CURSOR_IDLE: CursorReading = {
   label: "",
   mode: "idle",
@@ -244,15 +282,21 @@ export const MARQUEE_DEVELOP_RUNG = 2;
 
 export const MARQUEE_REST_RUNG = 1;
 
-export const MARQUEE_DIVE = [0.04, 0.6] as const;
+export const MARQUEE_DIVE = [0.03, 0.76] as const;
 
 export const MARQUEE_EDGES = [0, 0.4] as const;
 
-export const MARQUEE_SPREAD = [0.02, 0.58] as const;
+export const MARQUEE_SPREAD = [0.02, 0.72] as const;
 
-export const MARQUEE_FADE = [0.3, 0.66] as const;
+export const MARQUEE_FADE = [0.4, 0.74] as const;
 
-export const MARQUEE_GLARE = [0.18, 0.62] as const;
+export const MARQUEE_GLARE = [0.3, 0.74] as const;
+
+/** Below this a layer of the marquee is not worth a stroke or a frame. */
+export const MARQUEE_UNSEEN = 0.004;
+
+/** How much of a flare's excess light the canvas adds as white. */
+export const MARQUEE_GLARE_GAIN = 0.55;
 
 export const MARQUEE_DIVE_REACH = 2.6;
 
@@ -378,6 +422,12 @@ export const PROJECTION_MAX_TEXTURE = 2560;
 
 export const PROJECTION_DEVICE_CAP = 1.5;
 
+/** The most device pixels the projection canvas is drawn at (the band is ~2000 CSS px wide on a laptop). */
+export const PROJECTION_PIXEL_BUDGET = 3_200_000;
+
+/** Past this defocus the picture holds no fine detail: draw at one pixel per CSS pixel. */
+export const PROJECTION_SOFT_FROM = 0.3;
+
 export const PROJECTION_FAST = 4200;
 
 export const PROJECTION_SETTLING_MS = 9000;
@@ -449,11 +499,19 @@ export const SCROLL_LINE = 40;
 
 export const SCROLL_LATCH = 160;
 
-export const SCROLL_STYLE_TTL = 1000;
+export const SCROLL_STYLE_TTL = 2000;
 
-export const SCROLL_LOCK_TTL = 100;
+export const SCROLL_LOCK_TTL = 250;
+
+/** How long the page's scrollable length is trusted during a wheel burst (reading it forces layout). */
+export const SCROLL_LIMIT_TTL = 200;
 
 export const SCROLLING = "data-scrolling";
+
+export const SCROLL_LOCK = "data-scroll-lock";
+
+/** The share of the viewport above which a part is too large to blur as it moves. */
+export const BULK_SHARE = 0.3;
 
 export const HURRY_CAP = 2;
 
@@ -466,6 +524,9 @@ export const CARRY_CAP = 2;
 export const SCOPE_SEPARATOR = "/";
 
 export const TILT_LEAN = 9;
+
+/** The radius of the glare a tilted card catches (the gradient fades out at 55% of it). */
+export const TILT_GLARE_RADIUS = 560;
 
 export const BEAT = 0.5;
 

@@ -13,10 +13,10 @@ import {
   useReducedMotion,
   useSpring,
   useTransform,
-} from "motion/react";
-import { POINTS } from "@/motion/constants";
+} from "@/motion/lib";
+import { POINTS, SCROLLING } from "@/motion/constants";
 import { SPRING } from "@/motion/time";
-import { haze, step } from "@/motion/utils";
+import { step } from "@/motion/utils";
 import { movieHref } from "@/lib/project";
 import { tmdbImageUrl } from "@/lib/tmdb/shared";
 import { Icon } from "@/design/components/icon";
@@ -49,6 +49,7 @@ export function HomeIndex({
   const glimpse = useHomeGlimpse();
   const box = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState<number | null>(null);
+  const under = useRef<number | null>(null);
 
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -56,17 +57,14 @@ export function HomeIndex({
   const sy = useSpring(y, SPRING.follow);
   const presence = useMotionValue(0);
   const scale = useTransform(presence, [0, 1], [0.94, 1]);
-  const blur = useTransform(
-    presence,
-    (value) => `blur(${((1 - value) * haze(3)).toFixed(2)}px)`,
-  );
 
   if (shown.length === 0) return null;
 
-  const place = (pointerX: number, pointerY: number) => {
-    const frame = box.current;
-    if (!frame) return;
-    const { height, width } = frame.getBoundingClientRect();
+  const place = (
+    pointerX: number,
+    pointerY: number,
+    { height, width }: { height: number; width: number },
+  ) => {
     const sway = (pointerX / width - 0.5) * PRINT_SWAY;
     const top = Math.min(
       Math.max(pointerY - PRINT_HEIGHT / 2, 0),
@@ -82,6 +80,7 @@ export function HomeIndex({
   };
 
   const show = (index: number) => {
+    if (active === index) return;
     setActive(index);
     glimpse(ambientImage(shown[index]?.backdropPath ?? null));
     void animate(presence, 1, {
@@ -91,6 +90,8 @@ export function HomeIndex({
   };
 
   const hide = () => {
+    under.current = null;
+    if (active === null) return;
     setActive(null);
     glimpse(null);
     void animate(presence, 0, {
@@ -99,18 +100,28 @@ export function HomeIndex({
     });
   };
 
+  /*
+   * While the page scrolls, rows slide under a resting pointer and each one
+   * would re-grade the whole room. The row is only remembered then, and
+   * shown once the page has stopped and the pointer moves again.
+   */
+  const scrolling = () => document.documentElement.hasAttribute(SCROLLING);
+
   const onMove = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (event.pointerType !== "mouse") return;
+    if (event.pointerType !== "mouse" || scrolling()) return;
     const frame = box.current?.getBoundingClientRect();
     if (!frame) return;
-    place(event.clientX - frame.left, event.clientY - frame.top);
+    place(event.clientX - frame.left, event.clientY - frame.top, frame);
+    if (under.current !== null && under.current !== active) {
+      show(under.current);
+    }
   };
 
   const onFocusRow = (index: number, row: HTMLElement) => {
     const frame = box.current?.getBoundingClientRect();
     if (!frame) return;
     const bounds = row.getBoundingClientRect();
-    place(frame.width / 2, bounds.top - frame.top + bounds.height / 2);
+    place(frame.width / 2, bounds.top - frame.top + bounds.height / 2, frame);
     show(index);
   };
 
@@ -142,7 +153,9 @@ export function HomeIndex({
                   href={movieHref(film.id)}
                   onFocus={(event) => onFocusRow(index, event.currentTarget)}
                   onPointerEnter={(event) => {
-                    if (event.pointerType === "mouse") show(index);
+                    if (event.pointerType !== "mouse") return;
+                    under.current = index;
+                    if (!scrolling()) show(index);
                   }}
                 >
                   <span className="font-zuume type-heading leading-none font-bold text-ink-faint tabular-nums sm:type-display-xs">
@@ -186,7 +199,6 @@ export function HomeIndex({
           aria-hidden="true"
           className="pointer-events-none absolute top-0 left-0 z-10 hidden overflow-hidden rounded-card bg-plate ring-1 ring-edge-hover ring-inset lg:block"
           style={{
-            filter: blur,
             height: PRINT_HEIGHT,
             opacity: presence,
             scale,

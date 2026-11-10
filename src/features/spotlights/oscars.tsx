@@ -15,7 +15,7 @@ import {
   motion,
   useMotionValue,
   useReducedMotion,
-} from "motion/react";
+} from "@/motion/lib";
 import { movieHref, OSCARS_HREF } from "@/lib/project";
 import { tmdbImageUrl } from "@/lib/tmdb/shared";
 import { POINTS } from "@/motion/constants";
@@ -83,7 +83,7 @@ function WinnersIndex({
           animate={{ opacity: 1 }}
           aria-label="All Best Picture winners"
           aria-modal="true"
-          className="fixed inset-0 z-20 overflow-y-auto overscroll-contain bg-glass backdrop-blur-xl"
+          className="fixed inset-0 z-20 overflow-y-auto overscroll-contain bg-glass"
           exit={{ opacity: 0 }}
           initial={{ opacity: 0 }}
           ref={panel}

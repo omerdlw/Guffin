@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { MotionConfig } from "motion/react";
+import { MotionConfig } from "@/motion/lib";
 import { Room } from "@/motion/kit";
 import { bindScore } from "@/motion/react";
 import { defineScore } from "@/motion/score";

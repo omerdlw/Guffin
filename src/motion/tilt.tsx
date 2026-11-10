@@ -10,13 +10,12 @@ import {
   animate,
   motion,
   type MotionValue,
-  useMotionTemplate,
   useMotionValue,
   useSpring,
   useTransform,
 } from "motion/react";
 import { cn } from "@/design/foundations/cn";
-import { MATTER, POINTS, TILT_LEAN } from "./constants";
+import { MATTER, POINTS, TILT_GLARE_RADIUS, TILT_LEAN } from "./constants";
 import { response } from "./time";
 import type { TiltLight } from "./types";
 import { springForce, step } from "./utils";
@@ -44,16 +43,36 @@ export function Tilt({
   const rotateX = useTransform(sy, [-0.5, 0.5], [TILT_LEAN, -TILT_LEAN]);
   const gx = useTransform(sx, [-0.5, 0.5], [0, 100]);
   const gy = useTransform(sy, [-0.5, 0.5], [0, 100]);
-  const glare = useMotionTemplate`radial-gradient(560px circle at ${gx}% ${gy}%, rgb(var(--ink-rgb) / 0.18), transparent 55%)`;
+  /*
+   * The glare is one fixed radial gradient carried by a transform. Moving the
+   * gradient's centre instead (a new background every frame) would repaint
+   * the whole poster on every pointer move; a transform only recomposites.
+   */
+  const size = useRef({ height: 0, width: 0 });
+  const glareX = useTransform(
+    sx,
+    (v) => (v + 0.5) * size.current.width - TILT_GLARE_RADIUS,
+  );
+  const glareY = useTransform(
+    sy,
+    (v) => (v + 0.5) * size.current.height - TILT_GLARE_RADIUS,
+  );
 
+  const measure = (element: HTMLElement) => {
+    const box = element.getBoundingClientRect();
+    size.current = { height: box.height, width: box.width };
+    return box;
+  };
   const onMove = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (event.pointerType !== "mouse") return;
-    const box = event.currentTarget.getBoundingClientRect();
+    const box = measure(event.currentTarget);
     x.set((event.clientX - box.left) / box.width - 0.5);
     y.set((event.clientY - box.top) / box.height - 0.5);
   };
-  const onEnter = () =>
+  const onEnter = (event: ReactPointerEvent<HTMLDivElement>) => {
+    measure(event.currentTarget);
     animate(glow, 1, { duration: step(1), ease: [...POINTS.expo] });
+  };
   const onLeave = () => {
     x.set(0);
     y.set(0);
@@ -77,9 +96,21 @@ export function Tilt({
           : children}
         <motion.div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 rounded-[inherit]"
-          style={{ background: glare, opacity: glow }}
-        />
+          className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]"
+          style={{ opacity: glow }}
+        >
+          <motion.div
+            className="absolute top-0 left-0"
+            style={{
+              background:
+                "radial-gradient(circle closest-side, rgb(var(--ink-rgb) / 0.18), transparent 55%)",
+              height: TILT_GLARE_RADIUS * 2,
+              width: TILT_GLARE_RADIUS * 2,
+              x: glareX,
+              y: glareY,
+            }}
+          />
+        </motion.div>
       </motion.div>
     </div>
   );
@@ -94,20 +125,27 @@ export function Foil({
   x: MotionValue<number>;
   y: MotionValue<number>;
 }) {
-  const position = useMotionTemplate`${x}% ${y}%`;
+  // A 260% sheet slid by a transform: the same as moving a 260% background
+  // from 0% to 100%, without repainting the foil on every pointer move.
+  const slideX = useTransform(x, (v) => `${(-v * 1.6) / 2.6}%`);
+  const slideY = useTransform(y, (v) => `${(-v * 1.6) / 2.6}%`);
   return (
     <>
       <motion.div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 rounded-[inherit] mix-blend-color-dodge"
-        style={{
-          backgroundImage:
-            "linear-gradient(115deg, transparent 28%, rgb(255 205 120 / 0.28) 42%, rgb(255 244 214 / 0.5) 50%, rgb(214 158 68 / 0.3) 58%, transparent 72%)",
-          backgroundPosition: position,
-          backgroundSize: "260% 260%",
-          opacity: glow,
-        }}
-      />
+        className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit] mix-blend-color-dodge"
+        style={{ opacity: glow }}
+      >
+        <motion.div
+          className="absolute top-0 left-0 h-[260%] w-[260%]"
+          style={{
+            backgroundImage:
+              "linear-gradient(115deg, transparent 28%, rgb(255 205 120 / 0.28) 42%, rgb(255 244 214 / 0.5) 50%, rgb(214 158 68 / 0.3) 58%, transparent 72%)",
+            x: slideX,
+            y: slideY,
+          }}
+        />
+      </motion.div>
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 rounded-[inherit] ring-1 ring-award/40 ring-inset"

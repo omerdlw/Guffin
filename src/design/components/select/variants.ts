@@ -30,7 +30,7 @@ export const selectTriggerVariants = variants(
 
 export const selectMenuVariants = variants(
   [
-    "ui-motion absolute top-full left-0 mt-1.5 max-h-64 w-full overflow-y-auto overscroll-contain backdrop-blur-xl",
+    "ui-motion absolute top-full left-0 mt-1.5 max-h-64 w-full overflow-y-auto overscroll-contain",
     SHELL,
   ],
   {

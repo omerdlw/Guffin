@@ -19,9 +19,6 @@ import {
   SPOTLIGHT_GENRE_LIMIT,
   SPOTLIGHT_LOGLINE_ENOUGH,
   SPOTLIGHT_LOGLINE_LENGTH,
-  WALL_COLUMNS,
-  WALL_GAP,
-  WALL_RATIO,
 } from "./constants";
 import type {
   CatalogHit,
@@ -30,8 +27,6 @@ import type {
   DirectorsLayout,
   DirectorsPlace,
   Laureate,
-  Vec2,
-  WallViewport,
 } from "./types";
 
 export const genreNames = (ids: readonly number[]) =>
@@ -200,62 +195,43 @@ export const wait = (seconds: number) =>
 
 export const smooth = (t: number) => t * t * (3 - 2 * t);
 
-export function pitches(pitch: number): Vec2 {
-  const inner = pitch * (1 - WALL_GAP);
-  return [inner * WALL_RATIO + pitch * WALL_GAP, pitch];
+export const clamp = (value: number, low = 0, high = 1) =>
+  Math.min(high, Math.max(low, value));
+
+/**
+ * Where a gesture settles. A gesture starts on a film and ends between two;
+ * any real movement carries at least one film, so a single wheel notch is
+ * never lost.
+ */
+export function settleTarget(from: number, to: number): number {
+  const moved = to - from;
+  if (Math.abs(moved) < 0.08) return from;
+  return from + Math.sign(moved) * Math.max(1, Math.round(Math.abs(moved)));
 }
 
-export function wallAt(view: WallViewport, x: number, y: number): Vec2 {
-  const cx = (x - view.width / 2) / view.height;
-  const cy = (y - view.height / 2) / view.height;
-  const dx = cx - view.focus[0];
-  const dy = cy - view.focus[1];
-  const g = Math.exp(-(dx * dx + dy * dy) / (view.radius * view.radius));
-  const lx = view.focus[0] + dx * (1 - view.lens * g);
-  const ly = view.focus[1] + dy * (1 - view.lens * g);
-  const bow = 1 + view.bulge * (lx * lx + ly * ly);
-  const [px, py] = pitches(view.pitch);
-  return [
-    (lx * bow * view.height) / px + view.pan[0],
-    (ly * bow * view.height) / py + view.pan[1],
-  ];
-}
-
-const wrapMod = (value: number, by: number) => ((value % by) + by) % by;
-
-const filmIn = (x: number, y: number, count: number) =>
-  wrapMod(Math.floor(y) * WALL_COLUMNS + Math.floor(x), count);
-
-export function filmAt(wall: Vec2, count: number): number {
-  if (count <= 0) return -1;
-  const fx = wall[0] - Math.floor(wall[0]) - 0.5;
-  const fy = wall[1] - Math.floor(wall[1]) - 0.5;
-  const [px, py] = pitches(1);
-  const halfW = ((1 - WALL_GAP) * WALL_RATIO) / 2;
-  const halfH = (1 - WALL_GAP) / 2;
-  return Math.abs(fx * px) <= halfW && Math.abs(fy * py) <= halfH
-    ? filmIn(wall[0], wall[1], count)
-    : -1;
-}
-
-export function nearestCopy(index: number, around: Vec2, count: number): Vec2 {
-  const row0 = Math.floor(around[1]);
-  let best: Vec2 = [around[0], around[1]];
-  let bestDistance = Number.POSITIVE_INFINITY;
-  for (let row = row0 - 6; row <= row0 + 6; row += 1) {
-    const first = wrapMod(index - row * WALL_COLUMNS, count);
-    const col = first + count * Math.round((around[0] - 0.5 - first) / count);
-    const at: Vec2 = [col + 0.5, row + 0.5];
-    const dx = (at[0] - around[0]) * WALL_RATIO;
-    const dy = at[1] - around[1];
-    const distance = dx * dx + dy * dy;
-    if (distance < bestDistance) {
-      bestDistance = distance;
-      best = at;
-    }
+/**
+ * The film a step lands on. A film that does not match the filter is passed
+ * over; with nothing to land on the step is a plain one, and the ends hold.
+ */
+export function stepFrom(
+  from: number,
+  direction: -1 | 1,
+  count: number,
+  matches: (index: number) => boolean,
+): number {
+  const plain = clamp(from - direction, 0, count - 1);
+  for (let at = from - direction; at >= 0 && at < count; at -= direction) {
+    if (matches(at)) return at;
   }
-  return best;
+  return plain;
 }
+
+/** 3,124,000 votes read "3.1M". */
+export const votesOf = (votes: number) =>
+  new Intl.NumberFormat("en", {
+    maximumFractionDigits: 1,
+    notation: "compact",
+  }).format(votes);
 
 export function pixelsOf(
   bitmap: ImageBitmap,

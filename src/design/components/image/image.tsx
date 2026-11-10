@@ -17,6 +17,28 @@ import {
   imageVariants,
 } from "./variants";
 
+/*
+ * One observer for every image frame: it marks a frame that is far from the
+ * viewport (`data-far`) so its skeleton does not shimmer there. It writes the
+ * attribute directly; no frame re-renders for it.
+ */
+let farSight: IntersectionObserver | null = null;
+function watchDistance(frame: HTMLElement) {
+  if (typeof IntersectionObserver === "undefined") {
+    frame.removeAttribute("data-far");
+    return () => {};
+  }
+  farSight ??= new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries)
+        entry.target.toggleAttribute("data-far", !entry.isIntersecting);
+    },
+    { rootMargin: "50% 25%" },
+  );
+  farSight.observe(frame);
+  return () => farSight?.unobserve(frame);
+}
+
 export interface ImageProps
   extends Omit<ComponentPropsWithoutRef<"img">, "src" | "alt">, ImageVariants {
   alt?: string;
@@ -58,11 +80,19 @@ export function Image({
   ...props
 }: ImageProps) {
   const imageRef = useRef<HTMLImageElement | null>(null);
+  const frameRef = useRef<HTMLDivElement | null>(null);
   const resolvedSrc = trimToNull(src);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [hasFailed, setHasFailed] = useState(false);
   const [refused, setRefused] = useState<string | null>(null);
   const corsRefused = refused !== null && refused === resolvedSrc;
+
+  const waiting = Boolean(resolvedSrc) && !hasLoaded && !hasFailed;
+  useEffect(() => {
+    const frame = frameRef.current;
+    if (!waiting || !frame) return;
+    return watchDistance(frame);
+  }, [waiting]);
 
   useEffect(() => {
     const image = imageRef.current;
@@ -106,6 +136,8 @@ export function Image({
         !hasLoaded && !hasFailed && SKELETON.block,
         wrapperClassName,
       )}
+      data-far=""
+      ref={frameRef}
       suppressHydrationWarning
     >
       <img

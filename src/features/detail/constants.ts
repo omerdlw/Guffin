@@ -1,4 +1,4 @@
-import type { Variants } from "motion/react";
+import type { Variants } from "@/motion/lib";
 import { POINTS } from "@/motion/constants";
 import { step } from "@/motion/utils";
 import { type MediaCardAspect } from "@/design/components/media-card";

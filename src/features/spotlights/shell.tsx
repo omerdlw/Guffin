@@ -14,7 +14,7 @@ import {
   useDockActions,
   useDockRegistration,
 } from "@omerdlw/base-framework/modules/dock";
-import { MotionConfig } from "motion/react";
+import { MotionConfig } from "@/motion/lib";
 import { Room } from "@/motion/kit";
 import { bindScore } from "@/motion/react";
 import { mountScene } from "@/motion/render";

@@ -27,7 +27,7 @@ function Step({
 }): JSX.Element {
   const actionClass = useDockActionClass();
   const className = actionClass({
-    className: "w-10 shrink-0 px-0 backdrop-blur-sm",
+    className: "w-10 shrink-0 px-0",
   });
   const icon =
     direction === "next"
@@ -64,7 +64,7 @@ function MonthAction({
 }): JSX.Element {
   const actionClass = useDockActionClass();
   const middle = actionClass({
-    className: "min-w-0 flex-1 backdrop-blur-sm",
+    className: "min-w-0 flex-1",
   });
 
   return (

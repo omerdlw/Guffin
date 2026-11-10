@@ -68,7 +68,6 @@ const DETAIL = defineScore({
     timeline: ["header", "spine"],
     year: ["stamp", "entry"],
     episodes: ["header", "control", "entry", "name"],
-    heatmap: ["header", ["readout", "tile"]],
   },
 });
 

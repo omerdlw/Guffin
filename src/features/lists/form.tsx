@@ -150,7 +150,7 @@ function FilmOrderLink({
 function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
   const router = useRouter();
   const toast = useToast();
-  const { closeSurface, openSurface } = useDockActions();
+  const { closeSurface, navigate, openSurface } = useDockActions();
   const resetHighlight = useHighlightReset();
   const list = data.list;
 
@@ -182,7 +182,7 @@ function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
       }
       closeSurface?.();
       if (list) router.refresh();
-      else router.push(listHref(data.username, result.slug));
+      else void navigate(listHref(data.username, result.slug));
     } catch (error) {
       report("ListFormSurface save", error);
       toast(toUserMessage(error, { fallback: "Could not save your list" }));
@@ -205,8 +205,7 @@ function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
         return;
       }
       closeSurface?.();
-      router.push(`${accountHref(data.username)}/lists`);
-      router.refresh();
+      void navigate(`${accountHref(data.username)}/lists`);
     } catch (error) {
       report("ListFormSurface delete", error);
       toast(toUserMessage(error, { fallback: "Could not delete this list" }));

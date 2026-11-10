@@ -3,7 +3,7 @@
  * rest, hover, focus-visible and active, written against colour roles only,
  * so the two themes can give the same tone different values.
  *
- * Rules every tone obeys (DESIGN.md §4):
+ * Rules every tone obeys (design/rules/07-interaction.md, §4):
  * - hover and focus-visible are one event: every `hover:` has a
  *   `focus-visible:` twin;
  * - a control rests at `ink-body` or brighter and rises to `ink`;
@@ -17,6 +17,9 @@ export const TONES = {
   /** A quiet surface: 5% fill, ring, ink-body rising to ink. */
   neutral:
     "bg-fill text-ink-body ring-1 ring-edge ring-inset hover:bg-fill-hover hover:text-ink hover:ring-edge-hover focus-visible:bg-fill-hover focus-visible:text-ink focus-visible:ring-edge-focus",
+  /** A hairline and no fill: the quiet action beside a row's text. */
+  outline:
+    "ui-iris bg-transparent text-ink-body ring-1 ring-edge-hover ring-inset hover:text-ink hover:ring-edge-focus focus-visible:text-ink focus-visible:ring-edge-focus",
   /** A chosen control takes the picture's grade, never white. */
   chosen:
     "bg-grade/15 text-grade ring-1 ring-grade/25 ring-inset hover:bg-grade/20 hover:ring-grade/30 focus-visible:bg-grade/20 focus-visible:ring-grade/30",
@@ -30,7 +33,7 @@ export const TONES = {
   armed: "bg-danger text-on-accent ring-1 ring-danger ring-inset",
   /** A control floating over a picture. */
   glass:
-    "bg-veil text-ink ring-1 ring-edge-hover ring-inset backdrop-blur-md backdrop-saturate-150 hover:bg-glass focus-visible:bg-glass",
+    "bg-veil text-ink ring-1 ring-edge-hover ring-inset backdrop-saturate-150 hover:bg-glass focus-visible:bg-glass",
   /** No surface at rest; a fill blooms out of the centre when pointed at. */
   ghost:
     "ui-iris bg-transparent text-ink-body ring-1 ring-transparent ring-inset hover:text-ink focus-visible:text-ink",
@@ -57,7 +60,7 @@ export const FILL =
 export const PRIMARY = TONES.primary;
 
 const PAGE_GLASS =
-  "rounded-full bg-veil text-ink ring-1 ring-edge-hover ring-inset backdrop-blur-md backdrop-saturate-150";
+  "rounded-full bg-veil text-ink ring-1 ring-edge-hover ring-inset backdrop-saturate-150";
 
 /**
  * Named tones for elements that are not design-system components (a heading

@@ -146,7 +146,10 @@ const ListRow = memo(function ListRow({
   return (
     <Button
       aria-pressed={inList}
-      className={rowVariants({ intent: inList ? "chosen" : "neutral" })}
+      className={rowVariants({
+        className: "pr-[22px]",
+        intent: inList ? "chosen" : "neutral",
+      })}
       disabled={pending}
       onClick={onToggle}
       {...highlight.props}

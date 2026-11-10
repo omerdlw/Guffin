@@ -13,6 +13,7 @@ import {
   CURSOR_MAGNET_MAX,
   CURSOR_MOST,
   CURSOR_OWNER,
+  CURSOR_REREAD_MS,
   CURSOR_RELEASED,
   CURSOR_ROW_MAX,
   CURSOR_SHAPES,
@@ -73,6 +74,17 @@ function inkOf(element: HTMLElement): CursorInk | null {
   };
   inks.set(element, ink);
   return ink;
+}
+
+/* A control's corner does not change while it is pointed at; read it once. */
+const corners = new WeakMap<HTMLElement, number>();
+function cornerOf(element: HTMLElement): number {
+  let corner = corners.get(element);
+  if (corner === undefined) {
+    corner = Number.parseFloat(getComputedStyle(element).borderTopLeftRadius);
+    corners.set(element, corner);
+  }
+  return corner;
 }
 
 function boxOf(target: HTMLElement): CursorBox {
@@ -162,10 +174,7 @@ function read(x: number, y: number): CursorReading {
     const fits = (limit: readonly [number, number]) =>
       box.width <= limit[0] && box.height <= limit[1];
     if (fits(CURSOR_SNAP_MAX) || fits(CURSOR_ROW_MAX)) {
-      const corner = Number.parseFloat(
-        getComputedStyle(own).borderTopLeftRadius,
-      );
-      return { corner, label: "", mode: "action", target: own };
+      return { corner: cornerOf(own), label: "", mode: "action", target: own };
     }
   }
 
@@ -271,6 +280,15 @@ function Reticle() {
     let owed = 0;
     let raf = 0;
     let released: HTMLElement | null = null;
+    /*
+     * The box of the element the cursor holds. Reading it forces style and
+     * layout whenever the page has written styles this frame, so it is read
+     * when something could have moved it (the pointer, a scroll, a mutation)
+     * and otherwise only every CURSOR_REREAD_MS while the cursor still moves.
+     */
+    let held: { at: number; box: CursorBox; target: HTMLElement } | null = null;
+    let steady = false;
+    let touched = true;
     const written = new Map<string, string>();
     const put = (
       element: HTMLElement,
@@ -298,6 +316,7 @@ function Reticle() {
     };
     const mark = () => {
       dirty = true;
+      touched = true;
       wake();
     };
     const down = () => {
@@ -337,6 +356,8 @@ function Reticle() {
       if (elapsed <= 0) return;
 
       const pointer = pointerSample();
+      const moved = touched;
+      touched = false;
       const scrolling = html.hasAttribute("data-scrolling");
       if (scrolling) {
         if (reading.mode !== "none") reading = CURSOR_IDLE;
@@ -371,7 +392,24 @@ function Reticle() {
       let tr = shape.r;
 
       if (snap) {
-        const box = boxOf(reading.target!);
+        const target = reading.target!;
+        const stale =
+          !held ||
+          held.target !== target ||
+          moved ||
+          now - held.at >= CURSOR_REREAD_MS;
+        if (stale) {
+          const box = boxOf(target);
+          const before = held?.target === target ? held.box : null;
+          steady =
+            before !== null &&
+            Math.abs(before.left - box.left) < 0.5 &&
+            Math.abs(before.top - box.top) < 0.5 &&
+            Math.abs(before.right - box.right) < 0.5 &&
+            Math.abs(before.bottom - box.bottom) < 0.5;
+          held = { at: now, box, target };
+        }
+        const box = held!.box;
         const pad =
           mode === "wrap"
             ? CURSOR_FRAMING
@@ -395,6 +433,7 @@ function Reticle() {
           Math.min(tw, th) / 2,
         );
       } else if (mode === "frame") {
+        held = null;
         const grow = 1 + busy * 0.34;
         tw *= grow;
         th *= grow;
@@ -529,7 +568,7 @@ function Reticle() {
       const resting =
         (!dirty || !pointer.present) &&
         !scrolling &&
-        !snap &&
+        (!snap || steady) &&
         busy < 0.002 &&
         goals.every(
           ([state, to]) =>

@@ -1,7 +1,7 @@
 "use client";
 
 import { type ReactNode, useRef } from "react";
-import { motion, useReducedMotion } from "motion/react";
+import { motion, useReducedMotion } from "@/motion/lib";
 import { POINTS } from "@/motion/constants";
 import { bindScore } from "@/motion/react";
 import { defineScore } from "@/motion/score";
@@ -39,9 +39,26 @@ export function SurfaceStage({
   return (
     <SurfaceRoot>
       <div className={cn("ui-scene w-full", className)} data-cinematic="">
+        <SurfaceAnchor />
         {children}
       </div>
     </SurfaceRoot>
+  );
+}
+
+/**
+ * Where the dock puts focus when a surface opens (`data-dock-autofocus`). The
+ * dock would otherwise focus the first control, which pulls the caret into the
+ * first input. This is out of the Tab order and draws no outline.
+ */
+export function SurfaceAnchor() {
+  return (
+    <span
+      className="sr-only"
+      data-dock-autofocus=""
+      data-own-focus=""
+      tabIndex={-1}
+    />
   );
 }
 

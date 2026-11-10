@@ -16,6 +16,9 @@ export interface Rect {
   radius: number;
 }
 
+/** The veil between two pages: clear, rising, covering the page, lifting. */
+export type PassagePhase = "clear" | "closing" | "covered" | "lifting";
+
 export interface Flight {
   key: string;
   shell: HTMLDivElement;
@@ -586,6 +589,9 @@ export interface Actor {
   render: PartOptions["render"];
   css: boolean;
   written: Written;
+  radius: string | null;
+  /** Fills much of the viewport: a blur on it costs a frame, so it gets none. */
+  bulk: boolean | null;
   release: () => void;
 }
 

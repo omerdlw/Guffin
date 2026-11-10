@@ -32,8 +32,12 @@ import {
   SURFACE_TEXT,
   SURFACE_TILE_INNER,
   SURFACE_TITLE,
+  SurfaceAnchor,
+  SurfaceSearch,
+  useSurfaceSearch,
 } from "@/design/components/surface";
 import { cn } from "@/design/foundations/cn";
+import { useConfirmStep } from "@/design/hooks/use-confirm";
 import { followUserAction, unfollowUserAction } from "./actions";
 import {
   acceptFollowRequest,
@@ -331,7 +335,7 @@ function LoadingRow() {
         <div className={cn(SKELETON.block, "h-2.5 w-16 rounded-full")} />
       </div>
       <div
-        className={`${SKELETON.block} h-10 w-[6rem] shrink-0 ${SURFACE_TILE_INNER}`}
+        className={`${SKELETON.block} h-control-chrome w-[5.5rem] shrink-0 rounded-thumb`}
       />
     </div>
   );
@@ -417,62 +421,96 @@ const UserAction = memo(function UserAction({
   userId,
 }: UserActionProps) {
   const busy = pending !== null;
+  const [confirming, setConfirming] = useConfirmStep();
+
+  /** Unfollowing arms on the first press and runs on the second. */
+  const act = (action: SocialAction) => {
+    if (action === "unfollow" && !confirming) {
+      setConfirming(true);
+      return;
+    }
+    setConfirming(false);
+    onAction(action, userId);
+  };
+
   const button = (
     action: SocialAction,
     label: string,
-    intent: "neutral" | "primary",
-  ) => (
-    <Button
-      aria-label={label}
-      className={SOCIAL_BUTTON}
-      intent={intent}
-      disabled={busy}
-      loading={pending === action}
-      onClick={() => onAction(action, userId)}
-    >
-      <span>{label}</span>
-    </Button>
-  );
+    intent: "outline" | "primary",
+  ) => {
+    const armed = action === "unfollow" && confirming;
+    return (
+      <Button
+        aria-label={armed ? `Confirm: ${label}` : label}
+        className={SOCIAL_BUTTON}
+        intent={armed ? "armed" : intent}
+        shape="thumb"
+        size="chrome"
+        disabled={busy}
+        loading={pending === action}
+        onClick={() => act(action)}
+      >
+        <span>{armed ? "Confirm" : label}</span>
+      </Button>
+    );
+  };
 
   if (tab === "inbox") {
     return (
       <div className="flex shrink-0 items-center gap-2">
         {button("accept", "Accept", "primary")}
-        {button("reject", "Reject", "neutral")}
+        {button("reject", "Reject", "outline")}
       </div>
     );
   }
   if (ownProfile) {
     return tab === "following"
-      ? button("unfollow", "Unfollow", "neutral")
-      : button("remove", "Remove", "neutral");
+      ? button("unfollow", "Unfollow", "outline")
+      : button("remove", "Remove", "outline");
   }
   if (!showFollow) return null;
 
   const requested = followStatus === "pending";
   const following = followStatus === "accepted";
-  const label = following ? "Following" : requested ? "Requested" : "Follow";
+  if (following) return button("unfollow", "Following", "outline");
   return (
     <Button
-      aria-label={label}
+      aria-label={requested ? "Requested" : "Follow"}
       className={SOCIAL_BUTTON}
-      intent={requested ? "ghost" : following ? "neutral" : "primary"}
+      intent={requested ? "ghost" : "primary"}
+      shape="thumb"
+      size="chrome"
       disabled={busy || requested}
-      onClick={() => onAction(following ? "unfollow" : "follow", userId)}
+      onClick={() => act("follow")}
     >
-      <span>{label}</span>
+      <span>{requested ? "Requested" : "Follow"}</span>
     </Button>
   );
 });
 
+const userText = (user: FollowUser) =>
+  `${user.displayName} ${user.username ?? ""}`;
+
 function SocialTabStatus({
   collection,
+  query,
   tab,
 }: {
   collection: SocialCollection;
+  query?: string;
   tab: SocialTab;
 }) {
   const isInbox = tab === "inbox";
+
+  if (query) {
+    return (
+      <StatusTile
+        description={`Nothing in ${tab} matches “${query}”`}
+        icon="solar:magnifer-linear"
+        title="No results"
+      />
+    );
+  }
 
   if (collection.error) {
     return (
@@ -587,6 +625,35 @@ function AccountSocialSurface({
   const controllers = { followers, following, inbox: requests };
   const { loadMore, state: active } = controllers[tab];
 
+  const search = useSurfaceSearch(
+    active.list,
+    userText,
+    active.total ?? active.list.length,
+  );
+  const { searching } = search;
+
+  /* A search spans the whole list, so it pulls the remaining pages in; a
+     cursor that already failed is not retried until the search changes. */
+  const attempted = useRef<unknown>(null);
+  useEffect(() => {
+    if (!searching) {
+      attempted.current = null;
+      return;
+    }
+    if (!active.next || active.loadingMore || attempted.current === active.next)
+      return;
+    attempted.current = active.next;
+    void loadMore();
+  }, [active.loadingMore, active.next, loadMore, searching]);
+
+  const changeTab = useCallback(
+    (next: SocialTab) => {
+      search.setQuery("");
+      setTab(next);
+    },
+    [search.setQuery],
+  );
+
   let body: ReactNode;
   if (active.loading) {
     body = (
@@ -598,6 +665,19 @@ function AccountSocialSurface({
     );
   } else if (active.error || active.list.length === 0) {
     body = <SocialTabStatus collection={active} tab={tab} />;
+  } else if (searching && search.matches.length === 0) {
+    body =
+      active.next || active.loadingMore ? (
+        <div className="flex w-full flex-col gap-2.5">
+          <LoadingRow />
+        </div>
+      ) : (
+        <SocialTabStatus
+          collection={active}
+          query={search.query.trim()}
+          tab={tab}
+        />
+      );
   } else {
     body = (
       <div
@@ -606,7 +686,7 @@ function AccountSocialSurface({
         key={tab}
       >
         <HighlightGroup className="flex w-full flex-col gap-2.5">
-          {active.list.map((user) => (
+          {search.matches.map((user) => (
             <UserRow
               action={
                 <UserAction
@@ -624,7 +704,7 @@ function AccountSocialSurface({
               user={user}
             />
           ))}
-          {active.next ? (
+          {active.next && !searching ? (
             <LoadMoreSentinel
               loading={active.loadingMore}
               onVisible={loadMore}
@@ -637,13 +717,22 @@ function AccountSocialSurface({
 
   return (
     <div className="flex w-full flex-col overflow-hidden">
+      <SurfaceAnchor />
       <SurfaceSegmentedControl
         ariaLabel="Followers and following"
         id="account-social-tabs"
         items={tabs}
-        onChange={setTab}
+        onChange={changeTab}
         value={tab}
       />
+      {search.enabled ? (
+        <SurfaceSearch
+          className="mb-2.5"
+          label={`Search ${tab}`}
+          onChange={search.setQuery}
+          value={search.query}
+        />
+      ) : null}
       {body}
     </div>
   );

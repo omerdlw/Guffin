@@ -57,7 +57,15 @@ export const PULSE_KEY = "home:pulse";
 
 export const PULSE_FRESH_MS = 5 * 60_000;
 
-export const PULSE_KEEP_SECONDS = 60 * 60;
+/** Stale pulse stays servable for a week, so a visit is never the one to pay for a cold recount. */
+export const PULSE_KEEP_SECONDS = 7 * 24 * 60 * 60;
+
+export const PULSE_LOCK_KEY = "home:pulse:lock";
+
+export const PULSE_LOCK_SECONDS = 60;
+
+/** Cold-path ceiling: past this the page renders without the pulse instead of waiting on the database. */
+export const PULSE_COLD_TIMEOUT_MS = 4000;
 
 export const FEATURE_LIMIT = 5;
 

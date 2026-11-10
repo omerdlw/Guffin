@@ -1,5 +1,6 @@
 const nextConfig = {
   poweredByHeader: false,
+  reactStrictMode: false,
   async headers() {
     return [
       {

@@ -1,7 +1,7 @@
 "use client";
 
 import { Fragment, type ReactNode, use, useMemo, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "@/motion/lib";
 import { PosterThumb } from "@/features/artwork/artwork";
 import { movieHref, personHref } from "@/lib/project";
 import { type Awards, tmdbImageUrl } from "@/lib/tmdb/shared";

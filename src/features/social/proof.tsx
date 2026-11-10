@@ -27,6 +27,7 @@ import {
   SURFACE_TILE_END,
   SURFACE_TILE_INNER,
   SURFACE_TITLE,
+  SurfaceAnchor,
   tileVariants,
 } from "@/design/components/surface";
 import { cn } from "@/design/foundations/cn";
@@ -230,6 +231,7 @@ function SocialProofSurface({
 
   return (
     <div className={SURFACE_STACK}>
+      <SurfaceAnchor />
       {tabs.length > 2 ? (
         <SurfaceSegmentedControl
           ariaLabel="Filter by what they did"

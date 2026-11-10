@@ -31,9 +31,6 @@ export function PersonViewProvider({
   media: readonly MediaType[];
 }) {
   const [view, setView] = useState<PersonViewKey>("main");
-  const [chosen, setMedium] = useState<MediaType | null>(null);
-  const medium =
-    chosen && media.includes(chosen) ? chosen : (media[0] ?? "movie");
   const [focusYear, setFocusYear] = useState<number | null>(null);
   const [totals, setTotals] = useState<AwardTotals | null>(null);
 
@@ -67,13 +64,11 @@ export function PersonViewProvider({
       focusYear,
       hasTimeline,
       media,
-      medium,
       openTimeline,
-      setMedium,
       toggle,
       view,
     }),
-    [focusYear, hasTimeline, media, medium, openTimeline, toggle, totals, view],
+    [focusYear, hasTimeline, media, openTimeline, toggle, totals, view],
   );
   return <PersonViewContext value={value}>{children}</PersonViewContext>;
 }
@@ -132,17 +127,32 @@ const MEDIUM_LABELS: Record<MediaType, string> = {
 };
 
 /**
- * Films or shows: one choice shared by the career chart and the
- * filmography, shown only when the person has both.
+ * Films or shows, chosen per section so the career chart and the
+ * filmography never move together.
  */
-export function PersonMediumControl(): JSX.Element | null {
-  const { media, medium, setMedium } = usePersonView();
+export function usePersonMedium(): [MediaType, (medium: MediaType) => void] {
+  const { media } = usePersonView();
+  const [chosen, setChosen] = useState<MediaType | null>(null);
+  const medium =
+    chosen && media.includes(chosen) ? chosen : (media[0] ?? "movie");
+  return [medium, setChosen];
+}
+
+/** The films / shows switch, shown only when the person has both. */
+export function PersonMediumControl({
+  medium,
+  onChange,
+}: {
+  medium: MediaType;
+  onChange: (medium: MediaType) => void;
+}): JSX.Element | null {
+  const { media } = usePersonView();
   if (media.length < 2) return null;
   return (
     <SegmentedControl
       ariaLabel="Films or shows"
       items={media.map((key) => ({ key, label: MEDIUM_LABELS[key] }))}
-      onChange={setMedium}
+      onChange={onChange}
       value={medium}
     />
   );

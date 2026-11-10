@@ -33,6 +33,7 @@ import { TintedFavicon } from "@/motion/screen";
 import { motion } from "@/motion/time";
 import { isFilmPage } from "@/motion/utils";
 import { Logo } from "@/design/components/logo";
+import { Passage } from "@/design/components/passage";
 import { themes } from "./theme";
 
 const APP_REGISTRY_ENTRIES: readonly AppRegistryEntry[] = Object.freeze([
@@ -128,6 +129,7 @@ export function Providers({ children }: { children: ReactNode }): JSX.Element {
         <BackdropPreloader />
         <EngineProvider drive>
           {children}
+          <Passage />
           <TintedFavicon />
         </EngineProvider>
         <Cursor />

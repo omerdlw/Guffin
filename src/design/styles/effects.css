@@ -55,10 +55,18 @@
     animation: ui-develop var(--step-0) var(--ease-out-cream) both;
   }
 
+  /* Reduced motion: no glint, and a part still comes up by opacity alone. */
+  @keyframes ui-develop-quiet {
+    from {
+      opacity: 0;
+    }
+  }
   @media (prefers-reduced-motion: reduce) {
-    .ui-sheen::after,
-    .ui-develop {
+    .ui-sheen::after {
       animation: none !important;
+    }
+    .ui-develop {
+      animation: ui-develop-quiet var(--step-n3) var(--ease-fade) both;
     }
   }
 }

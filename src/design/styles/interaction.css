@@ -43,6 +43,13 @@
     transition: none !important;
   }
 
+  /* A theme swap is one cut, not hundreds of crossfades (src/lib/theme.ts). */
+  :root[data-theme-switching] *,
+  :root[data-theme-switching] *::before,
+  :root[data-theme-switching] *::after {
+    transition: none !important;
+  }
+
   :root {
     --touch-in: var(--step-0);
     --touch-out: var(--step-2);
@@ -86,12 +93,21 @@
 /* On a graded page the outline takes the picture's colour. */
 :where(.account-page, .home-page, .movie-page, .person-page)
   :focus-visible:not(input, textarea, [contenteditable], [data-own-focus]) {
-  outline-color: rgb(var(--grade, var(--ink-rgb)) / 0.4);
+  outline-color: var(--focus-ring-grade, var(--focus-ring));
 }
 
 @layer components {
   /* ── Colour transitions: the two beats ─────────────────────────────── */
 
+  /*
+   * What a control holds (an icon, a label, a count) fades with it. The
+   * control names that transition once, in a variable its contents inherit,
+   * and every element in a scene takes whatever it inherited. Matching
+   * "anything inside a control" directly would test each element's whole
+   * ancestry against the control list below (substring class tests among
+   * them) on every style recalculation; a page restyled by its tint pays
+   * that for thousands of elements a frame.
+   */
   :where(.ui-motion, .ui-scene)
     :where(
       button,
@@ -118,16 +134,18 @@
       [class^="focus"],
       [class*=" focus"],
       [class*=":focus"]
-    )
-    :where(*) {
-    transition:
+    ) {
+    --touch-kids:
       color var(--touch-t) var(--touch-e),
       background-color var(--touch-t) var(--touch-e),
       border-color var(--touch-t) var(--touch-e),
       box-shadow var(--touch-t) var(--touch-e),
       text-decoration-color var(--touch-t) var(--touch-e),
-      fill var(--touch-t) var(--touch-e),
-      stroke var(--touch-t) var(--touch-e);
+      fill var(--touch-t) var(--touch-e), stroke var(--touch-t) var(--touch-e);
+  }
+  /* Outside every control the variable is unset and so is the transition. */
+  :where(.ui-motion, .ui-scene) :where(:not([data-placement])) {
+    transition: var(--touch-kids);
   }
 
   :where(.ui-motion, .ui-scene)
@@ -201,7 +219,6 @@
       )
     ):active {
     --press-t: var(--press-in);
-    filter: blur(var(--haze-n1));
     scale: var(--press);
   }
   /* Wide targets sink less, so their edges do not travel far. */
@@ -284,7 +301,8 @@
     }
   }
 
-  /* A ghost control: its fill blooms out of the centre on hover and focus. */
+  /* A ghost control: its fill fades in place on hover and focus. No scale:
+     a fill that grows out of the centre reads as a cheap ripple. */
   .ui-iris {
     isolation: isolate;
   }
@@ -296,26 +314,21 @@
     opacity: 0;
     pointer-events: none;
     position: absolute;
-    scale: 0.5;
     transition:
       opacity var(--touch-t) var(--touch-e),
-      scale var(--touch-t) var(--ease-out-cream),
       background-color var(--touch-t) var(--touch-e);
     z-index: -1;
   }
   @media (hover: hover) {
     .ui-iris:hover::before {
       opacity: 1;
-      scale: 1;
     }
   }
   .ui-iris:focus-visible::before {
     opacity: 1;
-    scale: 1;
   }
   .ui-iris:active::before {
     opacity: 1;
-    scale: 1;
     --iris: var(--color-fill-active);
   }
 
@@ -325,9 +338,6 @@
     }
     :is(.ui-motion, .ui-scene) :where(*) {
       --press: 1;
-    }
-    .ui-iris::before {
-      scale: 1;
     }
     :is(.ui-motion, .ui-scene) iconify-icon,
     .ui-glyph {

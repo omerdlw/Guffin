@@ -12,7 +12,6 @@ import {
 import { readable } from "@/motion/render";
 import { headlineClass } from "@/design/foundations/layout";
 import {
-  CAST_BLUR_STEPS,
   CREW_JOB_PRIORITY,
   DOCK_DIRECTOR_LIMIT,
   FALLBACK_REGION,
@@ -225,18 +224,6 @@ export const providerEntries = (
     .sort((a, b) => a.displayPriority - b.displayPriority)
     .filter((p) => !seen.has(p.providerId) && seen.add(p.providerId))
     .map((p) => ({ id: p.providerId, logoPath: p.logoPath, name: p.name }));
-};
-
-export const castBlurLayer = (index: number): CSSProperties => {
-  const step = 100 / (CAST_BLUR_STEPS.length + 1);
-  const last = index === CAST_BLUR_STEPS.length - 1;
-  return {
-    "--blur": `${CAST_BLUR_STEPS[index]}px`,
-    "--m0": `${index * step}%`,
-    "--m1": `${(index + 1) * step}%`,
-    "--m2": last ? "100%" : `${(index + 2) * step}%`,
-    "--m3": last ? "100%" : `${(index + 3) * step}%`,
-  } as CSSProperties;
 };
 
 export function compactCells(count: number, hasMore: boolean): CSSProperties {

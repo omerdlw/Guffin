@@ -39,7 +39,7 @@ function NewListAction({
   return (
     <DockAction>
       <Button
-        className={actionClass({ className: "w-full backdrop-blur-sm" })}
+        className={actionClass({ className: "w-full" })}
         onClick={() =>
           void openSurface(createListFormSurfaceEntry({ mediaType, username }))
         }
@@ -123,7 +123,7 @@ function EditListAction({
       <EditListButton
         {...props}
         className={actionClass({
-          className: "w-10 shrink-0 px-0 backdrop-blur-sm",
+          className: "w-10 shrink-0 px-0",
         })}
       />
     );
@@ -131,7 +131,7 @@ function EditListAction({
   return (
     <EditListButton
       {...props}
-      className={actionClass({ className: "w-full backdrop-blur-sm" })}
+      className={actionClass({ className: "w-full" })}
       label="Edit list"
     />
   );

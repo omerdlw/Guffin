@@ -7,7 +7,7 @@ import {
   useMotionValue,
   useReducedMotion,
   useTransform,
-} from "motion/react";
+} from "@/motion/lib";
 import { PosterThumb } from "@/features/artwork/artwork";
 import { Heading } from "@/features/detail/layout";
 import {
@@ -36,7 +36,11 @@ import {
   MAX_TIMELINE_TITLES,
   TIMELINE_SPINE_CLASS,
 } from "./constants";
-import { PersonMediumControl, usePersonView } from "./views";
+import {
+  PersonMediumControl,
+  usePersonMedium,
+  usePersonView,
+} from "./views";
 import type {
   ByMedium,
   Career as CareerData,
@@ -202,7 +206,8 @@ export function PersonCareer({
 }: {
   careers: ByMedium<CareerData | null>;
 }) {
-  const { medium, openTimeline } = usePersonView();
+  const { openTimeline } = usePersonView();
+  const [medium, setMedium] = usePersonMedium();
   const career = careers[medium];
 
   return (
@@ -220,7 +225,7 @@ export function PersonCareer({
                 <Icon icon="solar:alt-arrow-right-linear" size={14} />
               </TextButton>
             ) : null}
-            <PersonMediumControl />
+            <PersonMediumControl medium={medium} onChange={setMedium} />
           </div>
         }
         icon="solar:chart-2-bold"

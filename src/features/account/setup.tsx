@@ -65,7 +65,6 @@ function AccountSetupSurface({
       <Input
         aria-label="Username"
         autoComplete="username"
-        autoFocus
         className={AUTH_INPUT_CLASS}
         disabled={pending}
         name="username"

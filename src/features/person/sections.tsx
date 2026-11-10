@@ -49,14 +49,14 @@ import type {
   PersonBioData,
 } from "./types";
 import { isFilmographySort, buildGalleryShelves } from "./utils";
-import { PersonMediumControl, usePersonView } from "./views";
+import { PersonMediumControl, usePersonMedium } from "./views";
 
 export function PersonFilmography({
   filmography,
 }: {
   filmography: ByMedium<FilmographyGroup[]>;
 }) {
-  const { medium } = usePersonView();
+  const [medium, setMedium] = usePersonMedium();
   const groups = filmography[medium];
   const [picked, setPicked] = useState<ByMedium<string | null>>({
     movie: null,
@@ -87,7 +87,7 @@ export function PersonFilmography({
       <Heading
         actions={
           <div className="flex items-center gap-2">
-            <PersonMediumControl />
+            <PersonMediumControl medium={medium} onChange={setMedium} />
             <Select
               ariaLabel="Sort filmography"
               className="w-44"

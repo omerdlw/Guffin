@@ -4,8 +4,8 @@ import type { JSX } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTransition } from "react";
 import { VITRIN_COOKIE_NAME } from "@/lib/env";
-import { SegmentedControl } from "@/design/components/segmented-control";
-import { DockAction } from "@/design/components/surface";
+import { SlidingPill, useSlidingPill } from "@/design/components/indicator";
+import { cn } from "@/design/foundations/cn";
 import { VITRIN_COOKIE_MAX_AGE, VITRIN_ITEMS } from "./constants";
 import type { MediaType } from "./types";
 import { withVitrin } from "./utils";
@@ -21,38 +21,84 @@ function readCookie(): MediaType {
   }
 }
 
-/** Films / Shows switch for the dock card on profile pages. */
-export function MediaTypeAction(): JSX.Element {
+/**
+ * The vitrin a profile page is showing (`?v=` first, then the remembered
+ * cookie) and a setter that remembers the pick and re-renders in place.
+ * `to` sends the switch to another path, for pages that exist in one vitrin.
+ */
+export function useVitrin(): {
+  asked: MediaType | null;
+  choose: (next: MediaType, to?: string) => void;
+  value: MediaType;
+} {
   const pathname = usePathname();
   const params = useSearchParams();
   const router = useRouter();
   const [, startTransition] = useTransition();
-  const asked = params.get("v");
-  const value: MediaType =
-    asked === "tv" ? "tv" : asked === "movie" ? "movie" : readCookie();
+  const raw = params.get("v");
+  const asked: MediaType | null =
+    raw === "tv" ? "tv" : raw === "movie" ? "movie" : null;
+  const value: MediaType = asked ?? readCookie();
 
-  const choose = (next: MediaType) => {
+  const choose = (next: MediaType, to?: string) => {
     if (next === value) return;
     document.cookie = `${VITRIN_COOKIE_NAME}=${next}; path=/; max-age=${VITRIN_COOKIE_MAX_AGE}; samesite=lax`;
     const search = params.toString();
+    const href = to ?? `${pathname}${search ? `?${search}` : ""}`;
     startTransition(() =>
-      router.replace(
-        withVitrin(`${pathname}${search ? `?${search}` : ""}`, next),
-        { scroll: false },
-      ),
+      router.replace(withVitrin(href, next), { scroll: false }),
     );
   };
 
+  return { asked, choose, value };
+}
+
+/** Films / Shows switch that sits beside the profile's section tabs. */
+export function MediaTypeSwitch({
+  onChange,
+  value,
+}: {
+  onChange: (next: MediaType) => void;
+  value: MediaType;
+}): JSX.Element {
+  const { box: pill, ref } = useSlidingPill<HTMLDivElement>(
+    "[data-chosen]",
+    value,
+    { wrapping: true },
+  );
+
   return (
-    <DockAction>
-      <SegmentedControl
-        ariaLabel="Show films or shows"
-        size="md"
-        width="fill"
-        items={VITRIN_ITEMS}
-        onChange={choose}
-        value={value}
-      />
-    </DockAction>
+    <div
+      aria-label="Show films or shows"
+      className="relative flex shrink-0 flex-col items-stretch gap-0.5 rounded-panel bg-veil p-1 lg:h-10 lg:flex-row lg:rounded-full ring-1 ring-edge-hover in-data-backdrop:backdrop-saturate-150 ring-inset select-none"
+      ref={ref}
+      role="tablist"
+    >
+      {pill ? (
+        <SlidingPill box={pill} className="rounded-full bg-grade/15" />
+      ) : null}
+      {VITRIN_ITEMS.map((item) => {
+        const chosen = item.key === value;
+        return (
+          <button
+            aria-selected={chosen}
+            className={cn(
+              "relative inline-flex flex-1 cursor-pointer items-center justify-center rounded-full px-2.5 type-meta sm:px-4 sm:type-control lg:flex-none font-medium whitespace-nowrap outline-none focus-visible:ring-1 focus-visible:ring-edge-focus focus-visible:ring-inset",
+              chosen
+                ? "text-ink"
+                : "text-ink-body hover:text-ink focus-visible:text-ink",
+              chosen && !pill && "bg-grade/15",
+            )}
+            data-chosen={chosen ? "" : undefined}
+            key={item.key}
+            onClick={() => onChange(item.key)}
+            role="tab"
+            type="button"
+          >
+            {item.label}
+          </button>
+        );
+      })}
+    </div>
   );
 }

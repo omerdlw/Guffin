@@ -16,7 +16,7 @@ import {
 } from "react";
 import { useOptionalNavigation } from "@omerdlw/base-framework/modules/navigation";
 import { carrierOf } from "./carry";
-import { gradeOf, sampleTint, tempoScale, tokenSheet } from "./color";
+import { gradeOf, sampledTint, tempoScale, tokenSheet } from "./color";
 import {
   SECTION_MARGIN,
   STAGE_MASK,
@@ -28,6 +28,7 @@ import { Expose } from "./expose";
 import { touch } from "./forces";
 import { Count, Deck, Header, Swap } from "./kit";
 import { Marquee } from "./marquee";
+import { passageOf } from "./passage";
 import { letters, mountScene, mountText, words } from "./render";
 import { driverOf } from "./scroll";
 import { childScope, Stage } from "./stage";
@@ -106,7 +107,7 @@ function useGrading(engine: Engine, grade: Grading | undefined) {
       return;
     }
     let live = true;
-    void sampleTint(grade).then((tint) => {
+    void sampledTint(grade).then((tint) => {
       if (live && tint) target.set(tint);
     });
     return () => {
@@ -340,6 +341,15 @@ function bindStage<P extends string, S extends string = never>(
         }),
       [navigation, stage],
     );
+
+    useEffect(() => {
+      const passage = passageOf(engine);
+      const open = (opened: boolean) => {
+        if (opened) passage.lift();
+      };
+      open(stage.opened.get());
+      return stage.opened.subscribe(open);
+    }, [engine, stage]);
 
     useGrading(engine, grade);
 

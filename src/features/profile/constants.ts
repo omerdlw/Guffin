@@ -265,7 +265,7 @@ export const STAT_LABEL_CLASS = `${TONE.label} text-ink-body`;
 export const STAT_AFTER_CLASS = `${TONE.label} tabular-nums`;
 
 export const STAT_CELL_CLASS =
-  "group/stat flex w-full flex-col items-center gap-1 px-1";
+  "group/stat flex w-full flex-col items-center gap-1 px-2";
 
 export const DIARY_DIGEST_MONTH_FORMAT = new Intl.DateTimeFormat("en-US", {
   month: "short",

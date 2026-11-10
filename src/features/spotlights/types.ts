@@ -91,34 +91,29 @@ export interface FoundryEvents {
   opened(): void;
 }
 
-export type Vec2 = [number, number];
-
-export interface WallViewport {
-  bulge: number;
-  focus: Vec2;
-  height: number;
-  lens: number;
-  pan: Vec2;
-  pitch: number;
-  radius: number;
-  width: number;
-}
-
 export interface FilmMarks {
   listed: boolean;
   match: boolean;
   seen: boolean;
 }
 
-export interface WallEvents {
+export interface TunnelEvents {
   hovered(index: number): void;
   opened(): void;
+  selected(index: number): void;
 }
 
-export interface WallLook {
-  lift: number;
-  match: number;
-  seen: number;
+export interface TunnelSlot {
+  height: number;
+  left: number;
+  top: number;
+  width: number;
+}
+
+export interface TunnelPrint {
+  color: ImageBitmap;
+  gray: ImageBitmap;
+  tint: readonly [number, number, number];
 }
 
 export interface Loop {

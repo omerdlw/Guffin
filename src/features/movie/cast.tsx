@@ -24,11 +24,7 @@ import { SegmentedControl } from "@/design/components/segmented-control";
 import { cn } from "@/design/foundations/cn";
 import { nested, RADIUS } from "@/design/foundations/geometry";
 import { TONE } from "@/design/foundations/tones";
-import {
-  CAST_BLUR_STEPS,
-  MOVIE_COMPACT_PEOPLE,
-  MOVIE_FEATURED_PEOPLE,
-} from "./constants";
+import { MOVIE_COMPACT_PEOPLE, MOVIE_FEATURED_PEOPLE } from "./constants";
 import type {
   CastModalProps,
   MoviePeopleProps,
@@ -36,7 +32,7 @@ import type {
   PeopleTab,
   PersonEntry,
 } from "./types";
-import { castBlurLayer, compactCells, peopleTabs } from "./utils";
+import { compactCells, peopleTabs } from "./utils";
 import cast from "./cast.module.css";
 
 function CastCard({ index, person }: { index: number; person: PersonEntry }) {
@@ -52,21 +48,9 @@ function CastCard({ index, person }: { index: number; person: PersonEntry }) {
     <>
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2"
-      >
-        {CAST_BLUR_STEPS.map((blur, step) => (
-          <div
-            className={cn(cast.blur, "absolute inset-0")}
-            key={blur}
-            style={castBlurLayer(step)}
-          />
-        ))}
-      </div>
-      <div
-        aria-hidden="true"
         className={cn(cast.sheen, "pointer-events-none absolute inset-0")}
       />
-      <div className="on-photo absolute inset-x-0 bottom-0 flex min-w-0 flex-col px-2.5 pb-3 text-center drop-shadow-[0_1px_2px_rgb(0_0_0/0.35)]">
+      <div className="on-photo absolute inset-x-0 bottom-0 flex min-w-0 flex-col px-2.5 pb-3 text-center">
         <DetailExpose
           as="div"
           className="truncate type-control font-semibold text-ink-lead"

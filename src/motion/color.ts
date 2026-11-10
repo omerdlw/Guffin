@@ -12,7 +12,7 @@ import {
   TINT_WHITE_PAPER,
 } from "./constants";
 import { Signal, Value } from "./engine";
-import { arrival, CURVE, departure, HAZE_CAP, response } from "./time";
+import { arrival, CURVE, departure, response } from "./time";
 import type {
   Css,
   CurveName,
@@ -71,7 +71,7 @@ export function blend(into: Look, shade: Shade): Look {
   return into;
 }
 
-export function css(look: Look): Css {
+export function css(look: Look, radius = ""): Css {
   const transform: string[] = [];
   if (round(look.x) !== 0 || round(look.y) !== 0)
     transform.push(`translate3d(${round(look.x)}px, ${round(look.y)}px, 0)`);
@@ -80,8 +80,6 @@ export function css(look: Look): Css {
     transform.push(`rotate(${round(look.rotate)}deg)`);
 
   const filter: string[] = [];
-  const blur = Math.min(look.blur, HAZE_CAP);
-  if (blur > 0.05) filter.push(`blur(${round(blur)}px)`);
   if (round(look.brightness) !== 1)
     filter.push(`brightness(${round(look.brightness)})`);
   if (round(look.saturate) !== 1)
@@ -99,7 +97,7 @@ export function css(look: Look): Css {
     transform: transform.length > 0 ? transform.join(" ") : "none",
     filter: filter.length > 0 ? filter.join(" ") : "none",
     clipPath: cut.some((side) => side > 0)
-      ? `inset(${cut.map((side) => `${side}%`).join(" ")})`
+      ? `inset(${cut.map((side) => `${side}%`).join(" ")}${radius ? ` round ${radius}` : ""})`
       : "none",
   };
 }
@@ -156,6 +154,25 @@ export function sampleTint(src: string, retry = true): Promise<Tint | null> {
       );
     image.src = src;
   });
+}
+
+/*
+ * A picture's tint never changes, and the same few pictures are asked for
+ * again and again (a row pointed at, left, pointed at again). Each sample
+ * loads and reads the picture back from a canvas, so it is taken once.
+ */
+const tints = new Map<string, Promise<Tint | null>>();
+
+export function sampledTint(src: string): Promise<Tint | null> {
+  let tint = tints.get(src);
+  if (!tint) {
+    tint = sampleTint(src).then((found) => {
+      if (!found) tints.delete(src);
+      return found;
+    });
+    tints.set(src, tint);
+  }
+  return tint;
 }
 
 export function rgbOf({ l, c, h }: Tint): [number, number, number] {

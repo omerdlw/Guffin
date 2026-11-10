@@ -6,13 +6,14 @@ import {
   type JSX,
   type ReactNode,
   use,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
 import { useOptionalDockState } from "@omerdlw/base-framework/modules/dock";
-import { POINTS } from "@/motion/constants";
+import { POINTS, SCROLLING } from "@/motion/constants";
 import { Room } from "@/motion/kit";
 import { marqueePatience } from "@/motion/marquee";
 import { Projection } from "@/motion/projection";
@@ -64,9 +65,37 @@ export function DetailStage({
   children: ReactNode;
   picture: string | null;
 }) {
-  const [lead, setLead] = useState<string | null>(null);
+  const [lead, setShownLead] = useState<string | null>(null);
   const [set, choose] = useState<string | null>(null);
   const wall = useMemo(() => ({ choose, set }), [set]);
+
+  /*
+   * While the page scrolls, pictures slide under a resting pointer and each
+   * one would re-grade the whole room (a restyle of every element, every
+   * frame of the drift). The last wish is kept and granted once the page
+   * has come to rest.
+   */
+  const pending = useRef<string | null | undefined>(undefined);
+  const setLead = useCallback((src: string | null) => {
+    if (document.documentElement.hasAttribute(SCROLLING)) {
+      pending.current = src;
+      return;
+    }
+    pending.current = undefined;
+    setShownLead(src);
+  }, []);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const settle = new MutationObserver(() => {
+      if (root.hasAttribute(SCROLLING) || pending.current === undefined) return;
+      const src = pending.current;
+      pending.current = undefined;
+      setShownLead(src);
+    });
+    settle.observe(root, { attributeFilter: [SCROLLING], attributes: true });
+    return () => settle.disconnect();
+  }, []);
 
   return (
     <DetailStageRoot grade={lead ?? picture}>

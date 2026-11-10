@@ -1,6 +1,8 @@
 import {
   SCROLL_LATCH,
   SCROLL_LINE,
+  SCROLL_LOCK,
+  SCROLL_LIMIT_TTL,
   SCROLL_LOCK_TTL,
   SCROLL_RUNG,
   SCROLL_STYLE_TTL,
@@ -55,6 +57,7 @@ function scrollsInside(target: EventTarget | null, delta: number, now: number) {
 const lock = { at: -Infinity, held: false };
 
 function locked(now: number) {
+  if (document.documentElement.hasAttribute(SCROLL_LOCK)) return true;
   if (now - lock.at < SCROLL_LOCK_TTL) return lock.held;
   const root = getComputedStyle(document.documentElement).overflowY;
   const body = getComputedStyle(document.body).overflowY;
@@ -77,6 +80,7 @@ class ScrollDriver {
     target: null as EventTarget | null,
   };
   private detach: (() => void)[] = [];
+  private bottom = { at: -Infinity, y: 0 };
 
   constructor(private engine: Engine) {
     this.position = new Value(engine.clock, 0, 0.1);
@@ -155,11 +159,18 @@ class ScrollDriver {
     return this.engine.reduced.get();
   }
 
+  /* Reading scrollHeight forces layout; a wheel burst asks it dozens of times. */
   private limit() {
-    return Math.max(
-      0,
-      document.documentElement.scrollHeight - window.innerHeight,
-    );
+    const now = performance.now();
+    if (now - this.bottom.at < SCROLL_LIMIT_TTL) return this.bottom.y;
+    this.bottom = {
+      at: now,
+      y: Math.max(
+        0,
+        document.documentElement.scrollHeight - window.innerHeight,
+      ),
+    };
+    return this.bottom.y;
   }
 
   private follow(y: number) {

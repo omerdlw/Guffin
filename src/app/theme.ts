@@ -107,7 +107,7 @@ const contextMenuMotion: ContextMenuMotion = {
 const contextMenuThemeConfig = defineTheme(contextMenuTheme, {
   slots: {
     backdrop: "fixed inset-0",
-    menu: `ui-motion max-w-sm min-w-64 overflow-hidden rounded-sheet backdrop-blur-xl ${SHELL}`,
+    menu: `ui-motion max-w-sm min-w-64 overflow-hidden rounded-sheet ${SHELL}`,
     header: "mb-2 flex items-center gap-3 border-b border-rule pb-2",
     headerIcon:
       "flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-card ring-1 ring-inset ring-edge bg-fill bg-cover bg-center bg-no-repeat text-ink-body",
@@ -418,9 +418,9 @@ const dockThemeConfig = defineTheme(dockTheme, {
     backdrop: `fixed inset-0 cursor-pointer ${BACKDROP}`,
 
     card: [
-      `group @container absolute h-auto w-full overflow-hidden rounded-shell p-2.5 backdrop-blur-md cursor-pointer ${SHELL}`,
-      "data-[anchored=true]:cursor-default data-[blur=heavy]:backdrop-blur-lg data-[shelf=true]:px-[6.5px] data-[shelf=true]:py-0",
-      "data-[placement=top]:inset-0 data-[placement=top]:h-full data-[placement=bottom]:bottom-0 data-[placement=float]:top-0",
+      `group @container absolute h-auto w-full overflow-hidden rounded-shell p-2.5 cursor-pointer bg-glass/70 ring-1 ring-edge-hover ring-inset backdrop-blur-md backdrop-saturate-150`,
+      "data-[anchored=true]:cursor-default data-[shelf=true]:px-[6.5px] data-[shelf=true]:py-0",
+      "data-[placement=top]:inset-0 data-[placement=top]:h-full data-[placement=bottom]:bottom-0 data-[placement=float]:top-0 data-[placement=float]:[#dock-card-stack[data-controls-hidden=false]_&]:h-full",
       "data-[ghost=true]:pointer-events-none data-[ghost=true]:select-none",
     ].join(" "),
     cardContent:
@@ -471,7 +471,7 @@ const dockThemeConfig = defineTheme(dockTheme, {
     commandBar: "flex shrink-0 items-center",
     commandTooltip: `${TOOLTIP.dock} ${TIP_SHAPE} ${TIP}`,
     command:
-      "ui-iris center relative size-control-chrome cursor-pointer rounded-full bg-transparent text-ink-body hover:text-ink focus-visible:text-ink select-none data-[banner=true]:[--iris:var(--color-fill-hover)] data-[banner=true]:before:backdrop-blur-md",
+      "ui-iris center relative size-control-chrome cursor-pointer rounded-full bg-transparent text-ink-body hover:text-ink focus-visible:text-ink select-none data-[banner=true]:[--iris:var(--color-fill-hover)]",
     commandBadge:
       "center bg-grade absolute -right-0.5 -top-0.5 h-4 min-w-4 px-1 rounded-full type-micro leading-none font-semibold tabular-nums text-on-accent",
 
@@ -685,7 +685,7 @@ const modalThemeConfig = defineTheme(modalTheme, {
     panelBare:
       "overflow-visible bg-transparent ring-1 ring-transparent ring-inset",
     panelChrome: [
-      `overflow-hidden backdrop-blur-xl ${SHELL}`,
+      `overflow-hidden ${SHELL}`,
       "data-[layout=center]:rounded-shell",
       "data-[layout=top]:rounded-b-shell data-[layout=top]:border-t-0",
       "data-[layout=bottom]:rounded-t-shell data-[layout=bottom]:border-b-0",
@@ -700,7 +700,7 @@ const modalThemeConfig = defineTheme(modalTheme, {
       "flex min-h-0 flex-col overflow-hidden data-[height=capped]:max-h-[70dvh] data-[height=full]:h-full data-[height=full]:max-h-full",
     body: "modal-body min-h-0 w-full flex-1 overflow-y-auto overscroll-contain p-2.5 pt-0 first:pt-2.5",
 
-    row: "items-center gap-2.5 p-2.5 pl-4 data-[columns=2]:flex data-[columns=2]:justify-between data-[columns=3]:grid data-[columns=3]:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] data-[sticky]:bg-glass data-[sticky]:backdrop-blur-md data-[sticky=bottom]:sticky data-[sticky=bottom]:bottom-0 data-[sticky=top]:sticky data-[sticky=top]:top-0",
+    row: "items-center gap-2.5 p-2.5 pl-4 data-[columns=2]:flex data-[columns=2]:justify-between data-[columns=3]:grid data-[columns=3]:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] data-[sticky]:bg-glass data-[sticky]: data-[sticky=bottom]:sticky data-[sticky=bottom]:bottom-0 data-[sticky=top]:sticky data-[sticky=top]:top-0",
     rowCenter: "flex items-center justify-center",
     rowEnd: "flex min-w-0 items-center justify-end gap-2.5",
     rowStart: "min-w-0",

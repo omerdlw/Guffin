@@ -47,7 +47,7 @@ export function ListCommentAction({
 
   return (
     <Button
-      className={actionClass({ className: "w-full backdrop-blur-sm" })}
+      className={actionClass({ className: "w-full" })}
       onClick={open}
       type="button"
     >
@@ -87,8 +87,7 @@ export function ListLikeButton({
       aria-label={liked ? "Unlike this list" : "Like this list"}
       aria-pressed={liked}
       className={actionClass({
-        className:
-          "w-auto shrink-0 gap-1.5 px-3.5 backdrop-blur-sm disabled:cursor-wait",
+        className: "w-auto shrink-0 gap-1.5 px-3.5 disabled:cursor-wait",
         isActive: liked,
       })}
       disabled={busy}

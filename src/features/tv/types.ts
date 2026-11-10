@@ -47,13 +47,6 @@ export type AiredEpisode = {
   s: number;
 };
 
-export interface EpisodeStat {
-  average: number | null;
-  count: number;
-  episode: number;
-  season: number;
-}
-
 /** A show in the viewer's "continue watching" row. */
 export interface ContinueItem {
   airedEpisodes: number | null;
@@ -75,9 +68,3 @@ export type ShowPageKind =
   | { kind: "reviews"; reviewer: string | null; sort: ShowReviewSort };
 
 export type ShowReviewSort = MovieReviewSort;
-
-/** One season's row in the ratings heatmap. */
-export interface HeatmapRow {
-  cells: { average: number | null; count: number; episode: number }[];
-  season: number;
-}

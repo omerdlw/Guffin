@@ -69,8 +69,6 @@ export const CREW_JOB_PRIORITY = [
 
 export const REGION_CODE_PATTERN = /^[A-Z]{2}$/;
 
-export const CAST_BLUR_STEPS = [0.5, 1, 2, 4, 8, 16] as const;
-
 export const GALLERY_TABS: Record<
   GalleryTab,
   {

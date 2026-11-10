@@ -56,7 +56,9 @@ Tek dosyalık özellik bile aynı kuralı izler: `features/artwork/artwork.tsx` 
 
 ```text
 guffin/
-├── DESIGN.md                    Tasarım ve hareket sözleşmesi
+├── DESIGN.md                    Tasarım sözleşmesi, design/rules/ dizinine bağlanır
+├── design/
+│   └── rules/                   Tasarım ve hareket kuralları (konuya göre parçalı)
 ├── FILE_STRUCTURE.md            Bu dosya
 ├── docs/
 │   ├── motion-engine.md         Motor mimarisi ve kanunları
@@ -109,7 +111,7 @@ guffin/
     │   ├── legal/               view (metinler `constants.ts`'te)
     │   └── spotlights/          Oscar, yönetmenler, Top 100:
     │                            shell · server · motion · oscars · directors · top-100
-    │                            gl · gl-foundry · gl-wall
+    │                            gl · gl-foundry · tunnel
     │
     ├── ui/                      ── Tasarım sistemi
     │   ├── tokens.ts            Sayfa ritmi, TONE, RADIUS, cam/yüzey ve dock yüzeyi sınıfları (nötr)
@@ -124,6 +126,7 @@ guffin/
     │
     ├── motion/                  ── Hareket motoru (ayrıntı: docs/motion-engine.md)
     │   ├── types.ts · constants.ts · utils.ts    Motorun bütün tipleri, sabitleri ve yardımcıları (`step`, `clamp`, `bezier`, `springAt`…)
+    │   ├── lib.ts               Animasyon kütüphanesine tek kapı: `motion/react` yalnızca buradan alınır (ESLint zorlar)
     │   ├── time.ts              Madde tablosu, fiiller (`arrival`, `departure`, `response`), eğri/yay tabloları, çerçeve `motion` ayarı
     │   ├── engine.ts            Saat, Signal, Value, duyular
     │   ├── forces.ts            Kuvvet alanları ve dokunuş

@@ -1,6 +1,7 @@
 import { carrierOf } from "./carry";
 import { blank, blend, css, neutral, paint } from "./color";
 import {
+  BULK_SHARE,
   CARRY_CAP,
   CARRY_DROP,
   HURRY_CAP,
@@ -48,6 +49,8 @@ function place(el: HTMLElement): Placement {
 
 export class Stage<P extends string, S extends string = never> {
   readonly act = new Signal<Act>("waiting");
+  /** True from the moment the curtain is up and the opening is released. */
+  readonly opened = new Signal<boolean>(false);
   readonly tempo: number;
   private readonly pace: number;
   timeline: Plan<P>;
@@ -120,6 +123,8 @@ export class Stage<P extends string, S extends string = never> {
       render: options.render,
       css: options.render ? (options.css ?? false) : true,
       written: blank(),
+      radius: null,
+      bulk: null,
       release: () => {},
     };
 
@@ -394,6 +399,7 @@ export class Stage<P extends string, S extends string = never> {
     this.played.clear();
     this.starts.clear();
     this.openedAt = null;
+    this.opened.set(false);
     this.openingEnd = 0;
     this.run += 1;
     this.receding = undefined;
@@ -498,6 +504,7 @@ export class Stage<P extends string, S extends string = never> {
 
   private release(time: number) {
     this.openedAt = time;
+    this.opened.set(true);
     let end = time;
     this.timeline = plan(
       this.score,
@@ -593,6 +600,14 @@ export class Stage<P extends string, S extends string = never> {
     });
   }
 
+  private bulky(actor: Actor) {
+    if (actor.bulk !== null) return actor.bulk;
+    const { width, height } = this.engine.viewport.get();
+    const area = actor.el.offsetWidth * actor.el.offsetHeight;
+    if (area === 0 || width === 0 || height === 0) return false;
+    return (actor.bulk = area > width * height * BULK_SHARE);
+  }
+
   private paint(actor: Actor) {
     const { role } = actor;
     const quiet = this.quiet;
@@ -614,6 +629,7 @@ export class Stage<P extends string, S extends string = never> {
         blend(look, { x: actor.drift.x.current, y: actor.drift.y.current });
       for (const force of actor.forces) blend(look, force.shade());
     }
+    if (look.blur > 0.05 && this.bulky(actor)) look.blur = 0;
     const moving = actor.enter.moving || actor.leave.moving;
     actor.render?.(look, {
       enter: actor.enter.current,
@@ -621,14 +637,35 @@ export class Stage<P extends string, S extends string = never> {
       moving,
       quiet,
     });
-    if (actor.css)
+    if (actor.css) {
+      const clipped =
+        look.clipTop > 0 ||
+        look.clipRight > 0 ||
+        look.clipBottom > 0 ||
+        look.clipLeft > 0;
+      if (!clipped) actor.radius = null;
+      else if (actor.radius === null) {
+        actor.radius = radiusOf(actor.el);
+      }
       actor.written = paint(
         actor.el,
         {
-          ...css(look),
+          ...css(look, actor.radius ?? ""),
           willChange: liftOf(role.depth, moving, quiet, look.blur > 0.05),
         },
         actor.written,
       );
+    }
   }
+}
+
+/** The corner radius a clipped part should keep: its own, else the nearest rounded first child. */
+function radiusOf(el: HTMLElement) {
+  let node: Element | null = el;
+  for (let depth = 0; node && depth < 4; depth++) {
+    const radius = getComputedStyle(node).borderRadius;
+    if (/[1-9]/.test(radius)) return radius;
+    node = node.firstElementChild;
+  }
+  return "";
 }

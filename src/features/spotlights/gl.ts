@@ -10,7 +10,7 @@ import {
   BLOOM_LEVELS,
   BLOOM_UP_UNIFORMS,
 } from "./constants";
-import type { BloomLook, LoopFactory, RenderTarget } from "./types";
+import type { BloomLook, RenderTarget } from "./types";
 
 export async function loadBitmap(
   src: string,
@@ -35,38 +35,6 @@ export async function loadBitmap(
     return null;
   }
 }
-
-export const createLoop: LoopFactory = (step) => {
-  let frame = 0;
-  let last = 0;
-  let disposed = false;
-
-  const tick = (now: number) => {
-    frame = 0;
-    if (disposed || document.hidden) return;
-    const dt = last ? Math.min(0.1, (now - last) / 1000) : 1 / 60;
-    last = now;
-    if (step(now / 1000, dt)) frame = requestAnimationFrame(tick);
-    else last = 0;
-  };
-
-  const wake = () => {
-    if (disposed || frame || document.hidden) return;
-    frame = requestAnimationFrame(tick);
-  };
-
-  document.addEventListener("visibilitychange", wake);
-  wake();
-
-  return {
-    dispose() {
-      disposed = true;
-      cancelAnimationFrame(frame);
-      document.removeEventListener("visibilitychange", wake);
-    },
-    wake,
-  };
-};
 
 const POST_VERTEX = `#version 300 es
 in vec2 aPosition;

@@ -24,9 +24,12 @@ import {
   FEATURE_LIMIT,
   PICKS_MIN_FILMS,
   PICKS_RANK_CONSTANT,
+  PULSE_COLD_TIMEOUT_MS,
   PULSE_FRESH_MS,
   PULSE_KEEP_SECONDS,
   PULSE_KEY,
+  PULSE_LOCK_KEY,
+  PULSE_LOCK_SECONDS,
   ROW_LIMIT,
   SEED_LIMIT,
   THEATRES_MIN_VOTES,
@@ -58,15 +61,15 @@ import {
   uniqueMovies,
 } from "./utils";
 
-async function readPulse(): Promise<PulseRow> {
-  const { data, error } =
-    await createAdminSupabaseClient().rpc("get_home_pulse");
+async function readPulse(signal?: AbortSignal): Promise<PulseRow> {
+  const query = createAdminSupabaseClient().rpc("get_home_pulse");
+  const { data, error } = await (signal ? query.abortSignal(signal) : query);
   if (error) throw error;
   return (data as unknown as PulseRow | null) ?? EMPTY_PULSE;
 }
 
-async function recount(): Promise<PulseRow> {
-  const pulse = await readPulse();
+async function recount(signal?: AbortSignal): Promise<PulseRow> {
+  const pulse = await readPulse(signal);
   const redis = getRedisClient();
   if (redis) {
     const entry: CachedPulse = { at: Date.now(), pulse };
@@ -80,19 +83,33 @@ async function recount(): Promise<PulseRow> {
   return pulse;
 }
 
+/** One recount at a time across instances, so a slow database is not stampeded. */
+async function refreshPulse(): Promise<void> {
+  const redis = getRedisClient();
+  if (redis) {
+    const acquired = await redis
+      .set(PULSE_LOCK_KEY, 1, { ex: PULSE_LOCK_SECONDS, nx: true })
+      .catch(() => "OK");
+    if (!acquired) return;
+  }
+  await recount();
+}
+
+function refreshPulseLater(): void {
+  after(() =>
+    refreshPulse().catch((error: unknown) =>
+      report("Home pulse refresh", error),
+    ),
+  );
+}
+
 async function getPulse(): Promise<PulseRow> {
   const redis = getRedisClient();
   if (redis) {
     try {
       const cached = await redis.get<CachedPulse>(PULSE_KEY);
       if (cached) {
-        if (Date.now() - cached.at > PULSE_FRESH_MS) {
-          after(() =>
-            recount().catch((error: unknown) =>
-              report("Home pulse refresh", error),
-            ),
-          );
-        }
+        if (Date.now() - cached.at > PULSE_FRESH_MS) refreshPulseLater();
         return cached.pulse;
       }
     } catch (error) {
@@ -102,10 +119,11 @@ async function getPulse(): Promise<PulseRow> {
   }
 
   try {
-    return await recount();
+    return await recount(AbortSignal.timeout(PULSE_COLD_TIMEOUT_MS));
   } catch (error) {
     unstable_rethrow(error);
     report("Home pulse read", error);
+    refreshPulseLater();
     return EMPTY_PULSE;
   }
 }

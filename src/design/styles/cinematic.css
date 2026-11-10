@@ -105,7 +105,6 @@
     transition-timing-function: var(--ease-out-cream);
   }
   [data-cinematic] .cine-press:active {
-    filter: blur(var(--haze-n1));
     transform: scale(var(--press));
     transition-duration: var(--press-in);
   }
@@ -116,12 +115,21 @@
       transform var(--step-1) var(--ease-out-cream);
   }
 
+  /* Reduced motion keeps the light and drops the travel: colour and opacity
+     still fade, quickly; scale, translate and filter do not move. */
   @media (prefers-reduced-motion: reduce) {
     [data-cinematic] *,
     [data-cinematic] *::before,
     [data-cinematic] *::after {
       animation: none !important;
-      transition: none !important;
+      transition-delay: 0s !important;
+      transition-duration: var(--step-n3) !important;
+      transition-property:
+        opacity, color, background-color, border-color, box-shadow,
+        outline-color, text-decoration-color, fill, stroke !important;
+    }
+    [data-cinematic] img[data-state="loading"] {
+      transform: none;
     }
   }
 }

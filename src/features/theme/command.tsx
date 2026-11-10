@@ -10,7 +10,7 @@ import {
 } from "react";
 import { useDockContextActions } from "@omerdlw/base-framework/modules/dock";
 import { Z_INDEX } from "@omerdlw/base-framework/tokens";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "@/motion/lib";
 import { createPortal } from "react-dom";
 import { setThemeChoice, THEME_CHOICES, useThemeChoice } from "@/lib/theme";
 import { POINTS } from "@/motion/constants";
@@ -79,7 +79,7 @@ function useFollow(target: Element | null): Anchor | null {
   return anchor;
 }
 
-const SETTLE_MS = 320;
+const SETTLE_MS = Math.round(step(-1) * 1000);
 
 /** Three icons side by side; the highlight slides to the chosen one. */
 function Segments({
@@ -102,7 +102,7 @@ function Segments({
       animate={{ opacity: 1, scale: 1, y: 0 }}
       aria-label="Theme"
       className={cn(
-        "ui-motion absolute flex origin-bottom-right items-stretch gap-0.5 rounded-full p-1 backdrop-blur-xl",
+        "ui-motion absolute flex origin-bottom-right items-stretch gap-0.5 rounded-full p-1",
         SHELL,
       )}
       exit={{ opacity: 0, scale: 0.96, y: reduced ? 0 : 6 }}

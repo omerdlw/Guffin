@@ -84,11 +84,6 @@ export const SHORT_DATE_FORMAT = new Intl.DateTimeFormat("en-US", {
 });
 
 export const SETTINGS_SECTIONS = {
-  appearance: {
-    description: "Light, dark or follow your device",
-    icon: "solar:sun-2-bold",
-    title: "Appearance",
-  },
   "avatar-background": {
     description: "Photo and page background",
     icon: "solar:gallery-bold",

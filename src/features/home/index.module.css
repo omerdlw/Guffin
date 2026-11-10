@@ -8,7 +8,6 @@
   :global([data-cinematic])
     .index:has(.row:is(:hover, :focus-visible))
     .row:not(:is(:hover, :focus-visible)) {
-    filter: blur(var(--haze-1));
     opacity: 0.4;
   }
   @media (prefers-reduced-motion: reduce) {

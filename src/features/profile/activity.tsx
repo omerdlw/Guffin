@@ -272,7 +272,7 @@ export function ActivityTimeline({
 function PulseAction({ summary }: { summary: ActivitySummary }): JSX.Element {
   const actionClass = useDockActionClass();
   const cell = actionClass({
-    className: "min-w-0 flex-1 cursor-default gap-fib-2 px-2 backdrop-blur-sm",
+    className: "min-w-0 flex-1 cursor-default gap-fib-2 px-2",
   });
   const figures = [
     { label: "7d", title: "Last 7 days", value: summary.week },

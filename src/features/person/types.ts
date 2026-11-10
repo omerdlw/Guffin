@@ -105,8 +105,6 @@ export interface PersonViewState {
   hasTimeline: boolean;
   /** The kinds of work this person has, films first. */
   media: readonly MediaType[];
-  medium: MediaType;
-  setMedium: (medium: MediaType) => void;
   openTimeline: (year: number) => void;
   toggle: (view: Exclude<PersonViewKey, "main">) => void;
   view: PersonViewKey;

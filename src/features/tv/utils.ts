@@ -2,8 +2,6 @@ import type { Database } from "@/lib/supabase/database.types";
 import type { PersonEntry } from "@/features/movie/types";
 import {
   EPISODE_DATE_FORMAT,
-  HEATMAP_EMPTY,
-  HEATMAP_STEPS,
   SHOW_CERTIFICATION_REGION,
   SHOW_CREW_JOBS,
   SHOW_RECOMMENDATION_LIMIT,
@@ -15,8 +13,6 @@ import {
 import type {
   AiredEpisode,
   Episode,
-  EpisodeStat,
-  HeatmapRow,
   SeasonSummary,
   ShowDetails,
   ShowProgress,
@@ -93,14 +89,6 @@ export function progressRatio(
 ): number {
   if (!aired || aired <= 0) return 0;
   return Math.max(0, Math.min(1, watched / aired));
-}
-
-export function heatmapClass(average: number | null): string {
-  if (average === null) return HEATMAP_EMPTY;
-  return (
-    HEATMAP_STEPS.find((step) => average >= step.min)?.className ??
-    HEATMAP_STEPS[HEATMAP_STEPS.length - 1].className
-  );
 }
 
 export function trackingErrorMessage(
@@ -234,25 +222,4 @@ export function daysUntil(
 ): number | null {
   if (!date || date < today) return null;
   return Math.round((Date.parse(date) - Date.parse(today)) / 86_400_000);
-}
-
-/** Season × episode grid of Guffin ratings, regular seasons only. */
-export function toHeatmapRows(
-  seasons: readonly SeasonSummary[],
-  stats: readonly EpisodeStat[],
-): HeatmapRow[] {
-  const byKey = new Map(
-    stats.map((stat) => [episodeKey(stat.season, stat.episode), stat]),
-  );
-  return splitSeasons(seasons).regular.map((season) => ({
-    season: season.seasonNumber,
-    cells: Array.from({ length: season.episodeCount }, (_, index) => {
-      const stat = byKey.get(episodeKey(season.seasonNumber, index + 1));
-      return {
-        episode: index + 1,
-        average: stat?.average ?? null,
-        count: stat?.count ?? 0,
-      };
-    }),
-  }));
 }

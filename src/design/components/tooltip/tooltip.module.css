@@ -11,8 +11,7 @@
     font-weight: 500;
     line-height: var(--type-meta--line-height);
     text-wrap: balance;
-    -webkit-backdrop-filter: blur(24px) saturate(1.5);
-    backdrop-filter: blur(24px) saturate(1.5);
+    backdrop-filter: saturate(1.5);
   }
   .ink {
     display: block;
@@ -44,8 +43,15 @@
   :global(html.reticle) .content[data-cursor-owned] {
     display: none;
   }
+  /* Reduced motion: the tip fades, and does not scale or sweep its text. */
   @media (prefers-reduced-motion: reduce) {
-    .content,
+    .content[data-state="delayed-open"],
+    .content[data-state="instant-open"] {
+      animation: fade var(--step-n3) var(--ease-fade) both;
+    }
+    .content[data-state="closed"] {
+      animation: close var(--step-n3) var(--ease-fade) both;
+    }
     .ink {
       animation: none !important;
     }
@@ -70,6 +76,11 @@
   to {
     -webkit-mask-position: 0 0;
     mask-position: 0 0;
+  }
+}
+@keyframes fade {
+  from {
+    opacity: 0;
   }
 }
 @keyframes close {
