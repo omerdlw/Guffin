@@ -1,9 +1,27 @@
 "use client";
 
+import { PAGE_TEMPO } from "@/motion/constants";
 import { bindScore } from "@/motion/react";
 import { defineScore } from "@/motion/score";
 
+/*
+ * A film, show or person page opens in four movements:
+ *
+ * 1. The marquee lands, then the poster is uncovered and settles while the
+ *    title blooms; the line under the title draws left to right and hands
+ *    over to its stats or links, then the tagline and the overview read in.
+ * 2. As the overview lands the first main sections (cast, seasons, career)
+ *    begin, one card at a time, and the actions under the poster come up
+ *    one by one with the social proof after them.
+ * 3. The sidebar facts follow, a line at a time from the top down, each
+ *    row with its label, value and rule; the next section (the gallery)
+ *    comes in while they do.
+ * 4. Everything further down plays as it is scrolled to, in page order.
+ */
 const DETAIL = defineScore({
+  tempo: PAGE_TEMPO,
+  ordered: true,
+  tight: true,
   cast: {
     marquee: { matter: "plate", enter: "still", leave: "still" },
     backdrop: { matter: "plate", depth: 1 },
@@ -12,18 +30,22 @@ const DETAIL = defineScore({
     tagline: "light",
     role: "light",
     overview: { matter: "ink", enter: "read", leave: "fade" },
-    poster: { matter: "plate", enter: "door" },
-    stat: { matter: "light", enter: "along", cadence: "even" },
-    action: { matter: "glass", enter: "descend", cadence: "stairs" },
-    proof: { matter: "glass", enter: "descend", cadence: "stairs" },
-    row: { matter: "light", enter: "descend", cadence: "stairs" },
-    link: "glass",
-    label: "light",
-    value: "light",
-    line: { matter: "light", enter: "wipe" },
+    poster: { matter: "plate", enter: "unveil" },
+    stat: { matter: "light", enter: "along", cadence: "stairs" },
+    action: { matter: "glass", enter: "emerge", cadence: "stairs" },
+    proof: { matter: "glass", enter: "emerge" },
+    row: { matter: "ink", enter: "read", cadence: "lines" },
+    link: { matter: "glass", enter: "emerge", cadence: "stairs" },
+    label: { matter: "light", cadence: "lines" },
+    value: { matter: "light", cadence: "lines" },
+    line: { matter: "light", enter: "wipe", cadence: "lines" },
     header: { matter: "ink", enter: "still" },
-    person: "paper",
-    photo: { matter: "paper", enter: "door" },
+    /*
+     * The cast washes in like the search grid: each card rises into the light,
+     * in reading order, its names a beat behind it.
+     */
+    person: { matter: "paper", enter: "surface", cadence: "lines", beat: -2.5 },
+    credit: { matter: "light", cadence: "lines", beat: -2.5 },
     name: "light",
     slide: { matter: "paper", enter: "door" },
     control: "glass",
@@ -41,19 +63,24 @@ const DETAIL = defineScore({
   },
   opening: [
     ["marquee", "backdrop"],
-    { rest: 1, with: "marquee" },
+    "poster",
     "title",
+    "role",
     "rule",
-    ["tagline", "role", "stat"],
-    ["overview", "poster"],
+    { rest: 0, with: "rule" },
+    ["stat", "link"],
+    "tagline",
+    "overview",
+    { release: true },
     "action",
-    ["proof", "link"],
+    "proof",
+    { rest: 1 },
     ["row", "label", "value", "line"],
   ],
   sections: {
     shelf: ["header"],
-    cast: ["person", ["photo", "name"]],
-    casting: [{ rest: 1 }, "person", ["photo", "name"]],
+    cast: ["person", "credit"],
+    casting: [{ rest: 1 }, "person", "credit", { rest: 1 }],
     slides: ["slide"],
     row: ["header", "slide"],
     digest: ["header", "review", "star"],

@@ -56,10 +56,13 @@ const VideoModal = defineModal({
 
 export function MovieGallery({
   backdrops,
+  now = false,
   posters,
   title,
 }: {
   backdrops: MovieImage[];
+  /** Play with the opening instead of waiting to be scrolled to. */
+  now?: boolean;
   posters: MovieImage[];
   title: string;
 }) {
@@ -98,7 +101,7 @@ export function MovieGallery({
   };
 
   return (
-    <DetailSection className="flex w-full flex-col" cue="shelf">
+    <DetailSection className="flex w-full flex-col" cue="shelf" now={now}>
       <Heading
         actions={
           <div className="flex items-center gap-2">
@@ -119,7 +122,7 @@ export function MovieGallery({
         icon="solar:gallery-wide-bold"
         title="Gallery"
       />
-      <DetailSwap cue="slides" id={key}>
+      <DetailSwap cue="slides" id={key} now={now}>
         <div
           onPointerLeave={() => lead(null)}
           onPointerOver={(event) => {

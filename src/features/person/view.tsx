@@ -158,7 +158,7 @@ export function PersonView({
                     <PersonCareer careers={careers} />
                   ) : null}
                   {filmography.movie.length > 0 || filmography.tv.length > 0 ? (
-                    <PersonFilmography filmography={filmography} />
+                    <PersonFilmography filmography={filmography} now />
                   ) : null}
                   <PersonGallery
                     backdrops={backdrops}

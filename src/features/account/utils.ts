@@ -1,3 +1,4 @@
+import type { Dispatch, SetStateAction } from "react";
 import { globalEvents } from "@omerdlw/base-framework/events";
 import {
   isImageIconSource,
@@ -371,4 +372,18 @@ export function socialErrorMessage(error: unknown, tab: SocialTab): string {
   return tab === "inbox"
     ? "Couldn't load your follow requests"
     : `Couldn't load ${tab}`;
+}
+
+export function snapshotState<T>(
+  setter: Dispatch<SetStateAction<T>>,
+  change: (value: T) => T,
+) {
+  let previous: T | undefined;
+  setter((value) => {
+    previous = value;
+    return change(value);
+  });
+  return () => {
+    if (previous !== undefined) setter(previous as T);
+  };
 }

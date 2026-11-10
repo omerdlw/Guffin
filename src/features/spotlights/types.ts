@@ -80,17 +80,6 @@ export interface DirectorsSize {
   width: number;
 }
 
-export interface FoundryPlate {
-  aspect: number;
-  centerX: number;
-  centerY: number;
-  half: number;
-}
-
-export interface FoundryEvents {
-  opened(): void;
-}
-
 export interface FilmMarks {
   listed: boolean;
   match: boolean;

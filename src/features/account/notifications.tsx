@@ -145,8 +145,7 @@ const NotificationRow = memo(function NotificationRow({
   return (
     <div
       className={tileVariants({
-        className:
-          "group/user relative isolate w-full justify-between",
+        className: "group/user relative isolate w-full justify-between",
       })}
       {...highlight.props}
     >
@@ -435,11 +434,7 @@ export function AccountNotificationsSurface({ close }: { close?: () => void }) {
     [feed.items, filter],
   );
 
-  const search = useSurfaceSearch(
-    visible,
-    notificationText,
-    feed.items.length,
-  );
+  const search = useSurfaceSearch(visible, notificationText, feed.items.length);
 
   return (
     <div className="flex w-full flex-col overflow-hidden">

@@ -11,6 +11,7 @@ import {
   requireSupabasePublicConfig,
   requireSupabaseSecretKey,
   SESSION_CHECKED_HEADER,
+  getSentryOrigin,
 } from "@/lib/env";
 import {
   applySecurityHeaders,
@@ -112,10 +113,14 @@ export async function updateSupabaseSession(
   request: NextRequest,
 ): Promise<NextResponse> {
   const config = getSupabasePublicConfig();
+  const sentry = getSentryOrigin();
   const https = isHttpsRequest(request.headers, request.nextUrl.protocol);
   const nonce = createNonce();
   const csp = buildContentSecurityPolicy({
-    connectSrc: config ? [config.url, config.url.replace(/^http/, "ws")] : [],
+    connectSrc: [
+      ...(config ? [config.url, config.url.replace(/^http/, "ws")] : []),
+      ...(sentry ? [sentry] : []),
+    ],
     development: process.env.NODE_ENV === "development",
     nonce,
     upgradeInsecureRequests: https,

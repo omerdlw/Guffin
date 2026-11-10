@@ -36,11 +36,9 @@ import {
 import { AccountBio } from "./hero";
 import { ListTeaser } from "./lists";
 import { AccountPart } from "./motion";
-import {
-  getAccountOverview,
-  getUnlockedAccountContext,
-  getWatchingShows,
-} from "./server";
+import { getUnlockedAccountContext } from "./access";
+import { getWatchingShows } from "./progress";
+import { getAccountOverview } from "./server";
 import { AccountPage } from "./shell";
 import type {
   AccountData,

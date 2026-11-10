@@ -171,6 +171,7 @@ export function DetailLayout({
 }): JSX.Element {
   return (
     <main
+      id="main"
       className={`${className} ui-scene overflow-x-clip ${PAGE_CLASS}`}
       data-cinematic=""
     >
@@ -214,10 +215,12 @@ export function DetailSidebar({
 export function Heading({
   actions,
   icon,
+  progress,
   title,
 }: {
   actions?: ReactNode;
   icon: string;
+  progress?: number;
   title: string;
 }) {
   return (
@@ -226,6 +229,7 @@ export function Heading({
       icon={<Icon icon={icon} size={18} />}
       nameClassName={`min-w-0 ${TONE.label} text-ink-body`}
       part="header"
+      progress={progress}
       title={title}
     />
   );

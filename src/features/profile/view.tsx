@@ -40,15 +40,16 @@ import {
   getAccountAmbientPalette,
   getAccountHeader,
   getAccountPageContext,
+  getUnlockedAccountContext,
+} from "./access";
+import { getDiaryMonth, getTrackedShows } from "./progress";
+import {
   getActivityPage,
   getActivitySummary,
-  getDiaryMonth,
   getListPage,
   getListsPage,
   getMediaPage,
   getReviewsPage,
-  getUnlockedAccountContext,
-  getTrackedShows,
 } from "./server";
 import { ReviewList } from "./reviews";
 import { AccountPage, AccountShell } from "./shell";

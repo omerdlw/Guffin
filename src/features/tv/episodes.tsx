@@ -40,7 +40,6 @@ import {
   setEpisodesWatchedAction,
   setSeasonWatchedAction,
 } from "./actions";
-import { ProgressBar } from "./progress";
 import { announceShowChange } from "./status";
 import type {
   Episode,
@@ -486,13 +485,13 @@ export function EpisodeList(): JSX.Element {
           ) : null
         }
         icon="solar:play-stream-bold"
+        progress={
+          aired.length > 0
+            ? progressRatio(watchedCount, aired.length)
+            : undefined
+        }
         title={`Episodes (${count})`}
       />
-      {aired.length > 0 ? (
-        <DetailPart className="-mt-2 mb-4" name="control">
-          <ProgressBar ratio={progressRatio(watchedCount, aired.length)} />
-        </DetailPart>
-      ) : null}
       <HighlightGroup>
         <ol className="-mx-2 flex flex-col gap-1">
           {season.episodes.map((episode, index) => (

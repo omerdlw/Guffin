@@ -58,6 +58,7 @@ import {
   reach,
   staggered,
   step,
+  topOf,
   wipe,
   withinWindow,
 } from "./utils";
@@ -226,6 +227,7 @@ export function Header({
   actions,
   className,
   nameClassName,
+  progress,
 }: HeaderProps) {
   const stage = useAnyStage();
   const lamp = useRef<HTMLSpanElement>(null);
@@ -287,6 +289,8 @@ export function Header({
   });
 
   const spoken = words(title);
+  const meter =
+    progress === undefined ? null : Math.max(0, Math.min(1, progress));
 
   return (
     <div {...props} className={className ?? "relative z-10 mb-4"}>
@@ -327,10 +331,27 @@ export function Header({
             ))}
           </h2>
         </div>
-        <div aria-hidden="true" className="relative h-2 min-w-6 flex-1">
-          <div className="absolute inset-x-0 top-1/2 h-px">
+        <div
+          aria-hidden={meter === null ? "true" : undefined}
+          aria-valuemax={meter === null ? undefined : 100}
+          aria-valuemin={meter === null ? undefined : 0}
+          aria-valuenow={meter === null ? undefined : Math.round(meter * 100)}
+          className="relative h-2 min-w-6 flex-1"
+          role={meter === null ? undefined : "progressbar"}
+        >
+          <div
+            className={
+              meter === null
+                ? "absolute inset-x-0 top-1/2 h-px"
+                : "absolute inset-x-0 top-1/2 h-1 -translate-y-1/2"
+            }
+          >
             <div
-              className="absolute inset-0 origin-left"
+              className={
+                meter === null
+                  ? "absolute inset-0 origin-left"
+                  : "absolute inset-0 origin-left overflow-hidden rounded-full"
+              }
               data-print=""
               ref={line}
               style={{
@@ -338,7 +359,18 @@ export function Header({
                 background:
                   "color-mix(in oklch, var(--light, #fcfcfb) 20%, transparent)",
               }}
-            />
+            >
+              {meter === null ? null : (
+                <div
+                  className="h-full rounded-full transition-[width] duration-settle ease-out-quint"
+                  style={{
+                    width: `${(meter * 100).toFixed(2)}%`,
+                    background:
+                      "color-mix(in oklch, var(--light, #fcfcfb) 75%, transparent)",
+                  }}
+                />
+              )}
+            </div>
             <div
               className="pointer-events-none absolute inset-y-0 left-0 w-full"
               ref={spark}
@@ -467,6 +499,7 @@ export function Swap({
   const turns = useRef(0);
   const settle = useRef<Value | null>(null);
   const first = `${base}0`;
+  const placed = () => (box.current ? topOf(box.current) : undefined);
 
   useEffect(() => {
     latest.current = { id, children };
@@ -493,7 +526,7 @@ export function Swap({
 
   useLayoutEffect(() => {
     if (shown.scope === first) {
-      if (now && !intro) stage.cue(cue, first);
+      if (now && !intro) stage.cue(cue, first, placed());
       return;
     }
     stage.cue(cue, shown.scope);
@@ -522,7 +555,7 @@ export function Swap({
   }, [shown.scope]);
 
   useEffect(() => {
-    if (now && intro) stage.cue(intro, first);
+    if (now && intro) stage.cue(intro, first, placed());
   }, [now, intro, stage, first]);
 
   const trigger = useSectionOf(

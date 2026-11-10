@@ -2,33 +2,33 @@
 
 ## 8. Common mistakes
 
-| Don't                                                             | Do                                                              |
-| ----------------------------------------------------------------- | --------------------------------------------------------------- |
-| `bg-white/[0.07]`, `text-[13px]`, `rounded-[14px]`                | `bg-fill-hover`, `type-control`, `rounded-card`                 |
-| `text-sm`, `text-gray-400`                                        | `type-body`, `text-ink-muted`                                   |
-| `shadow-lg`, `drop-shadow-*`                                      | Nothing: separate with glass, ring and blur                     |
-| `hover:text-ink` alone                                            | `hover:text-ink focus-visible:text-ink`                         |
-| `hover:underline`                                                 | `underline decoration-transparent hover:decoration-current`     |
-| A link that dims to `ink-body` on hover                           | Rest at `ink` or `ink-body`, rise to `ink`                      |
-| A white chosen tab or a grade submit button                       | Chosen: `intent="chosen"`. Submit: `intent="primary"`           |
+| Don't                                                             | Do                                                          |
+| ----------------------------------------------------------------- | ----------------------------------------------------------- |
+| `bg-white/[0.07]`, `text-[13px]`, `rounded-[14px]`                | `bg-fill-hover`, `type-control`, `rounded-card`             |
+| `text-sm`, `text-gray-400`                                        | `type-body`, `text-ink-muted`                               |
+| `shadow-lg`, `drop-shadow-*`                                      | Nothing: separate with glass, ring and blur                 |
+| `hover:text-ink` alone                                            | `hover:text-ink focus-visible:text-ink`                     |
+| `hover:underline`                                                 | `underline decoration-transparent hover:decoration-current` |
+| A link that dims to `ink-body` on hover                           | Rest at `ink` or `ink-body`, rise to `ink`                  |
+| A white chosen tab or a grade submit button                       | Chosen: `intent="chosen"`. Submit: `intent="primary"`       |
 | `bg-white text-black`, `bg-black/70`                              | `bg-primary text-on-primary`, `bg-glass`                    |
-| A light value derived from the dark one (`black/5` for `white/5`) | A role, valued per theme in `themes.css`                        |
-| `${a} ${lit ? "x" : "y"}` class strings                           | A variant: `<Button intent={lit ? "chosen" : "neutral"}>`       |
-| A component's keyframes in `globals.css`                          | A `*.module.css` beside the component                           |
-| `h-9` / `h-11` on a control                                       | A rung of the ladder: `h-control-chrome`, `h-control-lg`        |
-| A copied input style                                              | `<Input>`                                                       |
-| `focus-visible:outline-*` on a component                          | Nothing: the outline is global                                  |
-| `duration-300`, `ease-in-out`                                     | `duration-reveal`, `ease-out-cream`                             |
-| `transition={{ duration: 0.4, ease: "easeOut" }}`                 | `{ duration: step(1), ease: [...POINTS.expo] }`                 |
-| A hand-tuned `{ stiffness: 52, damping: 17 }`                     | `springForce(response(MATTER.paper, n))`                        |
-| `delay: 0.1 + i * 0.04`                                           | `step(-3) + i * step(-5)`, or a part with `index`               |
-| A page that says how long or how far                              | A score: matter, depth, order                                   |
-| `opacity` or `transform` classes on a part                        | A wrapper element that owns the class                           |
-| Your own `requestAnimationFrame` loop or smooth-scroll lib        | The engine's clock (`useScene`) and `drive`                     |
-| `router.push` to leave a page                                     | `useDockActions().navigate`, which waits for the stage          |
-| `text-ink-faint` on a date                                        | `text-ink-muted`                                                |
-| A hover background on a row in a list                             | `HighlightGroup` / `useHighlight`                               |
-| An open select or list whose wheel scrolls the page behind it     | `useScrollLock(isOpen)` (`<Select>` does it)                    |
+| A light value derived from the dark one (`black/5` for `white/5`) | A role, valued per theme in `themes.css`                    |
+| `${a} ${lit ? "x" : "y"}` class strings                           | A variant: `<Button intent={lit ? "chosen" : "neutral"}>`   |
+| A component's keyframes in `globals.css`                          | A `*.module.css` beside the component                       |
+| `h-9` / `h-11` on a control                                       | A rung of the ladder: `h-control-chrome`, `h-control-lg`    |
+| A copied input style                                              | `<Input>`                                                   |
+| `focus-visible:outline-*` on a component                          | Nothing: the outline is global                              |
+| `duration-300`, `ease-in-out`                                     | `duration-reveal`, `ease-out-cream`                         |
+| `transition={{ duration: 0.4, ease: "easeOut" }}`                 | `{ duration: step(1), ease: [...POINTS.expo] }`             |
+| A hand-tuned `{ stiffness: 52, damping: 17 }`                     | `springForce(response(MATTER.paper, n))`                    |
+| `delay: 0.1 + i * 0.04`                                           | `step(-3) + i * step(-5)`, or a part with `index`           |
+| A page that says how long or how far                              | A score: matter, depth, order                               |
+| `opacity` or `transform` classes on a part                        | A wrapper element that owns the class                       |
+| Your own `requestAnimationFrame` loop or smooth-scroll lib        | The engine's clock (`useScene`) and `drive`                 |
+| `router.push` to leave a page                                     | `useDockActions().navigate`, which waits for the stage      |
+| `text-ink-faint` on a date                                        | `text-ink-muted`                                            |
+| A hover background on a row in a list                             | `HighlightGroup` / `useHighlight`                           |
+| An open select or list whose wheel scrolls the page behind it     | `useScrollLock(isOpen)` (`<Select>` does it)                |
 
 ## 9. Checklist
 

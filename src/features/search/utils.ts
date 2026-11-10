@@ -400,13 +400,15 @@ export function byScore<T>(rows: { hit: T; score: number }[]): T[] {
 }
 
 export function offsetIn(list: HTMLElement, option: HTMLElement) {
-  let x = 0;
-  let y = 0;
-  let node: HTMLElement | null = option;
-  while (node && node !== list) {
-    x += node.offsetLeft;
-    y += node.offsetTop;
-    node = node.offsetParent as HTMLElement | null;
-  }
-  return { x, y };
+  // Layout units, unrounded: offsetLeft/offsetWidth round to whole pixels,
+  // which skews a halo around fractional-width tiles by up to a pixel.
+  const box = list.getBoundingClientRect();
+  const rect = option.getBoundingClientRect();
+  const scale = list.offsetWidth ? box.width / list.offsetWidth : 1;
+  return {
+    height: rect.height / scale,
+    width: rect.width / scale,
+    x: (rect.left - box.left) / scale - list.clientLeft + list.scrollLeft,
+    y: (rect.top - box.top) / scale - list.clientTop + list.scrollTop,
+  };
 }

@@ -342,13 +342,13 @@ export function ResultSheet({
     const place = (unseen: boolean) => {
       const tile = option.dataset.kind === "tile";
       const inset = tile ? HIGHLIGHT_HALO : 0;
-      const { x, y } = offsetIn(list, option);
+      const { height, width, x, y } = offsetIn(list, option);
       el.dataset.kind = option.dataset.kind;
       animate(
         el,
         {
-          height: option.offsetHeight + inset * 2,
-          width: option.offsetWidth + inset * 2,
+          height: height + inset * 2,
+          width: width + inset * 2,
           x: x - inset,
           y: y - inset,
         },

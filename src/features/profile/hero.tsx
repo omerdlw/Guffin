@@ -253,7 +253,7 @@ function AccountHero({
             </div>
           </div>
 
-          <AccountPart className="plan-aside min-w-0" name="stats">
+          <div className="plan-aside min-w-0">
             <ProfileStatRow>
               {statsSlot}
               <ProfileStatButton
@@ -267,7 +267,7 @@ function AccountHero({
                 onClick={() => openSocial("followers")}
               />
             </ProfileStatRow>
-          </AccountPart>
+          </div>
         </div>
       </div>
     </>
@@ -304,6 +304,7 @@ export function AccountLayout({
     >
       <Room grain={false} />
       <main
+        id="main"
         className="account-page ui-scene relative min-h-screen overflow-x-clip pb-[calc(var(--dock-h,6rem)+3rem)]"
         data-cinematic=""
       >

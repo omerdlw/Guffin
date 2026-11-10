@@ -51,15 +51,15 @@ its second press `bg-danger text-on-accent` (`TONES.armed`).
 
 #### Page, layers and the primary action
 
-| Token                   | Dark                      | Light                   | Role                                           |
-| ----------------------- | ------------------------- | ----------------------- | ---------------------------------------------- |
-| `bg-page`               | ambient shadow, near #000 | ambient hue at L 0.95   | The page; a curtain over it                    |
+| Token                   | Dark                      | Light                   | Role                                      |
+| ----------------------- | ------------------------- | ----------------------- | ----------------------------------------- |
+| `bg-page`               | ambient shadow, near #000 | ambient hue at L 0.95   | The page; a curtain over it               |
 | `bg-glass`              | page at 70%               | page lifted 8% to white | Chrome: dock, menus, modals, tooltips     |
-| `bg-veil`               | page at 60%               | white at 60%            | A control or backdrop laid over a picture      |
-| `bg-dim`                | page at 30%               | ink at 20%              | What sits behind a modal                       |
-| `bg-primary` / `-hover` | ink / ink 90%             | ink / ink lifted 14%    | The one action a surface exists for            |
-| `text-on-primary`       | page                      | white                   | Ink on the primary action                      |
-| `text-on-accent`        | page                      | white                   | Ink on a solid grade or danger fill            |
+| `bg-veil`               | page at 60%               | white at 60%            | A control or backdrop laid over a picture |
+| `bg-dim`                | page at 30%               | ink at 20%              | What sits behind a modal                  |
+| `bg-primary` / `-hover` | ink / ink 90%             | ink / ink lifted 14%    | The one action a surface exists for       |
+| `text-on-primary`       | page                      | white                   | Ink on the primary action                 |
+| `text-on-accent`        | page                      | white                   | Ink on a solid grade or danger fill       |
 
 - **Data marks** use the ink steps as colours: `bg-line` for the track or axis,
   `bg-ink-faint` / `bg-ink-muted` / `bg-ink-body` for marks, `bg-ink` for the

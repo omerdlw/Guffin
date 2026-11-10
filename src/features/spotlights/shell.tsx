@@ -58,6 +58,7 @@ export function SalonStage({
       <Room black />
       <MotionConfig reducedMotion="user">
         <main
+          id="main"
           className={`${className} ui-scene overflow-x-clip`}
           data-cinematic=""
         >
@@ -211,6 +212,7 @@ export function useDockWidth(fallback: number): number {
 export function SpotlightLoading(): JSX.Element {
   return (
     <main
+      id="main"
       aria-hidden="true"
       className="ui-scene relative h-dvh overflow-hidden"
       data-cinematic

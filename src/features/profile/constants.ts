@@ -603,3 +603,6 @@ export const MEDIA_VIEW_KINDS: Record<
 };
 
 export const WATCHING_SHELF_LIMIT = 12;
+
+export const SUMMARY_PAGE = 1000;
+export const SUMMARY_PAGES = 10;

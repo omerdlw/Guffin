@@ -10,8 +10,7 @@ export const layerVariants = variants("", {
       /** chrome that holds controls: the dock card, menus, modals */
       shell: "bg-glass ring-1 ring-edge-hover ring-inset backdrop-saturate-150",
       /** a floating pill: dock controls, breadcrumbs, toasts */
-      float:
-        "bg-glass ring-1 ring-edge-hover ring-inset backdrop-saturate-150",
+      float: "bg-glass ring-1 ring-edge-hover ring-inset backdrop-saturate-150",
       /** a tooltip */
       tip: "bg-glass text-ink-lead ring-1 ring-edge ring-inset backdrop-saturate-150",
       /** a veil laid over a picture, behind a layer */

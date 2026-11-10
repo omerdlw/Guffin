@@ -386,6 +386,7 @@ function MovieView({
                       <MoviePeople cast={cast} crew={crew} />
                       <MovieGallery
                         backdrops={backdrops}
+                        now
                         posters={posters}
                         title={movie.title}
                       />

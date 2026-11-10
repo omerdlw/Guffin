@@ -1,4 +1,5 @@
-// Server-side error reporting.
+// Server-side error reporting: Sentry (when NEXT_PUBLIC_SENTRY_DSN is set)
+// plus a readable console sink.
 //
 // `report()` falls back to `console.error(scope, error)`, and Supabase's
 // PostgrestError keeps `message`, `code`, `details` and `hint` as
@@ -29,15 +30,23 @@ function describe(error: unknown): unknown {
 }
 
 export async function register(): Promise<void> {
+  const Sentry = await import("@sentry/nextjs");
+  const { sentryOptions, withSentry } = await import("@/lib/sentry");
+  Sentry.init(sentryOptions());
+
   if (process.env.NEXT_RUNTIME !== "nodejs") return;
   const { setReportSink } = await import("@omerdlw/base-framework/utils");
-  setReportSink((scope, error, level) => {
-    const log = level === "warn" ? console.warn : console.error;
-    const info = describe(error);
-    const summary =
-      info && typeof info === "object" && "message" in info
-        ? ` ${[(info as { code?: unknown }).code, (info as { message?: unknown }).message].filter(Boolean).join(" ")}`
-        : "";
-    log(`[${scope}]${summary}`, info);
-  });
+  setReportSink(
+    withSentry(Sentry, (scope, error, level) => {
+      const log = level === "warn" ? console.warn : console.error;
+      const info = describe(error);
+      const summary =
+        info && typeof info === "object" && "message" in info
+          ? ` ${[(info as { code?: unknown }).code, (info as { message?: unknown }).message].filter(Boolean).join(" ")}`
+          : "";
+      log(`[${scope}]${summary}`, info);
+    }),
+  );
 }
+
+export { captureRequestError as onRequestError } from "@sentry/nextjs";

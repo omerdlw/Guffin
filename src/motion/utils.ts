@@ -41,9 +41,11 @@ import type {
   MarqueeEdges,
   MarqueeFrame,
   Mass,
+  OpeningStep,
   Pointer,
   ProgressWindow,
   Rect,
+  Release,
   Role,
   SpringTune,
   State,
@@ -478,13 +480,21 @@ export function lines(spans: readonly HTMLElement[]) {
 export const trailWindow = (role: Role, tempo: number) =>
   step(role.matter.rung + tempo - TRAIL_DROP);
 
-export function steps<P extends string>(beats: readonly Beat<P>[]): Step<P>[] {
+export function steps<P extends string>(beats: readonly Beat<P>[]): Step<P>[];
+export function steps<P extends string>(
+  beats: readonly (Beat<P> | Release)[],
+): OpeningStep<P>[];
+export function steps<P extends string>(
+  beats: readonly (Beat<P> | Release)[],
+): OpeningStep<P>[] {
   return beats.map((beat) =>
     typeof beat === "string"
       ? { parts: [beat] }
-      : "rest" in beat
-        ? { rest: beat.rest, with: beat.with }
-        : { parts: [...beat] },
+      : "release" in beat
+        ? { release: true }
+        : "rest" in beat
+          ? { rest: beat.rest, with: beat.with }
+          : { parts: [...beat] },
   );
 }
 

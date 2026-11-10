@@ -380,60 +380,6 @@ export const DIRECTORS_DOCK_SETTLE_MS = 400;
 
 export const DIRECTOR_POSTER_WIDTHS = ["w92", "w185"] as const;
 
-export const FOUNDRY_UNIFORMS = [
-  "uRes",
-  "uPlate",
-  "uTilt",
-  "uLight",
-  "uTime",
-  "uMelt",
-  "uCool",
-  "uHeat",
-  "uPoster",
-  "uEngrave",
-  "uLamp",
-  "uReveal",
-  "uFill",
-  "uCut",
-] as const;
-
-export const FOUNDRY_POSTER = { height: 900, width: 600 };
-
-export const FOUNDRY_LAMP_S = 1.6;
-
-export const FOUNDRY_LAMP_AT = 0.7;
-
-export const FOUNDRY_REVEAL_S = 1.6;
-
-export const FOUNDRY_FILL_S = 2.4;
-
-export const FOUNDRY_MELT_S = 0.75;
-
-export const FOUNDRY_CAST_S = 1.5;
-
-export const FOUNDRY_HEAT_S = 2.6;
-
-export const FOUNDRY_SET_S = 2.4;
-
-export const FOUNDRY_CUT_S = 1.3;
-
-export const FOUNDRY_TILT = 0.07;
-
-export const FOUNDRY_LOOK = {
-  amount: 0.28,
-  grain: 0.03,
-  threshold: 1.4,
-  vignette: 0.5,
-};
-
-export const FOUNDRY_REST_LIGHT: [number, number, number] = [-1.1, 1.9, 0.8];
-
-export const FOUNDRY_REACH = 2.2;
-
-export const FOUNDRY_RAIL = 0.13;
-
-export const FOUNDRY_ENGRAVE_WIDTH = 2048;
-
 /** Perspective strength: how fast a film shrinks as it recedes down the beam. */
 export const TUNNEL_PERSPECTIVE = 0.55;
 
@@ -505,10 +451,6 @@ export const BLOOM_COMPOSITE_UNIFORMS = [
   "uVignette",
 ] as const;
 
-export const DIAL_STEP = 14;
-
-export const DIAL_DRAG_SLOP = 4;
-
 export const CATALOG_FRESH_MS = 24 * 60 * 60_000;
 
 export const CATALOG_KEEP_SECONDS = 7 * 24 * 60 * 60;
@@ -568,3 +510,10 @@ export const SHOW_CANON_PRIOR = Object.freeze({
 });
 
 export const SHOW_CANON_SIZE = 100;
+
+/** No films: the empty mark set before the account is known. */
+export const EMPTY_FILM_IDS: ReadonlySet<number> = new Set();
+
+/** Where the film in the gate stands: the numeral, the camera and the slot agree. */
+export const TUNNEL_SLOT_CLASS =
+  "pointer-events-none fixed inset-x-4 top-[clamp(4.5rem,11svh,7rem)] bottom-[calc(var(--dock-h,6rem)+13rem)] sm:inset-x-8";

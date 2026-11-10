@@ -58,7 +58,9 @@ export class Stage<P extends string, S extends string = never> {
   private cast = new Map<string, Set<Actor>>();
   private queue: Queued<P>[] = [];
   private played = new Set<string>();
-  private cued: { section: S; scope: string | null }[] = [];
+  /** Sections the queue has started on, which nothing may cut into. */
+  private begun = new Set<string>();
+  private cued: { section: S; scope: string | null; at?: number }[] = [];
   private nextAt = 0;
   private headSince: number | null = null;
   private since = 0;
@@ -219,8 +221,8 @@ export class Stage<P extends string, S extends string = never> {
     if (this.started) return;
     this.started = true;
     this.listen();
-    this.queue = this.cued.flatMap(({ section, scope }) =>
-      this.steps(section, scope),
+    this.queue = this.waiting().flatMap(({ section, scope, at }) =>
+      this.steps(section, scope, at),
     );
     this.nextAt = this.clock.time;
     this.headSince = null;
@@ -229,6 +231,23 @@ export class Stage<P extends string, S extends string = never> {
     this.waitForFonts();
     this.act.set("arriving");
     this.schedule();
+  }
+
+  /**
+   * The sections cued before the curtain, in the order they will play: as
+   * they were cued, or for an ordered score from the top of the page down
+   * (effects cue them in mount order, which is not where they sit).
+   */
+  private waiting() {
+    if (!this.score.ordered) return this.cued;
+    const where = (at: number | undefined) => at ?? Number.POSITIVE_INFINITY;
+    return this.cued
+      .map((cue, order) => ({ cue, order }))
+      .sort((a, b) => {
+        const by = where(a.cue.at) - where(b.cue.at);
+        return Number.isNaN(by) || by === 0 ? a.order - b.order : by;
+      })
+      .map(({ cue }) => cue);
   }
 
   private waitForFonts() {
@@ -244,7 +263,7 @@ export class Stage<P extends string, S extends string = never> {
   cue(section: S, scope: string | null = null, at?: number) {
     if (this.cued.some((cue) => cue.section === section && cue.scope === scope))
       return;
-    this.cued.push({ section, scope });
+    this.cued.push({ section, scope, at });
     if (!this.started) return;
     const steps = this.steps(section, scope, at);
     if (this.score.ordered && at !== undefined) this.insert(steps, at);
@@ -252,17 +271,24 @@ export class Stage<P extends string, S extends string = never> {
     if (!this.leaving) this.schedule();
   }
 
+  /**
+   * Places a section by where it sits on the page. Sections whose observers
+   * fire in the same frame arrive in no useful order, so any section the
+   * queue has not started on yet may be overtaken; one already under way
+   * is never cut into.
+   */
   private insert(steps: Queued<P>[], at: number) {
     let index = this.queue.length;
-    const first = this.queue[0]?.cue;
     for (let i = 0; i < this.queue.length; i++) {
       const item = this.queue[i];
-      if (item.cue === first || item.cue === this.queue[i - 1]?.cue) continue;
+      if (this.begun.has(item.cue) || item.cue === this.queue[i - 1]?.cue)
+        continue;
       if ((item.at ?? -Infinity) > at) {
         index = i;
         break;
       }
     }
+    if (index === 0) this.headSince = null;
     this.queue.splice(index, 0, ...steps);
   }
 
@@ -328,6 +354,8 @@ export class Stage<P extends string, S extends string = never> {
   reset(scope: string) {
     this.queue = this.queue.filter((item) => !inScope(item.scope, scope));
     this.cued = this.cued.filter((cue) => !inScope(cue.scope, scope));
+    for (const key of Array.from(this.begun))
+      if (inScope(scopeOfKey(key), scope)) this.begun.delete(key);
     for (const key of Array.from(this.played))
       if (inScope(scopeOfKey(key), scope)) this.played.delete(key);
     for (const actor of this.within(scope)) {
@@ -397,6 +425,7 @@ export class Stage<P extends string, S extends string = never> {
     this.queue = [];
     this.cued = [];
     this.played.clear();
+    this.begun.clear();
     this.starts.clear();
     this.openedAt = null;
     this.opened.set(false);
@@ -441,6 +470,7 @@ export class Stage<P extends string, S extends string = never> {
       const head = this.queue[0];
 
       if ("rest" in head.step) {
+        this.begun.add(head.cue);
         this.queue.shift();
         this.nextAt = time + (quiet ? 0 : step(head.step.rest + this.tempo));
         continue;
@@ -454,6 +484,7 @@ export class Stage<P extends string, S extends string = never> {
       if (waiting && time - this.headSince < PATIENCE) break;
 
       this.queue.shift();
+      this.begun.add(head.cue);
       this.headSince = null;
       const others = new Set(
         this.queue.map((item) => item.cue).filter((cue) => cue !== head.cue),
@@ -534,7 +565,8 @@ export class Stage<P extends string, S extends string = never> {
       return now + step(QUIET_RUNG);
     }
     const delay =
-      offset + spacing(actor.role, this.tempo, rank, count, actor.cadence);
+      offset +
+      spacing(actor.role, this.tempo, rank, count, actor.cadence, actor.index);
     const tween = arrival(matter, this.tempo);
     void actor.enter.to(1, {
       tween,

@@ -276,6 +276,8 @@ export interface HeaderProps {
   actions?: ReactNode;
   className?: string;
   nameClassName?: string;
+  /** 0–1: the rule becomes a progress track filled to this share. */
+  progress?: number;
 }
 
 export interface RoomProps {
@@ -416,7 +418,13 @@ export interface StageRootProps {
   children: ReactNode;
 }
 
-export type Cadence = "trail" | "even" | "stairs";
+/**
+ * How the members of one part follow each other: "trail" bunches them up
+ * front, "even" and "stairs" space them by rank, and "lines" spaces them by
+ * their own index at one steady pace, so every part that shares an index (a
+ * row, its label, its value, its rule) moves as one line.
+ */
+export type Cadence = "trail" | "even" | "stairs" | "lines";
 
 export interface PartState {
   enter: number;
@@ -503,20 +511,36 @@ export type Casting =
       depth?: number;
       drift?: number;
       cadence?: Cadence;
+      /** For the "lines" cadence: rungs off the tempo between two lines (LINES_RUNG by default). */
+      beat?: number;
     };
 
 export type Beat<P extends string> =
   P | readonly P[] | { rest: number; with?: P };
+
+/**
+ * An opening beat that lets the queued sections start from this point while
+ * the rest of the opening keeps playing; without one they wait for its end.
+ */
+export interface Release {
+  release: true;
+}
 
 export interface ScoreInput<P extends string, S extends string> {
   /** Root margin a section must clear before it is cued; defaults to the stage's. */
   margin?: string;
   tempo?: number;
   cast: Record<P, Casting>;
-  opening: readonly Beat<NoInfer<P>>[];
+  opening: readonly (Beat<NoInfer<P>> | Release)[];
   sections?: Record<S, readonly Beat<NoInfer<P>>[]>;
   leave?: LeaveVerb;
+  /**
+   * Sections are queued in page order, top first, whether they are cued by
+   * scrolling or played straight away.
+   */
   ordered?: boolean;
+  /** An opening beat with none of its parts on the page takes no time. */
+  tight?: boolean;
 }
 
 export interface Role {
@@ -526,19 +550,23 @@ export interface Role {
   depth: number;
   drift: number;
   cadence: Cadence;
+  beat: number;
   initial: Css;
 }
 
 export type Step<P extends string> =
   { parts: readonly P[] } | { rest: number; with?: P };
 
+export type OpeningStep<P extends string> = Step<P> | Release;
+
 export interface Score<P extends string, S extends string> {
   margin: string | undefined;
   tempo: number;
   roles: Record<P, Role>;
-  opening: readonly Step<P>[];
+  opening: readonly OpeningStep<P>[];
   sections: Record<S, readonly Step<P>[]>;
   ordered: boolean;
+  tight: boolean;
 }
 
 export interface Cue<P extends string> {

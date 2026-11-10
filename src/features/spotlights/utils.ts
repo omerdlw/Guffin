@@ -310,3 +310,15 @@ export const typing = (target: EventTarget | null) =>
   target instanceof HTMLElement &&
   (target.isContentEditable ||
     ["INPUT", "SELECT", "TEXTAREA"].includes(target.tagName));
+
+/** The canvas's text colour as red, green and blue: the page's ink. */
+export function inkOf(element: HTMLElement): [number, number, number] {
+  const probe = document.createElement("canvas");
+  probe.width = probe.height = 1;
+  const context = probe.getContext("2d", { willReadFrequently: true });
+  if (!context) return [255, 255, 255];
+  context.fillStyle = getComputedStyle(element).color;
+  context.fillRect(0, 0, 1, 1);
+  const [r = 255, g = 255, b = 255] = context.getImageData(0, 0, 1, 1).data;
+  return [r, g, b];
+}

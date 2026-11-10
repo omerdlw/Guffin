@@ -1,6 +1,6 @@
 # Guffin: dosya yapısı
 
-`src/` 508 dosya ve 119 dizinden **237 dosya ve 65 dizine** indirildi (her özellikte sabit `types` · `constants` · `utils` üçlüsü dahil). Dizinlerin çoğu Next.js'in zorunlu kıldığı rota klasörleridir (`app/`); geri kalanı 5 katman ve 15 özellik klasöründen ibarettir.
+`src/` yaklaşık 390 dosya ve 100 dizinden oluşur (her özellikte sabit `types` · `constants` · `utils` üçlüsü dahil). Dizinlerin çoğu Next.js'in zorunlu kıldığı rota klasörleri (`app/`) ile tasarım sistemindeki bileşen klasörleridir (`design/components/`); geri kalanı 5 katman ve 19 özellik klasöründen ibarettir.
 
 ## Teknoloji
 
@@ -9,20 +9,20 @@ Next.js (App Router, Turbopack), React 19, Motion, Tailwind CSS v4, Supabase (SS
 ## Katmanlar
 
 ```text
-app  →  features  →  ui ⇄ motion  →  lib
+app  →  features  →  design ⇄ motion  →  lib
 ```
 
-Bağımlılık soldan sağa akar; `ui` ve `motion` kardeştir (`motion` `cn` ve `Logo`'yu, `ui` motorun partisyonlarını kullanır). `lib` hiçbirine bağlanmaz. `ui`, `motion` ve `lib`'in `features`'a ya da `app`'e, `features`'ın `app`'e bağlanması ESLint ile (`no-restricted-imports`) yasaktır:
+Bağımlılık soldan sağa akar; `design` ve `motion` kardeştir (`motion` `cn` ve `Logo`'yu, `design` motorun partisyonlarını kullanır). `lib` hiçbirine bağlanmaz. `design`, `motion` ve `lib`'in `features`'a ya da `app`'e, `features`'ın `app`'e bağlanması ESLint ile (`no-restricted-imports`) yasaktır:
 
-| Katman      | Ne içerir                                                                             | Neye bağlanabilir                       |
-| ----------- | ------------------------------------------------------------------------------------- | --------------------------------------- |
-| `app/`      | Rotalar (`page`, `layout`, `loading`, `error`, `route`), kök sağlayıcılar, tema ayarı | Her şey                                 |
-| `features/` | Ürün alanları: film, kişi, profil, arama, listeler…                                   | `ui`, `motion`, `lib`, diğer özellikler |
-| `ui/`       | Tasarım sistemi: buton, form, medya, yüzey, iskelet, sınıf tokenları                  | `motion`, `lib`                         |
-| `motion/`   | Tek hareket motoru ve görsel efektler                                                 | `ui`, `lib`                             |
-| `lib/`      | Yapılandırma, TMDB, Supabase, HTTP, güvenlik; React ya da arayüz bilmez               | yalnızca dışarısı                       |
+| Katman      | Ne içerir                                                                             | Neye bağlanabilir                           |
+| ----------- | ------------------------------------------------------------------------------------- | ------------------------------------------- |
+| `app/`      | Rotalar (`page`, `layout`, `loading`, `error`, `route`), kök sağlayıcılar, tema ayarı | Her şey                                     |
+| `features/` | Ürün alanları: film, dizi, kişi, profil, arama, listeler…                             | `design`, `motion`, `lib`, diğer özellikler |
+| `design/`   | Tasarım sistemi: temeller, bileşenler, kancalar, stiller                              | `motion`, `lib`                             |
+| `motion/`   | Tek hareket motoru ve görsel efektler                                                 | `ui`, `lib`                                 |
+| `lib/`      | Yapılandırma, TMDB, Supabase, HTTP, güvenlik; React ya da arayüz bilmez               | yalnızca dışarısı                           |
 
-`@/` takma adı `src/` dizinine gider. Aynı klasördeki dosyalar birbirini `./x` ile, klasör dışındakiler `@/klasör/x` ile içe aktarır. Barrel (`index.ts`) yoktur: bir şeyi tanımlandığı dosyadan içe aktarırsınız.
+`@/` takma adı `src/` dizinine gider. Aynı klasördeki dosyalar birbirini `./x` ile, klasör dışındakiler `@/klasör/x` ile içe aktarır. Barrel (`index.ts`) yoktur: bir şeyi tanımlandığı dosyadan içe aktarırsınız. Tek istisna `design/components/<ad>/index.ts`'tir: her bileşen klasörü dışa açtığı API'yi buradan verir (`@/design/components/button`).
 
 ## Özellik klasörü kuralları
 
@@ -46,7 +46,7 @@ Fonksiyon yerleşimi:
 - Geri kalan her şey `utils.ts`'e gider: biçimlendirici, ayrıştırıcı, karşılaştırıcı, normalleştirici, sınıf üretici, matematik yardımcısı.
 - Bir tipe ya da sabite ihtiyaç duyan her dosya onu `./types` ve `./constants` üzerinden alır; yerel `type`, `interface` ya da sabit tanımlanmaz.
 
-Sınıflar karıştırılmaz: `"use client"` dosyasına sunucu verisi, `"use server"` dosyasına sabit/yardımcı konmaz. `types.ts`, `constants.ts` ve `utils.ts` **nötr**dür; bu yüzden `server-only` içe aktarmaz, hook kullanmaz ve `"use client"` modüllerinden (`ui/surface.tsx`, `ui/media.tsx`…) değer okumaz (sunucuda o değerler istemci referansıdır). Sınıf tokenları bu yüzden `ui/tokens.ts`'tedir. Sunucuya bağlı yardımcılar (Supabase istemcisi alan okuma fonksiyonları gibi) `utils.ts`'e gidemez; `server.ts`/`actions.ts` içinde kalır.
+Sınıflar karıştırılmaz: `"use client"` dosyasına sunucu verisi, `"use server"` dosyasına sabit/yardımcı konmaz. `types.ts`, `constants.ts` ve `utils.ts` **nötr**dür; bu yüzden `server-only` içe aktarmaz, hook kullanmaz ve `"use client"` modüllerinden (`design/components/surface/stage.tsx`…) değer okumaz (sunucuda o değerler istemci referansıdır). Sınıf tokenları ve varyantlar bu yüzden nötr `design/foundations/*` ve `variants.ts` dosyalarındadır. Sunucuya bağlı yardımcılar (Supabase istemcisi alan okuma fonksiyonları gibi) `utils.ts`'e gidemez; `server.ts`/`actions.ts` içinde kalır.
 
 Bağımlılık yönü: `types` ← `constants` ← `utils`. `types.ts` yalnızca `import type` ile `constants.ts`'e bakar (`typeof SABİT` için); `constants.ts` yalnızca `legal`'de `utils.ts`'ten değer alır. Çekirdek dosyalar bu üçünü içe aktarır, tersi olmaz.
 
@@ -81,10 +81,10 @@ guffin/
     │   ├── account/             /account (giriş) ve /account/[username]/…
     │   │                        activity · diary · likes · lists[/slug] · reviews · watched · watchlist
     │   ├── movie/[id]/          film, reviews/
+    │   ├── tv/[id]/             dizi, reviews/, season/[number]/
     │   ├── person/[id]/
     │   ├── oscars/ · top-100/ · directors/ · privacy/ · terms/
     │   ├── auth/callback/       OAuth dönüşü
-    │   ├── lab/                 Yalnızca geliştirme: /lab/engine, /lab/engine/b, /lab/kit
     │   └── api/                 account/me · ambient/proxy · auth/{seed,sessions} · backdrop
     │                            notifications · search/[kind] · social/follows
     │
@@ -92,37 +92,39 @@ guffin/
     │   ├── artwork/             artwork: kullanıcının seçtiği afiş/arka plan (depo, bağlam menüsü, bileşenler)
     │   ├── auth/                client · provider · server · sign-in · verification · notice
     │   ├── account/             Oturum açmış kullanıcı: client · provider (+ guard, realtime)
-    │   │                        actions · server · notifications · social · setup · tiles
-    │   ├── profile/             /account/[username] sayfaları: server · view · motion · skeleton
+    │   │                        actions · server · notifications · social · hooks · setup · tiles
+    │   ├── profile/             /account/[username] sayfaları: server · access · progress · view · motion · skeleton
     │   │                        overview · hero · shell · controls · filter-bar · blocks · diary
     │   │                        activity · calendar · reviews · lists
     │   ├── settings/            Ayarlar yüzeyi: surface · shared · identity · security
     │   │                        passkeys · providers · sessions
+    │   ├── catalog/             Katalog okuma: server · fixtures
+    │   ├── media/               Film/dizi ortak tipi: server · context · media-type · media-badge
+    │   ├── theme/               Tema komutu: command
     │   ├── detail/              Film ve kişi sayfasının ortak iskeleti (ödüller dahil):
     │   │                        layout · stage · gallery · awards · motion
     │   ├── movie/               actions · server · view · skeleton · reviews · cast · media · gallery
     │   │                        views · collection · stage · watch-providers
+    │   ├── tv/                  actions · server · view · stage · seasons · episodes · progress · status
     │   ├── person/              credits · view · views · skeleton · header · career · sections
     │   ├── home/                server · view · skeleton · motion · hero · community
-    │   ├── search/              hooks · server · action · results
+    │   ├── search/              hooks · server · action · motion · sections · results
     │   ├── lists/               actions · server · popular · buttons · form · order · picker
     │   ├── reviews/             actions · server · rating · controls · editor · movie-action
     │   ├── social/              actions · proof
     │   ├── legal/               view (metinler `constants.ts`'te)
     │   └── spotlights/          Oscar, yönetmenler, Top 100:
-    │                            shell · server · motion · oscars · directors · top-100
-    │                            gl · gl-foundry · tunnel
+    │                            shell · server · motion · oscars · directors · top-100 · marks · wall
+    │                            gl · tunnel
     │
-    ├── ui/                      ── Tasarım sistemi
-    │   ├── tokens.ts            Sayfa ritmi, TONE, RADIUS, cam/yüzey ve dock yüzeyi sınıfları (nötr)
-    │   ├── cn.ts                Token'ları bilen sınıf birleştirici
-    │   ├── theme.ts             Çerçeve tema slotları (primitives)
-    │   ├── button.tsx           Button, ActionButton, DockAction, FactLink, AccountLink, kancalar
-    │   ├── form.tsx             Input, Textarea, Switch, Select, SegmentedControl, vurgu grupları
-    │   ├── media.tsx            Icon, Logo, AdaptiveImage, Avatar, MediaCard, Carousel
-    │   ├── feedback.tsx         Loader, Spinner, RouteError, Tooltip
-    │   ├── surface.tsx          SurfaceStage, SurfacePart, Unfold (sınıflar `tokens.ts`'te)
-    │   └── skeleton.tsx         İskelet blokları
+    ├── design/                  ── Tasarım sistemi
+    │   ├── foundations/         cn · geometry · layers · layout · tones · variants (nötr tokenlar)
+    │   ├── components/<ad>/     Her bileşen kendi klasöründe: <ad>.tsx · variants.ts · index.ts (+ .module.css)
+    │   │                        avatar · backdrop · button · carousel · checkbox · highlight-group · icon
+    │   │                        image · indicator · input · link · loader · logo · media-card · passage
+    │   │                        route-error · segmented-control · select · skeleton · surface · switch · tooltip
+    │   ├── hooks/               use-confirm · use-dock-link-click · use-scroll-lock
+    │   └── styles/              index · tokens · themes · utilities · interaction · effects · cinematic (CSS)
     │
     ├── motion/                  ── Hareket motoru (ayrıntı: docs/motion-engine.md)
     │   ├── types.ts · constants.ts · utils.ts    Motorun bütün tipleri, sabitleri ve yardımcıları (`step`, `clamp`, `bezier`, `springAt`…)
@@ -134,8 +136,10 @@ guffin/
     │   ├── score.ts · stage.ts  Partisyon ve çalışma zamanı
     │   ├── scroll.ts · carry.ts Scroll sürücüsü, sayfalar arası devir
     │   ├── render.ts            Canvas/WebGL sahnesi, GL yardımcıları, metin bölme
+    │   ├── gl-projection.ts     <Projection>'ın WebGL çizicisi ve shader'ları
     │   ├── react.tsx            EngineProvider, bindScore, kancalar
     │   ├── kit.tsx · marquee.tsx · expose.tsx · wall.tsx    Kit bileşenleri
+    │   ├── passage.ts · reticle.css · ticker.module.css    Geçiş mantığı ve efekt stilleri
     │   └── projection.tsx · cursor.tsx · tilt.tsx · screen.tsx · transitions.tsx    Efektler
     │
     └── lib/                     ── Altyapı
@@ -143,9 +147,11 @@ guffin/
         ├── project.ts           Site bilgisi, paylaşım metadata'sı, rota yardımcıları (`movieHref`…)
         ├── http.ts              İstemci `requestJson`, `readParam`, `isUuid`
         ├── format.ts            `pluralize`, `toLogline`
+        ├── theme.ts · theme-script.ts    Tema durumu ve ilk boyamada çalışan betik
         ├── security.ts          Redis, hız sınırı, güvenlik başlıkları, aynı kaynak, güvenli fetch, API hata yanıtı
         ├── supabase/            browser · server (+ proxy) · database.types
-        └── tmdb/                api · schemas · awards · server · shared
+        └── tmdb/                api · transport · schemas · rules · server · shared
+                                 movies · tv · people · discover · awards
 ```
 
 ## Nereye ne konur
@@ -153,7 +159,7 @@ guffin/
 - **Yeni sayfa:** `app/<rota>/page.tsx` ince kalır (metadata + `view` çağrısı). Gövdesi ilgili özelliğin `view.tsx`'ine, iskeleti `skeleton.tsx`'e, hareketi `motion.tsx`'e gider.
 - **Yeni özellik:** `features/<ad>/` aç; `types.ts`, `constants.ts`, `utils.ts` üçlüsünü (içeriği olanları) ve gereken rol dosyalarını ekle.
 - **Yeni tip, sabit ya da yardımcı:** dosyanın içine değil, özelliğin `types.ts` / `constants.ts` / `utils.ts` dosyasına yaz. Dosyada yalnızca o dosyanın asıl işi kalır.
-- **İki özelliğin ortak ihtiyacı:** önce ilgisiz bir özellik değil `ui/` (görsel) ya da `lib/` (mantık) olup olmadığına bak. Film ve kişi sayfalarının ortak parçaları `features/detail`'dedir.
-- **Yeni UI parçası:** `ui/` içindeki konuya uyan dosyaya ekle (`form.tsx`, `media.tsx`…); yeni dosya yalnızca yeni bir konu doğarsa.
+- **İki özelliğin ortak ihtiyacı:** önce ilgisiz bir özellik değil `design/` (görsel) ya da `lib/` (mantık) olup olmadığına bak. Film ve kişi sayfalarının ortak parçaları `features/detail`'dedir.
+- **Yeni UI parçası:** varsa `design/components/` altındaki bileşen klasörüne ekle; yeni bileşen için `design/components/<ad>/` aç (`<ad>.tsx`, gerekiyorsa `variants.ts`, ve `index.ts`).
 - **Rota dosyaları** (`page`, `layout`, `loading`, `error`, `route`) Next.js'in kuralıdır; birleştirilemez. `app/api/search/[kind]` beş arama uç noktasını tek rotada toplar.
 - **Veritabanı değişikliği:** `supabase/migrations/` altına yeni bir migration; tipler `lib/supabase/database.types.ts`'e yeniden üretilir.

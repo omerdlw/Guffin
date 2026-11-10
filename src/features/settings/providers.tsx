@@ -53,10 +53,7 @@ function ConnectedRow({
   const highlight = useHighlight(provider);
   return (
     <div
-      className={cn(
-        tileVariants(),
-        "group/connect relative isolate",
-      )}
+      className={cn(tileVariants(), "group/connect relative isolate")}
       {...highlight.props}
     >
       {highlight.node}

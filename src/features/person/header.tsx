@@ -150,7 +150,15 @@ function BiographyExcerpt({
         text={excerpt}
       />
       {truncated ? (
-        <DetailPart name="link">
+        /*
+         * The link reads in as the paragraph's last word, so it lands right
+         * after the excerpt however long that is, never under empty lines.
+         */
+        <DetailPart
+          cadence="even"
+          index={Number.MAX_SAFE_INTEGER}
+          name="overview"
+        >
           <TextButton
             aria-label={`Read the full biography of ${name}`}
             onClick={openFull}

@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, type ReactNode, use, useMemo, useState } from "react";
+import { PAGE_TEMPO } from "@/motion/constants";
 import { Room } from "@/motion/kit";
 import { bindScore } from "@/motion/react";
 import { defineScore } from "@/motion/score";
@@ -13,6 +14,7 @@ import { ambientImage } from "./utils";
  * own beat; the score only says what a part is made of and who follows whom.
  */
 const HOME = defineScore({
+  tempo: PAGE_TEMPO,
   cast: {
     backdrop: { matter: "plate", depth: 1 },
     reason: "light",

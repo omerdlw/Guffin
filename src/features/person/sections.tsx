@@ -53,8 +53,11 @@ import { PersonMediumControl, usePersonMedium } from "./views";
 
 export function PersonFilmography({
   filmography,
+  now = false,
 }: {
   filmography: ByMedium<FilmographyGroup[]>;
+  /** Play with the opening instead of waiting to be scrolled to. */
+  now?: boolean;
 }) {
   const [medium, setMedium] = usePersonMedium();
   const groups = filmography[medium];
@@ -83,7 +86,7 @@ export function PersonFilmography({
   const several = groups.length > 1;
 
   return (
-    <DetailSection className="flex w-full flex-col" cue="board">
+    <DetailSection className="flex w-full flex-col" cue="board" now={now}>
       <Heading
         actions={
           <div className="flex items-center gap-2">
@@ -125,6 +128,7 @@ export function PersonFilmography({
         className="flex flex-col"
         cue="tiles"
         id={`${medium}:${group.key}:${sort}`}
+        now={now}
       >
         <ul className={FILMOGRAPHY_GRID_CLASS}>
           {visible.map((credit, index) => (

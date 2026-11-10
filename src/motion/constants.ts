@@ -470,6 +470,13 @@ export const STAIRS_DROP = 4;
 
 export const EVEN_DROP = 5;
 
+/**
+ * The pace of the "lines" cadence, in rungs off the tempo: one line every
+ * step(tempo + LINES_RUNG), whatever the part is made of, so a row, its
+ * label, its value and its rule all keep the same beat.
+ */
+export const LINES_RUNG = -1.5;
+
 export const SCREEN_ON = { line: 0.3, run: 0.95 };
 
 export const SCREEN_OFF = { collapse: 0.18, point: 0.26, glow: 0.9 };
@@ -603,6 +610,9 @@ export const MATTER = {
   },
 } as const satisfies Record<string, Matter>;
 
+/** The share of an unveil (eased) over which the print is uncovered; the lens settles over the rest. */
+export const UNVEIL_OPEN = [0, 0.7] as const;
+
 export const LEAVE_DROP = 2;
 
 export const LEAVE_CAP = 2;
@@ -633,3 +643,10 @@ export const WALL_LIGHT = "rgb(255 253 247)";
 
 export const WALL_GLOW =
   "0 0 0.3em rgb(150 190 255 / 0.8), 0 0 0.9em rgb(110 160 255 / 0.5)";
+
+/**
+ * The one tempo every page (home, movie, tv, person, account) is scored at, so
+ * that they all open and move at the same speed: half a beat faster than the
+ * default, which is the account's old pace eased back one notch.
+ */
+export const PAGE_TEMPO = -0.5;

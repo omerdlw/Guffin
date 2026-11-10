@@ -555,6 +555,7 @@ export function HomeView({ feed }: { feed: HomeFeed }): JSX.Element {
   return (
     <HomeStage backdrop={feed.features[0]?.backdropPath ?? null}>
       <main
+        id="main"
         className={`home-page ui-scene overflow-x-clip ${PAGE_CLASS}`}
         data-cinematic=""
       >

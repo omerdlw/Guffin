@@ -272,13 +272,22 @@ export function StageSection({
   const scope = childScope(parent, useId());
   const owned = useContext(OwnedContext);
   const trigger = useSectionOf(stage, cue, scope);
+  const box = useRef<HTMLElement | null>(null);
+  const watch = useCallback(
+    (el: HTMLElement | null) => {
+      box.current = el;
+      return trigger(el);
+    },
+    [trigger],
+  );
   useLayoutEffect(() => {
-    if (now && !owned) stage.cue(cue, scope);
+    if (!now || owned) return;
+    stage.cue(cue, scope, box.current ? topOf(box.current) : undefined);
   }, [now, owned, stage, cue, scope]);
   if (owned) return <Tag className={className}>{children}</Tag>;
   return (
     <ScopeContext value={scope}>
-      <Tag ref={trigger} className={className}>
+      <Tag ref={watch} className={className}>
         {children}
       </Tag>
     </ScopeContext>

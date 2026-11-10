@@ -292,8 +292,13 @@ export function StickyAside({
   className?: string;
 }) {
   const ref = useRef<HTMLElement>(null);
+  /*
+   * The aside clears the dock at rest only. A surface or an action panel
+   * (search results) grows the dock over the page; following that height
+   * would slide the aside up under the reader on every keystroke.
+   */
   const resting = useOptionalDockState(
-    (state) => state.surfacePhase === "idle",
+    (state) => state.surfacePhase === "idle" && !state.activeItem?.action,
   );
 
   useEffect(() => {
@@ -326,7 +331,7 @@ export function StickyAside({
   return (
     <aside
       className={cn(
-        "lg:sticky lg:top-[min(1.5rem,calc(100svh-var(--aside-clear,var(--dock-h,6rem))-2rem-var(--aside-h,0px)))]",
+        "lg:sticky lg:top-[min(1.5rem,calc(100svh-var(--aside-clear,6rem)-2rem-var(--aside-h,0px)))]",
         className,
       )}
       data-flow-scope=""

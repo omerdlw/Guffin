@@ -36,11 +36,7 @@ import {
   MAX_TIMELINE_TITLES,
   TIMELINE_SPINE_CLASS,
 } from "./constants";
-import {
-  PersonMediumControl,
-  usePersonMedium,
-  usePersonView,
-} from "./views";
+import { PersonMediumControl, usePersonMedium, usePersonView } from "./views";
 import type {
   ByMedium,
   Career as CareerData,

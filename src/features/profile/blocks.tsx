@@ -145,11 +145,11 @@ function Figure({ count, label }: { count: number; label: string }) {
 
 function ProfileStatLink({ count, href, label }: ProfileStat) {
   return (
-    <li className="flex justify-center">
+    <AccountPart as="li" className="flex justify-center" name="stat">
       <DockLink className={STAT_CELL_CLASS} href={href}>
         <Figure count={count} label={label} />
       </DockLink>
-    </li>
+    </AccountPart>
   );
 }
 
@@ -163,7 +163,7 @@ export function ProfileStatButton({
   onClick: () => void;
 }) {
   return (
-    <li className="flex justify-center">
+    <AccountPart as="li" className="flex justify-center" name="stat">
       <Button
         className={cn(STAT_CELL_CLASS, "cursor-pointer")}
         onClick={onClick}
@@ -171,7 +171,7 @@ export function ProfileStatButton({
       >
         <Figure count={count} label={label} />
       </Button>
-    </li>
+    </AccountPart>
   );
 }
 

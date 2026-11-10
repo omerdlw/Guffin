@@ -1,9 +1,10 @@
 "use client";
 
-import { type ReactNode, useState } from "react";
+import { isValidElement, type ReactNode, useState } from "react";
 import {
   defineModal,
   ModalContainer,
+  type ModalContainerHeaderConfig,
   useModal,
 } from "@omerdlw/base-framework/modules/modal";
 import { useArtworkPath } from "@/features/artwork/artwork";
@@ -55,7 +56,7 @@ function CastCard({ index, person }: { index: number; person: PersonEntry }) {
           as="div"
           className="truncate type-control font-semibold text-ink-lead"
           index={index}
-          part="name"
+          part="credit"
           text={person.name}
           truncate
         />
@@ -63,7 +64,7 @@ function CastCard({ index, person }: { index: number; person: PersonEntry }) {
           as="div"
           className="truncate type-meta font-medium text-ink-body"
           index={index}
-          part="name"
+          part="credit"
           text={person.subtitle}
           truncate
         />
@@ -72,20 +73,18 @@ function CastCard({ index, person }: { index: number; person: PersonEntry }) {
   );
 
   return (
-    <DetailPart index={index} name="photo">
-      <MediaCard
-        aspect="free"
-        className="w-full"
-        fallbackIcon="solar:user-bold"
-        fallbackIconSize={24}
-        frameClassName="aspect-[3/4] w-full"
-        href={personHref(person.id)}
-        image={{ sizes: "(min-width: 768px) 12vw, 44vw", src }}
-        label={`${person.name}, ${person.subtitle}`}
-        overlay={foot}
-        radius={RADIUS.panel}
-      />
-    </DetailPart>
+    <MediaCard
+      aspect="free"
+      className="w-full"
+      fallbackIcon="solar:user-bold"
+      fallbackIconSize={24}
+      frameClassName="aspect-[3/4] w-full"
+      href={personHref(person.id)}
+      image={{ sizes: "(min-width: 768px) 12vw, 44vw", src }}
+      label={`${person.name}, ${person.subtitle}`}
+      overlay={foot}
+      radius={RADIUS.panel}
+    />
   );
 }
 
@@ -95,8 +94,10 @@ function PersonCard({
   onNavigated,
   person,
   radius,
+  dense = false,
 }: {
   compact?: boolean;
+  dense?: boolean;
   index?: number;
   onNavigated?: () => void;
   person: PersonEntry;
@@ -119,9 +120,9 @@ function PersonCard({
       className="shrink-0"
       fallbackIcon="solar:user-bold"
       fallbackIconSize={compact ? 14 : 20}
-      frameClassName={compact ? "size-8" : "h-[76px] w-14"}
+      frameClassName={compact ? "size-8" : dense ? "h-12 w-9" : "h-[76px] w-14"}
       framed={false}
-      image={{ sizes: compact ? "32px" : "56px", src }}
+      image={{ sizes: compact ? "32px" : dense ? "36px" : "56px", src }}
       radius={photoRadius}
     />
   );
@@ -132,7 +133,7 @@ function PersonCard({
         as="div"
         className={className}
         index={index}
-        part="name"
+        part="credit"
         text={value}
         truncate
       />
@@ -148,29 +149,32 @@ function PersonCard({
       className={cn(
         "cine-card cine-fade relative flex items-center gap-3 overflow-hidden",
         TONE.surface,
-        compact ? "h-10 min-w-0 flex-1 p-1 pr-2" : "h-[84px] p-1 pr-4",
+        compact
+          ? "h-10 min-w-0 flex-1 p-1 pr-2"
+          : dense
+            ? "h-14 p-1 pr-3"
+            : "h-[84px] p-1 pr-4",
       )}
       style={radius === undefined ? undefined : { borderRadius: radius }}
     >
-      {staged ? (
-        <div
-          className="shrink-0 overflow-hidden"
-          style={{ borderRadius: photoRadius }}
-        >
-          <DetailPart index={index} name="photo">
-            {photo}
-          </DetailPart>
-        </div>
-      ) : (
-        photo
-      )}
+      {photo}
 
       {compact ? (
         text(person.name, "min-w-0 truncate type-meta font-semibold text-ink")
       ) : (
-        <div className="flex min-w-0 flex-col">
-          {text(person.name, "truncate type-body font-semibold text-ink")}
-          {text(person.subtitle, `truncate ${TONE.label} text-ink-muted`)}
+        <div className={cn("flex min-w-0 flex-col", dense && "gap-0.5")}>
+          {text(
+            person.name,
+            dense
+              ? "truncate type-body font-medium tracking-tight text-ink"
+              : "truncate type-body font-semibold text-ink",
+          )}
+          {text(
+            person.subtitle,
+            dense
+              ? "truncate type-meta text-ink-muted"
+              : `truncate ${TONE.label} text-ink-muted`,
+          )}
         </div>
       )}
     </DockLink>
@@ -186,19 +190,29 @@ function PeopleModalView({
   const tabs = peopleTabs(data.cast, data.crew);
   const people = tab === "cast" ? data.cast : data.crew;
 
+  const control = (
+    <SegmentedControl
+      ariaLabel="Cast or crew"
+      items={tabs}
+      onChange={setTab}
+      value={tab}
+    />
+  );
+  const inHeader =
+    !!header && typeof header === "object" && !isValidElement(header);
+  const headerConfig = inHeader
+    ? { ...(header as ModalContainerHeaderConfig), actions: control }
+    : header;
+
   return (
-    <ModalContainer close={close} header={header}>
-      <div className="flex flex-col gap-3">
-        <SegmentedControl
-          ariaLabel="Cast or crew"
-          items={tabs}
-          onChange={setTab}
-          value={tab}
-        />
-        <ul className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+    <ModalContainer close={close} header={headerConfig}>
+      <div className="flex w-[min(40rem,calc(100vw-2rem))] max-w-full flex-col gap-3">
+        {inHeader ? null : control}
+        <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {people.map((person) => (
             <li className="min-w-0" key={person.key}>
               <PersonCard
+                dense
                 onNavigated={() => close()}
                 person={person}
                 radius={RADIUS.card}

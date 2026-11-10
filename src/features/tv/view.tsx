@@ -425,7 +425,7 @@ export async function ShowPageContent({
                             stills={stills}
                             watchedBySeason={watchedBySeason}
                           />
-                          <MoviePeople cast={cast} crew={crew} now={false} />
+                          <MoviePeople cast={cast} crew={crew} />
                           <MovieGallery
                             backdrops={backdrops}
                             posters={posters}
@@ -554,7 +554,7 @@ function SeasonHeader({
           <SeasonWatchedStat />
         </div>
       </div>
-      <DetailPart className={TAGLINE_CLASS} name="role">
+      <DetailPart className={TAGLINE_CLASS} name="tagline">
         <DockLink
           className="text-ink-lead underline decoration-transparent underline-offset-2 hover:decoration-current focus-visible:decoration-current"
           href={tvHref(show.id)}

@@ -1,5 +1,11 @@
 import { blend, css, neutral } from "./color";
-import { CUE_LEAD, EVEN_DROP, MATTER, STAIRS_DROP } from "./constants";
+import {
+  CUE_LEAD,
+  EVEN_DROP,
+  LINES_RUNG,
+  MATTER,
+  STAIRS_DROP,
+} from "./constants";
 import { arrival, departure, ENTER } from "./time";
 import type {
   Beat,
@@ -8,6 +14,7 @@ import type {
   Cue,
   LeaveVerb,
   Matter,
+  OpeningStep,
   Plan,
   Role,
   Score,
@@ -25,7 +32,9 @@ export function spacing(
   rank: number,
   count: number,
   cadence: Cadence,
+  index = rank,
 ) {
+  if (cadence === "lines") return Math.max(0, index) * step(tempo + role.beat);
   const window = trailWindow(role, tempo);
   if (cadence === "trail") return trail(rank, window);
   if (count <= 1) return 0;
@@ -55,6 +64,7 @@ function cast(casting: Casting, leave: LeaveVerb | undefined): Role {
     depth: entry.depth ?? 0,
     drift: entry.drift ?? 0,
     cadence: entry.cadence ?? "trail",
+    beat: entry.beat ?? LINES_RUNG,
     initial: css(blend(neutral(), ENTER[enter](0))),
   };
 }
@@ -89,12 +99,20 @@ export function defineScore<
     opening,
     sections,
     ordered: input.ordered ?? false,
+    tight: input.tight ?? false,
   };
 }
 
+/**
+ * Lays a sequence out in time. In a tight score a beat none of whose parts
+ * are on the page still gets its moment (a part that turns up late enters
+ * from there) but takes no time, so a page without a tagline does not wait
+ * for one. The sections may start at the first release beat, else once the
+ * opening ends.
+ */
 export function plan<P extends string, S extends string>(
   score: Score<P, S>,
-  sequence: readonly Step<P>[] = score.opening,
+  sequence: readonly OpeningStep<P>[] = score.opening,
   pace = 0,
   staged: (part: P) => boolean = () => true,
 ): Plan<P> {
@@ -102,7 +120,12 @@ export function plan<P extends string, S extends string>(
   const cues: Cue<P>[] = [];
   let at = 0;
   let length = 0;
+  let released: number | null = null;
   for (const item of sequence) {
+    if ("release" in item) {
+      released ??= at;
+      continue;
+    }
     if ("rest" in item) {
       if (item.with === undefined || staged(item.with))
         at += step(item.rest + t);
@@ -111,10 +134,11 @@ export function plan<P extends string, S extends string>(
     const roles = item.parts.map((part) => score.roles[part]);
     const run = Math.max(...roles.map((role) => arrival(role.matter, t)));
     cues.push({ parts: item.parts, at, length: run });
+    if (score.tight && !item.parts.some(staged)) continue;
     length = Math.max(length, at + run);
     at += Math.max(...roles.map((role) => lead(role, t)));
   }
-  return { cues, length, after: at };
+  return { cues, length, after: released ?? at };
 }
 
 export function leaveLength<P extends string, S extends string>(

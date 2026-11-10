@@ -26,6 +26,7 @@
     "@iconify-icon/react": "^3.0.6",
     "@omerdlw/base-framework": "^3.0.1",
     "@radix-ui/react-tooltip": "1.4.1",
+    "@sentry/nextjs": "11.9.0",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.119.0",
     "@upstash/ratelimit": "^2.2.0",
