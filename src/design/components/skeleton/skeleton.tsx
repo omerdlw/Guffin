@@ -1,12 +1,11 @@
 import type { CSSProperties, JSX, ReactNode } from "react";
 import { cn } from "../../foundations/cn";
-import styles from "./skeleton.module.css";
+import { ui } from "../../ui";
 
-/** Skeleton surfaces: `block` shimmers, `soft` rests, `pulse` breathes a whole group. */
 export const SKELETON = {
-  block: styles.block,
-  pulse: styles.pulse,
-  soft: styles.soft,
+  block: ui.parts.skeleton.block({ tone: "block" }),
+  pulse: "ui-pulse",
+  soft: ui.parts.skeleton.block({ tone: "soft" }),
 } as const;
 
 export function SkeletonBlock({
@@ -56,7 +55,7 @@ export function SkeletonLines({
   return (
     <div aria-hidden="true" className={className}>
       {widths.map((width, index) => (
-        <div className="flex h-[1lh] items-center" key={index}>
+        <div className={ui.parts.skeleton.line()} key={index}>
           <SkeletonBlock className="rounded-full" style={{ height, width }} />
         </div>
       ))}

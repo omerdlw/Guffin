@@ -18,7 +18,6 @@ export function getWatchingShows(options: {
   });
 }
 
-/** An account's tracked shows in the given statuses, last watched first. */
 export async function getTrackedShows({
   accountId,
   client,

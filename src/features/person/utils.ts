@@ -224,7 +224,6 @@ export const byTitle = (a: FilmographyCredit, b: FilmographyCredit) =>
     sensitivity: "base",
   });
 
-/** Popularity, lifted for a show by how many episodes the person was in. */
 const standing = (credit: FilmographyCredit) =>
   credit.popularity * (credit.episodes ? Math.log2(1 + credit.episodes) : 1);
 
@@ -255,7 +254,6 @@ export function describeCredits(
   return parts.length > 0 ? parts.join(" · ") : null;
 }
 
-/** One entry per title with a year, for the career chart. */
 export function careerTitles(credits: readonly CreditLike[]): CareerFilm[] {
   const films = new Map<number, CareerFilm>();
   for (const credit of credits) {
@@ -280,7 +278,6 @@ export function backdropScore(
 ): number {
   let weight = 1;
   if ("episodeCount" in credit) {
-    // a show: a regular outweighs a guest, a creator outweighs a crew hand
     const episodes = credit.episodeCount;
     weight = episodes >= 40 ? 1.4 : episodes >= 12 ? 1.1 : 0.7;
     if ("character" in credit && credit.character) {
@@ -327,11 +324,6 @@ export function careerFilms(person: PersonDetails): CareerFilm[] {
   return careerTitles([...person.credits.cast, ...person.credits.crew]);
 }
 
-/**
- * A person's show credits as the page lists them: talk, news and reality
- * appearances dropped by the catalog rules, each dated by the person's first
- * episode rather than the show's.
- */
 export function datedTvCredits(
   credits: readonly TvSourceCredit[],
   eligible: (credits: readonly TvSourceCredit[]) => TvSourceCredit[],

@@ -16,7 +16,6 @@ export interface Rect {
   radius: number;
 }
 
-/** The veil between two pages: clear, rising, covering the page, lifting. */
 export type PassagePhase = "clear" | "closing" | "covered" | "lifting";
 
 export interface Flight {
@@ -276,7 +275,6 @@ export interface HeaderProps {
   actions?: ReactNode;
   className?: string;
   nameClassName?: string;
-  /** 0–1: the rule becomes a progress track filled to this share. */
   progress?: number;
 }
 
@@ -418,12 +416,6 @@ export interface StageRootProps {
   children: ReactNode;
 }
 
-/**
- * How the members of one part follow each other: "trail" bunches them up
- * front, "even" and "stairs" space them by rank, and "lines" spaces them by
- * their own index at one steady pace, so every part that shares an index (a
- * row, its label, its value, its rule) moves as one line.
- */
 export type Cadence = "trail" | "even" | "stairs" | "lines";
 
 export interface PartState {
@@ -511,35 +503,24 @@ export type Casting =
       depth?: number;
       drift?: number;
       cadence?: Cadence;
-      /** For the "lines" cadence: rungs off the tempo between two lines (LINES_RUNG by default). */
       beat?: number;
     };
 
 export type Beat<P extends string> =
   P | readonly P[] | { rest: number; with?: P };
 
-/**
- * An opening beat that lets the queued sections start from this point while
- * the rest of the opening keeps playing; without one they wait for its end.
- */
 export interface Release {
   release: true;
 }
 
 export interface ScoreInput<P extends string, S extends string> {
-  /** Root margin a section must clear before it is cued; defaults to the stage's. */
   margin?: string;
   tempo?: number;
   cast: Record<P, Casting>;
   opening: readonly (Beat<NoInfer<P>> | Release)[];
   sections?: Record<S, readonly Beat<NoInfer<P>>[]>;
   leave?: LeaveVerb;
-  /**
-   * Sections are queued in page order, top first, whether they are cued by
-   * scrolling or played straight away.
-   */
   ordered?: boolean;
-  /** An opening beat with none of its parts on the page takes no time. */
   tight?: boolean;
 }
 
@@ -618,7 +599,6 @@ export interface Actor {
   css: boolean;
   written: Written;
   radius: string | null;
-  /** Fills much of the viewport: a blur on it costs a frame, so it gets none. */
   bulk: boolean | null;
   release: () => void;
 }

@@ -21,7 +21,6 @@ import {
   toShowProgress,
 } from "./utils";
 
-/** Every aired regular episode of a show, read season by season from TMDB. */
 export async function getAiredEpisodes(
   showId: number,
 ): Promise<AiredEpisode[] | null> {
@@ -39,11 +38,6 @@ export async function getAiredEpisodes(
   );
 }
 
-/**
- * One still per season for the seasons shelf: its premiere's frame, else the
- * first episode that has one. Seasons past the limit fall back to the show's
- * backdrop rather than cost a request each.
- */
 export async function getSeasonStills(
   showId: number,
   seasons: readonly SeasonSummary[],
@@ -62,10 +56,6 @@ export async function getSeasonStills(
   return stills;
 }
 
-/**
- * Complete a show (ticking every aired episode) or undo that. Undoing keeps
- * the show tracked as "watching" if any episode is ticked, else stops it.
- */
 export async function setShowCompleted(
   client: TvClient,
   showId: number,
@@ -94,7 +84,6 @@ export async function setShowCompleted(
   if (error) throw error;
 }
 
-/** The viewer's status, ticks and ratings for one show. */
 export async function getShowTracking(
   showId: number,
 ): Promise<ShowTracking | null> {
@@ -145,7 +134,6 @@ export async function getShowTracking(
   }
 }
 
-/** Shows the signed-in viewer is in the middle of, most recent first. */
 export async function getContinueWatching(
   limit = CONTINUE_WATCHING_LIMIT,
 ): Promise<ContinueItem[]> {

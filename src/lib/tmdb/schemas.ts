@@ -579,7 +579,6 @@ function showOf(c: {
     adult: c.adult ?? false,
     genreIds: c.genre_ids,
     episodeCount: c.episode_count,
-    /** When this person first appeared on the show, not when it began. */
     firstCreditDate: c.first_credit_air_date ?? null,
   };
 }
@@ -712,8 +711,6 @@ export const foundMoviesSchema = z
   .object({ movie_results: lenientList(featuredMovieSchema) })
   .transform((found) => found.movie_results);
 
-// ── TV ─────────────────────────────────────────────────────────────────────
-
 const originCountries = z
   .array(z.unknown())
   .nullish()
@@ -784,7 +781,6 @@ const showJob = z
     episodeCount: j.episode_count,
   }));
 
-// aggregate_credits: one row per person with every role they played.
 const showCastMember = z
   .object({
     id: movieId,

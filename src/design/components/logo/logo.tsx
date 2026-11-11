@@ -8,7 +8,6 @@ export interface LogoProps extends Omit<SVGProps<SVGSVGElement>, "viewBox"> {
   size?: number | string;
 }
 
-/** The Guffin mark, drawn in `currentColor`. */
 export function Logo({ size = 24, ...props }: LogoProps) {
   return (
     <svg

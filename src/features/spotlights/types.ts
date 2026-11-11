@@ -21,7 +21,6 @@ export interface Laureate extends SpotlightFilm {
 }
 
 export interface CanonFilm extends SpotlightFilm {
-  /** Films unless set; the shows wall carries "tv". */
   mediaType?: MediaType;
   rank: number;
   rating: number | null;
@@ -38,7 +37,6 @@ export interface DirectorFilm {
 export interface Director {
   born: number;
   died: number | null;
-  /** Most famous first. */
   films: DirectorFilm[];
   id: number;
   name: string;

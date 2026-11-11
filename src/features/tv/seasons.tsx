@@ -14,7 +14,6 @@ import { TONE } from "@/design/foundations/tones";
 import type { SeasonSummary } from "./types";
 import { formatEpisodeCode } from "./utils";
 
-/** Where the viewer stands across the whole show, for the shelf's header. */
 export interface ShelfProgress {
   aired: number;
   next: { episode: number; season: number } | null;
@@ -106,10 +105,6 @@ function ShelfReadout({
   );
 }
 
-/**
- * The show's seasons as a shelf of posters: a progress line under each one
- * the viewer started, specials last, the season being read marked.
- */
 export function SeasonShelf({
   backdropFallback,
   current = null,
@@ -121,10 +116,8 @@ export function SeasonShelf({
   title = "Seasons",
   watchedBySeason,
 }: {
-  /** The show's backdrop, for a season without a still of its own. */
   backdropFallback: string | null;
   current?: number | null;
-  /** Plays as the opening's continuation: set when it leads the column. */
   now?: boolean;
   progress?: ShelfProgress | null;
   seasons: readonly SeasonSummary[];

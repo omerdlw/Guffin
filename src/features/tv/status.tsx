@@ -43,7 +43,6 @@ import {
 } from "./constants";
 import type { ShowStatus } from "./types";
 
-/** What a show event carries: the status when the sender knows it. */
 export interface ShowChange {
   showId: number;
   status?: ShowStatus | null;
@@ -53,10 +52,6 @@ export function announceShowChange(change: ShowChange): void {
   globalEvents.emit(SHOW_EVENTS.CHANGE, change);
 }
 
-/**
- * The viewer's status for a show, kept in step with every other control on
- * the page through the show event.
- */
 function useShowStatus(showId: number) {
   const auth = useAuth();
   const userId = auth.isAuthenticated ? (auth.user?.id ?? null) : null;
@@ -223,10 +218,6 @@ function ShowStatusSurface({
   );
 }
 
-/**
- * The sidebar's status button: names where the viewer is with the show and
- * opens the status surface.
- */
 export function ShowStatusAction({
   secondary = false,
   showId,

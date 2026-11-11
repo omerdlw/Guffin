@@ -91,7 +91,6 @@ export interface ListFormData {
     slug: string;
     title: string;
   };
-  /** The kind of title a new list holds; lists never mix films and shows. */
   mediaType?: MediaType;
   username: string;
 }

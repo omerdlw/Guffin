@@ -1,4 +1,3 @@
-/* The text caret in a code cell: a slow breath, not a hard blink. */
 @layer components {
   .caret {
     animation: caret var(--step-1) var(--ease-in-out-cubic) infinite alternate;

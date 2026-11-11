@@ -6,12 +6,6 @@ import { Room } from "@/motion/kit";
 import { bindScore } from "@/motion/react";
 import { defineScore } from "@/motion/score";
 
-/*
- * The directors page is a still life: one photograph standing on the floor
- * and the films laid above and beside it. Each director is its own scene, so
- * a change of director is a change of scope. The posters are numbered from
- * the photograph outwards, so they arrive as one ripple.
- */
 const DIRECTORS = defineScore({
   cast: {
     portrait: "plate",

@@ -1,6 +1,6 @@
-export { Switch, type SwitchProps } from "./switch";
 export {
-  switchThumbVariants,
-  switchVariants,
+  Switch,
+  type SwitchProps,
   type SwitchVariants,
-} from "./variants";
+} from "@omerdlw/base-framework/ui";
+export { switchThumbVariants, switchVariants } from "./variants";

@@ -26,7 +26,6 @@ export function MovieAction({
   onOpenProviders,
   title,
 }: {
-  /** A control above the review buttons (a show's status picker). */
   extra?: JSX.Element | null;
   hasProviders: boolean;
   mediaType?: MediaType;

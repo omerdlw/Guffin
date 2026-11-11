@@ -15,7 +15,6 @@ export default async function AccountProgressPage({
 }): Promise<JSX.Element | null> {
   if (!TV_ENABLED) notFound();
   const [{ username }, query] = await Promise.all([params, searchParams]);
-  // Progress only exists for shows; a films vitrin has nothing to track.
   if ((await resolveVitrin(query)) !== "tv") redirect(accountHref(username));
   return <AccountProgressView query={query} username={username} />;
 }

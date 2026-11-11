@@ -13,26 +13,6 @@ import { CURVE } from "./time";
 import type { Engine, PassagePhase } from "./types";
 import { step } from "./utils";
 
-/**
- * The page-to-page transition engine.
- *
- * One veil per engine. It is a state machine over a single `cover` value
- * (0: the page shows, 1: the page is hidden):
- *
- *   clear ──close()──▶ closing ──▶ covered ──lift()──▶ lifting ──▶ clear
- *
- * - `close()` raises the veil. A trip does it while the page leaves, so the
- *   route is never asked for until the screen is covered.
- * - `keep()` says the next page has an opening of its own (a marquee, a stage
- *   that waits for its picture) and the veil must stay until it releases.
- * - `land()` says the route has changed. A page that did not `keep()` the veil
- *   gets a short grace and then it lifts, so a skeleton is never hidden for long.
- * - `lift()` lets the next page through. The stage calls it as it releases.
- *
- * It owns no pixels: `<Passage>` draws `cover`. It owns no seconds either:
- * every duration is a rung of the ladder, and a reduced-motion reader gets
- * the quiet rung.
- */
 export class Passage {
   readonly phase = new Signal<PassagePhase>("clear");
   readonly cover: Value;
@@ -116,13 +96,11 @@ export class Passage {
       });
   }
 
-  /** A trip that never landed. A replacement trip closes again within the debounce. */
   abandon() {
     if (!this.covering) return;
     this.later(step(PASSAGE_DEBOUNCE_RUNG), true);
   }
 
-  /** Who the veil is waiting for: a stage that said so, the route, or nobody. */
   private settle() {
     if (this.phase.get() === "closing") return;
     const grace = this.landed && !this.held;

@@ -1,10 +1,6 @@
 import { cn } from "../../foundations/cn";
 import { SKELETON } from "../skeleton";
 
-/*
- * The backdrop's edges dissolve into the page: a soft cover on both sides and
- * a longer one at the bottom, each a list of [position %, cover %] stops.
- */
 export const SIDE_COVER: readonly [number, number][] = [
   [0, 100],
   [2, 97],
@@ -52,7 +48,6 @@ export const BACKDROP_HERO_MASK = {
   WebkitMaskImage: MASK,
 } as const;
 
-/** The hero band a film or person page is lit by, bleeding past the column. */
 export const BACKDROP_HERO =
   "relative isolate h-80 w-[calc(100%+2rem)] -translate-x-4 overflow-hidden sm:h-96 sm:w-[calc(100%+3rem)] sm:-translate-x-6 lg:h-[clamp(36rem,52vw,44rem)] lg:w-[calc(100%+16rem)] lg:-translate-x-32 xl:h-[clamp(40rem,56vw,48rem)] xl:w-[calc(100%+24rem)] xl:-translate-x-48";
 

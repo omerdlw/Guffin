@@ -7,7 +7,6 @@ const ASPECT = {
   video: "aspect-video",
 } as const;
 
-/** The card: a column of the frame and its caption. */
 export const mediaCardVariants = variants(
   "cine-card group/media flex min-w-0 flex-col gap-1.5 outline-none",
   {
@@ -18,7 +17,6 @@ export const mediaCardVariants = variants(
   },
 );
 
-/** The frame the picture sits in. */
 export const mediaFrameVariants = variants(
   "cine-fade relative isolate overflow-hidden",
   {

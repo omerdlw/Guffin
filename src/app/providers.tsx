@@ -14,8 +14,8 @@ import {
 import { notificationModule } from "@omerdlw/base-framework/modules/notification";
 import { ThemeSync } from "@/lib/theme";
 import { CoreProvider } from "@omerdlw/base-framework/provider";
-import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { ThemeProvider } from "@omerdlw/base-framework/theme";
+import { TooltipProvider, UiProvider } from "@omerdlw/base-framework/ui";
 import { DEFAULT_ACCOUNT_ICON } from "@/features/account/constants";
 import {
   AccountGuard,
@@ -34,6 +34,7 @@ import { motion } from "@/motion/time";
 import { isFilmPage } from "@/motion/utils";
 import { Logo } from "@/design/components/logo";
 import { Passage } from "@/design/components/passage";
+import { ui } from "@/design/ui";
 import { themes } from "./theme";
 
 const APP_REGISTRY_ENTRIES: readonly AppRegistryEntry[] = Object.freeze([
@@ -105,11 +106,9 @@ export function Providers({ children }: { children: ReactNode }): JSX.Element {
           AuthProvider,
           AccountProvider,
           [ThemeProvider, { motion, themes }],
-          // The framework ships its own pinned copy of Radix Tooltip, so its
-          // provider does not reach the tooltips this app renders itself. It
-          // sits above CoreProvider so dock content (search results) is covered.
+          [UiProvider, { ui }],
           [
-            TooltipPrimitive.Provider,
+            TooltipProvider,
             {
               delayDuration: TOOLTIP_DELAY,
               skipDelayDuration: TOOLTIP_SKIP_DELAY,

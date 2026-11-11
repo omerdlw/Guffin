@@ -24,7 +24,6 @@ import { SHOW_FALLBACK_ICON } from "./constants";
 import type { ShowDetails } from "./types";
 import { describeShow } from "./utils";
 
-/** Dock card, ambient light and title for a show page. */
 export function ShowPageChrome({
   palette = null,
   show,

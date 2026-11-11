@@ -1,12 +1,9 @@
+import { ui } from "../../ui";
 import styles from "./tooltip.module.css";
 
-/**
- * The tooltip's parts, for a surface drawn without the `Tooltip` component
- * (a chart's hover label, the dock's command tips).
- */
 export const TOOLTIP = {
-  content: styles.content,
+  content: ui.parts.tooltip.content(),
   dock: styles.dock,
-  ink: styles.ink,
+  ink: ui.parts.tooltip.label(),
   meta: styles.meta,
 } as const;

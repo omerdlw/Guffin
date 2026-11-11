@@ -1,6 +1,5 @@
 import type { MediaType, MediaTypeCopy } from "./types";
 
-/** The `?v=` search param that picks a profile's vitrin. */
 export const VITRIN_PARAM = "v";
 
 export const VITRIN_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;

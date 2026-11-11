@@ -129,7 +129,6 @@ export type MediaDetails =
   | { mediaType: "movie"; details: MovieDetails }
   | { mediaType: "tv"; details: ShowDetails };
 
-/** One door for any title; a second data source would plug in here. */
 export async function getMediaDetails(
   mediaType: MediaType,
   id: number,
@@ -145,7 +144,6 @@ export async function getMediaDetails(
 const TMDB_PATH = /^\/[A-Za-z0-9._-]{1,200}$/;
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
-/** The title columns every library row keeps, for a film or a show. */
 export function mediaSnapshot(media: MovieDetails | ShowDetails) {
   return movieSnapshot(media);
 }

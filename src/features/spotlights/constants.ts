@@ -380,38 +380,28 @@ export const DIRECTORS_DOCK_SETTLE_MS = 400;
 
 export const DIRECTOR_POSTER_WIDTHS = ["w92", "w185"] as const;
 
-/** Perspective strength: how fast a film shrinks as it recedes down the beam. */
 export const TUNNEL_PERSPECTIVE = 0.55;
 
-/** How many films ahead of the one in the gate are drawn. */
 export const TUNNEL_REACH = 9;
 
-/** How far, in films, a poster swings from the axis to its place in the beam. */
 export const TUNNEL_ENVELOPE = 1.1;
 
-/** Sideways swing of the films ahead, in poster widths and heights. */
 export const TUNNEL_SWING = { x: 1.15, y: 0.3 };
 
-/** Films a poster takes to leave: it fades and swings out of the beam. */
 export const TUNNEL_PASS = 0.9;
 
 export const TUNNEL_GOLDEN = 2.399963;
 
-/** Dust motes hanging in the beam. */
 export const TUNNEL_DUST = 150;
 
-/** Films flown per pixel of wheel, and per pixel of a drag. */
 export const TUNNEL_WHEEL = 1 / 260;
 
 export const TUNNEL_DRAG = 1 / 230;
 
-/** Seconds the pointer takes to settle the camera sway, and the sway in pixels. */
 export const TUNNEL_SWAY = { pixels: 14, seconds: 0.5 };
 
-/** Rates (per second) at which the camera follows its target. */
 export const TUNNEL_RATE = { drag: 22, free: 8, snap: 6 };
 
-/** Quiet after the last wheel event before the camera settles on a film. */
 export const TUNNEL_SNAP_MS = 110;
 
 export const TUNNEL_FLING_S = 0.18;
@@ -479,7 +469,6 @@ export const TOP_100_FILTERS: readonly { label: string; value: Filter }[] = [
   { label: "To watch", value: "unseen" },
 ];
 
-/** Steps toward No. 1; the countdown ends there. */
 export const TOP_100_KEYS: Record<string, number> = {
   ArrowDown: 1,
   ArrowLeft: -1,
@@ -496,13 +485,8 @@ export const WHEEL_DELTA_UNITS: Readonly<Record<number, number>> = {
 
 export const URL_SYNC_DELAY_MS = 500;
 
-/** TMDB top rated pages read for the shows wall (20 a page, before filtering). */
 export const SHOW_CANON_PAGES = 15;
 
-/**
- * A canon wants a far stronger prior than discovery: fan voting lifts new
- * anime and dramas above 9 on a few hundred votes.
- */
 export const SHOW_CANON_PRIOR = Object.freeze({
   mean: 7,
   minVotes: 500,
@@ -511,9 +495,7 @@ export const SHOW_CANON_PRIOR = Object.freeze({
 
 export const SHOW_CANON_SIZE = 100;
 
-/** No films: the empty mark set before the account is known. */
 export const EMPTY_FILM_IDS: ReadonlySet<number> = new Set();
 
-/** Where the film in the gate stands: the numeral, the camera and the slot agree. */
 export const TUNNEL_SLOT_CLASS =
   "pointer-events-none fixed inset-x-4 top-[clamp(4.5rem,11svh,7rem)] bottom-[calc(var(--dock-h,6rem)+13rem)] sm:inset-x-8";

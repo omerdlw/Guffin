@@ -46,19 +46,6 @@ export function ordinal(value: number): string {
 export const lifeSpanOf = (director: Director) =>
   director.died ? `${director.born}–${director.died}` : `Born ${director.born}`;
 
-/**
- * The portrait is as wide as the dock and stands on the bottom edge; the
- * posters fill what is left above and beside it, so the wall mirrors left
- * to right. Its width fixes the size of the cells over it: `core` cells
- * across make the dock's width, so the portrait keeps its own 2:3 shape. The
- * fewest cells across that still show most of the films wins, because that
- * is the largest poster. There is always a row of films above the portrait.
- * Rows and side columns may grow or shrink a little to take the room, never
- * so much that a poster or the portrait is pulled out of shape. The portrait
- * only gives up the dock's width when the screen is too short to hold it
- * with a row above, or when even the fullest wall would hold a handful of
- * films.
- */
 export function fitDirectors(
   width: number,
   height: number,
@@ -151,11 +138,6 @@ export function fitDirectors(
   };
 }
 
-/**
- * Every cell around the portrait, nearest first. A director's films come in
- * order of fame, so the best known stand right above and beside the portrait
- * and the wall arrives as one ripple that mirrors left to right.
- */
 export function placesOf({
   cellHeight,
   cellWidth,
@@ -198,21 +180,12 @@ export const smooth = (t: number) => t * t * (3 - 2 * t);
 export const clamp = (value: number, low = 0, high = 1) =>
   Math.min(high, Math.max(low, value));
 
-/**
- * Where a gesture settles. A gesture starts on a film and ends between two;
- * any real movement carries at least one film, so a single wheel notch is
- * never lost.
- */
 export function settleTarget(from: number, to: number): number {
   const moved = to - from;
   if (Math.abs(moved) < 0.08) return from;
   return from + Math.sign(moved) * Math.max(1, Math.round(Math.abs(moved)));
 }
 
-/**
- * The film a step lands on. A film that does not match the filter is passed
- * over; with nothing to land on the step is a plain one, and the ends hold.
- */
 export function stepFrom(
   from: number,
   direction: -1 | 1,
@@ -226,7 +199,6 @@ export function stepFrom(
   return plain;
 }
 
-/** 3,124,000 votes read "3.1M". */
 export const votesOf = (votes: number) =>
   new Intl.NumberFormat("en", {
     maximumFractionDigits: 1,
@@ -311,7 +283,6 @@ export const typing = (target: EventTarget | null) =>
   (target.isContentEditable ||
     ["INPUT", "SELECT", "TEXTAREA"].includes(target.tagName));
 
-/** The canvas's text colour as red, green and blue: the page's ink. */
 export function inkOf(element: HTMLElement): [number, number, number] {
   const probe = document.createElement("canvas");
   probe.width = probe.height = 1;

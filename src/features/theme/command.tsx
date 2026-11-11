@@ -43,10 +43,6 @@ function placeOf(target: Element): Anchor {
   };
 }
 
-/**
- * The dock rises and re-renders as it is touched, so the icon is not where it
- * was when it was clicked. Follow it for as long as the chooser is open.
- */
 function useFollow(target: Element | null): Anchor | null {
   const [anchor, setAnchor] = useState<Anchor | null>(null);
 
@@ -81,7 +77,6 @@ function useFollow(target: Element | null): Anchor | null {
 
 const SETTLE_MS = Math.round(step(-1) * 1000);
 
-/** Three icons side by side; the highlight slides to the chosen one. */
 function Segments({
   onClose,
   place,
@@ -196,7 +191,6 @@ function ThemePopover({
   );
 }
 
-/** A dock action on every page: a theme icon that opens a chooser above it. */
 export function ThemeDockCommand() {
   const choice = useThemeChoice();
   const [target, setTarget] = useState<Element | null>(null);

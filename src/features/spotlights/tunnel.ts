@@ -57,7 +57,6 @@ interface Hand {
   y: number;
 }
 
-/** A film in the beam is drawn smaller the further it is from the gate. */
 const scaleAt = (depth: number) =>
   depth >= 0
     ? 1 / (1 + depth * TUNNEL_PERSPECTIVE)
@@ -83,11 +82,6 @@ function roundedRect(
   ctx.closePath();
 }
 
-/**
- * A print is developed once: the colour frame is kept, a grey twin is made
- * for the films not seen yet, and the dominant colour is read off to tint the
- * light the film casts down the beam.
- */
 async function develop(bitmap: ImageBitmap): Promise<TunnelPrint> {
   const fallback = { color: bitmap, gray: bitmap, tint: NEUTRAL };
   if (typeof OffscreenCanvas === "undefined") return fallback;
@@ -135,13 +129,6 @@ async function develop(bitmap: ImageBitmap): Promise<TunnelPrint> {
   }
 }
 
-/**
- * The Top 100 as a countdown through a projector beam. The films hang one
- * after another down a tunnel of frames; the camera travels from No. 100 to
- * No. 1, and the film in the gate is the one that is lit. Position is
- * counted in films, along the list's own order (index 0 is No. 1), so flying
- * forward is the position falling.
- */
 export class Tunnel {
   private readonly ctx: CanvasRenderingContext2D;
   private readonly loop: Loop;
@@ -233,7 +220,6 @@ export class Tunnel {
     this.loop.wake();
   }
 
-  /** The page's ink, so the beam is light on dark and dark on light. */
   setInk(ink: readonly [number, number, number]): void {
     this.ink = ink;
     this.loop.wake();
@@ -255,7 +241,6 @@ export class Tunnel {
     this.loop.wake();
   }
 
-  /** Flies to a film. Without a glide the camera is simply there. */
   select(index: number, glide = true): void {
     this.base = null;
     this.target = clamp(Math.round(index), 0, this.count - 1);
@@ -263,7 +248,6 @@ export class Tunnel {
     this.loop.wake();
   }
 
-  /** One film toward No. 1 for +1, toward No. 100 for -1. */
   step(direction: -1 | 1): void {
     this.base = null;
     const from = Math.round(this.target);
@@ -318,7 +302,6 @@ export class Tunnel {
     this.loop.wake();
   }
 
-  /** Lets go. True when the hand never really moved: it was a click. */
   drop(): boolean {
     const hand = this.hand;
     this.hand = null;
@@ -334,7 +317,6 @@ export class Tunnel {
     return false;
   }
 
-  /** The film drawn under a point, nearest first; -1 for none. */
   filmAt(x: number, y: number): number {
     for (let i = this.hits.length - 1; i >= 0; i -= 1) {
       const hit = this.hits[i]!;
@@ -423,7 +405,6 @@ export class Tunnel {
     this.loop.wake();
   }
 
-  /** Once the camera rests on a film its sharp print is fetched. */
   private sharpLater(): void {
     if (this.sharpTimer) clearTimeout(this.sharpTimer);
     this.sharpTimer = setTimeout(

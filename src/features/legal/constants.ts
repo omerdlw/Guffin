@@ -2,7 +2,6 @@ import type { LegalDocument } from "./types";
 import { TV_ENABLED } from "@/lib/env";
 import { bulletList, paragraph } from "./utils";
 
-/** The copy names shows only once TV support is switched on. */
 const titles = TV_ENABLED ? "movies and shows" : "movies";
 const titleData = TV_ENABLED
   ? "movie, show and people data"

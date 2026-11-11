@@ -22,6 +22,8 @@ import type { FeaturedMovie } from "@/lib/tmdb/shared";
 import {
   EMPTY_PULSE,
   FEATURE_LIMIT,
+  LOGGED_LIMIT,
+  LOGGED_SCAN,
   PICKS_MIN_FILMS,
   PICKS_RANK_CONSTANT,
   PULSE_COLD_TIMEOUT_MS,
@@ -43,6 +45,7 @@ import type {
   HomeShows,
   Picks,
   PulseRow,
+  RecentLog,
   ShowingFilm,
 } from "./types";
 import {
@@ -83,7 +86,6 @@ async function recount(signal?: AbortSignal): Promise<PulseRow> {
   return pulse;
 }
 
-/** One recount at a time across instances, so a slow database is not stampeded. */
 async function refreshPulse(): Promise<void> {
   const redis = getRedisClient();
   if (redis) {
@@ -139,6 +141,43 @@ async function getCircle(): Promise<CircleRow | null> {
     unstable_rethrow(error);
     report("Home circle read", error);
     return null;
+  }
+}
+
+async function getRecentLogs(): Promise<RecentLog[]> {
+  try {
+    const { data, error } = await createAdminSupabaseClient()
+      .from("account_diary")
+      .select(
+        "id, tmdb_id, title, poster_path, backdrop_path, release_date, watched_at, is_rewatch, author:accounts!inner(username, display_name, avatar_url)",
+      )
+      .eq("media_type", "movie")
+      .eq("author.is_active", true)
+      .eq("author.is_private", false)
+      .not("author.username", "is", null)
+      .not("poster_path", "is", null)
+      .order("watched_at", { ascending: false })
+      .limit(LOGGED_SCAN);
+    if (error) throw error;
+    const seen = new Set<number>();
+    const logs: RecentLog[] = [];
+    for (const row of data ?? []) {
+      if (seen.has(row.tmdb_id) || !row.author.username) continue;
+      seen.add(row.tmdb_id);
+      logs.push({
+        author: toMember({ ...row.author, username: row.author.username }),
+        film: toFilm(row),
+        id: row.id,
+        rewatch: row.is_rewatch,
+        watchedAt: row.watched_at,
+      });
+      if (logs.length === LOGGED_LIMIT) break;
+    }
+    return logs;
+  } catch (error) {
+    unstable_rethrow(error);
+    report("Home recent logs read", error);
+    return [];
   }
 }
 
@@ -222,6 +261,7 @@ async function getCircleFeed(circle: CircleRow | null): Promise<Circle | null> {
       watchedAt: row.watched_at,
     })),
     name: circle.viewer.display_name || circle.viewer.username || "",
+    username: circle.viewer.username,
     picks: await getPicks(circle),
     shared: circle.shared.map((row) => ({
       ...toFilm(row),
@@ -246,16 +286,25 @@ async function getShows(): Promise<HomeShows | null> {
 }
 
 export const getHomeFeed = cache(async (): Promise<HomeFeed> => {
-  const [week, playing, upcoming, upcomingNext, pulse, circleRow, shows] =
-    await Promise.all([
-      getTrendingMovies("week"),
-      getMovieList("now_playing"),
-      getMovieList("upcoming"),
-      getMovieList("upcoming", { page: 2 }),
-      getPulse(),
-      getCircle(),
-      getShows(),
-    ]);
+  const [
+    week,
+    playing,
+    upcoming,
+    upcomingNext,
+    pulse,
+    circleRow,
+    shows,
+    logged,
+  ] = await Promise.all([
+    getTrendingMovies("week"),
+    getMovieList("now_playing"),
+    getMovieList("upcoming"),
+    getMovieList("upcoming", { page: 2 }),
+    getPulse(),
+    getCircle(),
+    getShows(),
+    getRecentLogs(),
+  ]);
 
   const { soon, theatres } = pickShowing(
     {
@@ -281,7 +330,8 @@ export const getHomeFeed = cache(async (): Promise<HomeFeed> => {
   return {
     ...toPulseShelves(pulse),
     circle,
-    features,
+    feature: features[Math.floor(Math.random() * features.length)] ?? null,
+    logged,
     members: selectMembers(pulse, circleRow),
     pulse: pulse.counts,
     shows,

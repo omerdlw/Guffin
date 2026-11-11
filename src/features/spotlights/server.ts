@@ -127,10 +127,6 @@ async function readCanon(): Promise<CanonFilm[]> {
 
 export const getCanon = cache(() => kept("spotlight:canon", readCanon));
 
-/**
- * The hundred best-rated shows, from TMDB's top rated list through the
- * catalog rules: there is no IMDb-style fixed canon for television.
- */
 async function readShowCanon(): Promise<CanonFilm[]> {
   const pages = await Promise.all(
     Array.from({ length: SHOW_CANON_PAGES }, (_, i) =>

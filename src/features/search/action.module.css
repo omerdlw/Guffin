@@ -1,4 +1,3 @@
-/* While a search is in flight, a band of the grade sweeps across the field. */
 @layer components {
   .scan {
     isolation: isolate;

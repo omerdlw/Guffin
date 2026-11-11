@@ -159,7 +159,6 @@ class ScrollDriver {
     return this.engine.reduced.get();
   }
 
-  /* Reading scrollHeight forces layout; a wheel burst asks it dozens of times. */
   private limit() {
     const now = performance.now();
     if (now - this.bottom.at < SCROLL_LIMIT_TTL) return this.bottom.y;

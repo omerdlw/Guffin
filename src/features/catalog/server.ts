@@ -6,7 +6,6 @@ import { CATALOG_STALE_MS } from "./constants";
 import type { MediaItem, MediaType } from "./types";
 import { toCatalogRow, toMediaItem } from "./utils";
 
-/** Write (or refresh) a title's catalog row from details already in hand. */
 export async function upsertCatalogEntry(
   media: MediaDetails,
 ): Promise<MediaItem> {
@@ -25,11 +24,6 @@ export async function upsertCatalogEntry(
   return item;
 }
 
-/**
- * Make sure a title has a fresh catalog row: on a detail view and before any
- * library write (the show-tracking RPCs read their snapshot from it).
- * Returns false when TMDB does not know the title.
- */
 export async function ensureCatalogEntry(
   mediaType: MediaType,
   id: number,

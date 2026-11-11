@@ -324,8 +324,6 @@ export async function setMovieLibraryAction(
 
     const client = await createServerSupabaseClient();
 
-    // A show is "watched" when it is completed: that goes through the
-    // tracking RPC so its episodes and status move with it.
     if (mediaType === "tv" && kind === "watched") {
       if (!(await ensureCatalogEntry("tv", tmdbId))) {
         return fail("Could not load this show, try again");

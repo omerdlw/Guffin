@@ -4,14 +4,13 @@ import type { JSX, ReactNode } from "react";
 import { Magnet } from "@/motion/tilt";
 import { cn } from "../../foundations/cn";
 import { Icon } from "../icon";
-import { Button } from "./button";
+import { Button } from "@omerdlw/base-framework/ui";
 
 export interface ActionButtonProps {
   active: boolean;
   ariaLabel?: string;
   className?: string;
   disabled?: boolean;
-  /** A second label that replaces the first while the button is pointed at. */
   hoverLabel?: string;
   icon: { off: string; on: string };
   iconSize?: number;
@@ -20,10 +19,6 @@ export interface ActionButtonProps {
   onClick: () => void;
 }
 
-/**
- * A toggle on a detail page (watched, liked, listed): a pill that turns
- * chosen when active, its glyph swelling and following the pointer.
- */
 export function ActionButton({
   active,
   ariaLabel,

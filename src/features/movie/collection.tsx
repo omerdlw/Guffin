@@ -49,7 +49,6 @@ function useMovieLibrary(
   const [pending, setPending] = useState<MovieLibraryKind | null>(null);
   const [version, setVersion] = useState(0);
 
-  // a show's status or its last episode can finish it from elsewhere
   useGlobalEvent<{ showId: number }>(
     key && mediaType === "tv" ? SHOW_EVENTS.CHANGE : null,
     (change) => change.showId === movieId && setVersion((v) => v + 1),

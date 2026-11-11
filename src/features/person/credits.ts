@@ -47,7 +47,6 @@ import {
   mergeByMovie,
 } from "./utils";
 
-/** The person's show credits the page lists, each dated by their first episode. */
 function tvCredits(person: PersonDetails): {
   cast: PersonTvCastCredit[];
   crew: PersonTvCrewCredit[];
@@ -127,7 +126,6 @@ function groupFilmography<
   return largest ? [largest] : [];
 }
 
-/** Films and shows, each grouped by the kind of work. */
 export function getFilmography(
   person: PersonDetails,
 ): ByMedium<FilmographyGroup[]> {
@@ -152,7 +150,6 @@ export function getFilmography(
   };
 }
 
-/** The kinds of work this person has credits in, films first. */
 export function getMedia(person: PersonDetails): MediaType[] {
   const filmography = getFilmography(person);
   return (["movie", "tv"] as const).filter(
@@ -247,7 +244,6 @@ export function getTimeline(person: PersonDetails): TimelineYear[] {
     }));
 }
 
-/** The career chart for films and for shows, a show counted once, by first episode. */
 export function getCareer(person: PersonDetails): ByMedium<Career | null> {
   const tv = tvCredits(person);
   return {

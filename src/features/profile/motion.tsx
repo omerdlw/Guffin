@@ -4,19 +4,6 @@ import { PAGE_TEMPO } from "@/motion/constants";
 import { bindScore } from "@/motion/react";
 import { defineScore } from "@/motion/score";
 
-/*
- * A profile opens in three movements, on the same tempo as every other page:
- *
- * 1. The backdrop (when there is one) lands, then the avatar is uncovered
- *    and settles while the name comes up; the handle and join date read in
- *    left to right, with the followed-by proof under them.
- * 2. As the proof lands the page begins: the tabs come up, the stats come
- *    in one cell at a time, and the first sections start.
- * 3. Sections play in page order, the main column and the sidebar
- *    interleaved from the top down; shelves clear in tile by tile like the
- *    search grid, and further sections play as they are scrolled to. A
- *    section is cued as soon as it is well into view.
- */
 const ACCOUNT = defineScore({
   margin: "0px 0px -13% 0px",
   ordered: true,

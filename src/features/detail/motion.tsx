@@ -4,20 +4,6 @@ import { PAGE_TEMPO } from "@/motion/constants";
 import { bindScore } from "@/motion/react";
 import { defineScore } from "@/motion/score";
 
-/*
- * A film, show or person page opens in four movements:
- *
- * 1. The marquee lands, then the poster is uncovered and settles while the
- *    title blooms; the line under the title draws left to right and hands
- *    over to its stats or links, then the tagline and the overview read in.
- * 2. As the overview lands the first main sections (cast, seasons, career)
- *    begin, one card at a time, and the actions under the poster come up
- *    one by one with the social proof after them.
- * 3. The sidebar facts follow, a line at a time from the top down, each
- *    row with its label, value and rule; the next section (the gallery)
- *    comes in while they do.
- * 4. Everything further down plays as it is scrolled to, in page order.
- */
 const DETAIL = defineScore({
   tempo: PAGE_TEMPO,
   ordered: true,
@@ -40,10 +26,6 @@ const DETAIL = defineScore({
     value: { matter: "light", cadence: "lines" },
     line: { matter: "light", enter: "wipe", cadence: "lines" },
     header: { matter: "ink", enter: "still" },
-    /*
-     * The cast washes in like the search grid: each card rises into the light,
-     * in reading order, its names a beat behind it.
-     */
     person: { matter: "paper", enter: "surface", cadence: "lines", beat: -2.5 },
     credit: { matter: "light", cadence: "lines", beat: -2.5 },
     name: "light",

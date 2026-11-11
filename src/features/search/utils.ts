@@ -400,8 +400,6 @@ export function byScore<T>(rows: { hit: T; score: number }[]): T[] {
 }
 
 export function offsetIn(list: HTMLElement, option: HTMLElement) {
-  // Layout units, unrounded: offsetLeft/offsetWidth round to whole pixels,
-  // which skews a halo around fractional-width tiles by up to a pixel.
   const box = list.getBoundingClientRect();
   const rect = option.getBoundingClientRect();
   const scale = list.offsetWidth ? box.width / list.offsetWidth : 1;

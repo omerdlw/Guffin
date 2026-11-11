@@ -3,12 +3,6 @@
 import { type CSSProperties, type JSX, useEffect, useState } from "react";
 import { PROFILE_CONTAINER_CLASS } from "./constants";
 
-/*
- * The drafting sheet for the account page: the lines the components sit on.
- * Development only, toggled with Shift+G. It draws the same `plan` grid the
- * hero and the body use, so what shows here is the geometry, not a copy of it.
- */
-
 const ENABLED = process.env.NODE_ENV !== "production";
 
 const INK = "rgb(88 166 255 / 0.55)";

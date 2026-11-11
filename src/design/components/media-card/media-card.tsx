@@ -42,12 +42,6 @@ export interface MediaCardProps extends DataAttributes {
   tooltip?: string;
 }
 
-/**
- * A picture that is a target: a poster, a still, a portrait. It links
- * (`href`, through the dock), acts (`onClick`) or only shows; it leans in and
- * lights its afterglow when pointed at, and can carry a caption and a
- * tooltip the reticle draws.
- */
 export function MediaCard({
   aspect = "poster",
   caption,

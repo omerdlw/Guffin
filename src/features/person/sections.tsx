@@ -56,7 +56,6 @@ export function PersonFilmography({
   now = false,
 }: {
   filmography: ByMedium<FilmographyGroup[]>;
-  /** Play with the opening instead of waiting to be scrolled to. */
   now?: boolean;
 }) {
   const [medium, setMedium] = usePersonMedium();
@@ -160,7 +159,7 @@ export function PersonFilmography({
               shape="pill"
               width="full"
               intent="neutral"
-              className="cine-press mt-3"
+              className="cine-press ui-still mt-3"
               onClick={() => setExpanded(new Set(expanded).add(expandKey))}
               type="button"
             >

@@ -66,18 +66,14 @@ export function isHttpsRequest(headers: Headers, protocol?: string): boolean {
   return (forwarded || protocol?.replace(/:$/, "")) === "https";
 }
 
-/** TV lands on main piece by piece; users see it once this is "true". */
 export const TV_ENABLED = process.env.NEXT_PUBLIC_TV_ENABLED === "true";
 
-/** Remembers the last Films/Shows vitrin a visitor picked on a profile. */
 export const VITRIN_COOKIE_NAME = "GUFFIN_VITRIN";
 
-/** Sentry's DSN; Sentry stays off when it is unset. Public: the browser needs it too. */
 export function getSentryDsn(): string | null {
   return trimToNull(process.env.NEXT_PUBLIC_SENTRY_DSN);
 }
 
-/** The DSN's ingest origin, for the CSP's connect-src. */
 export function getSentryOrigin(): string | null {
   const dsn = getSentryDsn();
   if (!dsn) return null;

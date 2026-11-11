@@ -145,10 +145,6 @@ export function Pagination({
   );
 }
 
-/**
- * Below the desktop width the tabs sit on two balanced rows whose tabs share
- * their row equally: a 60-column grid divides evenly for 3, 4, 5 or 6 a row.
- */
 function spanOf(index: number, count: number): number {
   const first = Math.ceil(count / 2);
   return Math.floor(60 / (index < first ? first : count - first));
@@ -279,7 +275,7 @@ export function TileActions({
   tmdbId: number;
 }): JSX.Element {
   const router = useRouter();
-  const { busy, confirming, confirmThen, run } = useConfirmedAction({
+  const { busy, confirmThen, run } = useConfirmedAction({
     fallback: "Something went wrong",
     name: "TileActions",
     onSuccess: () => router.refresh(),
@@ -287,22 +283,33 @@ export function TileActions({
 
   const mediaType = source.mediaType ?? "movie";
   const remove = () =>
-    confirmThen(() =>
-      source.kind === "list"
-        ? setMovieListMembershipAction(tmdbId, source.listId, false, mediaType)
-        : setMovieLibraryAction(
-            tmdbId,
-            LIBRARY_KIND_BY_SOURCE[source.kind],
-            false,
-            mediaType,
-          ),
+    void confirmThen(
+      {
+        action: "Remove",
+        description: `It leaves your ${TILE_ACTION_LABELS[source.kind]}`,
+        title: `Remove ${title}?`,
+      },
+      () =>
+        source.kind === "list"
+          ? setMovieListMembershipAction(
+              tmdbId,
+              source.listId,
+              false,
+              mediaType,
+            )
+          : setMovieLibraryAction(
+              tmdbId,
+              LIBRARY_KIND_BY_SOURCE[source.kind],
+              false,
+              mediaType,
+            ),
     );
 
   return (
     <div
       className={cn(
         "absolute top-2 right-2 z-10 flex gap-1.5 ui-fade",
-        confirming || busy
+        busy
           ? "opacity-100"
           : "opacity-0 group-focus-within/tile:opacity-100 group-hover/tile:opacity-100",
       )}
@@ -317,7 +324,7 @@ export function TileActions({
           shape="thumb"
           size="sm"
           disabled={busy}
-          loading={busy && !confirming}
+          loading={busy}
           onClick={() =>
             run(() => setFavoriteAction(tmdbId, !pinned, mediaType))
           }
@@ -329,27 +336,15 @@ export function TileActions({
         </Button>
       ) : null}
       <Button
-        aria-label={
-          confirming
-            ? `Confirm removing ${title}`
-            : `Remove ${title} from ${TILE_ACTION_LABELS[source.kind]}`
-        }
+        aria-label={`Remove ${title} from ${TILE_ACTION_LABELS[source.kind]}`}
         icon
-        intent={confirming ? "armed" : "glass"}
+        intent="glass"
         shape="thumb"
         size="sm"
         disabled={busy}
-        loading={busy && confirming}
         onClick={remove}
       >
-        <Icon
-          icon={
-            confirming
-              ? "solar:check-read-linear"
-              : "solar:trash-bin-trash-bold"
-          }
-          size={15}
-        />
+        <Icon icon="solar:trash-bin-trash-bold" size={15} />
       </Button>
     </div>
   );

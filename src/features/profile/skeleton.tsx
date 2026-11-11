@@ -13,7 +13,9 @@ import {
 import { cn } from "@/design/foundations/cn";
 import {
   CALENDAR_CELL,
-  DIARY_COLUMNS,
+  DIARY_CALENDAR_GRID,
+  DIARY_DAY_COLUMNS,
+  DIARY_LAYOUT,
   PROFILE_CONTAINER_CLASS,
   PROFILE_GRID,
   PROFILE_ROW,
@@ -471,62 +473,53 @@ function Activity(): JSX.Element {
 
 function Diary(): JSX.Element {
   return (
-    <div className="w-full">
-      <div
-        className={`${DIARY_COLUMNS} hidden border-b border-rule pb-2 sm:grid`}
-      >
-        {["1.5rem", "1.75rem", "3rem", "3.5rem", "3rem"].map((width, index) => (
-          <div
-            className={cn(
-              "flex h-4 items-center",
-              index > 2 && "justify-center",
-            )}
-            key={width + index}
-          >
-            <Bar className="h-1.5" width={width} />
-          </div>
-        ))}
-        <span />
-      </div>
-      <ul className="divide-y divide-rule">
-        {SKELETON_LEDGER.map((row, index) => (
-          <li className={`${DIARY_COLUMNS} py-3`} key={index}>
-            <div className="flex flex-col">
-              {row.day ? (
-                <>
-                  <div className="flex h-6 items-center">
-                    <SkeletonBlock className="h-3.5 w-5 rounded-mark" />
-                  </div>
-                  <div className="flex h-4 items-center">
-                    <Bar className="h-1.5" width="1.5rem" />
-                  </div>
-                </>
-              ) : null}
+    <div className="flex w-full flex-col gap-fib-5">
+      <div className="flex flex-col gap-fib-4 border-b border-rule pb-fib-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-col gap-3">
+          <Bar className="h-1.5" width="4.5rem" />
+          <SkeletonBlock className="h-14 w-56 rounded-mark sm:h-[4.5rem] sm:w-72" />
+        </div>
+        <div className="flex gap-fib-5">
+          {["2rem", "1.75rem", "2.5rem"].map((width) => (
+            <div className="flex flex-col gap-2" key={width}>
+              <SkeletonBlock className="h-6 rounded-mark" style={{ width }} />
+              <Bar className="h-1.5" width="2.5rem" />
             </div>
-            <div className="flex min-w-0 items-center gap-3">
-              <SkeletonBlock className="h-[3.25rem] w-9 shrink-0 rounded-thumb" />
-              <div className="flex min-w-0 flex-col">
-                <div className="flex h-5 items-center">
-                  <Bar className="h-2 max-w-full" width={row.title} />
-                </div>
-                <div className="flex h-4 items-center">
-                  <Bar width="2rem" />
+          ))}
+        </div>
+      </div>
+      <div className={DIARY_LAYOUT}>
+        <div className={DIARY_CALENDAR_GRID}>
+          {Array.from({ length: 35 }, (_, index) => (
+            <SkeletonBlock
+              className={cn(
+                "aspect-[2/3] rounded-thumb",
+                index % 3 !== 0 && "opacity-40",
+              )}
+              key={index}
+            />
+          ))}
+        </div>
+        <ul className="flex min-w-0 flex-col">
+          {SKELETON_LEDGER.filter((row) => row.day).map((row, index) => (
+            <li className={`${DIARY_DAY_COLUMNS} py-fib-3`} key={index}>
+              <div className="flex flex-col gap-2 pt-2.5">
+                <SkeletonBlock className="h-7 w-8 rounded-mark sm:h-10 sm:w-10" />
+                <Bar className="h-1.5" width="1.5rem" />
+              </div>
+              <div className="flex min-w-0 items-center gap-fib-3 py-2.5 sm:gap-fib-4">
+                <SkeletonBlock className="h-[4.5rem] w-12 shrink-0 rounded-thumb sm:h-[5.25rem] sm:w-14" />
+                <div className="flex min-w-0 flex-1 flex-col gap-2">
+                  <div className="flex h-5 items-center">
+                    <Bar className="h-2 max-w-full" width={row.title} />
+                  </div>
+                  <SkeletonBlock className="h-3 w-[4.5rem] rounded-full" />
                 </div>
               </div>
-            </div>
-            <div className="hidden h-4 items-center sm:flex">
-              <SkeletonBlock className="h-3 w-[4.5rem] rounded-full" />
-            </div>
-            <div className="hidden justify-center sm:flex">
-              <SkeletonBlock className="size-4 rounded-full" />
-            </div>
-            <div className="hidden justify-center sm:flex">
-              <SkeletonBlock className="size-4 rounded-full" />
-            </div>
-            <span />
-          </li>
-        ))}
-      </ul>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }

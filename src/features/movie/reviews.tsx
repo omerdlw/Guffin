@@ -560,7 +560,7 @@ export function MovieReviews({
             shape="pill"
             width="full"
             intent="neutral"
-            className="cine-press"
+            className="cine-press ui-still"
             disabled={loadingMore}
             onClick={loadMore}
             type="button"

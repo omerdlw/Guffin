@@ -15,7 +15,6 @@ export type TvClient = SupabaseClient<Database>;
 
 export type ShowStatus = (typeof SHOW_STATUSES)[number];
 
-/** The viewer's own tracking of a show. */
 export interface ShowProgress {
   airedEpisodes: number | null;
   lastEpisode: number | null;
@@ -25,7 +24,6 @@ export interface ShowProgress {
   watchedEpisodes: number;
 }
 
-/** "s:e" keys of the episodes the viewer ticked. */
 export type WatchedEpisodeKeys = string[];
 
 export interface EpisodeRatingMark {
@@ -40,14 +38,12 @@ export interface ShowTracking {
   watched: WatchedEpisodeKeys;
 }
 
-/** A type alias, not an interface, so it passes as RPC JSON. */
 export type AiredEpisode = {
   e: number;
   r: number | null;
   s: number;
 };
 
-/** A show in the viewer's "continue watching" row. */
 export interface ContinueItem {
   airedEpisodes: number | null;
   lastEpisode: number | null;

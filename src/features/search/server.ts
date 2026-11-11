@@ -304,7 +304,6 @@ async function standoutCredits(
   };
 }
 
-/** Shows by title, kept to the ones the catalog layer lets search show. */
 export async function searchShowHits(
   query: string,
   options: SearchOptions = {},

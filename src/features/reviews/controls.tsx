@@ -72,7 +72,6 @@ export function ReviewBody({
 }: {
   content: string;
   isSpoiler: boolean;
-  /** The reveal control's shape, to match the surface it sits on. */
   revealShape?: "card" | "pill";
 }): JSX.Element {
   const [revealed, setRevealed] = useState(false);
@@ -115,7 +114,7 @@ export function ReviewActions({
   signedIn: boolean;
 }): JSX.Element {
   const router = useRouter();
-  const { busy, confirming, confirmThen } = useConfirmedAction({
+  const { busy, confirmThen } = useConfirmedAction({
     fallback: "Could not delete this review",
     name: "ReviewActions delete",
     onSuccess: () => {
@@ -137,7 +136,14 @@ export function ReviewActions({
     signedIn,
   });
   const { count, liked } = likes;
-  const remove = () => confirmThen(() => deleteReviewAction(id));
+  const remove = () =>
+    void confirmThen(
+      {
+        description: "Your review is removed for good",
+        title: "Delete this review?",
+      },
+      () => deleteReviewAction(id),
+    );
 
   const quiet = "text-ink-muted";
 
@@ -172,25 +178,16 @@ export function ReviewActions({
       ) : null}
       {isOwner ? (
         <Button
-          aria-label={
-            confirming ? "Confirm deleting this review" : "Delete this review"
-          }
-          className={confirming ? "text-danger" : quiet}
+          aria-label="Delete this review"
+          className={quiet}
           icon
           intent="ghost"
           size="sm"
           disabled={busy || likes.busy}
-          loading={busy && confirming}
+          loading={busy}
           onClick={remove}
         >
-          <Icon
-            icon={
-              confirming
-                ? "solar:check-read-linear"
-                : "solar:trash-bin-trash-bold"
-            }
-            size={14}
-          />
+          <Icon icon="solar:trash-bin-trash-bold" size={14} />
         </Button>
       ) : null}
     </div>

@@ -1,19 +1,3 @@
-/*
- * Palettes. Each theme declares every role on its own terms; neither is
- * computed from the other. Dark is near-black with off-white ink, and its
- * surfaces are light breathed onto the page. Light is paper with near-black
- * ink, and its layers are lifted sheets of frosted white with crisp edges, so
- * it reads as high contrast rather than as the dark theme turned over.
- *
- * Tune a value here and every component that names the role follows. When a
- * theme needs a role the other does not, add it to both, with the value that
- * is right for each.
- *
- * The theme is `data-theme` on <html>, set before first paint
- * (src/lib/theme.ts). Dark is the fallback. Text on a photograph takes
- * `.on-photo`, which keeps the dark palette for that subtree in either theme.
- */
-
 @layer base {
   :root,
   :root[data-theme="light"] .on-photo {
@@ -48,7 +32,6 @@
     --on-accent: var(--page);
     --sheen-primary: 0 0 0;
 
-    /* 3:1 against the page or better (WCAG 1.4.11): 4.3:1 on black */
     --focus-ring: rgb(var(--ink-rgb) / 0.45);
     --focus-ring-grade: rgb(var(--grade, var(--ink-rgb)) / 0.7);
     --selection: rgb(var(--grade, var(--ink-rgb)) / 0.3);
@@ -60,7 +43,6 @@
     --danger: oklch(70.4% 0.191 22.216);
     --award: #e9c46a;
 
-    /* the room: tint washes, region glows, sheen, vignette */
     --wash-tint-a: 10%;
     --wash-tint-b: 5%;
     --wash-top: 0%;
@@ -72,13 +54,10 @@
     --vignette-a: 0.4;
     --vignette-edge: 0.1;
 
-    /* bridges for @omerdlw/base-framework, which reads these by name */
     --white: var(--ink);
     --black: var(--page);
   }
 
-  /* The page is the ambient shadow's hue lifted to paper (L 0.95); its
-     chroma follows the picture, kept between a hint and a clear tint. */
   :root[data-theme="light"] {
     color-scheme: light;
 
@@ -88,14 +67,12 @@
         clamp(0.012, calc(c * 0.7), 0.045) h
     );
 
-    /* deeper ink and wider steps than dark: paper needs more contrast */
     --ink: rgb(var(--ink-rgb));
     --ink-lead: rgb(var(--ink-rgb) / 0.9);
     --ink-body: rgb(var(--ink-rgb) / 0.74);
     --ink-muted: rgb(var(--ink-rgb) / 0.56);
     --ink-faint: rgb(var(--ink-rgb) / 0.32);
 
-    /* surfaces are a whisper of ink; edges carry the definition */
     --fill: rgb(var(--ink-rgb) / 0.04);
     --fill-hover: rgb(var(--ink-rgb) / 0.07);
     --fill-active: rgb(var(--ink-rgb) / 0.1);
@@ -106,9 +83,6 @@
     --line: rgb(var(--ink-rgb) / 0.12);
     --plate: color-mix(in oklab, #fff 70%, var(--page));
 
-    /* layers are the paper's own tint, barely lifted, the way dark glass is
-       a breath of ink on the page: the dock and menus read as the page's own
-       colour, set apart by their edge */
     --glass: color-mix(in oklab, #fff 8%, var(--page));
     --veil: color-mix(in oklab, var(--page) 60%, transparent);
     --dim: rgb(var(--ink-rgb) / 0.2);
@@ -119,8 +93,6 @@
     --on-accent: #fff;
     --sheen-primary: 255 255 255;
 
-    /* 4:1 on paper. The grade is as light as the paper, so it cannot carry
-       the ring here: a graded page keeps the ink ring. */
     --focus-ring: rgb(var(--ink-rgb) / 0.55);
     --focus-ring-grade: var(--focus-ring);
 
@@ -143,7 +115,6 @@
     --vignette-edge: 0.02;
   }
 
-  /* A photograph is dark whatever the theme. */
   :root[data-theme="light"] .on-photo {
     --page: #0b0c0e;
   }

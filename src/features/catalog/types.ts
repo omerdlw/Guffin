@@ -5,7 +5,6 @@ export type { MediaType };
 
 export type QualityFlag = (typeof QUALITY_FLAGS)[number];
 
-/** Where a title is about to be shown: discovery is strict, a page is not. */
 export type QualitySurface = "discovery" | "search" | "detail";
 
 export interface Quality {
@@ -14,7 +13,6 @@ export interface Quality {
   score: number;
 }
 
-/** One shape for a film or a show, whatever TMDB endpoint it came from. */
 export interface MediaItem {
   adult: boolean;
   backdropPath: string | null;
@@ -41,7 +39,6 @@ export interface MediaItem {
   year: number | null;
 }
 
-/** Whatever TMDB gives for a title: a summary, a search hit or full details. */
 export interface RawTitle {
   adult?: boolean | null;
   backdropPath?: string | null;
@@ -67,15 +64,12 @@ export interface RawTitle {
 }
 
 export interface QualityThresholds {
-  /** Bayesian prior weight: votes a title needs before its own average counts. */
   bayesianWeight: number;
-  /** The prior average a title is pulled toward. */
   meanRating: number;
   minEpisodes: number;
   minVotes: number;
 }
 
-/** Guffin's own signal for a title (media_stats), when there is one. */
 export interface CommunitySignal {
   liked: number;
   listed: number;
@@ -108,7 +102,6 @@ export interface CatalogRow {
   vote_count: number;
 }
 
-/** A golden-set case: a title whose verdict must not drift. */
 export interface GoldenCase {
   expected: boolean;
   raw: RawTitle;

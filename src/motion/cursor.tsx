@@ -76,7 +76,6 @@ function inkOf(element: HTMLElement): CursorInk | null {
   return ink;
 }
 
-/* A control's corner does not change while it is pointed at; read it once. */
 const corners = new WeakMap<HTMLElement, number>();
 function cornerOf(element: HTMLElement): number {
   let corner = corners.get(element);
@@ -280,12 +279,6 @@ function Reticle() {
     let owed = 0;
     let raf = 0;
     let released: HTMLElement | null = null;
-    /*
-     * The box of the element the cursor holds. Reading it forces style and
-     * layout whenever the page has written styles this frame, so it is read
-     * when something could have moved it (the pointer, a scroll, a mutation)
-     * and otherwise only every CURSOR_REREAD_MS while the cursor still moves.
-     */
     let held: { at: number; box: CursorBox; target: HTMLElement } | null = null;
     let steady = false;
     let touched = true;

@@ -26,7 +26,6 @@ import { cn } from "@/design/foundations/cn";
 import { PROVIDER_LABELS } from "./constants";
 import { providerOf } from "./utils";
 
-/** A provider's own glyph, bare: no tile behind it. */
 function ProviderGlyph({ provider }: { provider: OAuthProvider }) {
   return (
     <span className="center size-8 shrink-0 text-ink-body ui-fade group-hover/connect:text-ink group-focus-visible/connect:text-ink">

@@ -20,10 +20,6 @@ type NextLinkProps = Omit<ComponentProps<typeof NextLink>, "href"> & {
 
 export type LinkProps = NextLinkProps & LinkVariants;
 
-/**
- * An in-app link. Unstyled by default (it wraps a card, a row, a poster);
- * pass a `variant` to draw it as text.
- */
 export function Link({ className, variant, ...props }: LinkProps): JSX.Element {
   return (
     <NextLink
@@ -36,12 +32,6 @@ export function Link({ className, variant, ...props }: LinkProps): JSX.Element {
 export type LinkButtonProps = NextLinkProps &
   ButtonVariants & { dock?: boolean; onNavigated?: () => void };
 
-/**
- * A link drawn as a button: the same intents, sizes and shapes. With `dock`,
- * it navigates through the dock.
- *
- *   <LinkButton href={movieHref(id)} intent="primary" shape="pill" size="lg">
- */
 export function LinkButton({
   className,
   dock = false,
@@ -69,7 +59,6 @@ export type DockLinkProps = Omit<NextLinkProps, "onClick" | "prefetch"> &
     onNavigated?: () => void;
   };
 
-/** A link that navigates through the dock, so the stage can leave first. */
 export function DockLink({
   className,
   href,
@@ -95,7 +84,6 @@ export interface ExternalLinkProps
   ref?: Ref<HTMLAnchorElement>;
 }
 
-/** A link that leaves the site: a new tab, no opener, no referrer. */
 export function ExternalLink({
   className,
   rel = "noopener noreferrer",
@@ -118,7 +106,6 @@ export interface TextButtonProps
   ref?: Ref<HTMLButtonElement>;
 }
 
-/** A button that reads as a link: an action inside text or a section header. */
 export function TextButton({
   className,
   type = "button",
@@ -138,7 +125,6 @@ export function TextButton({
   );
 }
 
-/** A fact value that links somewhere, through the dock. */
 export function FactLink({
   children,
   href,

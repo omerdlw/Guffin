@@ -1,6 +1,6 @@
 import type { JSX } from "react";
-import { SpotlightLoading } from "@/features/spotlights/shell";
+import { TunnelSkeleton } from "@/features/spotlights/skeleton";
 
 export default function Loading(): JSX.Element {
-  return <SpotlightLoading />;
+  return <TunnelSkeleton />;
 }

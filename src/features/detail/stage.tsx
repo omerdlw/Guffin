@@ -69,12 +69,6 @@ export function DetailStage({
   const [set, choose] = useState<string | null>(null);
   const wall = useMemo(() => ({ choose, set }), [set]);
 
-  /*
-   * While the page scrolls, pictures slide under a resting pointer and each
-   * one would re-grade the whole room (a restyle of every element, every
-   * frame of the drift). The last wish is kept and granted once the page
-   * has come to rest.
-   */
   const pending = useRef<string | null | undefined>(undefined);
   const setLead = useCallback((src: string | null) => {
     if (document.documentElement.hasAttribute(SCROLLING)) {
@@ -292,11 +286,6 @@ export function StickyAside({
   className?: string;
 }) {
   const ref = useRef<HTMLElement>(null);
-  /*
-   * The aside clears the dock at rest only. A surface or an action panel
-   * (search results) grows the dock over the page; following that height
-   * would slide the aside up under the reader on every keystroke.
-   */
   const resting = useOptionalDockState(
     (state) => state.surfacePhase === "idle" && !state.activeItem?.action,
   );

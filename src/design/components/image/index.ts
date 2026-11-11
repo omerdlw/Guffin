@@ -1,6 +1,6 @@
-export { Image, type ImageProps } from "./image";
 export {
-  imageFrameVariants,
-  imageVariants,
+  Image,
+  type ImageProps,
   type ImageVariants,
-} from "./variants";
+} from "@omerdlw/base-framework/ui";
+export { imageFrameVariants, imageVariants } from "./variants";

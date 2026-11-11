@@ -5,7 +5,6 @@ import { report } from "@omerdlw/base-framework/utils";
 import Link from "next/link";
 import { Button, buttonVariants } from "../button";
 
-/** The body of a route's `error.tsx`: reports the error, offers a retry. */
 export function RouteError({
   error,
   message,

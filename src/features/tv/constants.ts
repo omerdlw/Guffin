@@ -19,7 +19,6 @@ export const SHOW_STATUS_ICONS = Object.freeze({
   dropped: "solar:close-circle-bold",
 } as const);
 
-/** The order the status surface lists them in, as a viewer lives them. */
 export const SHOW_STATUS_ORDER = [
   "watching",
   "paused",
@@ -34,21 +33,16 @@ export const SHOW_STATUS_DETAILS = Object.freeze({
   dropped: "Stop following it; what you watched stays",
 } as const);
 
-/** The idle icon of the status action, before a show is tracked. */
 export const SHOW_TRACK_ICON = "solar:play-circle-linear";
 
-/** Fired after a status, an episode or a season changes for a show. */
 export const SHOW_EVENTS = Object.freeze({ CHANGE: "tv:change" });
 
-/** Specials live in season 0: they never count toward progress. */
 export const SPECIALS_SEASON = 0;
 
-/** Most episodes one tick request may touch (a whole long season). */
 export const EPISODES_PER_REQUEST_MAX = 500;
 
 export const CONTINUE_WATCHING_LIMIT = 12;
 
-/** Seasons whose still the shelf reads; longer runs reuse the backdrop. */
 export const SEASON_STILL_LIMIT = 30;
 
 export const TRACKING_ERRORS: Record<string, string> = {

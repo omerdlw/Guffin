@@ -8,7 +8,6 @@ import type {
 import { type MediaCardAspect } from "@/design/components/media-card";
 
 export interface FilmographyCredit {
-  /** Shows only: the person's episodes on it, so a regular outranks a guest. */
   episodes?: number;
   id: number;
   key: string;
@@ -73,10 +72,8 @@ export interface AwardTotals {
 
 export type SourceCredit = PersonCastCredit | PersonCrewCredit;
 
-/** A show credit dated by the person's first episode on it. */
 export type TvSourceCredit = PersonTvCastCredit | PersonTvCrewCredit;
 
-/** What every film or show credit shares, for the lists built from both. */
 export type CreditLike = Pick<
   SourceCredit,
   | "id"
@@ -88,7 +85,6 @@ export type CreditLike = Pick<
   | "voteCount"
 >;
 
-/** One value for films and one for shows. */
 export type ByMedium<T> = Record<MediaType, T>;
 
 export interface CareerFilm {
@@ -103,7 +99,6 @@ export interface PersonViewState {
   awards: AwardTotals | null;
   focusYear: number | null;
   hasTimeline: boolean;
-  /** The kinds of work this person has, films first. */
   media: readonly MediaType[];
   openTimeline: (year: number) => void;
   toggle: (view: Exclude<PersonViewKey, "main">) => void;

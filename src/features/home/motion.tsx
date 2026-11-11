@@ -8,60 +8,49 @@ import { defineScore } from "@/motion/score";
 import { cn } from "@/design/foundations/cn";
 import { ambientImage } from "./utils";
 
-/*
- * The home page is a programme: a gate that opens on the week's film, then a
- * running order of chapters. Each chapter is its own shape, so each has its
- * own beat; the score only says what a part is made of and who follows whom.
- */
 const HOME = defineScore({
+  margin: "0px 0px -13% 0px",
+  ordered: true,
+  tight: true,
   tempo: PAGE_TEMPO,
   cast: {
     backdrop: { matter: "plate", depth: 1 },
-    reason: "light",
-    tally: "light",
-    count: { matter: "light", enter: "crisp", leave: "dim" },
-    title: { matter: "ink", enter: "crisp", leave: "dim", drift: 1 },
-    facts: "light",
-    logline: { matter: "ink", leave: "fade" },
-    open: "glass",
-    social: "glass",
-    reel: { matter: "paper", enter: "lift", cadence: "even" },
+    eyebrow: "light",
+    headline: { matter: "light", enter: "crisp", leave: "dim" },
+    copy: { matter: "ink", enter: "read", leave: "fade" },
+    actions: "glass",
+    credit: "light",
     header: { matter: "ink", enter: "still" },
-    statement: { matter: "ink", enter: "crisp", leave: "dim", cadence: "even" },
-    figure: "light",
+    live: "light",
+    poster: { matter: "paper", enter: "lift", cadence: "even" },
+    verb: { matter: "paper", enter: "crisp", leave: "dim", cadence: "even" },
     slide: { matter: "paper", enter: "door" },
-    row: { matter: "paper", enter: "crisp", leave: "dim", cadence: "stairs" },
-    bar: { matter: "light", enter: "wipe" },
-    note: { matter: "ink", enter: "crisp" },
-    lead: { matter: "ink", enter: "read", cadence: "even" },
     cover: { matter: "paper", enter: "crisp" },
     quote: { matter: "ink", enter: "crisp", cadence: "even" },
+    lead: { matter: "ink", enter: "read", cadence: "even" },
     byline: { matter: "ink", enter: "crisp" },
     review: "paper",
-    list: "paper",
-    member: "paper",
+    card: { matter: "paper", enter: "surface", cadence: "even" },
+    rank: { matter: "paper", enter: "crisp", leave: "dim", cadence: "even" },
+    list: { matter: "paper", enter: "surface", cadence: "even" },
+    member: { matter: "paper", enter: "surface", cadence: "even" },
     rule: { matter: "light", enter: "wipe" },
-    pitch: { matter: "ink", enter: "crisp", leave: "dim" },
-    point: { matter: "light", enter: "descend", cadence: "stairs" },
+    close: { matter: "ink", enter: "crisp", leave: "dim" },
   },
-  opening: ["backdrop"],
+  opening: [{ release: true }, "backdrop"],
   sections: {
-    feature: [
-      ["reason", "tally", "title"],
-      ["facts", "logline"],
-      ["open", "social"],
-    ],
-    reels: ["reel"],
-    statement: ["figure", ["statement", "count"]],
-    index: ["header", "row"],
+    opening: [["eyebrow", "headline"], "copy", ["actions", "credit"]],
+    logged: ["header", ["live", "poster"]],
+    craft: ["header", "verb"],
     row: ["header", "slide"],
     shelf: ["header"],
     slides: ["slide"],
     reviews: ["header", ["cover", "quote"], "lead", "byline", "review"],
-    rising: ["header", "row", "bar", "note"],
+    popular: ["header", "card"],
+    canon: ["header", "rank"],
     lists: ["header", "list"],
     members: ["header", "member"],
-    join: ["rule", "pitch", "point"],
+    join: ["rule", "close"],
   },
 });
 
@@ -72,7 +61,6 @@ export const HomePart = bound.Part;
 export const HomeSection = bound.Section;
 export const HomeText = bound.Text;
 const HomeHeader = bound.Header;
-export const HomeCount = bound.Count;
 export const HomeSwap = bound.Swap;
 
 interface Lighting {
@@ -85,10 +73,8 @@ const LightContext = createContext<Lighting>({
   lead: () => {},
 });
 
-/** The hero says which film the room is graded to. */
 export const useHomeLead = () => use(LightContext).lead;
 
-/** A film pointed at further down the page borrows the room for a moment. */
 export const useHomeGlimpse = () => use(LightContext).glimpse;
 
 export function HomeStage({
@@ -110,10 +96,6 @@ export function HomeStage({
   );
 }
 
-/**
- * A chapter's heading: the name set in the display face, then the rule and
- * whatever the chapter keeps by hand.
- */
 export function Heading({
   actions,
   className,

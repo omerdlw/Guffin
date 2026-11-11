@@ -17,7 +17,6 @@ export const SEARCH_TYPES = [
   "reviews",
 ] as const;
 
-/** The kinds this build searches: shows only while the TV flag is on. */
 export const ACTIVE_SEARCH_TYPES: readonly SearchType[] = TV_ENABLED
   ? SEARCH_TYPES
   : SEARCH_TYPES.filter((kind) => kind !== "shows");

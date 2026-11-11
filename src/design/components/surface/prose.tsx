@@ -1,7 +1,6 @@
 import { cn } from "../../foundations/cn";
 import { SURFACE_PANEL, SURFACE_SCROLL } from "./anatomy";
 
-/** Long text inside a surface: paragraphs on a panel that scrolls on its own. */
 export function SurfaceProse({ text }: { text: string }) {
   const paragraphs = text
     .split(/\n\s*\n/)

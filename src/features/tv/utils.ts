@@ -35,7 +35,6 @@ export function isAired(
   return Boolean(airDate && airDate <= today);
 }
 
-/** Regular seasons in order; specials are listed apart. */
 export function splitSeasons(seasons: readonly SeasonSummary[]): {
   regular: SeasonSummary[];
   specials: SeasonSummary | null;
@@ -74,7 +73,6 @@ export function toShowProgress(row: ProgressRow | null): ShowProgress | null {
   };
 }
 
-/** "S2 · E5" for the last episode ticked, or null before the first. */
 export function formatEpisodeCode(
   season: number | null,
   episode: number | null,
@@ -134,7 +132,6 @@ export function getShowCertification(
   );
 }
 
-/** "2008–2013 · 5 seasons · AMC" for the dock card. */
 export function describeShow(
   show: Pick<
     ShowDetails,
@@ -167,7 +164,6 @@ export function getShowRecommendations(
     .slice(0, limit);
 }
 
-/** Cast with episode counts; crew ranked by the jobs that shape a show. */
 export function toShowPersonEntries(show: Pick<ShowDetails, "credits">): {
   cast: PersonEntry[];
   crew: PersonEntry[];
@@ -215,7 +211,6 @@ export function formatEpisodeDate(date: string | null): string | null {
     : null;
 }
 
-/** Days until a date (0 = today), or null if it is in the past. */
 export function daysUntil(
   date: string | null,
   today: string = new Date().toISOString().slice(0, 10),

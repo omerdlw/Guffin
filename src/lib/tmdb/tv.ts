@@ -31,7 +31,6 @@ export interface ShowDetailsOptions {
 }
 
 export interface SeasonOptions extends ShowDetailsOptions {
-  /** A season of a show still on air goes stale sooner. */
   airing?: boolean;
 }
 
@@ -59,7 +58,6 @@ const SHOW_DISCOVER_SORTS = [
 ] as const;
 export type ShowDiscoverSort = (typeof SHOW_DISCOVER_SORTS)[number];
 
-/** Shows collect fewer votes than films, so the floors sit lower. */
 const SHOW_MIN_VOTES: Record<ShowDiscoverSort, number> = {
   "popularity.desc": 50,
   "vote_count.desc": 0,
@@ -67,7 +65,6 @@ const SHOW_MIN_VOTES: Record<ShowDiscoverSort, number> = {
   "first_air_date.desc": 15,
 };
 
-/** Unscripted genres never reach a discovery request (decision 10.4). */
 const SHOW_WITHOUT_GENRES = [
   GENRE.documentary,
   GENRE.news,
@@ -237,7 +234,6 @@ export function createTvApi(transport: TmdbTransport): TvApi {
 
       return transport.request({
         path: `/tv/${list}`,
-        // airing lists follow a clock: pin it so results do not drift by viewer
         query: { language, page, timezone: "America/New_York" },
         schema: showPageSchema,
         revalidate: TMDB_REVALIDATE.feed,

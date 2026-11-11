@@ -30,7 +30,6 @@ export function isMediaType(value: unknown): value is MediaType {
   return (MEDIA_TYPES as readonly unknown[]).includes(value);
 }
 
-/** `?v=tv` and friends: anything that is not "tv" reads as a film. */
 export function parseMediaType(value: unknown): MediaType {
   return value === "tv" ? "tv" : "movie";
 }
@@ -46,7 +45,6 @@ const cleanText = (value: string | null | undefined) => {
   return trimmed ? trimmed : null;
 };
 
-/** Bayesian average: few votes pull a title toward the prior mean. */
 export function bayesianRating(
   average: number | null,
   votes: number,
@@ -59,7 +57,6 @@ export function bayesianRating(
   );
 }
 
-/** Every reason a title is weak or not a film/show at all. */
 export function qualityFlags(
   item: Omit<MediaItem, "quality">,
   today: string = new Date().toISOString().slice(0, 10),
@@ -109,7 +106,6 @@ export function communityScore(signal: CommunitySignal | null): number {
   return (signal.ratingAverage / 5) * confidence;
 }
 
-/** 0–1 discovery score: Bayesian rating, popularity and Guffin's own signal. */
 export function qualityScore(
   item: Pick<
     MediaItem,
@@ -164,7 +160,6 @@ export function assessQuality(
   };
 }
 
-/** Raw TMDB → MediaItem. Missing fields and fallbacks are settled here only. */
 export function toMediaItem(
   raw: RawTitle,
   mediaType: MediaType,
@@ -202,7 +197,6 @@ export function toMediaItem(
   return { ...base, quality: assessQuality(base, community) };
 }
 
-/** Keep the titles a surface may show, in their original order. */
 export function filterEligible<T extends RawTitle>(
   items: readonly T[],
   mediaType: MediaType,

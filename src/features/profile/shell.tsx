@@ -16,6 +16,7 @@ import {
   useState,
   useTransition,
 } from "react";
+import { usePathname } from "next/navigation";
 import { globalEvents } from "@omerdlw/base-framework/events";
 import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
 import { REGISTRY_SOURCES, usePage } from "@omerdlw/base-framework/kernel";
@@ -55,6 +56,7 @@ import { AccountPart, AccountSection, useAccountStage } from "./motion";
 import type {
   AccountData,
   AccountDockConfig,
+  AccountDockEntry,
   AccountDockSlots,
   AccountShellProps,
 } from "./types";
@@ -65,9 +67,11 @@ const AccountDockContext = createContext<AccountDockSlots | null>(null);
 function AccountDockProvider({
   account,
   children,
+  isOwner,
 }: {
   account: AccountData;
   children: ReactNode;
+  isOwner: boolean;
 }) {
   const { avatarUrl, displayName, username } = account;
   const card = useMemo(
@@ -78,13 +82,16 @@ function AccountDockProvider({
     }),
     [avatarUrl, displayName, username],
   );
-  const [pageDock, setPageDock] = useState<AccountDockConfig | null>(null);
+  const pathname = usePathname();
+  const [entry, setPageDock] = useState<AccountDockEntry | null>(null);
+  const pageDock = entry?.path === pathname ? entry.dock : null;
   const slots = useMemo(() => ({ setPageDock }), []);
-  /* The card is always this account's: a page adds its action to it. Without
-     a config the dock falls back to the static "Account" placeholder. */
   const config = useMemo(
-    () => ({ ambient: false, dock: { ...card, ...pageDock } }),
-    [card, pageDock],
+    () =>
+      isOwner && !pageDock
+        ? { ambient: false }
+        : { ambient: false, dock: { ...card, ...pageDock } },
+    [card, isOwner, pageDock],
   );
   usePage(config, { priority: 260 });
 
@@ -93,11 +100,10 @@ function AccountDockProvider({
 
 export function useAccountDock(dock: AccountDockConfig | null): void {
   const setPageDock = use(AccountDockContext)?.setPageDock;
+  const path = usePathname();
   useLayoutEffect(() => {
-    if (!setPageDock) return;
-    setPageDock(dock);
-    return () => setPageDock(null);
-  }, [dock, setPageDock]);
+    setPageDock?.({ dock, path });
+  }, [dock, path, setPageDock]);
 }
 
 function useFollowToggle({
@@ -301,7 +307,7 @@ export function AccountShell({
         initialFollowStatus={initialFollowStatus}
         isOwner={isOwner}
       />
-      <AccountDockProvider account={activeAccount}>
+      <AccountDockProvider account={activeAccount} isOwner={isOwner}>
         <AccountLayout
           account={activeAccount}
           followersCount={followersCount}

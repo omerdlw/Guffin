@@ -107,10 +107,6 @@ export function Facts({
   );
 }
 
-/**
- * The countdown rail: a tick a film, No. 100 at the left and No. 1 at the
- * right. Seen films stand taller, and the film in the gate tallest.
- */
 export function Rail({
   films,
   onPick,

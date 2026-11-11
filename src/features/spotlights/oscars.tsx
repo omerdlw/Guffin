@@ -38,11 +38,9 @@ const TICK_OUT = 292;
 const BAND_IN = 244;
 const DRAG_SLOP = 4;
 
-/** Degrees clockwise from 12 o'clock for a point relative to the ring centre. */
 const bearing = (dx: number, dy: number) =>
   (Math.atan2(dx, -dy) * 180) / Math.PI;
 const wrap = (n: number, m: number) => ((n % m) + m) % m;
-/** The value equal to `to` (mod 360) closest to `from`. */
 const near = (from: number, to: number) =>
   from + wrap(to - from + 180, 360) - 180;
 
@@ -99,7 +97,6 @@ function Ring({
       ? value.set(to)
       : animate(value, to, { damping: 30, stiffness: 260, type: "spring" });
 
-  /* The chosen ceremony always rests at 12 o'clock. */
   useEffect(() => {
     if (hand.current?.moved) return;
     const controls = glide(turn, near(turn.get(), -index * gap));
@@ -113,8 +110,10 @@ function Ring({
       event.clientY - (box.top + box.height / 2),
     );
   };
-  const tickAt = (deg: number) => wrap(Math.round((deg - turn.get()) / gap), count);
-  const aimAt = (i: number) => glide(aim, near(aim.get(), i * gap + turn.get()));
+  const tickAt = (deg: number) =>
+    wrap(Math.round((deg - turn.get()) / gap), count);
+  const aimAt = (i: number) =>
+    glide(aim, near(aim.get(), i * gap + turn.get()));
   const atTop = () => wrap(Math.round(-turn.get() / gap), count);
 
   return (
@@ -186,7 +185,6 @@ function Ring({
           );
         })}
       </g>
-      {/* The pointer, reshaped as a glass capsule around the tick it is on. */}
       <g className={styles.lens} data-lit={lit ? "" : undefined} ref={lens}>
         <rect
           className={cn(styles.capsule, held && styles.held)}
@@ -341,7 +339,6 @@ function Oscars({
           </div>
         </div>
       </SalonPart>
-
     </>
   );
 }

@@ -61,7 +61,6 @@ export function MovieGallery({
   title,
 }: {
   backdrops: MovieImage[];
-  /** Play with the opening instead of waiting to be scrolled to. */
   now?: boolean;
   posters: MovieImage[];
   title: string;

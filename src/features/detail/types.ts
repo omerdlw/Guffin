@@ -70,7 +70,6 @@ export interface AwardsLook {
   button?: string;
   logo?: string;
   poster?: string;
-  /** The shape the section's controls take (tabs, select). */
   shape?: "card" | "pill";
 }
 

@@ -88,7 +88,6 @@ export interface ActivityItem {
   id: string;
   list: { slug: string; title: string } | null;
   listOwner: string | null;
-  /** Episode activity: how many that day and the last one. */
   episodes?: { count: number; episode?: number; season?: number };
   mediaType: MediaType;
   posterPath: string | null;
@@ -476,8 +475,13 @@ export type AccountDockConfig = Partial<AccountDockCard> & {
   action?: ReactNode;
 };
 
+export interface AccountDockEntry {
+  dock: AccountDockConfig | null;
+  path: string;
+}
+
 export interface AccountDockSlots {
-  setPageDock: Dispatch<SetStateAction<AccountDockConfig | null>>;
+  setPageDock: Dispatch<SetStateAction<AccountDockEntry | null>>;
 }
 
 export interface AccountShellProps {

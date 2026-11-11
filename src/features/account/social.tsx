@@ -32,7 +32,7 @@ import {
   useSurfaceSearch,
 } from "@/design/components/surface";
 import { cn } from "@/design/foundations/cn";
-import { useConfirmStep } from "@/design/hooks/use-confirm";
+import { useConfirm } from "@/design/hooks/use-confirm";
 import { fetchFollowPage } from "./client";
 import {
   SOCIAL_EVENTS,
@@ -155,15 +155,20 @@ const UserAction = memo(function UserAction({
   userId,
 }: UserActionProps) {
   const busy = pending !== null;
-  const [confirming, setConfirming] = useConfirmStep();
+  const confirm = useConfirm();
 
-  /** Unfollowing arms on the first press and runs on the second. */
-  const act = (action: SocialAction) => {
-    if (action === "unfollow" && !confirming) {
-      setConfirming(true);
+  const act = async (action: SocialAction) => {
+    if (
+      action === "unfollow" &&
+      !(await confirm({
+        action: "Unfollow",
+        description: "You can follow them again any time",
+        icon: "solar:user-minus-bold",
+        title: "Unfollow this person?",
+        tone: "neutral",
+      }))
+    )
       return;
-    }
-    setConfirming(false);
     onAction(action, userId);
   };
 
@@ -172,19 +177,18 @@ const UserAction = memo(function UserAction({
     label: string,
     intent: "outline" | "primary",
   ) => {
-    const armed = action === "unfollow" && confirming;
     return (
       <Button
-        aria-label={armed ? `Confirm: ${label}` : label}
+        aria-label={label}
         className={SOCIAL_BUTTON}
-        intent={armed ? "armed" : intent}
+        intent={intent}
         shape="thumb"
         size="chrome"
         disabled={busy}
         loading={pending === action}
-        onClick={() => act(action)}
+        onClick={() => void act(action)}
       >
-        <span>{armed ? "Confirm" : label}</span>
+        <span>{label}</span>
       </Button>
     );
   };
@@ -366,8 +370,6 @@ function AccountSocialSurface({
   );
   const { searching } = search;
 
-  /* A search spans the whole list, so it pulls the remaining pages in; a
-     cursor that already failed is not retried until the search changes. */
   const attempted = useRef<unknown>(null);
   useEffect(() => {
     if (!searching) {

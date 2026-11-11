@@ -1,4 +1,3 @@
-/* The reticle's label: words roll in from the direction of travel. */
 @layer components {
   .in {
     animation: in var(--step-0) var(--ease-out-quint) both;

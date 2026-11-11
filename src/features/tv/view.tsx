@@ -117,7 +117,6 @@ function formatRuntime(minutes: number): string {
   return rest === 0 ? `${hours}h` : `${hours}h ${rest}m`;
 }
 
-/** One figure in the header's stat row, with its meaning on hover. */
 function Stat({
   icon,
   tip,
@@ -306,7 +305,6 @@ function Recommendations({ show }: { show: ShowDetails }): JSX.Element | null {
   );
 }
 
-/** Seasons in shelf order (regular, then specials) and the viewer's ticks. */
 function seasonShelf(show: ShowDetails, tracking: ShowTracking | null) {
   const { regular, specials } = splitSeasons(show.seasons);
   const seasons: SeasonSummary[] = specials ? [...regular, specials] : regular;
@@ -318,7 +316,6 @@ function seasonShelf(show: ShowDetails, tracking: ShowTracking | null) {
   return { regular, seasons, watchedBySeason };
 }
 
-/** Where the viewer stands, and the first unwatched aired episode after it. */
 function shelfProgress(
   show: ShowDetails,
   tracking: ShowTracking | null,
@@ -363,7 +360,6 @@ async function loadShow(id: number) {
     if (result.error.kind === "not_found") notFound();
     throw new Error(`Show ${id} is unavailable (${result.error.kind})`);
   }
-  // keeps the catalog fresh for discovery; never blocks the page on failure
   void ensureCatalogEntry("tv", id).catch(() => null);
   return { palette, show: result.data, stats, tracking };
 }
@@ -470,7 +466,6 @@ export async function ShowPageContent({
   );
 }
 
-/** The season's picture: its first aired still, else the show's backdrop. */
 function seasonPicture(season: SeasonDetails, show: ShowDetails) {
   const still =
     season.episodes.find((episode) => episode.stillPath)?.stillPath ?? null;

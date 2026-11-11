@@ -5,7 +5,6 @@ type Sentry = typeof import("@sentry/nextjs");
 
 const PRODUCTION = process.env.NODE_ENV === "production";
 
-/** Options every runtime (node, edge, browser) shares. */
 export function sentryOptions() {
   return {
     dsn: getSentryDsn() ?? undefined,
@@ -16,10 +15,6 @@ export function sentryOptions() {
   };
 }
 
-/**
- * Wraps a console sink so every `report()` also reaches Sentry, tagged with
- * its scope. Warnings become messages, errors become exceptions.
- */
 export function withSentry(sentry: Sentry, sink: ReportSink): ReportSink {
   return (scope, error, level) => {
     sink(scope, error, level);

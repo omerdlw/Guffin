@@ -150,10 +150,6 @@ function BiographyExcerpt({
         text={excerpt}
       />
       {truncated ? (
-        /*
-         * The link reads in as the paragraph's last word, so it lands right
-         * after the excerpt however long that is, never under empty lines.
-         */
         <DetailPart
           cadence="even"
           index={Number.MAX_SAFE_INTEGER}

@@ -33,7 +33,6 @@ export function ProgressBar({
   );
 }
 
-/** "S2 · E5 · 12/24" under a poster. */
 export function progressCaption(show: ContinueItem): string {
   const code = formatEpisodeCode(show.lastSeason, show.lastEpisode);
   const count = show.airedEpisodes

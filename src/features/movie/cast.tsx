@@ -316,7 +316,7 @@ export function MoviePeople({ cast, crew, now = true }: MoviePeopleProps) {
                 shape="pill"
                 width="full"
                 intent="neutral"
-                className="cine-press"
+                className="cine-press ui-still"
                 onClick={openAll}
               >
                 <Icon icon="solar:alt-arrow-right-linear" size={16} />

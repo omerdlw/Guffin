@@ -93,6 +93,14 @@ export interface FriendLog {
   watchedAt: string;
 }
 
+export interface RecentLog {
+  author: Member;
+  film: HomeFilm;
+  id: string;
+  rewatch: boolean;
+  watchedAt: string;
+}
+
 export interface SharedFilm extends HomeFilm {
   faces: Member[];
   friends: number;
@@ -115,6 +123,7 @@ export interface Circle {
   following: number;
   friends: FriendLog[];
   name: string;
+  username: string | null;
   picks: Picks | null;
   shared: SharedFilm[];
 }
@@ -124,7 +133,6 @@ export type PulseShelves = Pick<
   "lists" | "popular" | "rated" | "reviews" | "rising"
 >;
 
-/** The TV shelves; null while the TV flag is off. */
 export interface HomeShows {
   continueWatching: ContinueItem[];
   onTheAir: HomeFilm[];
@@ -133,8 +141,9 @@ export interface HomeShows {
 
 export interface HomeFeed {
   circle: Circle | null;
-  features: Feature[];
+  feature: Feature | null;
   lists: HomeList[];
+  logged: RecentLog[];
   members: HomeMember[];
   popular: PopularFilm[];
   pulse: Pulse;

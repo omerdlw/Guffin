@@ -1,10 +1,5 @@
 import type { GoldenCase, RawTitle } from "./types";
 
-/**
- * The golden set: titles whose verdict must not drift when the rules change.
- * Figures are rounded snapshots of TMDB data; only the shape of each case
- * (genres, votes, episode counts, titles) matters to the rules.
- */
 const film = (
   id: number,
   title: string,

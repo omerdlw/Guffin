@@ -496,5 +496,3 @@ export async function getAccountOverview({
     watchlist: row.watchlist.map((film) => toMediaItem(film, none, mediaType)),
   };
 }
-
-/** Shows an account is in the middle of (RLS hides a locked account's). */

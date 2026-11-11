@@ -1,1 +1,1 @@
-export { Icon, type IconProps } from "./icon";
+export { Icon, type IconProps } from "@omerdlw/base-framework/ui";

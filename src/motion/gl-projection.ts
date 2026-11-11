@@ -1,4 +1,3 @@
-/** The projection renderer: shaders, image decoding and the WebGL loop behind <Projection>. */
 import { cancelFrame, frame } from "motion/react";
 import {
   PROJECTION_AWAY_SOFT,
@@ -400,11 +399,6 @@ export function project(
     );
   };
 
-  /*
-   * The pixel density the canvas is drawn at. Once the picture has gone soft
-   * on the way out of the hero there is no detail left to resolve, so the
-   * shader (the cost of a frame here) runs at one pixel per CSS pixel.
-   */
   let density: number = PROJECTION_DEVICE_CAP;
   let bounds: DOMRect | null = null;
   let boundsAt = Number.NaN;
@@ -419,8 +413,6 @@ export function project(
 
   const draw = () => {
     if (resized) {
-      // The shader runs once per pixel: keep the canvas within a budget
-      // however wide the band is (it bleeds far past the column).
       const area = canvas.clientWidth * canvas.clientHeight;
       const budget =
         area > 0 ? Math.sqrt(PROJECTION_PIXEL_BUDGET / area) : density;

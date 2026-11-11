@@ -21,11 +21,6 @@ function readCookie(): MediaType {
   }
 }
 
-/**
- * The vitrin a profile page is showing (`?v=` first, then the remembered
- * cookie) and a setter that remembers the pick and re-renders in place.
- * `to` sends the switch to another path, for pages that exist in one vitrin.
- */
 export function useVitrin(): {
   asked: MediaType | null;
   choose: (next: MediaType, to?: string) => void;
@@ -53,7 +48,6 @@ export function useVitrin(): {
   return { asked, choose, value };
 }
 
-/** Films / Shows switch that sits beside the profile's section tabs. */
 export function MediaTypeSwitch({
   onChange,
   value,

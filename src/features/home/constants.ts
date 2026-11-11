@@ -27,18 +27,40 @@ export const LOGLINE_LENGTH = 180;
 
 export const LOGLINE_ENOUGH_LENGTH = 80;
 
-export const JOIN_POINTS = [
-  { role: "Log", text: "Every film you watch, with a rating and a date" },
-  { role: "Write", text: "Reviews, and what others thought of the same film" },
-  { role: "Follow", text: "Friends, and what they’re watching tonight" },
-  { role: "Curate", text: "Lists worth sharing, ranked or not" },
-];
+export const CRAFT = [
+  {
+    icon: "solar:notebook-bold",
+    text: "Keep a diary of every film you watch, with the day you saw it.",
+    verb: "Log",
+  },
+  {
+    icon: "solar:star-bold",
+    text: "Half-star ratings that add up, film by film, to a portrait of your taste.",
+    verb: "Rate",
+  },
+  {
+    icon: "solar:pen-bold",
+    text: "Write a line or an essay, then read what everyone else made of it.",
+    verb: "Review",
+  },
+  {
+    icon: "solar:bookmark-bold",
+    text: "Save the films you mean to see, so choosing tonight takes a minute.",
+    verb: "Watchlist",
+  },
+  {
+    icon: "solar:list-bold",
+    text: "Rank your favourites or gather a season. Lists are made to be shared.",
+    verb: "Lists",
+  },
+  {
+    icon: "solar:users-group-rounded-bold",
+    text: "Follow friends and critics, and see what they watched last night.",
+    verb: "Follow",
+  },
+] as const;
 
 export const FALLBACK_ICON = "solar:clapperboard-play-bold";
-
-export const REEL_CYCLE_MS = 9000;
-
-export const REEL_IMAGE_SIZE = "w1280";
 
 export const ROW_ITEM_CLASS =
   "w-[calc((100%-1.5rem)/3)] md:w-[calc((100%-2.25rem)/4)] lg:w-[calc((100%-3rem)/5)]";
@@ -57,27 +79,31 @@ export const PULSE_KEY = "home:pulse";
 
 export const PULSE_FRESH_MS = 5 * 60_000;
 
-/** Stale pulse stays servable for a week, so a visit is never the one to pay for a cold recount. */
 export const PULSE_KEEP_SECONDS = 7 * 24 * 60 * 60;
 
 export const PULSE_LOCK_KEY = "home:pulse:lock";
 
 export const PULSE_LOCK_SECONDS = 60;
 
-/** Cold-path ceiling: past this the page renders without the pulse instead of waiting on the database. */
 export const PULSE_COLD_TIMEOUT_MS = 4000;
 
 export const FEATURE_LIMIT = 5;
 
-export const INDEX_LIMIT = 8;
+export const LOGGED_LIMIT = 18;
 
-/** The gate lifts further into the picture than a film page does, so the
- * whole strip clears the dock on the first screen. */
+export const LOGGED_SCAN = 120;
+
+export const LOGGED_SECONDS_PER_FILM = 5;
+
+export const POPULAR_LIMIT = 12;
+
+export const CANON_LIMIT = 10;
+
+export const LIST_LIMIT = 6;
+
 export const HERO_LIFT = "sm:-mt-64 lg:-mt-96 xl:-mt-112";
 
 export const LEAD_REVIEW_LENGTH = 320;
-
-export const RISING_AXIS_MIN = 2;
 
 export const FEATURE_SPARE_CANDIDATES = 2;
 
@@ -100,48 +126,6 @@ export const MEMBER_LIMIT = 6;
 export const SEED_LIMIT = 3;
 
 export const THEATRES_MIN_VOTES = 25;
-
-export const REVIEW_LINES = [
-  ["100%", "100%", "100%", "64%"],
-  ["100%", "100%", "42%"],
-  ["100%", "100%", "100%", "78%"],
-  ["100%", "100%", "100%", "30%"],
-  ["100%", "86%"],
-  ["100%", "100%", "100%", "56%"],
-] as const;
-
-export const RISING_TITLES = [
-  "9rem",
-  "7rem",
-  "11rem",
-  "8rem",
-  "10rem",
-  "6.5rem",
-  "8.5rem",
-  "9.5rem",
-];
-
-export const HERO_REEL_WIDTHS = ["7.5rem", "10rem", "6rem", "9rem", "8rem"];
-
-export const LIST_TITLE_WIDTHS = [
-  "11rem",
-  "8.5rem",
-  "13rem",
-  "9.5rem",
-  "12rem",
-  "7.5rem",
-];
-
-export const MEMBER_NAME_WIDTHS = [
-  "5.5rem",
-  "4.5rem",
-  "6rem",
-  "5rem",
-  "6.5rem",
-  "4.75rem",
-];
-
-export const JOIN_POINT_LINES = [["100%", "34%"], ["96%"], ["92%"], ["88%"]];
 
 export const POSTER_SIZES =
   "(min-width: 1024px) 18vw, (min-width: 768px) 22vw, 30vw";

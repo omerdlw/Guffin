@@ -4,7 +4,6 @@ import { cn } from "@/design/foundations/cn";
 import { MEDIA_TYPE_COPY } from "./constants";
 import type { MediaType } from "./types";
 
-/** A small "Show" tag next to titles where films and shows mix. */
 export function MediaBadge({
   className,
   mediaType,

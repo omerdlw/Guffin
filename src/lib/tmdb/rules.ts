@@ -124,9 +124,6 @@ export function isCrewCredit(
   return true;
 }
 
-// ── TV ─────────────────────────────────────────────────────────────────────
-
-/** Any one of these makes a show unscripted for Guffin (decision 10.4). */
 export const EXCLUDED_TV_GENRES: ReadonlySet<number> = new Set([
   GENRE.documentary,
   GENRE.news,

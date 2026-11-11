@@ -50,7 +50,6 @@ import {
   getSocialLinks,
 } from "./utils";
 
-/** A career is charted once it holds a few titles; fewer read as noise. */
 function chartable(careers: ByMedium<Career | null>): ByMedium<Career | null> {
   const enough = (career: Career | null) =>
     career &&

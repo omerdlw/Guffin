@@ -156,11 +156,6 @@ export function sampleTint(src: string, retry = true): Promise<Tint | null> {
   });
 }
 
-/*
- * A picture's tint never changes, and the same few pictures are asked for
- * again and again (a row pointed at, left, pointed at again). Each sample
- * loads and reads the picture back from a canvas, so it is taken once.
- */
 const tints = new Map<string, Promise<Tint | null>>();
 
 export function sampledTint(src: string): Promise<Tint | null> {
@@ -248,8 +243,6 @@ class Grade {
       if (typeof document === "undefined") return;
       const root = document.documentElement;
       const { style } = root;
-      // The picture's tint is read once, for a dark page. On paper the same
-      // hue is taken deeper and richer so it still reads as a colour.
       const paper = root.dataset.theme === "light";
       const seen = (tint: Tint): Tint =>
         paper ? { l: tint.l - 0.24, c: tint.c * 1.3, h: tint.h } : tint;

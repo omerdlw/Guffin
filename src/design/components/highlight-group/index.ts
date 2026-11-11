@@ -2,4 +2,4 @@ export {
   HighlightGroup,
   useHighlight,
   useHighlightReset,
-} from "./highlight-group";
+} from "@omerdlw/base-framework/ui";

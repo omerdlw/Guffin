@@ -1,12 +1,12 @@
 export {
   SegmentedControl,
   type SegmentedControlProps,
+  type SegmentedControlVariants,
   type SegmentedItem,
-  SurfaceSegmentedControl,
-} from "./segmented-control";
+} from "@omerdlw/base-framework/ui";
+export { SurfaceSegmentedControl } from "./segmented-control";
 export {
   segmentedControlVariants,
-  type SegmentedControlVariants,
   segmentPillVariants,
   segmentVariants,
 } from "./variants";

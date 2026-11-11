@@ -33,7 +33,7 @@ import {
 } from "./constants";
 import { Pagination } from "./controls";
 import { FilterBar } from "./filter-bar";
-import { DiaryChrome, DiaryLedger } from "./diary";
+import { DiaryChrome, DiaryMonthView } from "./diary";
 import { ListChrome, ListComments, ListRows, ListsChrome } from "./lists";
 import { AccountPart, AccountSection } from "./motion";
 import {
@@ -287,8 +287,9 @@ export async function AccountDiaryView({
         ) : null
       }
     >
-      <DiaryLedger
+      <DiaryMonthView
         isOwner={isOwner}
+        month={diary.month}
         rows={diary.rows}
         username={account.username}
       />

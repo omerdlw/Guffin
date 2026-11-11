@@ -1,1 +1,1 @@
-export { Avatar, type AvatarProps } from "./avatar";
+export { Avatar, type AvatarProps } from "@omerdlw/base-framework/ui";

@@ -81,10 +81,6 @@ type Write = () => Promise<
   | { success: false; error: string }
 >;
 
-/**
- * Holds what the viewer ticked and rated in one season, so the sidebar's
- * season action, the header's count and the episode rows move together.
- */
 export function SeasonTrackerProvider({
   children,
   initialRatings,
@@ -240,7 +236,6 @@ export function SeasonTrackerProvider({
   return <SeasonTrackerContext value={value}>{children}</SeasonTrackerContext>;
 }
 
-/** The sidebar's season action: ticks or unticks every aired episode. */
 export function SeasonWatchAction(): JSX.Element {
   const { aired, allWatched, busy, toggleSeason } = useSeasonTracker();
   return (
@@ -257,7 +252,6 @@ export function SeasonWatchAction(): JSX.Element {
   );
 }
 
-/** The header's "watched" figure, beside the season's other stats. */
 export function SeasonWatchedStat(): JSX.Element | null {
   const { aired, watchedCount } = useSeasonTracker();
   if (aired.length === 0) return null;
@@ -290,7 +284,6 @@ function airingNote(episode: Episode): string | null {
   return days !== null && days < 14 ? `Airs in ${days} days` : `Airs ${date}`;
 }
 
-/** The row is a panel with p-2; the still inside keeps its curve parallel. */
 const STILL_RADIUS = nested(RADIUS.panel, 8);
 
 const EPISODE_KIND: Record<string, string> = {
@@ -469,7 +462,6 @@ function EpisodeRow({
   );
 }
 
-/** The season's episodes: a still, the airing, a tick and a rating each. */
 export function EpisodeList(): JSX.Element {
   const { aired, season, watchedCount } = useSeasonTracker();
   const count = season.episodes.length;

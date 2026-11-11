@@ -1,1 +1,1 @@
-export { Loader, type LoaderProps, Spinner } from "./loader";
+export { Loader, type LoaderProps, Spinner } from "@omerdlw/base-framework/ui";

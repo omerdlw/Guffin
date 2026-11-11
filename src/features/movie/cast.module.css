@@ -1,5 +1,4 @@
 @layer components {
-  /* A photograph's scrim is dark in either theme. */
   .sheen {
     background: linear-gradient(
       to top,

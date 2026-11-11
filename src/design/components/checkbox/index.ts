@@ -3,9 +3,6 @@ export {
   CheckboxIndicator,
   type CheckboxIndicatorProps,
   type CheckboxProps,
-} from "./checkbox";
-export {
-  checkboxVariants,
   type CheckboxVariants,
-  checkGlyphVariants,
-} from "./variants";
+} from "@omerdlw/base-framework/ui";
+export { checkboxVariants, checkGlyphVariants } from "./variants";

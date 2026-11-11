@@ -62,12 +62,6 @@ export function RatingStars({
   const width = size * 5 + STAR_GAP * 4;
   const lit = whole * (size + STAR_GAP) + (half ? size / 2 : 0);
   const mask = { "--star-size": `${size}px` } as CSSProperties;
-  // The drawn star is inset 14.25% of its cell on both sides, so the box is
-  // pulled in by that much: the first and last star then touch the line the
-  // text beside them sits on. Inline, the box centre is set on the cap-height
-  // centre of the surrounding text (Geist caps are 0.71em tall), so stars and
-  // words share one horizontal line. Inside flex rows the property is ignored
-  // and `items-center` already does the same job.
   const ink = size * 0.1425;
 
   return (

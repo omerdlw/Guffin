@@ -76,11 +76,6 @@ export function ListsChrome({
   return null;
 }
 
-/**
- * The edit control for a list. It takes a button's look (`intent`, `shape`),
- * or a dock action's class when it sits in the dock; alone it is a glass
- * square over the cover.
- */
 function EditListButton({
   className,
   intent,

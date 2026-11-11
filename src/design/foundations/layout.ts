@@ -1,8 +1,3 @@
-/**
- * Page layout: the containers, columns, headline and prose measures every
- * page is built on. Pure class names; no component owns them.
- */
-
 const RHYTHM_GAP = "gap-8 sm:gap-10 lg:gap-12";
 const RHYTHM_GAP_Y = "gap-y-8 sm:gap-y-10 lg:gap-y-12";
 const STACK_CLASS = `flex w-full flex-col ${RHYTHM_GAP}`;

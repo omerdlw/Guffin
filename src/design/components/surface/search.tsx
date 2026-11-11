@@ -6,13 +6,8 @@ import { Button } from "../button";
 import { Icon } from "../icon";
 import { Input } from "../input";
 
-/**
- * A list in a surface gets a search field once it holds this many rows; a
- * shorter one is read at a glance.
- */
 export const SURFACE_SEARCH_MIN = 30;
 
-/** Folds case, accents and the Turkish dotless i, so "pinar" finds "Pınar". */
 function fold(text: string): string {
   return text
     .normalize("NFD")
@@ -21,11 +16,6 @@ function fold(text: string): string {
     .toLowerCase();
 }
 
-/**
- * The search state of one list. `total` is how many rows the list holds (it
- * may be more than `items` while pages are still loading); the field shows
- * from `SURFACE_SEARCH_MIN` up. `textOf` must be a stable function.
- */
 export function useSurfaceSearch<T>(
   items: readonly T[],
   textOf: (item: T) => string,
@@ -54,7 +44,6 @@ export function useSurfaceSearch<T>(
   };
 }
 
-/** The search field at the head of a long list in a surface. */
 export function SurfaceSearch({
   className,
   label,

@@ -189,14 +189,6 @@ export function pullSpring(
 
 export const unitClamp = (n: number) => Math.max(0, Math.min(n, 1));
 
-/*
- * Whether an element is itself a raised layer (positioned, at or above the
- * dock backdrop). Reading it costs a getComputedStyle, which forces a style
- * recalculation whenever the page has written styles since the last frame;
- * the cursor asks for every ancestor of the element under the pointer on
- * every move, so the answer is kept for a moment. Layers come and go by
- * mounting, not by restyling, so a short memory is safe.
- */
 const raised = new WeakMap<Element, { at: number; layer: boolean }>();
 
 function isLayer(node: Element, now: number) {
@@ -408,7 +400,6 @@ export const dissolve = (progress: number) =>
 export const changesPage = (trip: NavigationTrip) =>
   pathOf(trip.to) !== pathOf(trip.from);
 
-/** A left click with no modifier: the one that lets a link change the page. */
 export const plainClick = (event: MouseEvent) =>
   event.button === 0 &&
   !event.metaKey &&
@@ -416,7 +407,6 @@ export const plainClick = (event: MouseEvent) =>
   !event.shiftKey &&
   !event.altKey;
 
-/** Whether following this link would show another page of this site. */
 export function leavesPage(link: HTMLAnchorElement) {
   if (link.target && link.target !== "_self") return false;
   if (link.hasAttribute("download")) return false;

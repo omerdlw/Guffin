@@ -44,7 +44,6 @@ function rpcFailure(error: { message?: string }, fallback: string) {
   return fail(trackingErrorMessage(error.message) ?? fallback);
 }
 
-/** Tick or untick episodes of one season. */
 export async function setEpisodesWatchedAction(
   showId: number,
   season: number,
@@ -67,8 +66,6 @@ export async function setEpisodesWatchedAction(
         return fail("Could not load this show, try again");
       }
 
-      // Runtimes feed the watch-time total; the aired count decides when
-      // the show turns completed.
       const seasonData = await getSeasonDetails(showId, season);
       const byNumber = new Map(
         seasonData.success
@@ -93,7 +90,6 @@ export async function setEpisodesWatchedAction(
   );
 }
 
-/** Tick every aired episode of a season. */
 export async function setSeasonWatchedAction(
   showId: number,
   season: number,
@@ -109,7 +105,6 @@ export async function setSeasonWatchedAction(
   return setEpisodesWatchedAction(showId, season, episodes, watched);
 }
 
-/** Pick a status; null stops tracking the show. */
 export async function setShowStatusAction(
   showId: number,
   status: ShowStatus | null,
@@ -152,7 +147,6 @@ export async function setShowStatusAction(
   );
 }
 
-/** Rate an episode on the same half-star scale as reviews; null clears it. */
 export async function rateEpisodeAction(
   showId: number,
   season: number,
@@ -204,7 +198,6 @@ export async function rateEpisodeAction(
   );
 }
 
-/** The viewer's tracking of a show, for client controls that load late. */
 export async function getShowTrackingAction(
   showId: number,
 ): Promise<TvActionResult<{ tracking: ShowTracking | null }>> {

@@ -416,8 +416,6 @@ export function SocialRealtimeSync(): null {
           },
           onFollowChange,
         )
-        // Realtime cannot filter DELETE events, so this binding stays
-        // unfiltered and `onFollowChange` drops rows that are not ours.
         .on<TableRow<"account_follows">>(
           "postgres_changes",
           { event: "DELETE", schema: "public", table: "account_follows" },

@@ -126,10 +126,6 @@ const MEDIUM_LABELS: Record<MediaType, string> = {
   tv: "Shows",
 };
 
-/**
- * Films or shows, chosen per section so the career chart and the
- * filmography never move together.
- */
 export function usePersonMedium(): [MediaType, (medium: MediaType) => void] {
   const { media } = usePersonView();
   const [chosen, setChosen] = useState<MediaType | null>(null);
@@ -138,7 +134,6 @@ export function usePersonMedium(): [MediaType, (medium: MediaType) => void] {
   return [medium, setChosen];
 }
 
-/** The films / shows switch, shown only when the person has both. */
 export function PersonMediumControl({
   medium,
   onChange,

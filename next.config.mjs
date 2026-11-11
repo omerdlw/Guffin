@@ -38,8 +38,6 @@ const nextConfig = {
   },
 };
 
-// Source maps upload only when SENTRY_AUTH_TOKEN, SENTRY_ORG and SENTRY_PROJECT
-// are set (CI); otherwise the wrapper only adds the runtime instrumentation.
 export default withSentryConfig(nextConfig, {
   authToken: process.env.SENTRY_AUTH_TOKEN,
   org: process.env.SENTRY_ORG,

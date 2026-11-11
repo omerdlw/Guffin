@@ -166,11 +166,6 @@ export function useSyncedSearchParam(key: string, value: string): void {
   }, [key, value]);
 }
 
-/**
- * The dock's width, once it has stopped moving. It is the dock that sets the
- * width of whatever stands above it, so the page reads it rather than
- * guessing.
- */
 export function useDockWidth(fallback: number): number {
   const [width, setWidth] = useState(fallback);
 

@@ -1,18 +1,3 @@
-/*
- * The cinematic layer: the shared vocabulary of a scene that is composed
- * around pictures (`[data-cinematic]`, `.ui-motion`, `.ui-scene`).
- *
- *   .cine-card       a target whose descendants react when it is pointed at
- *   .cine-fade       colour and opacity on the scene's two beats
- *   .cine-press      a raised control: lifts on hover, sinks on press
- *   .cine-zoom       a picture inside a card that leans in on hover
- *   .cine-afterglow  the warm ring left on a card that is pointed at
- *   .cine-turn       a chevron that turns over
- *
- * These are part of the system (several features compose them), so they
- * live here rather than beside one component.
- */
-
 @layer components {
   html:has([data-cinematic]) {
     overflow-anchor: none;
@@ -22,7 +7,6 @@
     background: var(--selection);
   }
 
-  /* A picture develops: it arrives soft and a little large, then settles. */
   [data-cinematic] img[data-state] {
     transition:
       opacity var(--step-2) var(--ease-fade),
@@ -115,8 +99,6 @@
       transform var(--step-1) var(--ease-out-cream);
   }
 
-  /* Reduced motion keeps the light and drops the travel: colour and opacity
-     still fade, quickly; scale, translate and filter do not move. */
   @media (prefers-reduced-motion: reduce) {
     [data-cinematic] *,
     [data-cinematic] *::before,

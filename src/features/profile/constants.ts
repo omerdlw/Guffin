@@ -317,10 +317,8 @@ export const SECTION_TABS = [
   { key: "progress", label: "Progress" },
 ] as const;
 
-/** Tabs that exist only while the TV flag is on. */
 export const TV_SECTION_TABS: ReadonlySet<string> = new Set(["progress"]);
 
-/** How many shows each status section of the progress page holds. */
 export const PROGRESS_SECTION_LIMIT = 60;
 
 export const PROGRESS_ORDER = [
@@ -343,10 +341,24 @@ export const DIARY_DAY_FORMAT = new Intl.DateTimeFormat("en-US", {
   weekday: "short",
 });
 
-export const DIARY_COLUMNS =
-  "grid grid-cols-[2.75rem_minmax(0,1fr)_auto] items-center gap-x-3 sm:grid-cols-[3.5rem_minmax(0,1fr)_7rem_4.5rem_4.5rem_2.5rem] sm:gap-x-4";
+export const DIARY_MONTH_NAME_FORMAT = new Intl.DateTimeFormat("en-US", {
+  month: "long",
+  timeZone: "UTC",
+});
 
-export const DIARY_HEAD_CLASS = `${TONE.label} text-ink-muted`;
+export const DIARY_WEEKDAYS = ["M", "T", "W", "T", "F", "S", "S"] as const;
+
+export const DIARY_LAYOUT =
+  "grid w-full gap-fib-6 lg:grid-cols-[minmax(0,19rem)_minmax(0,1fr)] lg:items-start xl:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]";
+
+export const DIARY_CALENDAR_GRID = "grid grid-cols-7 gap-1.5";
+
+export const DIARY_DAY_COLUMNS =
+  "grid grid-cols-[2.75rem_minmax(0,1fr)] gap-x-3 sm:grid-cols-[4rem_minmax(0,1fr)] sm:gap-x-fib-4";
+
+export const DIARY_SCROLL_OFFSET = 96;
+
+export const DIARY_FLASH_MS = 1400;
 
 export const DEFAULT_DISPLAY_NAME = "Account";
 

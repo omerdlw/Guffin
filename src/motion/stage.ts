@@ -49,7 +49,6 @@ function place(el: HTMLElement): Placement {
 
 export class Stage<P extends string, S extends string = never> {
   readonly act = new Signal<Act>("waiting");
-  /** True from the moment the curtain is up and the opening is released. */
   readonly opened = new Signal<boolean>(false);
   readonly tempo: number;
   private readonly pace: number;
@@ -58,7 +57,6 @@ export class Stage<P extends string, S extends string = never> {
   private cast = new Map<string, Set<Actor>>();
   private queue: Queued<P>[] = [];
   private played = new Set<string>();
-  /** Sections the queue has started on, which nothing may cut into. */
   private begun = new Set<string>();
   private cued: { section: S; scope: string | null; at?: number }[] = [];
   private nextAt = 0;
@@ -233,11 +231,6 @@ export class Stage<P extends string, S extends string = never> {
     this.schedule();
   }
 
-  /**
-   * The sections cued before the curtain, in the order they will play: as
-   * they were cued, or for an ordered score from the top of the page down
-   * (effects cue them in mount order, which is not where they sit).
-   */
   private waiting() {
     if (!this.score.ordered) return this.cued;
     const where = (at: number | undefined) => at ?? Number.POSITIVE_INFINITY;
@@ -271,12 +264,6 @@ export class Stage<P extends string, S extends string = never> {
     if (!this.leaving) this.schedule();
   }
 
-  /**
-   * Places a section by where it sits on the page. Sections whose observers
-   * fire in the same frame arrive in no useful order, so any section the
-   * queue has not started on yet may be overtaken; one already under way
-   * is never cut into.
-   */
   private insert(steps: Queued<P>[], at: number) {
     let index = this.queue.length;
     for (let i = 0; i < this.queue.length; i++) {
@@ -691,7 +678,6 @@ export class Stage<P extends string, S extends string = never> {
   }
 }
 
-/** The corner radius a clipped part should keep: its own, else the nearest rounded first child. */
 function radiusOf(el: HTMLElement) {
   let node: Element | null = el;
   for (let depth = 0; node && depth < 4; depth++) {

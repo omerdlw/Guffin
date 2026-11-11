@@ -43,11 +43,6 @@ export function Tilt({
   const rotateX = useTransform(sy, [-0.5, 0.5], [TILT_LEAN, -TILT_LEAN]);
   const gx = useTransform(sx, [-0.5, 0.5], [0, 100]);
   const gy = useTransform(sy, [-0.5, 0.5], [0, 100]);
-  /*
-   * The glare is one fixed radial gradient carried by a transform. Moving the
-   * gradient's centre instead (a new background every frame) would repaint
-   * the whole poster on every pointer move; a transform only recomposites.
-   */
   const size = useRef({ height: 0, width: 0 });
   const glareX = useTransform(
     sx,
@@ -125,8 +120,6 @@ export function Foil({
   x: MotionValue<number>;
   y: MotionValue<number>;
 }) {
-  // A 260% sheet slid by a transform: the same as moving a 260% background
-  // from 0% to 100%, without repainting the foil on every pointer move.
   const slideX = useTransform(x, (v) => `${(-v * 1.6) / 2.6}%`);
   const slideY = useTransform(y, (v) => `${(-v * 1.6) / 2.6}%`);
   return (

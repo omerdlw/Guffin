@@ -83,10 +83,6 @@ export type PeopleTab = "cast" | "crew";
 export interface MoviePeopleProps {
   cast: PersonEntry[];
   crew: PersonEntry[];
-  /**
-   * Plays as the opening's continuation, without waiting to be scrolled to.
-   * True only while it is the first section of the main column.
-   */
   now?: boolean;
 }
 
@@ -131,7 +127,6 @@ export interface ReviewsPage {
 }
 
 export interface MoviePosterLinkProps {
-  /** Films by default; a show links to its TV page. */
   mediaType?: MediaType;
   movie: {
     id: number;

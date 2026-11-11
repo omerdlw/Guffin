@@ -81,40 +81,23 @@ export const ENTER = {
     scale: 1 + left(p) * PHI ** -4,
     blur: left(p) * haze(4),
   }),
-  /*
-   * For display type. A blur is measured in pixels, and the condensed display
-   * face has strokes and counters thinner than the haze, so the letters melt
-   * into one grey slab. Crisp type moves and fades but is never softened.
-   */
   crisp: (p) => ({
     opacity: lit(p),
     y: left(p) * reach(-2),
     scale: 1 + left(p) * PHI ** -7,
   }),
-  /*
-   * For a picture in a frame: it is uncovered from the top down like a print
-   * coming up under the enlarger, then the lens eases back from a close crop
-   * while the exposure comes up to full. The frame clips the crop.
-   */
   unveil: (p) => ({
     opacity: lit(p),
     clipBottom: 1 - within(p, UNVEIL_OPEN),
     scale: 1 + left(p) * PHI ** -5,
     brightness: 1 - left(p) * (1 - PHI ** -2),
   }),
-  /* For a control: it comes up from just below and settles to its size. */
   emerge: (p) => ({
     opacity: lit(p),
     y: left(p) * reach(-2),
     scale: 1 - left(p) * PHI ** -6,
     blur: left(p) * haze(3),
   }),
-  /*
-   * For a card in a grid: it rises from just below at a slightly smaller
-   * size, and comes up from underexposed. The opacity is full early, so the
-   * second half of the move is the card settling and the light coming up
-   * on it, not a fade.
-   */
   surface: (p) => ({
     opacity: lit(p),
     y: left(p) * reach(-1),

@@ -1,11 +1,3 @@
-// Server-side error reporting: Sentry (when NEXT_PUBLIC_SENTRY_DSN is set)
-// plus a readable console sink.
-//
-// `report()` falls back to `console.error(scope, error)`, and Supabase's
-// PostgrestError keeps `message`, `code`, `details` and `hint` as
-// non-enumerable properties, so the dev overlay rendered it as `{}`. This sink
-// flattens any error into a readable object before it reaches the console.
-
 function describe(error: unknown): unknown {
   if (!(error instanceof Error)) {
     if (error && typeof error === "object") {

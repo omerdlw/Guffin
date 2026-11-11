@@ -29,13 +29,6 @@ function resolve(choice: ThemeChoice): Theme {
   return matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
 }
 
-/**
- * Swaps the theme with every transition switched off for one frame. Colour
- * roles fade over `settle`, so without this each control crossfades on its own
- * clock and the switch smears across the page. The attribute is read by
- * interaction.css. It must be in force before the palette changes, so each
- * step is flushed; transitions come back after the next frame.
- */
 function paint(theme: Theme) {
   const root = document.documentElement;
   if (root.dataset.theme === theme) return;
@@ -57,9 +50,7 @@ export function setThemeChoice(choice: ThemeChoice) {
   try {
     if (choice === "system") localStorage.removeItem(THEME_KEY);
     else localStorage.setItem(THEME_KEY, choice);
-  } catch {
-    /* storage can be blocked; the choice then lasts until reload */
-  }
+  } catch {}
   paint(resolve(choice));
   for (const listener of listeners) listener();
 }
@@ -80,7 +71,6 @@ export function useThemeChoice(): ThemeChoice {
   return useSyncExternalStore(subscribe, read, () => "system");
 }
 
-/** Puts the chosen theme back on <html> after hydration, in case React reset it. */
 export function ThemeSync() {
   useThemeChoice();
   useLayoutEffect(() => {

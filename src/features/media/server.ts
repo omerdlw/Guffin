@@ -6,7 +6,6 @@ import { readVitrinParam } from "./utils";
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
-/** `?v=` first, then the last pick remembered in a cookie, else films. */
 export async function resolveVitrin(
   params: SearchParams | undefined,
 ): Promise<MediaType> {

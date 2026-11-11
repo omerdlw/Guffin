@@ -61,7 +61,6 @@ export const GENRE = Object.freeze({
   tvMovie: 10770,
   war: 10752,
   western: 37,
-  // TV-only genres
   actionAdventure: 10759,
   kids: 10762,
   news: 10763,
@@ -72,7 +71,6 @@ export const GENRE = Object.freeze({
   warPolitics: 10768,
 });
 
-/** A TV role counts toward a career from this many episodes. */
 export const TV_CAREER_MIN_EPISODES = 3;
 
 export const TMDB_CACHE_TAG = "tmdb";

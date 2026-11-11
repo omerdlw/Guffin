@@ -103,13 +103,6 @@ export function defineScore<
   };
 }
 
-/**
- * Lays a sequence out in time. In a tight score a beat none of whose parts
- * are on the page still gets its moment (a part that turns up late enters
- * from there) but takes no time, so a page without a tagline does not wait
- * for one. The sections may start at the first release beat, else once the
- * opening ends.
- */
 export function plan<P extends string, S extends string>(
   score: Score<P, S>,
   sequence: readonly OpeningStep<P>[] = score.opening,

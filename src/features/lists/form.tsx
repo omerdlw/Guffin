@@ -34,6 +34,7 @@ import {
   LIST_TILE_CLASS,
   LIST_TITLE_MAX,
 } from "./constants";
+import { useConfirm } from "@/design/hooks/use-confirm";
 import { createListOrderSurfaceEntry } from "./order";
 import type { ListDraft, ListFormData } from "./types";
 
@@ -161,7 +162,7 @@ function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
     title: list?.title ?? "",
   });
   const [busy, setBusy] = useState<"save" | "delete" | null>(null);
-  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const confirm = useConfirm();
 
   const updateDraft = (patch: Partial<ListDraft>) =>
     setDraft((current) => ({ ...current, ...patch }));
@@ -193,10 +194,11 @@ function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
 
   async function remove() {
     if (!list || busy) return;
-    if (!confirmingDelete) {
-      setConfirmingDelete(true);
-      return;
-    }
+    const yes = await confirm({
+      description: "The list and its order are removed for good",
+      title: `Delete ${list.title}?`,
+    });
+    if (!yes) return;
     setBusy("delete");
     try {
       const result = await deleteListAction(list.id);
@@ -292,7 +294,7 @@ function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
             <SurfacePart className="flex items-center gap-2.5" name="item">
               {list ? (
                 <Button
-                  intent={confirmingDelete ? "danger" : "neutral"}
+                  intent="neutral"
                   width="fill"
                   disabled={disabled}
                   loading={busy === "delete"}
@@ -300,7 +302,7 @@ function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
                   {...resetHighlight}
                 >
                   <Icon icon="solar:trash-bin-trash-bold" size={15} />
-                  {confirmingDelete ? "Delete for good" : "Delete"}
+                  Delete
                 </Button>
               ) : null}
               <Button

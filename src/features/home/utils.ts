@@ -19,7 +19,7 @@ import {
   LOGLINE_LENGTH,
   MEMBER_LIMIT,
   REVIEW_LIMIT,
-  INDEX_LIMIT,
+  POPULAR_LIMIT,
   RISING_LIMIT,
   ROW_LIMIT,
   SHOWING_LIMIT,
@@ -132,7 +132,6 @@ export const fromTmdb = (movie: FeaturedMovie): HomeFilm => ({
   year: movie.releaseYear,
 });
 
-/** Eligible shows for a home shelf, as poster cards. */
 export const toShowShelf = (
   outcome: Result<ShowPage, TmdbError>,
   limit: number,
@@ -298,7 +297,7 @@ export function toPulseShelves(pulse: PulseRow): PulseShelves {
         watchers: row.watchers,
       })),
     shown,
-    INDEX_LIMIT,
+    POPULAR_LIMIT,
   );
   const rising = takeUnseen(
     pulse.rising
