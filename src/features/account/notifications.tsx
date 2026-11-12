@@ -17,7 +17,7 @@ import {
   useDockActionClass,
 } from "@omerdlw/base-framework/modules/dock";
 import { useToast } from "@omerdlw/base-framework/modules/notification";
-import { ACTION_TONE_CLASS } from "@omerdlw/base-framework/tokens";
+import { ACTION_TONE } from "@/design/foundations/tones";
 import { toUserMessage } from "@omerdlw/base-framework/utils";
 import { useAuth } from "@/features/auth/provider";
 import { accountHref } from "@/lib/project";
@@ -514,7 +514,7 @@ export function AccountInboxAction({
           aria-label={`Inbox with ${count} pending requests`}
           className={actionClass({
             className: "disabled:cursor-not-allowed disabled:opacity-50",
-            variant: ACTION_TONE_CLASS,
+            variant: ACTION_TONE,
           })}
           onClick={(event) => {
             event.stopPropagation();

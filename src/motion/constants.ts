@@ -1,4 +1,4 @@
-import { Z_INDEX } from "@omerdlw/base-framework/tokens";
+import { Z_INDEX } from "@/design/foundations/z-index";
 import type { CSSProperties } from "react";
 import type {
   Bezier,

@@ -1,7 +1,6 @@
 @import "tailwindcss";
-@source "../../node_modules/@omerdlw/base-framework";
 
-@import "@omerdlw/base-framework/styles.css";
+@import "../design/styles/system/index.css";
 @import "../design/styles/index.css";
 
 @layer base {

@@ -4,7 +4,7 @@ import { type ReactNode, useCallback, useRef, useState } from "react";
 import {
   Carousel as UiCarousel,
   type CarouselGlide,
-} from "@omerdlw/base-framework/ui";
+} from "@omerdlw/base-framework/design";
 import { Value } from "@/motion/engine";
 import { StagePart, useEngine } from "@/motion/react";
 import { CURVE } from "@/motion/time";
@@ -13,6 +13,8 @@ import { cn } from "../../foundations/cn";
 import styles from "./carousel.module.css";
 
 const GLIDE_RUNG = 2;
+
+const TRACK = { "data-cursor": "drag" } as const;
 
 export interface CarouselProps {
   part: string;
@@ -76,6 +78,7 @@ export function Carousel({
       frameSelector="[data-cursor-frame]"
       glide={glide}
       ready={settled}
+      trackProps={TRACK}
       renderSlide={({ children, className: slideClass, index }) => (
         <StagePart
           className={slideClass}

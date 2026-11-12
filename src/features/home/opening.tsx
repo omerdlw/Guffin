@@ -14,7 +14,7 @@ import { accountHref, CANON_HREF, movieHref } from "@/lib/project";
 import { tmdbImageUrl } from "@/lib/tmdb/shared";
 import { Button } from "@/design/components/button";
 import { Icon } from "@/design/components/icon";
-import { DockLink, LinkButton } from "@/design/components/link";
+import { DockLink } from "@/design/components/link";
 import { DockAction } from "@/design/components/surface";
 import { cn } from "@/design/foundations/cn";
 import { RADIUS } from "@/design/foundations/geometry";
@@ -123,7 +123,7 @@ function Actions({ username }: { username: string | null }): JSX.Element {
     <HomePart className="flex flex-wrap items-center gap-3" name="actions">
       {member ? (
         username ? (
-          <LinkButton
+          <Button
             href={`${accountHref(username)}/diary`}
             intent="primary"
             shape="pill"
@@ -131,7 +131,7 @@ function Actions({ username }: { username: string | null }): JSX.Element {
           >
             <Icon icon="solar:notebook-bold" size={16} />
             Open your diary
-          </LinkButton>
+          </Button>
         ) : null
       ) : (
         <Button intent="primary" onClick={openSignIn} shape="pill" size="lg">
@@ -139,9 +139,9 @@ function Actions({ username }: { username: string | null }): JSX.Element {
           <span className="font-normal opacity-70">· it’s free</span>
         </Button>
       )}
-      <LinkButton href={CANON_HREF} intent="glass" shape="pill" size="lg">
+      <Button href={CANON_HREF} intent="glass" shape="pill" size="lg">
         Browse the Top 100
-      </LinkButton>
+      </Button>
     </HomePart>
   );
 }

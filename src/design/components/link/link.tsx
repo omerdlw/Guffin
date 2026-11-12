@@ -10,7 +10,6 @@ import type {
 } from "react";
 import NextLink from "next/link";
 import { cn } from "../../foundations/cn";
-import { type ButtonVariants, buttonVariants } from "../button/variants";
 import { useDockLinkClick } from "../../hooks/use-dock-link-click";
 import { type LinkVariants, linkVariants } from "./variants";
 
@@ -26,31 +25,6 @@ export function Link({ className, variant, ...props }: LinkProps): JSX.Element {
       {...props}
       className={cn(variant && linkVariants({ variant }), className)}
     />
-  );
-}
-
-export type LinkButtonProps = NextLinkProps &
-  ButtonVariants & { dock?: boolean; onNavigated?: () => void };
-
-export function LinkButton({
-  className,
-  dock = false,
-  icon,
-  intent,
-  onNavigated,
-  shape,
-  size,
-  width,
-  ...props
-}: LinkButtonProps): JSX.Element {
-  const classes = cn(
-    buttonVariants({ icon, intent, shape, size, width }),
-    className,
-  );
-  return dock ? (
-    <DockLink {...props} className={classes} onNavigated={onNavigated} />
-  ) : (
-    <NextLink {...props} className={classes} />
   );
 }
 

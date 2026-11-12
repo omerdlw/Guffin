@@ -1,4 +1,4 @@
-import { defineMotion } from "@omerdlw/base-framework/tokens";
+import { defineMotion } from "@omerdlw/base-framework/utils";
 import {
   LEAVE_CAP,
   LEAVE_DROP,
@@ -152,6 +152,7 @@ export const SPRING = {
 export const motion = defineMotion({
   tempo: 1,
   reducedMotion: "user",
+  still: { type: "tween", duration: 0.08, ease: "linear" },
   durations: {
     step: step(-5),
     touch: step(-3),

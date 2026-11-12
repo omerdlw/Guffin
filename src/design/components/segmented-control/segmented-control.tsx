@@ -4,7 +4,7 @@ import { DockSurfaceExtension } from "@omerdlw/base-framework/modules/dock";
 import {
   SegmentedControl,
   type SegmentedControlProps,
-} from "@omerdlw/base-framework/ui";
+} from "@omerdlw/base-framework/design";
 
 export function SurfaceSegmentedControl<K extends string>({
   align = "center",

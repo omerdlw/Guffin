@@ -15,7 +15,7 @@ import { notificationModule } from "@omerdlw/base-framework/modules/notification
 import { ThemeSync } from "@/lib/theme";
 import { CoreProvider } from "@omerdlw/base-framework/provider";
 import { ThemeProvider } from "@omerdlw/base-framework/theme";
-import { TooltipProvider, UiProvider } from "@omerdlw/base-framework/ui";
+import { TooltipProvider, UiProvider } from "@omerdlw/base-framework/design";
 import { DEFAULT_ACCOUNT_ICON } from "@/features/account/constants";
 import {
   AccountGuard,

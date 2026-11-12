@@ -1,7 +1,7 @@
 "use client";
 
 import { type ReactNode, useRef, useState } from "react";
-import { Tooltip as UiTooltip } from "@omerdlw/base-framework/ui";
+import { Tooltip as UiTooltip } from "@omerdlw/base-framework/design";
 import { TOOLTIP } from "./classes";
 
 const SLATE = /^(.*\S)\s+\((\d{4})\)(?:,\s*(.+))?$/;
@@ -46,7 +46,9 @@ export function Tooltip({
           setInModule(Boolean(trigger.current?.closest(".ui-motion")));
         }
       }}
+      collisionPadding={8}
       position={position}
+      sideOffset={10}
       text={<Slate text={text} />}
       triggerRef={trigger}
     >

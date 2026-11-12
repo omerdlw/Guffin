@@ -3,4 +3,4 @@ export {
   SlidingHighlight,
   SlidingPill,
   useSlidingPill,
-} from "@omerdlw/base-framework/ui";
+} from "@omerdlw/base-framework/design";

@@ -20,7 +20,8 @@ import {
   notificationTheme,
 } from "@omerdlw/base-framework/modules/notification";
 import { defineTheme } from "@omerdlw/base-framework/theme";
-import { gpuTransform, Z_INDEX } from "@omerdlw/base-framework/tokens";
+import { gpuTransform } from "@omerdlw/base-framework/utils";
+import { Z_INDEX } from "@/design/foundations/z-index";
 import { SHARP } from "@/motion/constants";
 import { motion } from "@/motion/time";
 import { hazy, step, tween } from "@/motion/utils";
@@ -399,6 +400,7 @@ const dockMotion: DockMotion = {
     expandStaggerCap: dockTime.leave,
     peekStagger: dockTime.step / 2,
     peekStaggerCap: dockTime.touch,
+    staggerExponent: 0.82,
   },
 };
 
@@ -438,6 +440,8 @@ const dockThemeConfig = defineTheme(dockTheme, {
       "pointer-events-none absolute inset-0 overflow-hidden select-none",
     bannerSharpImage: "absolute inset-0",
     bannerScrim: "pointer-events-none absolute inset-0",
+    surfaceLoader:
+      "flex min-h-[160px] w-full items-center justify-center p-8 [&_iconify-icon]:size-7 [&_iconify-icon]:text-[length:28px]",
 
     header: "relative min-h-[48px] w-full",
     headerRow: "relative flex w-full items-center gap-2.5",
@@ -717,6 +721,7 @@ const modalThemeConfig = defineTheme(modalTheme, {
   styles: {
     backdrop: { zIndex: Z_INDEX.MODAL_BACKDROP },
     dim: { zIndex: Z_INDEX.MODAL_BACKDROP },
+    layer: { zIndex: Z_INDEX.MODAL },
     row: { zIndex: Z_INDEX.MODAL_STICKY_HEADER },
   },
   motion: modalMotion,

@@ -17,7 +17,7 @@ import {
   useDockRegistration,
   useDockSelector,
 } from "@omerdlw/base-framework/modules/dock";
-import { ACTION_TONE_CLASS } from "@omerdlw/base-framework/tokens";
+import { ACTION_TONE } from "@/design/foundations/tones";
 import { AnimatePresence, motion, useReducedMotion } from "@/motion/lib";
 import { usePathname } from "next/navigation";
 import { POINTS } from "@/motion/constants";
@@ -287,7 +287,7 @@ function SearchAction({ onClose }: { onClose?: () => void } = {}) {
                 <Button
                   className={actionClass({
                     className: "h-10",
-                    variant: ACTION_TONE_CLASS,
+                    variant: ACTION_TONE,
                   })}
                   onClick={retry}
                 >

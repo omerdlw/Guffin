@@ -4,7 +4,7 @@ import { Geist } from "next/font/google";
 import localFont from "next/font/local";
 import { headers } from "next/headers";
 import { connection } from "next/server";
-import { Z_INDEX } from "@omerdlw/base-framework/tokens";
+import { Z_INDEX } from "@/design/foundations/z-index";
 import { project } from "@/lib/project";
 import { THEME_SCRIPT } from "@/lib/theme-script";
 import "./globals.css";

@@ -5,8 +5,6 @@ export {
   type ExternalLinkProps,
   FactLink,
   Link,
-  LinkButton,
-  type LinkButtonProps,
   type LinkProps,
   TextButton,
   type TextButtonProps,

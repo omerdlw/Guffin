@@ -4,7 +4,7 @@ import type { JSX, ReactNode } from "react";
 import { Magnet } from "@/motion/tilt";
 import { cn } from "../../foundations/cn";
 import { Icon } from "../icon";
-import { Button } from "@omerdlw/base-framework/ui";
+import { Button } from "@omerdlw/base-framework/design";
 
 export interface ActionButtonProps {
   active: boolean;

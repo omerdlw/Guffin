@@ -1,7 +1,7 @@
 "use client";
 
 import { type ReactNode, useEffect, useRef, useState } from "react";
-import { Z_INDEX } from "@omerdlw/base-framework/tokens";
+import { Z_INDEX } from "@/design/foundations/z-index";
 import {
   AnimatePresence,
   motion,

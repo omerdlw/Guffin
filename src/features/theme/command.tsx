@@ -9,7 +9,7 @@ import {
   useState,
 } from "react";
 import { useDockContextActions } from "@omerdlw/base-framework/modules/dock";
-import { Z_INDEX } from "@omerdlw/base-framework/tokens";
+import { Z_INDEX } from "@/design/foundations/z-index";
 import { AnimatePresence, motion, useReducedMotion } from "@/motion/lib";
 import { createPortal } from "react-dom";
 import { setThemeChoice, THEME_CHOICES, useThemeChoice } from "@/lib/theme";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { Z_INDEX } from "@omerdlw/base-framework/tokens";
+import { Z_INDEX } from "@/design/foundations/z-index";
 import {
   CURSOR_CARD_FRAMING,
   CURSOR_FRAME_AWAY,
