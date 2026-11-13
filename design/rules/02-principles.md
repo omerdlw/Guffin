@@ -4,7 +4,7 @@
   paper (the ambient `shadow` lifted to L 0.95, so a pale tint of the picture's
   own hue) with near-black ink. Chrome recedes so the picture can lead. The
   theme is `data-theme` on `<html>` (Settings → Appearance: System, Light,
-  Dark; `src/lib/theme.ts`). **Each theme is art-directed on its own.**
+  Dark; `src/features/theme/store.ts`). **Each theme is art-directed on its own.**
   Components name roles (`ink`, `fill`, `glass`, `primary`); each theme gives
   every role its own value in `src/design/styles/themes.css`, and neither is
   computed by turning the other over. Dark surfaces are light breathed onto

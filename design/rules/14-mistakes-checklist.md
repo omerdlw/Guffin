@@ -63,7 +63,7 @@ grep -rnE '\b(shadow|drop-shadow|inset-shadow)-' src --include='*.ts' --include=
 # Tailwind palette colours
 grep -rnE '\b(text|bg|ring|border)-(gray|zinc|slate|neutral|stone|red|orange|amber|yellow|green|emerald|teal|sky|blue|indigo|violet|purple|pink|rose)-[0-9]' src
 # Tailwind and arbitrary type sizes
-grep -rnE '\btext-(xs|sm|lg|xl|[2-9]xl|\[[0-9])' src/features src/design src/motion src/config src/app
+grep -rnE '\btext-(xs|sm|lg|xl|[2-9]xl|\[[0-9])' src/features src/design src/motion src/app
 # Tailwind radii, tracking and weights
 grep -rnE '\brounded(-[trbl]{1,2})?-(xs|sm|md|lg|xl|2xl|3xl|4xl)\b|tracking-(tighter|tight|normal|wide|wider|widest)|font-(thin|extralight|light|normal|extrabold|black)\b' src
 # raw durations and easings in classes

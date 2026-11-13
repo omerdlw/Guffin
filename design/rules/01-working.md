@@ -12,21 +12,22 @@ values, so changing the system means changing one line.
 
 ```
 src/design/
-  styles/        the system's CSS: tokens, palettes, interaction, cinematic, effects
+  styles/        the system's CSS: tokens, themes, interaction, cinematic, utilities
+    system/        tokens, palette, time, interaction, effects, utilities
   foundations/   what components are built from, no React
-    cn.ts          class merging that knows every token family
     variants.ts    CVA, merged through cn
     tones.ts       TONES (one per intent), STATE (disabled, busy), TONE, FILL
     layers.ts      layerVariants and SHELL, FLOAT, TIP, BACKDROP, DIM, GLASS
     geometry.ts    the control ladder (CONTROL), RADIUS, nested()
     layout.ts      page containers, columns, headline and prose measures
-  hooks/         use-dock-link-click, use-confirm, use-scroll-lock
-  components/    one folder per component
-    <name>/
-      index.ts            the public API: import from "@/design/components/<name>"
-      <name>.tsx          the component
-      variants.ts         its CVA recipes, when it has variants
-      <name>.module.css   its own CSS, when it needs any
+    z-index.ts     Z_INDEX, the only stacking values
+  ui.ts          cn (class merging that knows every token family) and ui
+  recipes.ts     shared component recipes (PARTS)
+  theme.ts       the framework themes, one file per module in theme/
+  surface-definition.ts  defineSurface typed by its props
+  lazy-surface.ts        surfaces that load on first intent
+  components/    one file per component, with its own *.module.css when needed
+    <name>.tsx     the component, its recipes and its hooks (useConfirm in confirm.tsx)
 ```
 
 | Component           | Exports                                                                                  |
@@ -56,8 +57,8 @@ Outside `src/design`:
 | What                                      | Where                                                                                   |
 | ----------------------------------------- | --------------------------------------------------------------------------------------- |
 | The document reset and nothing else       | `src/app/globals.css`                                                                   |
-| A feature's own CSS                       | Beside it, as `*.module.css` (e.g. `src/features/home/hero.module.css`)                 |
-| Time, curves, springs (the ladder)        | `src/motion/utils.ts` (`step`), `constants.ts` (`POINTS`), `time.ts` (`SPRING`, matter) |
+| A feature's own CSS                       | Beside it, as `*.module.css` (e.g. `src/features/home/logged.module.css`)                 |
+| Time, curves, springs (the ladder)        | `src/motion/time.ts` (`step`, `POINTS`, `SPRING`, matter) |
 | The ladder as CSS (`--step-*`, `--curve`) | `src/motion/color.ts`, written to `:root` by the engine                                 |
 | Page choreography (scores)                | `src/features/*/motion.tsx`                                                             |
 | Motion reference (laws, kit)              | `src/motion/` and sections 6 to 6.10 (`09`–`12`, `15`)                                  |

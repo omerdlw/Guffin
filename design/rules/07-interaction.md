@@ -14,7 +14,7 @@ Every control answers in the same two beats:
 `reveal` / `settle` moves one colour level at a time and reads as stepping,
 hence the quicker pair there.
 
-**A theme swap is one cut.** `setThemeChoice` (`src/lib/theme.ts`) puts
+**A theme swap is one cut.** `setThemeChoice` (`src/features/theme/store.ts`) puts
 `data-theme-switching` on `<html>` for the swap and the frame after it, and
 `interaction.css` turns every transition off while it stands. Without it each
 control would crossfade to the new palette over `settle` on its own clock.

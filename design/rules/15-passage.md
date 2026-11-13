@@ -1,7 +1,7 @@
 # 6.10 The passage: moving from one page to the next
 
 A page transition is one object, the **passage** (`src/motion/passage.ts`,
-drawn by `<Passage />` in `src/design/components/passage/`). It is a veil over
+drawn by `<Passage />` in `src/design/components/passage.tsx`). It is a veil over
 the screen with one value, `cover` (0: the page shows, 1: the page is hidden),
 and four phases:
 
