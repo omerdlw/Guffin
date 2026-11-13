@@ -113,6 +113,7 @@ export function WallStage({ cue, wall, children }: WallStageProps) {
       window.scrollTo({ top, behavior: "instant" });
     }
     void stage.restore().then(() => setPhase("page"));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs per phase; engine and stage are stable per mount
   }, [phase]);
 
   useEffect(() => {

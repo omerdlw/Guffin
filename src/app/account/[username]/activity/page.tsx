@@ -1,5 +1,5 @@
 import type { JSX } from "react";
-import { AccountActivityView } from "@/features/profile/view";
+import { AccountActivityView } from "@/features/profile/activity/view";
 import type { SearchParams } from "@/lib/http";
 
 export default async function AccountActivityPage({

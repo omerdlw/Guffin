@@ -1,5 +1,5 @@
 import type { JSX } from "react";
-import { AccountMediaView } from "@/features/profile/view";
+import { AccountMediaView } from "@/features/profile/library/view";
 import type { SearchParams } from "@/lib/http";
 
 export default async function AccountWatchlistPage({

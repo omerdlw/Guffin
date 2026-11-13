@@ -1,17 +1,29 @@
 "use client";
 
 import { type ReactNode, useState } from "react";
-import { usePage } from "@omerdlw/base-framework/kernel";
 import {
   type AmbientPalette,
   useAmbientTheme,
 } from "@omerdlw/base-framework/ambient";
 import { useDockActions } from "@omerdlw/base-framework/dock";
+import { usePage } from "@omerdlw/base-framework/kernel";
 import {
   useArrival,
   useDeparture,
   useNavigationPayload,
 } from "@omerdlw/base-framework/navigation";
+import { HighlightGroup, useHighlight } from "@omerdlw/base-framework/ui";
+import { Icon } from "@/design/components/icon";
+import { ExternalLink, TextButton } from "@/design/components/link";
+import { Tooltip } from "@/design/components/tooltip";
+import {
+  headlineClass,
+  PROSE_CLASS,
+  RULE_GAP,
+} from "@/design/foundations/layout";
+import { TONE } from "@/design/foundations/tones";
+import { useSurfacePreload } from "@/design/lazy-surface";
+import { cn } from "@/design/ui";
 import {
   ArtworkPrint,
   useArtworkContextMenu,
@@ -35,18 +47,15 @@ import {
   tmdbImageUrl,
 } from "@/lib/tmdb/shared";
 import { readable } from "@/motion/render";
-import { ExternalLink, TextButton } from "@/design/components/link";
-import { HighlightGroup, useHighlight } from "@omerdlw/base-framework/ui";
-import { Icon } from "@/design/components/icon";
-import { Tooltip } from "@/design/components/tooltip";
-import { cn } from "@/design/ui";
-import { PROSE_CLASS, RULE_GAP } from "@/design/foundations/layout";
-import { TONE } from "@/design/foundations/tones";
-import { PERSON_FALLBACK_ICON, PERSON_LINKS_CLASS } from "./constants";
 import { countFilms, getBackdropPath, personSwatch } from "./credits";
-import { createPersonBioSurfaceEntry } from "./sections";
-import type { SocialLink } from "./types";
-import { describePerson, formatYears, personNameClass } from "./utils";
+import { describePerson, PERSON_LINKS_CLASS, type SocialLink } from "./person";
+import { personBioSurface } from "./surfaces";
+
+const PERSON_FALLBACK_ICON = "solar:user-bold";
+
+const personNameClass = (name: string) => headlineClass(name, [20, 30, 42]);
+
+const formatYears = (count: number) => `${count} years`;
 
 function HeaderRule({
   links,
@@ -133,9 +142,12 @@ function BiographyExcerpt({
   truncated: boolean;
 }) {
   const { openSurface } = useDockActions();
+  useSurfacePreload(personBioSurface);
 
   const openFull = () => {
-    void openSurface(createPersonBioSurfaceEntry({ biography: full, name }));
+    void personBioSurface.open(openSurface, {
+      data: { biography: full, name },
+    });
   };
 
   return (

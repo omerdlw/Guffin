@@ -1,21 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { defineModal, useModal } from "@omerdlw/base-framework/modal";
+import { useModal } from "@omerdlw/base-framework/modal";
 import { SegmentedControl } from "@omerdlw/base-framework/ui";
 import { Carousel } from "@/design/components/carousel";
 import { Icon } from "@/design/components/icon";
-import { MediaCard } from "@/design/components/media-card";
+import {
+  MediaCard,
+  type MediaCardAspect,
+} from "@/design/components/media-card";
 import { RADIUS } from "@/design/foundations/geometry";
-import { CAROUSEL_WIDE_ITEM } from "@/design/foundations/layout";
+import { CAROUSEL_ITEM, CAROUSEL_WIDE_ITEM } from "@/design/foundations/layout";
 import { TONE } from "@/design/foundations/tones";
 import { cn } from "@/design/ui";
-import { artworkAttributes } from "@/features/artwork/utils";
-import {
-  type ImageModalData,
-  WALL_SIZES,
-  type WallSet,
-} from "@/features/detail/detail";
+import { artworkAttributes } from "@/features/artwork/store";
+import { WALL_SIZES, type WallSet } from "@/features/detail/detail";
 import { GalleryWall, WallButton } from "@/features/detail/gallery";
 import { ImageModal } from "@/features/detail/image-modal";
 import { Heading } from "@/features/detail/layout";
@@ -24,39 +23,83 @@ import { useLead } from "@/features/detail/stage";
 import {
   type MovieImage,
   type MovieVideo,
+  tmdbImageSrcSet,
   tmdbImageUrl,
 } from "@/lib/tmdb/shared";
-import { useShowing } from "@/motion/kit";
-import { Tube } from "@/motion/screen";
-import {
-  GALLERY_REACH_STEP,
-  GALLERY_TAB_ORDER,
-  GALLERY_TABS,
-} from "./constants";
 import gallery from "./gallery.module.css";
-import type { CastModalProps, GalleryTab, VideoModalData } from "./types";
-import { galleryOriginal, pluralizeVideoType, thumbnailFor } from "./utils";
+import { VideoModal } from "./video-modal";
 
-function VideoModalView({ data }: CastModalProps<VideoModalData>) {
-  useShowing();
-  return (
-    <Tube className="aspect-video w-[min(92vw,64rem)] overflow-hidden rounded-sheet bg-page ring-1 ring-edge-hover ring-inset">
-      <iframe
-        allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-        className="size-full"
-        referrerPolicy="strict-origin-when-cross-origin"
-        src={`https://www.youtube-nocookie.com/embed/${encodeURIComponent(data.key)}?autoplay=1&rel=0`}
-        title={data.name}
-      />
-    </Tube>
-  );
+type GalleryTab = "backdrops" | "posters";
+
+const GALLERY_TABS: Record<
+  GalleryTab,
+  {
+    aspect: MediaCardAspect;
+    item: string;
+    label: string;
+    noun: string;
+    sizes: string;
+  }
+> = {
+  backdrops: {
+    aspect: "video",
+    item: CAROUSEL_WIDE_ITEM,
+    label: "Backdrops",
+    noun: "scene",
+    sizes: "(min-width: 1280px) 330px, (min-width: 640px) 50vw, 100vw",
+  },
+  posters: {
+    aspect: "poster",
+    item: CAROUSEL_ITEM,
+    label: "Posters",
+    noun: "poster",
+    sizes: "(min-width: 768px) 160px, 30vw",
+  },
+};
+
+const GALLERY_TAB_ORDER: readonly GalleryTab[] = ["backdrops", "posters"];
+
+const GALLERY_REACH_STEP = 18;
+
+const THUMBNAIL_WIDTHS = {
+  gallery: {
+    backdrops: ["w300", "w780", "w1280"],
+    posters: ["w185", "w342", "w500"],
+  },
+  wall: {
+    backdrops: ["w300", "w780"],
+    posters: ["w185", "w342"],
+  },
+} as const;
+
+function thumbnailFor(
+  variant: "gallery" | "wall",
+  tab: GalleryTab,
+  path: string,
+) {
+  const widths = THUMBNAIL_WIDTHS[variant];
+  if (tab === "backdrops") {
+    return {
+      crossOrigin: "anonymous" as const,
+      src: tmdbImageUrl("backdrop", path, "w780"),
+      srcSet: tmdbImageSrcSet("backdrop", path, widths.backdrops) ?? undefined,
+    };
+  }
+  return {
+    crossOrigin: undefined,
+    src: tmdbImageUrl("poster", path, "w342"),
+    srcSet: tmdbImageSrcSet("poster", path, widths.posters) ?? undefined,
+  };
 }
 
-const VideoModal = defineModal({
-  chrome: "bare",
-  component: VideoModalView,
-  position: "center",
-});
+function galleryOriginal(tab: GalleryTab, path: string) {
+  return tab === "backdrops"
+    ? tmdbImageUrl("backdrop", path, "original")
+    : tmdbImageUrl("poster", path, "original");
+}
+
+const pluralizeVideoType = (type: string) =>
+  type.endsWith("s") ? type : `${type}s`;
 
 export function MovieGallery({
   backdrops,
@@ -96,11 +139,10 @@ export function MovieGallery({
   const open = (path: string, index: number) => {
     const full = galleryOriginal(key, path);
     if (!full) return;
-    const data: ImageModalData = {
+    void openImage({
       alt: `${view.noun[0].toUpperCase()}${view.noun.slice(1)} ${index + 1} of ${title}`,
       src: full,
-    };
-    void openImage(data);
+    });
   };
 
   return (
@@ -263,11 +305,10 @@ export function MovieVideos({
               label={`Play ${video.name}`}
               radius={RADIUS.card}
               onClick={() => {
-                const data: VideoModalData = {
+                void openVideo({
                   key: video.key,
                   name: video.name,
-                };
-                void openVideo(data);
+                });
               }}
               overlay={
                 <>

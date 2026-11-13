@@ -1,36 +1,55 @@
-import type { JSX, ReactNode } from "react";
-import { RatingStars, Star } from "@/features/reviews/rating";
-import { pluralize } from "@/lib/format";
-import { accountHref, mediaHref, movieHref } from "@/lib/project";
-import { tmdbImageUrl } from "@/lib/tmdb/shared";
+import type { ComponentProps, JSX, ReactNode } from "react";
 import { Avatar, Button, Image } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
 import { DockLink } from "@/design/components/link";
 import { MediaCard } from "@/design/components/media-card";
 import { Tooltip } from "@/design/components/tooltip";
-import { cn } from "@/design/ui";
 import { RADIUS } from "@/design/foundations/geometry";
-import {
-  DIARY_DIGEST_MONTH_FORMAT,
-  PEOPLE_COLUMNS,
-  POSTER_STACK_SLOTS,
-  PROFILE_GRID,
-  STAR_COUNT,
-  STAT_AFTER_CLASS,
-  STAT_CELL_CLASS,
-  STAT_LABEL_CLASS,
-} from "./constants";
-import { TileActions } from "./controls";
+import { TONE } from "@/design/foundations/tones";
+import { cn } from "@/design/ui";
+import { RatingStars, Star } from "@/features/reviews/rating";
+import { pluralize } from "@/lib/format";
+import { accountHref, mediaHref, movieHref } from "@/lib/project";
+import { tmdbImageUrl } from "@/lib/tmdb/shared";
+import { Pagination, TileActions } from "./controls";
 import { AccountPart, AccountSection } from "./motion";
-import type {
-  DiaryEntry,
-  MediaItem,
-  PersonPreview,
-  ProfileStat,
-  SectionCue,
-  TileSource,
-} from "./types";
-import { posterImage, starsLabel } from "./utils";
+import {
+  type DiaryEntry,
+  type MediaItem,
+  type PersonPreview,
+  posterImage,
+  PROFILE_GRID,
+  STAT_LABEL_CLASS,
+  type TileSource,
+} from "./profile";
+import { AccountPage } from "./shell";
+
+type SectionCue = ComponentProps<typeof AccountSection>["cue"];
+
+interface ProfileStat {
+  count: number;
+  href: string;
+  label: string;
+}
+
+const STAT_AFTER_CLASS = `${TONE.label} tabular-nums`;
+
+const STAT_CELL_CLASS =
+  "group/stat flex w-full flex-col items-center gap-1 px-2";
+
+const DIARY_DIGEST_MONTH_FORMAT = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  timeZone: "UTC",
+});
+
+const PEOPLE_COLUMNS = 6;
+
+const POSTER_STACK_SLOTS = 5;
+
+const STAR_COUNT = 5;
+
+const starsLabel = (value: number) =>
+  `${"★".repeat(Math.floor(value))}${value % 1 ? "½" : ""}`;
 
 export function ViewAll({
   href,
@@ -458,5 +477,35 @@ export function PosterStack({
         );
       })}
     </div>
+  );
+}
+
+export function ResultsView({
+  children,
+  empty,
+  paging,
+  toolbar,
+}: {
+  children?: ReactNode;
+  empty: { icon: string; message: string } | null;
+  paging?: { page: number; pageCount: number };
+  toolbar?: ReactNode;
+}): JSX.Element {
+  return (
+    <AccountPage>
+      <div className="flex w-full flex-col">
+        {toolbar}
+        {empty ? (
+          <EmptyState icon={empty.icon}>{empty.message}</EmptyState>
+        ) : (
+          <>
+            {children}
+            {paging ? (
+              <Pagination page={paging.page} pageCount={paging.pageCount} />
+            ) : null}
+          </>
+        )}
+      </div>
+    </AccountPage>
   );
 }

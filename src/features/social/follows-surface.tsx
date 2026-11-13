@@ -425,12 +425,13 @@ function AccountSocialSurface({
     void loadMore();
   }, [active.loadingMore, active.next, loadMore, searching]);
 
+  const { setQuery } = search;
   const changeTab = useCallback(
     (next: SocialTab) => {
-      search.setQuery("");
+      setQuery("");
       setTab(next);
     },
-    [search.setQuery],
+    [setQuery],
   );
 
   let body: ReactNode;

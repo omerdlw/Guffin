@@ -7,16 +7,17 @@ import { Avatar, Button } from "@omerdlw/base-framework/ui";
 import { DockLink } from "@/design/components/link";
 import { SOCIAL_EVENTS } from "@/features/account/account";
 import { useAuth } from "@/features/auth/provider";
-import { useOpenSignIn } from "@/features/auth/sign-in-surface";
+import { useOpenSignIn } from "@/features/auth/sign-in";
 import {
   followUserAction,
   unfollowUserAction,
 } from "@/features/social/actions";
 import { accountHref } from "@/lib/project";
-import { TEXT_LINK_CLASS } from "./constants";
+import { type HomeMember, TEXT_LINK_CLASS } from "./feed";
+import { formatCompact } from "./format";
 import { Heading, HomePart, HomeSection } from "./motion";
-import type { HomeMember, MemberFollowState } from "./types";
-import { formatCompact } from "./utils";
+
+type MemberFollowState = "accepted" | "pending" | null;
 
 function FollowButton({ member }: { member: HomeMember }): JSX.Element {
   const auth = useAuth();

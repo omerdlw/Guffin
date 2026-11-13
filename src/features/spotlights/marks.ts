@@ -12,9 +12,16 @@ import {
   setMovieLibraryAction,
 } from "@/features/account/actions";
 import { useAuth } from "@/features/auth/provider";
-import { useOpenSignIn } from "@/features/auth/sign-in-surface";
-import { EMPTY_FILM_IDS } from "./constants";
-import type { CanonFilm, Marks } from "./types";
+import { useOpenSignIn } from "@/features/auth/sign-in";
+import type { CanonFilm } from "./spotlights";
+
+interface Marks {
+  account: string | null;
+  listed: ReadonlySet<number>;
+  watched: ReadonlySet<number>;
+}
+
+const EMPTY_FILM_IDS: ReadonlySet<number> = new Set();
 
 export function useCanonMarks(films: CanonFilm[]) {
   const auth = useAuth();

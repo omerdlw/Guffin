@@ -1,15 +1,16 @@
 "use client";
 
 import { type JSX, useState } from "react";
-import { MoviePosterLink } from "@/features/movie/stage";
-import { Carousel } from "@/design/components/carousel";
 import { SegmentedControl } from "@omerdlw/base-framework/ui";
+import { Carousel } from "@/design/components/carousel";
 import { RADIUS } from "@/design/foundations/geometry";
 import { TONE } from "@/design/foundations/tones";
-import { POSTER_SIZES, ROW_ITEM_CLASS } from "./constants";
+import { MoviePosterLink } from "@/features/movie/stage";
+import { POSTER_SIZES, ROW_ITEM_CLASS, type ShowingFilm } from "./feed";
+import { formatCompact, formatReleaseDay } from "./format";
 import { Heading, HomeSection, HomeSwap } from "./motion";
-import type { FilmShelf, ShowingFilm } from "./types";
-import { formatCompact, formatReleaseDay } from "./utils";
+
+type FilmShelf = "theatres" | "soon";
 
 function Ticket({
   film,

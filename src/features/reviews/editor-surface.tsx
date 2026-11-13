@@ -11,7 +11,7 @@ import { SurfacePart, SurfaceStage } from "@/design/components/surface";
 import { SURFACE_STACK } from "@/design/components/surface-classes";
 import { defineSurface } from "@/design/surface-definition";
 import { ui } from "@/design/ui";
-import type { MediaType } from "@/features/catalog/types";
+import type { MediaType } from "@/lib/tmdb/shared";
 import { saveListCommentAction, saveMovieReviewAction } from "./actions";
 import { RatingSelector } from "./rating";
 import {

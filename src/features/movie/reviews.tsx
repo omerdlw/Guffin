@@ -10,6 +10,7 @@ import { Icon } from "@/design/components/icon";
 import { DockLink } from "@/design/components/link";
 import { Select } from "@/design/components/select";
 import { TONE } from "@/design/foundations/tones";
+import { useSurfacePreload } from "@/design/lazy-surface";
 import { Heading } from "@/features/detail/layout";
 import {
   DetailPart,
@@ -23,7 +24,6 @@ import {
   getViewerMovieReviewAction,
 } from "@/features/reviews/actions";
 import { ReviewActions, ReviewBody } from "@/features/reviews/controls";
-import { reviewEditorSurface } from "@/features/reviews/editor-surface";
 import { setReviewsPager } from "@/features/reviews/pager";
 import { RatingStars, Star } from "@/features/reviews/rating";
 import {
@@ -31,21 +31,68 @@ import {
   isMovieReviewSort,
   isRated,
   MOVIE_REVIEW_FILTERS,
+  MOVIE_REVIEW_SORTS,
   type MovieReview,
+  type MovieReviewFilter,
   type MovieReviewSort,
   REVIEW_EVENTS,
   REVIEWS_PAGE_SIZE,
 } from "@/features/reviews/review";
+import { reviewEditorSurface } from "@/features/reviews/surfaces";
 import { accountHref, movieReviewsHref } from "@/lib/project";
 import { useScrollDriver } from "@/motion/react";
-import {
-  DIGEST_LIGHTS,
-  DIGEST_SHOWN,
-  REVIEW_DATE_FORMAT,
-  REVIEW_SORT_OPTIONS,
-} from "./constants";
-import type { ReviewDigest, ReviewsPage, ReviewsQuery } from "./types";
-import { emptyReviewsMessage } from "./utils";
+
+interface ReviewDigest {
+  mine: MovieReview | null;
+  popular: MovieReview[];
+  recent: MovieReview[];
+  viewerId: string | null;
+}
+
+interface ReviewsQuery {
+  filter: MovieReviewFilter;
+  sort: MovieReviewSort;
+  username: string | null;
+}
+
+interface ReviewsPage {
+  key: string;
+  reviews: MovieReview[];
+  stats: { average: number | null; rated: number; total: number };
+  total: number;
+  viewerId: string | null;
+}
+
+const REVIEW_DATE_FORMAT = new Intl.DateTimeFormat("en-US", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+});
+
+const DIGEST_LIGHTS = 6;
+
+const DIGEST_SHOWN = 4;
+
+const SORT_LABELS: Record<MovieReviewSort, string> = {
+  likes_asc: "Least liked",
+  likes_desc: "Most liked",
+  newest: "Newest",
+  oldest: "Oldest",
+  rating_asc: "Lowest rated",
+  rating_desc: "Highest rated",
+};
+
+const REVIEW_SORT_OPTIONS = MOVIE_REVIEW_SORTS.map((sort) => ({
+  label: SORT_LABELS[sort.value],
+  value: sort.value,
+}));
+
+function emptyReviewsMessage(filter: string, username: string | null): string {
+  if (filter !== "all") return "No entries match this filter";
+  return username
+    ? "No entry from this account yet"
+    : "No reviews yet. Be the first.";
+}
 
 function useReviewRefresh(): number {
   const [version, setVersion] = useState(0);
@@ -121,6 +168,7 @@ function ReviewCard({
   const mediaType = useMediaType();
   const router = useRouter();
   const { openSurface } = useDockActions();
+  useSurfacePreload(reviewEditorSurface);
   const profile = accountHref(review.author.username);
   const hasRating = isRated(review.rating);
 
@@ -172,22 +220,20 @@ function ReviewCard({
                 liked={review.liked}
                 likesCount={review.likesCount}
                 onEdit={() =>
-                  void openSurface(
-                    reviewEditorSurface({
-                      data: {
-                        kind: "movie",
-                        mediaType,
-                        movieId,
-                        onSaved: () => router.refresh(),
-                        review: {
-                          content: review.content,
-                          isSpoiler: review.isSpoiler,
-                          rating: review.rating,
-                        },
-                        title,
+                  void reviewEditorSurface.open(openSurface, {
+                    data: {
+                      kind: "movie",
+                      mediaType,
+                      movieId,
+                      onSaved: () => router.refresh(),
+                      review: {
+                        content: review.content,
+                        isSpoiler: review.isSpoiler,
+                        rating: review.rating,
                       },
-                    }),
-                  )
+                      title,
+                    },
+                  })
                 }
                 signedIn={viewerId !== null}
               />

@@ -1,23 +1,37 @@
 "use client";
 
 import type { JSX } from "react";
-import { bindScore } from "@/motion/react";
-import { defineScore } from "@/motion/score";
 import { DockLink, ExternalLink } from "@/design/components/link";
-import { cn } from "@/design/ui";
 import { PAGE_CLASS } from "@/design/foundations/layout";
 import { TONE } from "@/design/foundations/tones";
+import { cn } from "@/design/ui";
+import { TV_ENABLED } from "@/lib/env";
+import { bindScore } from "@/motion/react";
+import { defineScore } from "@/motion/score";
 import {
   LEGAL_CONTACT_EMAIL,
-  LEGAL_LAST_UPDATED,
-  LEGAL_LINK_PATTERN,
-  LEGAL_LINKS,
-  LEGAL_PILL_ACTIVE_CLASS,
-  LEGAL_PILL_BASE_CLASS,
-  LEGAL_PILL_IDLE_CLASS,
-  LEGAL_TOKEN_PATTERN,
-} from "./constants";
-import type { LegalBlock, LegalDocument } from "./types";
+  type LegalBlock,
+  type LegalDocument,
+} from "./documents";
+
+const LEGAL_LAST_UPDATED = TV_ENABLED ? "November 7, 2026" : "October 4, 2026";
+
+const LEGAL_LINKS = [
+  { href: "/privacy", label: "Privacy Policy" },
+  { href: "/terms", label: "Terms of Service" },
+] as const;
+
+const LEGAL_PILL_BASE_CLASS =
+  "cine-fade flex-1 px-4 py-3 text-center type-body font-medium ring-1 ring-inset outline-none focus-visible:ring-edge-focus";
+
+const LEGAL_PILL_IDLE_CLASS =
+  "bg-fill text-ink-body ring-edge hover:bg-fill-hover focus-visible:bg-fill-hover hover:text-ink focus-visible:text-ink hover:ring-edge-hover focus-visible:ring-edge-focus";
+
+const LEGAL_PILL_ACTIVE_CLASS = "bg-fill-hover text-ink ring-edge-hover";
+
+const LEGAL_TOKEN_PATTERN = /(\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\))/g;
+
+const LEGAL_LINK_PATTERN = /^\[([^\]]+)\]\(([^)]+)\)$/;
 
 const LEGAL = defineScore({
   tempo: -1,

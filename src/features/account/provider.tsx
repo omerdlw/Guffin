@@ -22,9 +22,10 @@ import { REGISTRY_SOURCES } from "@omerdlw/base-framework/kernel";
 import { getCurrentPath, report } from "@omerdlw/base-framework/utils";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import { usePathname, useRouter } from "next/navigation";
+import { useSurfacePreload } from "@/design/lazy-surface";
 import { useAuth } from "@/features/auth/provider";
-import { signInSurface } from "@/features/auth/sign-in-surface";
-import { followsSurface } from "@/features/social/follows-surface";
+import { signInSurface } from "@/features/auth/surfaces";
+import { followsSurface } from "@/features/social/surfaces";
 import { isSupabaseConfigured } from "@/lib/env";
 import { accountHref } from "@/lib/project";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
@@ -41,12 +42,9 @@ import {
   fetchInboxCount,
   fetchUnreadCount,
 } from "./client";
-import {
-  AccountInboxAction,
-  AccountNotificationsSurface,
-  accountNotificationsSurface,
-} from "./notifications-surface";
-import { accountSetupSurface } from "./setup-surface";
+import { AccountInboxAction } from "./inbox-action";
+import { AccountNotificationsSurface } from "./notifications-surface";
+import { accountNotificationsSurface, accountSetupSurface } from "./surfaces";
 
 interface AccountState {
   account: CurrentAccount | null;
@@ -171,18 +169,18 @@ function useSignInPrompt({
     queueMicrotask(() => {
       if (cancelled || prompted.current === pathname) return;
       prompted.current = pathname;
-      void openSurface(
-        signInSurface({ data: { next: getCurrentPath() } }),
-      ).then((result) => {
-        if (cancelled) return;
-        if (
-          !succeeded(result) &&
-          window.location.pathname === ACCOUNT_ENTRY_PATH
-        ) {
-          router.replace("/");
-        }
-        prompted.current = null;
-      });
+      void signInSurface
+        .open(openSurface, { data: { next: getCurrentPath() } })
+        .then((result) => {
+          if (cancelled) return;
+          if (
+            !succeeded(result) &&
+            window.location.pathname === ACCOUNT_ENTRY_PATH
+          ) {
+            router.replace("/");
+          }
+          prompted.current = null;
+        });
     });
 
     return () => {
@@ -207,6 +205,7 @@ function AccountDockRegistration(): null {
   const { account } = useAccount();
   const pathname = usePathname();
   const { openSurface } = useDockActions();
+  useSurfacePreload(followsSurface);
 
   const signedIn = auth.isAuthenticated;
   const ownPath = account?.username
@@ -221,17 +220,15 @@ function AccountDockRegistration(): null {
 
   const openInbox = useCallback(() => {
     if (!account) return;
-    void openSurface(
-      followsSurface({
-        data: {
-          canManageRequests: true,
-          displayName: account.displayName,
-          tab: "inbox",
-          userId: account.id,
-          username: account.username,
-        },
-      }),
-    );
+    void followsSurface.open(openSurface, {
+      data: {
+        canManageRequests: true,
+        displayName: account.displayName,
+        tab: "inbox",
+        userId: account.id,
+        username: account.username,
+      },
+    });
   }, [account, openSurface]);
 
   const dockConfig = useMemo(
@@ -269,6 +266,7 @@ function AccountDockRegistration(): null {
 function AccountSetupPrompt(): null {
   const auth = useAuth();
   const { openSurface } = useDockActions();
+  useSurfacePreload(accountSetupSurface);
   const prompted = useRef(false);
 
   useEffect(() => {
@@ -280,7 +278,7 @@ function AccountSetupPrompt(): null {
     url.searchParams.delete("setup");
     url.searchParams.delete("next");
     window.history.replaceState(null, "", url.toString());
-    queueMicrotask(() => void openSurface(accountSetupSurface()));
+    queueMicrotask(() => void accountSetupSurface.open(openSurface));
   }, [auth.isAuthenticated, auth.isReady, openSurface]);
 
   return null;
@@ -295,6 +293,7 @@ function AccountDockActions(): null {
   const auth = useAuth();
   const router = useRouter();
   const { closeSurface, openSurface } = useDockActions();
+  useSurfacePreload(accountNotificationsSurface);
   const notificationsOpen = useDockSelector(
     (state) =>
       state.activeSurfaceEntry?.component === AccountNotificationsSurface,
@@ -314,7 +313,7 @@ function AccountDockActions(): null {
         closeSurface();
         return;
       }
-      void openSurface(accountNotificationsSurface());
+      void accountNotificationsSurface.open(openSurface);
     },
     [closeSurface, notificationsOpen, openSurface],
   );

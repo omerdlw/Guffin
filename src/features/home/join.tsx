@@ -4,10 +4,10 @@ import type { JSX } from "react";
 import { Button } from "@omerdlw/base-framework/ui";
 import { HEADLINE_BOX } from "@/design/foundations/layout";
 import { TONE } from "@/design/foundations/tones";
-import { useOpenSignIn } from "@/features/auth/sign-in-surface";
+import { useOpenSignIn } from "@/features/auth/sign-in";
 import { GuestOnly } from "./craft";
+import { formatWhole } from "./format";
 import { HomePart, HomeSection } from "./motion";
-import { formatWhole } from "./utils";
 
 export function HomeJoin({ members }: { members: number }): JSX.Element {
   const openSignIn = useOpenSignIn();

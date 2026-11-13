@@ -1,4 +1,4 @@
-import type { MediaType } from "@/features/catalog/types";
+import type { MediaType } from "@/lib/tmdb/shared";
 
 interface MediaTypeCopy {
   icon: string;

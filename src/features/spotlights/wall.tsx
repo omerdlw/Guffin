@@ -2,16 +2,26 @@
 
 import { type JSX, useRef } from "react";
 import { useDockActionClass } from "@omerdlw/base-framework/dock";
-import { mediaHref } from "@/lib/project";
-import { tmdbImageUrl } from "@/lib/tmdb/shared";
-import { Link, TextButton } from "@/design/components/link";
 import { Button, Image } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
+import { Link, TextButton } from "@/design/components/link";
 import { DockAction } from "@/design/components/surface";
 import { cn } from "@/design/ui";
-import { TOP_100_FILTERS } from "./constants";
-import type { CanonFilm, Filter } from "./types";
-import { votesOf } from "./utils";
+import { mediaHref } from "@/lib/project";
+import { tmdbImageUrl } from "@/lib/tmdb/shared";
+import type { CanonFilm, Filter } from "./spotlights";
+
+const TOP_100_FILTERS: readonly { label: string; value: Filter }[] = [
+  { label: "All", value: "all" },
+  { label: "Seen", value: "seen" },
+  { label: "To watch", value: "unseen" },
+];
+
+const votesOf = (votes: number) =>
+  new Intl.NumberFormat("en", {
+    maximumFractionDigits: 1,
+    notation: "compact",
+  }).format(votes);
 
 export function SeenPanel({
   count,

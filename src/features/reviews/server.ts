@@ -1,8 +1,8 @@
 import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { MediaType } from "@/features/catalog/types";
 import type { Database } from "@/lib/supabase/database.types";
+import type { MediaType } from "@/lib/tmdb/shared";
 import type {
   MovieReview,
   MovieReviewFilter,

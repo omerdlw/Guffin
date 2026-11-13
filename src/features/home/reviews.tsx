@@ -1,18 +1,19 @@
 import type { JSX } from "react";
+import { Image } from "@omerdlw/base-framework/ui";
+import { Icon } from "@/design/components/icon";
+import { DockLink } from "@/design/components/link";
+import { RADIUS } from "@/design/foundations/geometry";
+import { TONE } from "@/design/foundations/tones";
 import { MoviePosterLink } from "@/features/movie/stage";
 import { RatingStars } from "@/features/reviews/rating";
 import { movieHref, reviewHref } from "@/lib/project";
 import { tmdbImageUrl } from "@/lib/tmdb/shared";
-import { Icon } from "@/design/components/icon";
-import { Image } from "@omerdlw/base-framework/ui";
-import { DockLink } from "@/design/components/link";
-import { RADIUS } from "@/design/foundations/geometry";
-import { TONE } from "@/design/foundations/tones";
-import { LEAD_REVIEW_LENGTH, TEXT_LINK_CLASS } from "./constants";
+import { type HomeReview, TEXT_LINK_CLASS } from "./feed";
+import { formatCompact, formatRelativeTime } from "./format";
 import { Heading, HomePart, HomeSection, HomeText } from "./motion";
-import { FilmTitle, MemberLink } from "./shared";
-import type { HomeReview } from "./types";
-import { formatCompact, formatRelativeTime } from "./utils";
+import { FilmTitle, MemberLink } from "./shelf";
+
+const LEAD_REVIEW_LENGTH = 320;
 
 function Byline({ review }: { review: HomeReview }): JSX.Element {
   return (

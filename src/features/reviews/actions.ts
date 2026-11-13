@@ -9,12 +9,12 @@ import {
   ok,
 } from "@/features/auth/mutation";
 import { getOptionalUser, mutate } from "@/features/auth/server";
+import { isMediaType } from "@/features/catalog/quality";
 import { ensureCatalogEntry } from "@/features/catalog/server";
-import type { MediaType } from "@/features/catalog/types";
-import { isMediaType } from "@/features/catalog/utils";
 import { isUuid } from "@/lib/http";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getMediaDetails, mediaSnapshot } from "@/lib/tmdb/server";
+import type { MediaType } from "@/lib/tmdb/shared";
 import { isTmdbId } from "@/lib/tmdb/transport";
 import {
   getReviewValidationError,

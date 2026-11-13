@@ -2,14 +2,10 @@
 
 import { type ReactNode, useActionState, useEffect, useState } from "react";
 import { useToast } from "@omerdlw/base-framework/notification";
-import { useRouter } from "next/navigation";
-import { updateAccountAction } from "@/features/account/actions";
-import { useAccount } from "@/features/account/provider";
-import { accountHref } from "@/lib/project";
 import { Button, Image, Switch, Textarea } from "@omerdlw/base-framework/ui";
+import { useRouter } from "next/navigation";
 import { Icon } from "@/design/components/icon";
 import { Input } from "@/design/components/input";
-import { cn, ui } from "@/design/ui";
 import {
   SURFACE_META,
   SURFACE_STACK,
@@ -18,14 +14,24 @@ import {
   SURFACE_TITLE,
   tileVariants,
 } from "@/design/components/surface-classes";
-import {
-  INPUT_CLASS,
-  TEXTAREA_CLASS,
-  USERNAME_ERROR,
-  USERNAME_PATTERN,
-} from "./constants";
-import { Mark } from "./shared";
-import type { MediaFormSaveResult, SaveResult } from "./types";
+import { cn, ui } from "@/design/ui";
+import { updateAccountAction } from "@/features/account/actions";
+import { useAccount } from "@/features/account/provider";
+import type { MutationResult } from "@/features/auth/mutation";
+import { accountHref } from "@/lib/project";
+import { Mark } from "./panel";
+import { FIELD_CLASS, INPUT_CLASS } from "./settings";
+
+type SaveResult = MutationResult<{ username: string }> | null;
+
+type MediaFormSaveResult = MutationResult | null;
+
+const USERNAME_PATTERN = /^[a-zA-Z0-9_-]{3,30}$/;
+
+const USERNAME_ERROR =
+  "Username must be 3-30 characters and contain letters, numbers, _ or -";
+
+const TEXTAREA_CLASS = `${FIELD_CLASS} min-h-36 p-4`;
 
 export function ProfileForm({ onSaved }: { onSaved: () => void }) {
   const { account: current, refresh } = useAccount();
@@ -85,6 +91,7 @@ export function ProfileForm({ onSaved }: { onSaved: () => void }) {
       router.replace(accountHref(result.username));
     }
     onSaved();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reacts once per action result
   }, [result]);
 
   return (
@@ -253,6 +260,7 @@ export function MediaForm({ onSaved }: { onSaved: () => void }) {
     toast("Images updated");
     router.refresh();
     onSaved();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reacts once per action result
   }, [result]);
 
   return (

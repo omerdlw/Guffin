@@ -1,7 +1,7 @@
 import type { JSX } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { parseMovieId } from "@/features/movie/utils";
+import { parseMovieId } from "@/features/movie/movie";
 import { MoviePageContent } from "@/features/movie/view";
 import { isMovieReviewSort } from "@/features/reviews/review";
 import { readParam, type SearchParams } from "@/lib/http";

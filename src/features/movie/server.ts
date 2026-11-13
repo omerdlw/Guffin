@@ -1,11 +1,18 @@
 import "server-only";
+
 import { report } from "@omerdlw/base-framework/utils";
-import type { MediaType } from "@/features/catalog/types";
 import { getKnownFor } from "@/features/person/credits";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getPersonDetails } from "@/lib/tmdb/server";
-import { CAST_KNOWN_FOR, MOVIE_FEATURED_PEOPLE } from "./constants";
-import type { FilmStats, KnownForMap, PersonEntry } from "./types";
+import type { MediaType } from "@/lib/tmdb/shared";
+import {
+  type FilmStats,
+  type KnownForMap,
+  MOVIE_FEATURED_PEOPLE,
+  type PersonEntry,
+} from "./movie";
+
+const CAST_KNOWN_FOR = 4;
 
 export async function getFilmStats(
   tmdbId: number,

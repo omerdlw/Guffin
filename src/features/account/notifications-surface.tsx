@@ -10,10 +10,7 @@ import {
   useRef,
   useState,
 } from "react";
-import {
-  DockSurfaceExtension,
-  useDockActionClass,
-} from "@omerdlw/base-framework/dock";
+import { DockSurfaceExtension } from "@omerdlw/base-framework/dock";
 import { globalEvents } from "@omerdlw/base-framework/events";
 import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
 import { useToast } from "@omerdlw/base-framework/notification";
@@ -28,7 +25,6 @@ import { Icon } from "@/design/components/icon";
 import { Link } from "@/design/components/link";
 import { SKELETON } from "@/design/components/skeleton";
 import {
-  DockAction,
   SurfaceAnchor,
   SurfaceSearch,
   useSurfaceSearch,
@@ -41,7 +37,6 @@ import {
   SURFACE_TITLE,
   tileVariants,
 } from "@/design/components/surface-classes";
-import { ACTION_TONE } from "@/design/foundations/tones";
 import { defineSurface } from "@/design/surface-definition";
 import { cn } from "@/design/ui";
 import { useAuth } from "@/features/auth/provider";
@@ -565,33 +560,3 @@ export const accountNotificationsSurface = defineSurface({
   icon: NOTIFICATIONS_ICON,
   title: NOTIFICATIONS_TITLE,
 });
-
-export function AccountInboxAction({
-  count,
-  onOpen,
-}: {
-  count: number;
-  onOpen: () => void;
-}) {
-  const actionClass = useDockActionClass();
-  return (
-    <DockAction>
-      <div className="flex items-center gap-2">
-        <Button
-          aria-label={`Inbox with ${count} pending requests`}
-          className={actionClass({
-            className: "disabled:cursor-not-allowed disabled:opacity-50",
-            variant: ACTION_TONE,
-          })}
-          onClick={(event) => {
-            event.stopPropagation();
-            onOpen();
-          }}
-        >
-          <Icon icon="solar:inbox-bold" size={16} />
-          <span>Inbox {count}</span>
-        </Button>
-      </div>
-    </DockAction>
-  );
-}

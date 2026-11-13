@@ -11,12 +11,13 @@ import { Button } from "@omerdlw/base-framework/ui";
 import { report } from "@omerdlw/base-framework/utils";
 import { Icon } from "@/design/components/icon";
 import { DockAction } from "@/design/components/surface";
+import { useSurfacePreload } from "@/design/lazy-surface";
 import { useAuth } from "@/features/auth/provider";
-import type { MediaType } from "@/features/catalog/types";
+import type { MediaType } from "@/lib/tmdb/shared";
 import { getOwnMovieReviewAction } from "./actions";
-import { reviewEditorSurface } from "./editor-surface";
 import type { ReviewsPager } from "./pager";
 import { REVIEW_EVENTS, type ReviewInput } from "./review";
+import { reviewEditorSurface } from "./surfaces";
 
 export function MovieAction({
   extra = null,
@@ -41,6 +42,7 @@ export function MovieAction({
   const actionClass = useDockActionClass();
   const { slots } = useDockTheme();
   const { openSurface } = useDockActions();
+  useSurfacePreload(reviewEditorSurface);
   const userId = auth.isAuthenticated ? (auth.user?.id ?? null) : null;
   const key = userId ? `${userId}:${mediaType}:${movieId}` : null;
 
@@ -75,18 +77,16 @@ export function MovieAction({
   const review = loaded ? own.review : null;
 
   const openEditor = useCallback(() => {
-    void openSurface(
-      reviewEditorSurface({
-        data: {
-          kind: "movie",
-          mediaType,
-          movieId,
-          onSaved: (saved) => key && setOwn({ key, review: saved }),
-          review,
-          title,
-        },
-      }),
-    );
+    void reviewEditorSurface.open(openSurface, {
+      data: {
+        kind: "movie",
+        mediaType,
+        movieId,
+        onSaved: (saved) => key && setOwn({ key, review: saved }),
+        review,
+        title,
+      },
+    });
   }, [key, mediaType, movieId, openSurface, review, title]);
 
   if (!auth.isReady) return null;

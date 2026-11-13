@@ -2,22 +2,23 @@
 
 import type { ReactNode } from "react";
 import { useDockActionClass } from "@omerdlw/base-framework/dock";
+import { Button } from "@omerdlw/base-framework/ui";
+import { Icon } from "@/design/components/icon";
+import { SkeletonBlock } from "@/design/components/skeleton";
+import { RADIUS } from "@/design/foundations/geometry";
+import { TONE } from "@/design/foundations/tones";
 import {
   MoviePosterLink,
   MoviePosterPlaceholder,
 } from "@/features/movie/stage";
-import { Button } from "@omerdlw/base-framework/ui";
-import { Icon } from "@/design/components/icon";
-import { SkeletonBlock } from "@/design/components/skeleton";
-import { TONE } from "@/design/foundations/tones";
-import { RADIUS } from "@/design/foundations/geometry";
+import { SearchPart } from "./motion";
 import {
-  RESULT_POSTER_GRID,
-  RESULT_ROW_LIST,
-  SEARCH_GROUP_LABELS,
   SEARCH_OVERVIEW,
   SEARCH_PER_PAGE,
-} from "./constants";
+  type SearchScope,
+  type SearchSection,
+  type SearchType,
+} from "./query";
 import {
   ListResultRow,
   PersonResultRow,
@@ -25,8 +26,19 @@ import {
   Roll,
   UserResultRow,
 } from "./results";
-import type { SearchScope, SearchSection } from "./types";
-import { SearchPart } from "./motion";
+
+const SEARCH_GROUP_LABELS: Readonly<Record<SearchType, string>> = {
+  lists: "Lists",
+  movies: "Movies",
+  people: "People",
+  reviews: "Reviews",
+  shows: "Shows",
+  users: "Users",
+};
+
+const RESULT_POSTER_GRID = "grid grid-cols-4 gap-2.5";
+
+const RESULT_ROW_LIST = "flex flex-col gap-1";
 
 function Option({
   active,

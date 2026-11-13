@@ -5,7 +5,6 @@ import { Button } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
 import { TONE } from "@/design/foundations/tones";
 import { ArtworkPrint, useArtworkPath } from "@/features/artwork/artwork";
-import type { ImageModalData } from "@/features/detail/detail";
 import { ImageModal } from "@/features/detail/image-modal";
 import { DetailCount } from "@/features/detail/motion";
 import { DetailBackdrop, DetailIntermission } from "@/features/detail/stage";
@@ -17,10 +16,14 @@ import {
 } from "@/lib/tmdb/shared";
 import { AnimatePresence, motion } from "@/motion/lib";
 import { POINTS, step } from "@/motion/time";
-import { REEL_IMAGE_SIZE, STILL_BADGE_RUNG } from "./constants";
-import type { MovieArtwork } from "./types";
-import { formatMoneyOrZero, readableUrl } from "./utils";
+import { formatMoney, type MovieArtwork, readableUrl } from "./movie";
 import { useReel } from "./views";
+
+const REEL_IMAGE_SIZE = "w1280";
+
+const STILL_BADGE_RUNG = 1;
+
+const formatMoneyOrZero = (amount: number) => formatMoney(amount) ?? "$0";
 
 export function MoviePoster({
   awards,
@@ -72,8 +75,7 @@ function Slate({ title }: { title: string }) {
             onClick={() => {
               const src = tmdbImageUrl("backdrop", reel, "original");
               if (!src) return;
-              const data: ImageModalData = { alt: `Still of ${title}`, src };
-              void openImage(data);
+              void openImage({ alt: `Still of ${title}`, src });
             }}
             type="button"
           >

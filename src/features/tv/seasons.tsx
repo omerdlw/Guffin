@@ -1,18 +1,21 @@
 import type { JSX } from "react";
-import { Heading } from "@/features/detail/layout";
-import { DetailSection } from "@/features/detail/motion";
-import { seasonHref } from "@/lib/project";
-import { tmdbImageSrcSet, tmdbImageUrl } from "@/lib/tmdb/shared";
 import { Carousel } from "@/design/components/carousel";
 import { Icon } from "@/design/components/icon";
 import { DockLink } from "@/design/components/link";
 import { MediaCard } from "@/design/components/media-card";
-import { cn } from "@/design/ui";
 import { RADIUS } from "@/design/foundations/geometry";
 import { CAROUSEL_WIDE_ITEM } from "@/design/foundations/layout";
 import { TONE } from "@/design/foundations/tones";
-import type { SeasonSummary } from "./types";
-import { formatEpisodeCode } from "./utils";
+import { cn } from "@/design/ui";
+import { Heading } from "@/features/detail/layout";
+import { DetailSection } from "@/features/detail/motion";
+import { seasonHref } from "@/lib/project";
+import {
+  type SeasonSummary,
+  tmdbImageSrcSet,
+  tmdbImageUrl,
+} from "@/lib/tmdb/shared";
+import { formatEpisodeCode } from "./show";
 
 export interface ShelfProgress {
   aired: number;

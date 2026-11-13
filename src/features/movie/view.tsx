@@ -13,7 +13,7 @@ import {
 } from "@/design/foundations/layout";
 import { TONE } from "@/design/foundations/tones";
 import { cn } from "@/design/ui";
-import { type Fact, hasAwards } from "@/features/detail/detail";
+import { type Fact, type FactName, hasAwards } from "@/features/detail/detail";
 import {
   DetailAwards,
   DetailLayout,
@@ -30,12 +30,13 @@ import {
   DetailText,
 } from "@/features/detail/motion";
 import { MediaReviewsHeader } from "@/features/detail/reviews-header";
+import type { PopularList } from "@/features/lists/list";
 import { MoviePopularLists } from "@/features/lists/popular";
 import { getMoviePopularLists } from "@/features/lists/server";
 import type { MovieReviewSort } from "@/features/reviews/review";
 import { MovieSocialProof } from "@/features/social/proof";
 import { pluralize } from "@/lib/format";
-import { movieHref } from "@/lib/project";
+import { movieHref, personHref } from "@/lib/project";
 import {
   getAmbientPalette,
   getMovieAwards,
@@ -50,14 +51,6 @@ import {
 } from "@/lib/tmdb/shared";
 import { MoviePeople } from "./cast";
 import { MovieCollectionActions } from "./collection";
-import {
-  AFTER_TAGLINE,
-  COMPACT_NUMBER_FORMAT,
-  MAX_VISIBLE_GENRES,
-  MAX_VISIBLE_PEOPLE,
-  MAX_VISIBLE_TAGS,
-  TAGLINE_CLASS,
-} from "./constants";
 import { MovieGallery, MovieGalleryWall, MovieVideos } from "./gallery";
 import {
   MoneyCount,
@@ -65,6 +58,22 @@ import {
   MoviePoster,
   MovieProjection,
 } from "./media";
+import {
+  AFTER_TAGLINE,
+  capitalizeWords,
+  type FilmStats,
+  formatMoney,
+  getDirectors,
+  getGalleryImages,
+  getPosterImages,
+  getVideoTypes,
+  hasFilmStats,
+  movieSwatch,
+  movieTitleClass,
+  type PersonEntry,
+  TAGLINE_CLASS,
+  uniqueById,
+} from "./movie";
 import { MovieReviewDigest, MovieReviews } from "./reviews";
 import { getFilmStats, getPeopleKnownFor } from "./server";
 import {
@@ -73,28 +82,200 @@ import {
   MoviePosterLink,
   MovieStage,
 } from "./stage";
-import type { AwardsRequest, FilmStats, MoviePageKind } from "./types";
-import {
-  capitalizeWords,
-  formatMembers,
-  formatMoney,
-  formatReleaseDate,
-  getCertification,
-  getDirectors,
-  getGalleryImages,
-  getOriginalLanguageName,
-  getPosterImages,
-  getRecommendations,
-  getTags,
-  getVideoTypes,
-  getWriters,
-  hasFilmStats,
-  movieSwatch,
-  movieTitleClass,
-  toFactName,
-  toPersonEntries,
-} from "./utils";
 import { MovieViewProvider, MovieViews, ReelProvider } from "./views";
+
+interface MovieCrewEntry {
+  creditId: string;
+  department: string | null;
+  id: number;
+  jobs: string;
+  name: string;
+  profilePath: string | null;
+}
+
+type AwardsRequest = Promise<Awards | null>;
+
+type MoviePageKind =
+  | { kind: "film"; popularLists: Promise<PopularList[]> }
+  | { kind: "reviews"; reviewer: string | null; sort: MovieReviewSort };
+
+const MOVIE_TAG_LIMIT = 10;
+
+const MOVIE_TAG_MAX_LENGTH = 28;
+
+const MOVIE_RECOMMENDATION_LIMIT = 12;
+
+const MOVIE_WRITER_LIMIT = 10;
+
+const MOVIE_CERTIFICATION_REGION = "US";
+
+const WRITING_JOBS: ReadonlySet<string> = new Set([
+  "Screenplay",
+  "Writer",
+  "Story",
+  "Novel",
+  "Author",
+]);
+
+const RELEASE_TYPE_PRIORITY = [3, 2, 4, 5, 6, 1];
+
+const MOVIE_DATE_FORMAT = new Intl.DateTimeFormat("en-US", {
+  dateStyle: "long",
+  timeZone: "UTC",
+});
+
+const CREW_JOB_PRIORITY = [
+  "Director",
+  "Screenplay",
+  "Writer",
+  "Story",
+  "Producer",
+  "Executive Producer",
+  "Director of Photography",
+  "Original Music Composer",
+  "Editor",
+  "Production Design",
+  "Costume Design",
+];
+
+const MAX_VISIBLE_PEOPLE = 2;
+
+const MAX_VISIBLE_GENRES = 3;
+
+const MAX_VISIBLE_TAGS = 2;
+
+const COMPACT_NUMBER_FORMAT = new Intl.NumberFormat("en", {
+  maximumFractionDigits: 1,
+  notation: "compact",
+});
+
+function formatReleaseDate(date: string | null): string | null {
+  if (!date) return null;
+  const parsed = new Date(`${date}T00:00:00Z`);
+  return Number.isNaN(parsed.getTime())
+    ? null
+    : MOVIE_DATE_FORMAT.format(parsed);
+}
+
+function getWriters(movie: MovieDetails, limit = MOVIE_WRITER_LIMIT) {
+  return uniqueById(
+    movie.credits.crew.filter(
+      (c) => c.department === "Writing" && c.job && WRITING_JOBS.has(c.job),
+    ),
+  ).slice(0, limit);
+}
+
+function getCast(movie: MovieDetails) {
+  return uniqueById([...movie.credits.cast].sort((a, b) => a.order - b.order));
+}
+
+function getCrew(movie: MovieDetails): MovieCrewEntry[] {
+  const people = new Map<number, MovieCrewEntry & { rank: number }>();
+  const rankOf = (job: string | null) => {
+    const index = job ? CREW_JOB_PRIORITY.indexOf(job) : -1;
+    return index === -1 ? CREW_JOB_PRIORITY.length : index;
+  };
+
+  for (const member of movie.credits.crew) {
+    if (!member.job) continue;
+    const existing = people.get(member.id);
+    if (!existing) {
+      people.set(member.id, {
+        creditId: member.creditId,
+        department: member.department,
+        id: member.id,
+        jobs: member.job,
+        name: member.name,
+        profilePath: member.profilePath,
+        rank: rankOf(member.job),
+      });
+    } else {
+      if (!existing.jobs.split(" / ").includes(member.job)) {
+        existing.jobs = `${existing.jobs} / ${member.job}`;
+      }
+      existing.rank = Math.min(existing.rank, rankOf(member.job));
+    }
+  }
+
+  return [...people.values()]
+    .sort((a, b) => a.rank - b.rank)
+    .map(({ rank: _rank, ...entry }) => entry);
+}
+
+function getTags(movie: MovieDetails, limit = MOVIE_TAG_LIMIT) {
+  const genres = new Set(movie.genres.map((g) => g.name.toLowerCase()));
+  const seen = new Set<string>();
+  return movie.keywords
+    .map((keyword) => keyword.name.trim())
+    .filter((name) => {
+      const key = name.toLowerCase();
+      if (!name || name.length > MOVIE_TAG_MAX_LENGTH) return false;
+      if (genres.has(key) || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, limit);
+}
+
+function getOriginalLanguageName(movie: MovieDetails): string | null {
+  return (
+    movie.spokenLanguages.find((l) => l.code === movie.originalLanguage)
+      ?.englishName ?? movie.originalLanguage
+  );
+}
+
+function getRecommendations(
+  movie: MovieDetails,
+  limit = MOVIE_RECOMMENDATION_LIMIT,
+) {
+  return movie.recommendations.filter((m) => m.id !== movie.id).slice(0, limit);
+}
+
+function getCertification(
+  movie: MovieDetails,
+  region: string = MOVIE_CERTIFICATION_REGION,
+): string | null {
+  const releases =
+    movie.releaseDates.find((r) => r.region === region)?.releases ?? [];
+  const rank = (type: number) => {
+    const index = RELEASE_TYPE_PRIORITY.indexOf(type);
+    return index === -1 ? RELEASE_TYPE_PRIORITY.length : index;
+  };
+  return (
+    [...releases]
+      .filter((r) => r.certification)
+      .sort((a, b) => rank(a.type) - rank(b.type))[0]?.certification ?? null
+  );
+}
+
+const toFactName = (person: { id: number; name: string }): FactName => ({
+  href: personHref(person.id),
+  text: person.name,
+});
+
+const formatMembers = (count: number) => pluralize(count, "member");
+
+function toPersonEntries(movie: MovieDetails): {
+  cast: PersonEntry[];
+  crew: PersonEntry[];
+} {
+  return {
+    cast: getCast(movie).map((member) => ({
+      id: member.id,
+      key: member.creditId,
+      name: member.name,
+      profilePath: member.profilePath,
+      subtitle: member.character ?? "Cast",
+    })),
+    crew: getCrew(movie).map((member) => ({
+      id: member.id,
+      key: `${member.id}-${member.creditId}`,
+      name: member.name,
+      profilePath: member.profilePath,
+      subtitle: member.jobs,
+    })),
+  };
+}
 
 function MovieAwards({ awards }: { awards: AwardsRequest }): JSX.Element {
   return (

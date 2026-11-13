@@ -1,8 +1,8 @@
 import type { JSX } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { SeasonPageContent } from "@/features/tv/view";
-import { parseSeasonNumber, parseShowId } from "@/features/tv/utils";
+import { SeasonPageContent } from "@/features/tv/season-view";
+import { parseSeasonNumber, parseShowId } from "@/features/tv/show";
 import { TV_ENABLED } from "@/lib/env";
 import { project, shareMetadata } from "@/lib/project";
 import { getShowDetails } from "@/lib/tmdb/server";

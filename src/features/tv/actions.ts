@@ -8,20 +8,34 @@ import { ensureCatalogEntry } from "@/features/catalog/server";
 import { tvHref } from "@/lib/project";
 import { getSeasonDetails } from "@/lib/tmdb/server";
 import { isTmdbId } from "@/lib/tmdb/transport";
-import { EPISODES_PER_REQUEST_MAX } from "./constants";
 import { getAiredEpisodes, getShowTracking, setShowCompleted } from "./server";
-import type {
-  ShowProgress,
-  ShowStatus,
-  ShowTracking,
-  TvActionResult,
-} from "./types";
 import {
   isAired,
   isShowStatus,
+  type ShowProgress,
+  type ShowStatus,
+  type ShowTracking,
   toShowProgress,
-  trackingErrorMessage,
-} from "./utils";
+} from "./show";
+
+type TvActionResult<T extends object = object> =
+  ({ success: true } & T) | { error: string; success: false };
+
+const EPISODES_PER_REQUEST_MAX = 500;
+
+const TRACKING_ERRORS: Record<string, string> = {
+  CATALOG_MISSING: "Could not load this show, try again",
+  INVALID_EPISODES: "Those episodes could not be marked",
+  INVALID_STATUS: "Pick a status from the list",
+};
+
+function trackingErrorMessage(message: string | undefined): string | null {
+  if (!message) return null;
+  const code = Object.keys(TRACKING_ERRORS).find((key) =>
+    message.includes(key),
+  );
+  return code ? TRACKING_ERRORS[code] : null;
+}
 
 function isSeason(value: unknown): value is number {
   return (

@@ -13,7 +13,7 @@ import {
   BACKDROP_HERO_MASK,
 } from "@/design/components/backdrop";
 import { cn } from "@/design/ui";
-import { project, type Projector } from "./gl-projection";
+import type { Projector } from "./gl-projection";
 import { useEngine } from "./react";
 import { readable } from "./render";
 
@@ -45,6 +45,13 @@ function parsePosition(position: string): [number, number] {
       : (PROJECTION_KEYWORDS[value] ?? 0.5);
   return [read(x), read(y)];
 }
+
+let projection: Promise<typeof import("./gl-projection")> | null = null;
+const loadProjection = () =>
+  (projection ??= import("./gl-projection").catch((error: unknown) => {
+    projection = null;
+    throw error;
+  }));
 
 export function useScrollY(): MotionValue<number> {
   const engine = useEngine();
@@ -96,21 +103,33 @@ export function Projection({
   useEffect(() => {
     if (plain || !image.current || !canvas.current) return;
     const [x, y] = parsePosition(position);
-    const running = project(canvas.current, image.current, {
-      cut: reduced ? 0 : cut,
-      defocusAt: focusRef,
-      focus: [x, y],
-      halation,
-      onFail: () => setPlain(true),
-      onLive: setLive,
-      onRestore: () => setAttempt((count) => count + 1),
-      reduced,
-      scrollY,
-      src,
-    });
-    projector.current = running;
+    const target = canvas.current;
+    const source = image.current;
+    let active = true;
+    let running: Projector | null = null;
+    void loadProjection()
+      .then(({ project }) => {
+        if (!active) return;
+        running = project(target, source, {
+          cut: reduced ? 0 : cut,
+          defocusAt: focusRef,
+          focus: [x, y],
+          halation,
+          onFail: () => setPlain(true),
+          onLive: setLive,
+          onRestore: () => setAttempt((count) => count + 1),
+          reduced,
+          scrollY,
+          src,
+        });
+        projector.current = running;
+      })
+      .catch(() => {
+        if (active) setPlain(true);
+      });
     return () => {
-      running.stop();
+      active = false;
+      running?.stop();
       projector.current = null;
       setLive(false);
     };

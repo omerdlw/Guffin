@@ -13,6 +13,7 @@ import {
   useNavigationPayload,
 } from "@omerdlw/base-framework/navigation";
 import { MediaCard } from "@/design/components/media-card";
+import { useSurfacePreload } from "@/design/lazy-surface";
 import {
   useArtworkContextMenu,
   useArtworkPath,
@@ -23,19 +24,58 @@ import { MovieAction } from "@/features/reviews/movie-action";
 import { describeReviewStats, useReviewsPager } from "@/features/reviews/pager";
 import { mediaHref } from "@/lib/project";
 import {
+  type MediaType,
   type MovieDetails,
   tmdbImageSrcSet,
   tmdbImageUrl,
 } from "@/lib/tmdb/shared";
-import {
-  COLLECTION_ICONS,
-  MOVIE_FALLBACK_ICON,
-  POSTER_LINK_WIDTHS,
-} from "./constants";
-import type { MoviePosterLinkProps } from "./types";
-import { describeMovie, movieSwatch } from "./utils";
+import { COLLECTION_ICONS, getDirectors, movieSwatch } from "./movie";
+import { watchProvidersSurface } from "./surfaces";
 import { useMovieView, useReel } from "./views";
-import { createWatchProvidersSurfaceEntry } from "./watch-providers";
+
+interface MoviePosterLinkProps {
+  mediaType?: MediaType;
+  movie: {
+    id: number;
+    posterPath: string | null;
+    title: string;
+    year: number | null;
+  };
+  caption?: ReactNode;
+  detail?: string | null;
+  onNavigated?: () => void;
+  overlay?: ReactNode;
+  radius?: number;
+  sizes?: string;
+}
+
+const MOVIE_FALLBACK_ICON = "solar:clapperboard-play-bold";
+
+const DOCK_DIRECTOR_LIMIT = 2;
+
+const POSTER_LINK_WIDTHS = ["w185", "w342"] as const;
+
+function formatRuntime(minutes: number | null): string | null {
+  if (!minutes || minutes <= 0) return null;
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  if (hours === 0) return `${rest}m`;
+  return rest === 0 ? `${hours}h` : `${hours}h ${rest}m`;
+}
+
+function describeMovie(movie: MovieDetails): string {
+  const directors = getDirectors(movie)
+    .slice(0, DOCK_DIRECTOR_LIMIT)
+    .map((director) => director.name)
+    .join(", ");
+  return [
+    directors && `by ${directors}`,
+    movie.releaseYear,
+    formatRuntime(movie.runtimeMinutes),
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
 
 export function MovieStage({
   children,
@@ -91,6 +131,7 @@ export function MoviePageChrome({
   });
 
   const { openSurface } = useDockActions();
+  useSurfacePreload(watchProvidersSurface);
   const pager = useReviewsPager();
   const board = reviews ? pager : null;
   const hasProviders = Object.keys(movie.watchProviders).length > 0;
@@ -102,12 +143,12 @@ export function MoviePageChrome({
         pager={board}
         movieId={movie.id}
         onOpenProviders={() =>
-          void openSurface(
-            createWatchProvidersSurfaceEntry({
+          void watchProvidersSurface.open(openSurface, {
+            data: {
               movieId: movie.id,
               title: movie.title,
-            }),
-          )
+            },
+          })
         }
         title={movie.title}
       />

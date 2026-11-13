@@ -1,6 +1,6 @@
 import type { JSX } from "react";
 import type { Metadata } from "next";
-import { TERMS } from "@/features/legal/constants";
+import { TERMS } from "@/features/legal/documents";
 import { LegalPage } from "@/features/legal/view";
 
 export const metadata: Metadata = {

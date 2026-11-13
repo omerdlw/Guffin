@@ -39,9 +39,8 @@ import {
 } from "@/design/components/surface-classes";
 import { defineSurface } from "@/design/surface-definition";
 import { cn, ui } from "@/design/ui";
-import type { MediaType } from "@/features/catalog/types";
 import { pluralize } from "@/lib/format";
-import { tmdbImageUrl } from "@/lib/tmdb/shared";
+import { type MediaType, tmdbImageUrl } from "@/lib/tmdb/shared";
 import {
   createMovieListAction,
   getMovieListsAction,

@@ -1,6 +1,7 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useStore } from "@omerdlw/base-framework/hooks";
+import { createStore } from "@omerdlw/base-framework/utils";
 
 export interface ReviewsPager {
   clear: () => void;
@@ -22,23 +23,12 @@ export function describeReviewStats({
     : `★ ${average}/5 (${rated} rated) · ${reviews}`;
 }
 
-let current: ReviewsPager | null = null;
-const listeners = new Set<() => void>();
+const pagerStore = createStore<ReviewsPager | null>(null);
 
 export function setReviewsPager(next: ReviewsPager | null): void {
-  current = next;
-  for (const listener of listeners) listener();
+  pagerStore.publish(next);
 }
 
-const subscribe = (listener: () => void) => {
-  listeners.add(listener);
-  return () => listeners.delete(listener);
-};
-
 export function useReviewsPager(): ReviewsPager | null {
-  return useSyncExternalStore(
-    subscribe,
-    () => current,
-    () => null,
-  );
+  return useStore(pagerStore);
 }

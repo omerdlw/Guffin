@@ -1,25 +1,48 @@
 import "server-only";
+
 import { report } from "@omerdlw/base-framework/utils";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { unstable_rethrow } from "next/navigation";
 import { getOptionalUser } from "@/features/auth/server";
-import { isAiring } from "@/features/catalog/utils";
+import { isAiring } from "@/features/catalog/quality";
+import type { Database } from "@/lib/supabase/database.types";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getSeasonDetails, getShowDetails } from "@/lib/tmdb/server";
-import { CONTINUE_WATCHING_LIMIT, SEASON_STILL_LIMIT } from "./constants";
-import type {
-  AiredEpisode,
-  ContinueItem,
-  SeasonSummary,
-  ShowTracking,
-  TvClient,
-} from "./types";
+import type { Episode, SeasonSummary } from "@/lib/tmdb/shared";
 import {
+  type ContinueItem,
   episodeKey,
+  isAired,
   isShowStatus,
+  type ShowTracking,
   splitSeasons,
-  toAiredEpisodes,
   toShowProgress,
-} from "./utils";
+} from "./show";
+
+type TvClient = SupabaseClient<Database>;
+
+type AiredEpisode = {
+  e: number;
+  r: number | null;
+  s: number;
+};
+
+const CONTINUE_WATCHING_LIMIT = 12;
+
+const SEASON_STILL_LIMIT = 30;
+
+function toAiredEpisodes(
+  episodes: readonly Episode[],
+  today?: string,
+): AiredEpisode[] {
+  return episodes
+    .filter((episode) => isAired(episode.airDate, today))
+    .map((episode) => ({
+      s: episode.seasonNumber,
+      e: episode.episodeNumber,
+      r: episode.runtimeMinutes,
+    }));
+}
 
 export async function getAiredEpisodes(
   showId: number,

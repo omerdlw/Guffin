@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  useActionState,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import { DOCK_EVENTS, useDockActions } from "@omerdlw/base-framework/dock";
 import { globalEvents } from "@omerdlw/base-framework/events";
 import { useToast } from "@omerdlw/base-framework/notification";
@@ -17,8 +10,8 @@ import { Icon } from "@/design/components/icon";
 import { Input } from "@/design/components/input";
 import { Link } from "@/design/components/link";
 import { SurfaceAnchor } from "@/design/components/surface";
+import { useSurfacePreload } from "@/design/lazy-surface";
 import { defineSurface } from "@/design/surface-definition";
-import { ui } from "@/design/ui";
 import {
   requestEmailAuth,
   signInSeedAccount,
@@ -35,7 +28,8 @@ import {
   sanitizeNextPath,
   SEED_EMAIL_DOMAIN,
 } from "./session";
-import { verificationSurface } from "./verification-surface";
+import { AUTH_INPUT_CLASS } from "./sign-in";
+import { verificationSurface } from "./surfaces";
 
 type SignInMethod = OAuthProvider | "email" | "passkey";
 
@@ -65,10 +59,6 @@ const SIGN_IN_METHODS: Record<SignInMethod, { icon: string; label: string }> = {
   passkey: { icon: "solar:key-bold", label: "Passkey" },
   x: { icon: "simple-icons:x", label: "X" },
 };
-
-export const AUTH_INPUT_CLASS = ui.parts.input.field({
-  className: "h-10 w-full px-4 type-body",
-});
 
 function isSeedEmail(email: string): boolean {
   return (
@@ -251,6 +241,7 @@ function SignInSurface({ close, data = {} }: SignInSurfaceProps) {
 function EmailSignInSurface({ data = {} }: SignInSurfaceProps) {
   const auth = useAuth();
   const { openSurface } = useDockActions();
+  useSurfacePreload(verificationSurface);
   const toast = useToast();
   const [email, setEmail] = useState(() => data.email?.trim() ?? "");
   const postAuthRedirect = usePostAuthRedirect(data.next);
@@ -291,11 +282,9 @@ function EmailSignInSurface({ data = {} }: SignInSurfaceProps) {
       return;
     }
     if (!result.signedIn) {
-      openSurface(
-        verificationSurface({
-          data: { email: result.email, next: postAuthRedirect },
-        }),
-      );
+      verificationSurface.open(openSurface, {
+        data: { email: result.email, next: postAuthRedirect },
+      });
     }
   }, [openSurface, postAuthRedirect, result, toast]);
 
@@ -338,14 +327,3 @@ export const signInSurface = defineSurface<{ data: SignInData }>({
   title: "Sign In",
   width: SIGN_IN_SURFACE_WIDTH,
 });
-
-export function useOpenSignIn(): () => void {
-  const { openSurface } = useDockActions();
-  return useCallback(() => {
-    void openSurface(
-      signInSurface({
-        data: { next: window.location.pathname + window.location.search },
-      }),
-    );
-  }, [openSurface]);
-}

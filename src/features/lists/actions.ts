@@ -9,13 +9,12 @@ import {
   ok,
 } from "@/features/auth/mutation";
 import { mutate, requireUser } from "@/features/auth/server";
-import type { MediaType } from "@/features/catalog/types";
-import { isMediaType } from "@/features/catalog/utils";
+import { isMediaType } from "@/features/catalog/quality";
 import { isUuid } from "@/lib/http";
 import { checkRateLimit } from "@/lib/security";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getMediaDetails, mediaSnapshot } from "@/lib/tmdb/server";
-import type { MovieDetails, ShowDetails } from "@/lib/tmdb/shared";
+import type { MediaType, MovieDetails, ShowDetails } from "@/lib/tmdb/shared";
 import { isTmdbId } from "@/lib/tmdb/transport";
 import {
   LIST_DESCRIPTION_MAX,

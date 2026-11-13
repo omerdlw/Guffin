@@ -1,8 +1,10 @@
-import type { MediaType } from "@/features/catalog/types";
-import { filterEligible } from "@/features/catalog/utils";
+import { filterEligible } from "@/features/catalog/quality";
 import { TV_ENABLED } from "@/lib/env";
 import { pluralize } from "@/lib/format";
 import {
+  type MediaType,
+  type PersonCastCredit,
+  type PersonCrewCredit,
   type PersonDetails,
   type PersonImage,
   type PersonTvCastCredit,
@@ -10,42 +12,226 @@ import {
   tmdbImageUrl,
 } from "@/lib/tmdb/shared";
 import {
-  GROUP_PRIORITY,
-  PERSON_BACKDROP_LIMIT,
-  PERSON_BACKDROP_MIN_VOTES,
-  PERSON_CAREER_MIN_YEARS,
-  PERSON_GALLERY_LIMIT,
-  SHOWN_ALONGSIDE,
-} from "./constants";
-import type {
-  ByMedium,
-  Career,
-  CareerFilm,
-  CreditLike,
-  FilmographyCredit,
-  FilmographyGroup,
-  FilmographySort,
-  SourceCredit,
-  TimelineCredit,
-  TimelineYear,
-  TvSourceCredit,
-} from "./types";
-import {
-  backdropScore,
-  byCreditPopularity,
-  byImpact,
-  byNewest,
-  byPopularity,
-  byTitle,
-  careerFilms,
-  careerTitles,
-  crewOfDepartment,
-  datedTvCredits,
+  type ByMedium,
+  type Career,
   departmentRole,
-  describeCredits,
-  makeGroup,
-  mergeByMovie,
-} from "./utils";
+  type FilmographyCredit,
+  type FilmographyGroup,
+  type FilmographySort,
+  type TimelineCredit,
+  type TimelineYear,
+} from "./person";
+
+type SourceCredit = PersonCastCredit | PersonCrewCredit;
+
+type TvSourceCredit = PersonTvCastCredit | PersonTvCrewCredit;
+
+type CreditLike = Pick<
+  SourceCredit,
+  | "id"
+  | "popularity"
+  | "posterPath"
+  | "releaseDate"
+  | "releaseYear"
+  | "title"
+  | "voteCount"
+>;
+
+interface CareerFilm {
+  id: number;
+  popularity: number;
+  title: string;
+  votes: number;
+  year: number;
+}
+
+const PERSON_GALLERY_LIMIT = 20;
+
+const PERSON_BACKDROP_LIMIT = 12;
+
+const PERSON_BACKDROP_MIN_VOTES = 50;
+
+const PERSON_CAREER_MIN_YEARS = 12;
+
+const GROUP_PRIORITY = ["Acting", "Directing", "Writing", "Production"];
+
+const DEPARTMENT_JOBS: Readonly<Record<string, RegExp>> = {
+  Directing: /^(?:co-)?director$/i,
+  Production: /producer/i,
+};
+
+const SHOWN_ALONGSIDE = ["Acting", "Directing"];
+
+const NOT_A_REAL_ROLE = /uncredited|cameo|self|archive/i;
+
+const byPopularity = (a: CreditLike, b: CreditLike) =>
+  b.popularity - a.popularity || b.voteCount - a.voteCount;
+
+const byNewest = (a: CreditLike, b: CreditLike) =>
+  (b.releaseDate ?? "").localeCompare(a.releaseDate ?? "") ||
+  byPopularity(a, b);
+
+function toCredit(
+  movie: CreditLike,
+  role: string | null,
+  mediaType: MediaType,
+): FilmographyCredit {
+  return {
+    ...("episodeCount" in movie && typeof movie.episodeCount === "number"
+      ? { episodes: movie.episodeCount }
+      : {}),
+    id: movie.id,
+    key: `${mediaType}:${movie.id}`,
+    mediaType,
+    popularity: movie.popularity,
+    posterPath: movie.posterPath,
+    releaseDate: movie.releaseDate,
+    role,
+    title: movie.title,
+    voteCount: movie.voteCount,
+    year: movie.releaseYear,
+  };
+}
+
+function mergeByMovie<T extends CreditLike>(
+  credits: readonly T[],
+  roleOf: (credit: T) => string | null,
+  mediaType: MediaType = "movie",
+): FilmographyCredit[] {
+  const merged = new Map<number, { movie: T; roles: string[] }>();
+  for (const credit of credits) {
+    const role = roleOf(credit);
+    const existing = merged.get(credit.id);
+    if (!existing) {
+      merged.set(credit.id, { movie: credit, roles: role ? [role] : [] });
+    } else if (role && !existing.roles.includes(role)) {
+      existing.roles.push(role);
+    }
+  }
+  return [...merged.values()].map(({ movie, roles }) =>
+    toCredit(movie, roles.length > 0 ? roles.join(" / ") : null, mediaType),
+  );
+}
+
+function makeGroup(
+  key: string,
+  label: string,
+  credits: FilmographyCredit[],
+): FilmographyGroup {
+  const withPoster = credits.filter((credit) => credit.posterPath);
+  return { credits: withPoster, key, label, total: withPoster.length };
+}
+
+function crewOfDepartment<T extends { job: string | null }>(
+  credits: readonly T[],
+  department: string,
+): T[] {
+  const jobs = DEPARTMENT_JOBS[department];
+  const defining = jobs
+    ? credits.filter((credit) => credit.job && jobs.test(credit.job))
+    : [];
+  return defining.length > 0 ? defining : [...credits];
+}
+
+function sortableTitle(title: string): string {
+  return title.replace(/^(?:the|a|an)\s+/i, "");
+}
+
+const byTitle = (a: FilmographyCredit, b: FilmographyCredit) =>
+  sortableTitle(a.title).localeCompare(sortableTitle(b.title), "en", {
+    sensitivity: "base",
+  });
+
+const standing = (credit: FilmographyCredit) =>
+  credit.popularity * (credit.episodes ? Math.log2(1 + credit.episodes) : 1);
+
+const byCreditPopularity = (a: FilmographyCredit, b: FilmographyCredit) =>
+  standing(b) - standing(a) || b.voteCount - a.voteCount;
+
+function describeCredits(
+  cast: readonly { character: string | null }[],
+  crew: readonly { department: string | null; job: string | null }[],
+  episodes = 0,
+): string | null {
+  const parts: string[] = [];
+  if (cast.length > 0) {
+    const characters = [
+      ...new Set(cast.map((c) => c.character).filter(Boolean)),
+    ];
+    parts.push(
+      characters.length > 0 ? `as ${characters.join(" / ")}` : "Actor",
+    );
+  }
+  const jobs = [
+    ...new Set(crew.map((c) => c.job ?? c.department).filter(Boolean)),
+  ];
+  if (jobs.length > 0) parts.push(jobs.join(", "));
+  if (episodes > 0) parts.push(pluralize(episodes, "episode"));
+  return parts.length > 0 ? parts.join(" · ") : null;
+}
+
+function careerTitles(credits: readonly CreditLike[]): CareerFilm[] {
+  const films = new Map<number, CareerFilm>();
+  for (const credit of credits) {
+    if (credit.releaseYear === null || films.has(credit.id)) continue;
+    films.set(credit.id, {
+      id: credit.id,
+      popularity: credit.popularity,
+      title: credit.title,
+      votes: credit.voteCount,
+      year: credit.releaseYear,
+    });
+  }
+  return [...films.values()];
+}
+
+const byImpact = (a: CareerFilm, b: CareerFilm) =>
+  b.votes - a.votes || b.popularity - a.popularity;
+
+function backdropScore(
+  credit: SourceCredit | TvSourceCredit,
+  kind: "cast" | "crew",
+): number {
+  let weight = 1;
+  if ("episodeCount" in credit) {
+    const episodes = credit.episodeCount;
+    weight = episodes >= 40 ? 1.4 : episodes >= 12 ? 1.1 : 0.7;
+    if ("character" in credit && credit.character) {
+      if (NOT_A_REAL_ROLE.test(credit.character)) weight *= 0.2;
+    } else if ("job" in credit) {
+      weight = credit.job === "Creator" ? 1.3 : 0.5;
+    }
+  } else if (kind === "cast") {
+    const { order, character } = credit as PersonCastCredit;
+    weight = order === 0 ? 1.6 : order <= 2 ? 1.3 : order <= 5 ? 1 : 0.7;
+    if (order > 10) weight = 0.3;
+    if (character && NOT_A_REAL_ROLE.test(character)) weight *= 0.2;
+  } else {
+    weight = (credit as PersonCrewCredit).job === "Director" ? 1.3 : 0.5;
+  }
+  const impact =
+    Math.log10(Math.max(1, credit.voteCount)) * 25 +
+    Math.log10(Math.max(1, credit.popularity)) * 10;
+  return impact * weight;
+}
+
+function careerFilms(person: PersonDetails): CareerFilm[] {
+  return careerTitles([...person.credits.cast, ...person.credits.crew]);
+}
+
+function datedTvCredits(
+  credits: readonly TvSourceCredit[],
+  eligible: (credits: readonly TvSourceCredit[]) => TvSourceCredit[],
+): TvSourceCredit[] {
+  return eligible(credits).map((credit) => {
+    const releaseDate = credit.firstCreditDate ?? credit.releaseDate;
+    return {
+      ...credit,
+      releaseDate,
+      releaseYear: releaseDate ? Number(releaseDate.slice(0, 4)) : null,
+    };
+  });
+}
 
 function tvCredits(person: PersonDetails): {
   cast: PersonTvCastCredit[];

@@ -27,7 +27,7 @@ import {
 } from "@/features/account/provider";
 import { BackdropPreloader } from "@/features/artwork/artwork";
 import { AuthListener, AuthProvider } from "@/features/auth/provider";
-import { SearchDockCommand } from "@/features/search/action";
+import { SearchDockCommand } from "@/features/search/search-command";
 import { ThemeSync } from "@/features/theme/store";
 import { ThemeDockCommand } from "@/features/theme/theme-command";
 import { project } from "@/lib/project";

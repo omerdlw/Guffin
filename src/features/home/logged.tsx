@@ -1,14 +1,15 @@
 import type { CSSProperties, JSX } from "react";
-import { MoviePosterLink } from "@/features/movie/stage";
 import { Avatar } from "@omerdlw/base-framework/ui";
-import { cn } from "@/design/ui";
 import { RADIUS } from "@/design/foundations/geometry";
 import { TONE } from "@/design/foundations/tones";
-import { CAPTION_CLASS, LOGGED_SECONDS_PER_FILM } from "./constants";
-import { Heading, HomePart, HomeSection } from "./motion";
-import type { RecentLog } from "./types";
-import { formatRelativeTime } from "./utils";
+import { cn } from "@/design/ui";
+import { MoviePosterLink } from "@/features/movie/stage";
+import { CAPTION_CLASS, type RecentLog } from "./feed";
+import { formatRelativeTime } from "./format";
 import styles from "./logged.module.css";
+import { Heading, HomePart, HomeSection } from "./motion";
+
+const LOGGED_SECONDS_PER_FILM = 5;
 
 function Entry({ log }: { log: RecentLog }): JSX.Element {
   return (

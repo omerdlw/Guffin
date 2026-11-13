@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import { useConfirmedAction } from "@/design/components/confirm";
 import { Icon } from "@/design/components/icon";
 import { cn } from "@/design/ui";
-import { useOpenSignIn } from "@/features/auth/sign-in-surface";
+import { useOpenSignIn } from "@/features/auth/sign-in";
 import { deleteReviewAction, setReviewLikeAction } from "./actions";
 import { REVIEW_EVENTS } from "./review";
 

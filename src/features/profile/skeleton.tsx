@@ -2,7 +2,6 @@
 
 import type { JSX, ReactNode } from "react";
 import { usePathname } from "next/navigation";
-import { useAccount } from "@/features/account/provider";
 import { BackdropHeroSkeleton } from "@/design/components/backdrop";
 import {
   SKELETON,
@@ -11,6 +10,7 @@ import {
   skeletonTextWidth,
 } from "@/design/components/skeleton";
 import { cn } from "@/design/ui";
+import { useAccount } from "@/features/account/provider";
 import {
   CALENDAR_CELL,
   DIARY_CALENDAR_GRID,
@@ -19,23 +19,111 @@ import {
   PROFILE_CONTAINER_CLASS,
   PROFILE_GRID,
   PROFILE_ROW,
-  SKELETON_ACTIVITY_PAGE,
-  SKELETON_COMMENTS,
-  SKELETON_DIARY_TITLES,
-  SKELETON_FEED,
-  SKELETON_LEDGER,
-  SKELETON_LIST_ROWS,
-  SKELETON_MEDIA_SECTIONS,
-  SKELETON_PAGE_REVIEWS,
-  SKELETON_POPULAR_REVIEWS,
-  SKELETON_RECENT_REVIEWS,
-  SKELETON_SPREAD,
-  SKELETON_STATS,
-  SKELETON_TABS,
-  SKELETON_WEEKS,
-  SOLID_TINT,
-} from "./constants";
-import type { AccountSkeletonSection, Copy } from "./types";
+} from "./profile";
+
+type AccountSkeletonSection =
+  "activity" | "diary" | "list" | "lists" | "media" | "overview" | "reviews";
+
+type Lines = readonly string[];
+
+interface Copy {
+  phone?: Lines;
+  widths: Lines;
+}
+
+const SKELETON_TABS = [
+  { key: null, width: 71 },
+  { key: "activity", width: 78 },
+  { key: "watched", width: 65 },
+  { key: "diary", width: 64 },
+  { key: "reviews", width: 83 },
+  { key: "watchlist", width: 89 },
+  { key: "lists", width: 61 },
+  { key: "likes", width: 64 },
+] as const;
+
+const SKELETON_STATS = ["2.25rem", "3.8rem", "2.1rem", "4.3rem", "4.475rem"];
+
+const SOLID_TINT = "color-mix(in srgb, var(--ink) 7%, var(--page))";
+
+const SKELETON_RECENT_REVIEWS: Copy[] = [
+  { phone: ["100%", "100%", "40%"], widths: ["100%", "62%"] },
+  { phone: ["100%", "52%"], widths: ["84%"] },
+  { phone: ["100%", "60%"], widths: ["91%"] },
+];
+
+const SKELETON_POPULAR_REVIEWS: Copy[] = [
+  { phone: ["100%", "100%", "100%", "30%"], widths: ["100%", "48%"] },
+  { phone: ["100%", "100%", "100%", "55%"], widths: ["100%", "76%"] },
+  { phone: ["100%", "100%", "45%"], widths: ["100%", "35%"] },
+];
+
+const SKELETON_PAGE_REVIEWS: Copy[] = Array.from(
+  { length: 20 },
+  (_, index): Copy =>
+    [
+      { widths: [] },
+      { phone: ["100%", "38%"], widths: ["84%"] },
+      { widths: [] },
+      { widths: [] },
+      { widths: [] },
+      { phone: ["100%", "20%"], widths: ["62%"] },
+      { widths: [] },
+      { phone: ["100%", "100%", "64%"], widths: ["100%", "46%"] },
+    ][index % 8]!,
+);
+
+const SKELETON_DIARY_TITLES = [
+  "8rem",
+  "11rem",
+  "6.5rem",
+  "9.5rem",
+  "12rem",
+  "7rem",
+  "10rem",
+  "8.5rem",
+  "13rem",
+  "6rem",
+];
+
+const SKELETON_SPREAD = [6, 10, 18, 26, 44, 62, 88, 70, 38, 24];
+
+const SKELETON_WEEKS = 26;
+
+const SKELETON_FEED: Copy[] = [
+  { phone: ["92%"], widths: ["100%", "48%"] },
+  { phone: ["100%", "30%"], widths: ["100%", "62%"] },
+  { widths: ["86%"] },
+  { phone: ["88%"], widths: ["100%", "40%"] },
+  { widths: ["74%"] },
+];
+
+const SKELETON_ACTIVITY_PAGE = 30;
+
+const SKELETON_LEDGER = [
+  { day: true, title: "9rem" },
+  { day: false, title: "12rem" },
+  { day: true, title: "7rem" },
+  { day: true, title: "10.5rem" },
+  { day: false, title: "8rem" },
+  { day: true, title: "11rem" },
+  { day: true, title: "6.5rem" },
+  { day: false, title: "9.5rem" },
+  { day: true, title: "13rem" },
+  { day: true, title: "8.5rem" },
+];
+
+const SKELETON_LIST_ROWS = [
+  { description: ["64%"], title: "13rem" },
+  { description: ["92%"], title: "9rem" },
+  { description: [], title: "15rem" },
+  { description: ["48%"], title: "11rem" },
+  { description: ["72%"], title: "8rem" },
+] as const;
+
+const SKELETON_COMMENTS = [["78%"], ["54%"]] as const;
+
+const SKELETON_MEDIA_SECTIONS = new Set(["likes", "watched", "watchlist"]);
 
 function Bar({
   className,

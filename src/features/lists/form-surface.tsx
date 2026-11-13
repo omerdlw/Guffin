@@ -26,6 +26,7 @@ import {
   SURFACE_TITLE,
   tileVariants,
 } from "@/design/components/surface-classes";
+import { useSurfacePreload } from "@/design/lazy-surface";
 import { defineSurface } from "@/design/surface-definition";
 import { cn, ui } from "@/design/ui";
 import { accountHref, listHref } from "@/lib/project";
@@ -36,7 +37,7 @@ import {
   type ListDraft,
   type ListFormData,
 } from "./list";
-import { listOrderSurface } from "./order-surface";
+import { listOrderSurface } from "./surfaces";
 
 const LIST_TILE_CLASS = cn(
   tileVariants(),
@@ -156,6 +157,7 @@ function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
   const router = useRouter();
   const toast = useToast();
   const { closeSurface, navigate, openSurface } = useDockActions();
+  useSurfacePreload(listOrderSurface);
   const resetHighlight = useHighlightReset();
   const list = data.list;
 
@@ -287,13 +289,14 @@ function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
                 <FilmOrderLink
                   disabled={disabled}
                   onOpen={() =>
-                    void openSurface?.(
-                      listOrderSurface({
+                    void (
+                      openSurface &&
+                      listOrderSurface.open(openSurface, {
                         data: {
                           listId: list.id,
                           title: list.title,
                         },
-                      }),
+                      })
                     )
                   }
                 />

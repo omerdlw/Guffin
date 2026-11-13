@@ -24,7 +24,7 @@ import { nested, RADIUS } from "@/design/foundations/geometry";
 import { TONE } from "@/design/foundations/tones";
 import { cn } from "@/design/ui";
 import { useAuth } from "@/features/auth/provider";
-import { useOpenSignIn } from "@/features/auth/sign-in-surface";
+import { useOpenSignIn } from "@/features/auth/sign-in";
 import { Heading } from "@/features/detail/layout";
 import {
   DetailExpose,
@@ -32,28 +32,29 @@ import {
   DetailSection,
 } from "@/features/detail/motion";
 import { DetailAction } from "@/features/detail/stage";
-import { COLLECTION_ICONS } from "@/features/movie/constants";
+import { COLLECTION_ICONS } from "@/features/movie/movie";
 import { RatingSelector, RatingStars } from "@/features/reviews/rating";
-import { tmdbImageSrcSet, tmdbImageUrl } from "@/lib/tmdb/shared";
+import {
+  type Episode,
+  type SeasonDetails,
+  tmdbImageSrcSet,
+  tmdbImageUrl,
+} from "@/lib/tmdb/shared";
 import {
   rateEpisodeAction,
   setEpisodesWatchedAction,
   setSeasonWatchedAction,
 } from "./actions";
-import { announceShowChange } from "./status";
-import type {
-  Episode,
-  EpisodeRatingMark,
-  SeasonDetails,
-  ShowStatus,
-} from "./types";
 import {
   daysUntil,
   episodeKey,
+  type EpisodeRatingMark,
   formatEpisodeDate,
   isAired,
   progressRatio,
-} from "./utils";
+  type ShowStatus,
+} from "./show";
+import { announceShowChange } from "./status";
 
 interface SeasonTracker {
   aired: readonly Episode[];

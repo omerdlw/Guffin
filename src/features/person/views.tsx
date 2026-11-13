@@ -11,11 +11,42 @@ import {
   useState,
 } from "react";
 import { SegmentedControl } from "@omerdlw/base-framework/ui";
-import type { MediaType } from "@/features/catalog/types";
 import { DetailAction, DetailViews } from "@/features/detail/stage";
-import type { Awards } from "@/lib/tmdb/shared";
-import { VIEW_ACTIONS } from "./constants";
-import type { AwardTotals, PersonViewKey, PersonViewState } from "./types";
+import type { Awards, MediaType } from "@/lib/tmdb/shared";
+
+type PersonViewKey = "main" | "timeline" | "awards";
+
+interface AwardTotals {
+  nominations: number;
+  wins: number;
+}
+
+interface PersonViewState {
+  awards: AwardTotals | null;
+  focusYear: number | null;
+  hasTimeline: boolean;
+  media: readonly MediaType[];
+  openTimeline: (year: number) => void;
+  toggle: (view: Exclude<PersonViewKey, "main">) => void;
+  view: PersonViewKey;
+}
+
+const VIEW_ACTIONS: readonly {
+  icon: { off: string; on: string };
+  key: Exclude<PersonViewKey, "main">;
+  label: string;
+}[] = [
+  {
+    icon: { off: "solar:sort-by-time-linear", on: "solar:sort-by-time-bold" },
+    key: "timeline",
+    label: "Timeline",
+  },
+  {
+    icon: { off: "solar:cup-star-linear", on: "solar:cup-star-bold" },
+    key: "awards",
+    label: "Awards",
+  },
+];
 
 const PersonViewContext = createContext<PersonViewState | null>(null);
 

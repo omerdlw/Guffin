@@ -1,9 +1,9 @@
 import "server-only";
 
 import { cookies } from "next/headers";
-import type { MediaType } from "@/features/catalog/types";
 import { TV_ENABLED, VITRIN_COOKIE_NAME } from "@/lib/env";
 import { readParam } from "@/lib/http";
+import type { MediaType } from "@/lib/tmdb/shared";
 import { VITRIN_PARAM } from "./vitrin";
 
 type SearchParams = Record<string, string | string[] | undefined>;

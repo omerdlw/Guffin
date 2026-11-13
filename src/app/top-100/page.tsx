@@ -1,7 +1,7 @@
 import type { JSX } from "react";
 import type { Metadata } from "next";
 import { getCanon, getShowCanon } from "@/features/spotlights/server";
-import { TunnelView } from "@/features/spotlights/top-100";
+import { TunnelView } from "@/features/spotlights/top-100/view";
 import { TV_ENABLED } from "@/lib/env";
 import { readParam, type SearchParams } from "@/lib/http";
 import { shareMetadata } from "@/lib/project";

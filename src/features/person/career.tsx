@@ -11,14 +11,15 @@ import { DockLink, TextButton } from "@/design/components/link";
 import { TONE } from "@/design/foundations/tones";
 import { cn } from "@/design/ui";
 import { PosterThumb } from "@/features/artwork/artwork";
-import type { MediaType } from "@/features/catalog/types";
 import { Heading } from "@/features/detail/layout";
 import {
   DetailPart,
   DetailSection,
   DetailSwap,
 } from "@/features/detail/motion";
+import { pluralize } from "@/lib/format";
 import { mediaHref } from "@/lib/project";
+import type { MediaType } from "@/lib/tmdb/shared";
 import { layoutTop } from "@/motion/dom";
 import {
   animate,
@@ -30,22 +31,34 @@ import {
 import { clamp } from "@/motion/math";
 import { useEngine } from "@/motion/react";
 import { POINTS, step } from "@/motion/time";
-import {
-  CAREER_EDGE_SLOTS,
-  CAREER_ROLL_RUNG,
-  CAREER_SLOT_CLASS,
-  MAX_TIMELINE_TITLES,
-  TIMELINE_SPINE_CLASS,
-} from "./constants";
 import type {
   ByMedium,
   Career as CareerData,
   CareerYear,
   TimelineCredit,
   TimelineYear,
-} from "./types";
-import { chartLabelStep, filmCountLabel } from "./utils";
+} from "./person";
 import { PersonMediumControl, usePersonMedium, usePersonView } from "./views";
+
+const CAREER_SLOT_CLASS = "relative min-w-[3px] max-w-7 flex-1";
+
+const CAREER_EDGE_SLOTS = 2;
+
+const CAREER_ROLL_RUNG = 0;
+
+const MAX_TIMELINE_TITLES = 3;
+
+const TIMELINE_SPINE_CLASS = "left-14 sm:left-20";
+
+function chartLabelStep(count: number) {
+  const steps = [1, 2, 5, 10, 20, 50];
+  return steps.find((each) => Math.ceil(count / each) <= 9) ?? 50;
+}
+
+const filmCountLabel = (count: number, medium: MediaType = "movie") => {
+  const noun = medium === "tv" ? "show" : "film";
+  return count === 0 ? `No ${noun}s` : pluralize(count, noun);
+};
 
 function YearRoll({ year }: { year: number }) {
   const reduced = useReducedMotion();

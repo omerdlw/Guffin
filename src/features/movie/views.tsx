@@ -11,7 +11,19 @@ import {
 } from "react";
 import { DetailViews } from "@/features/detail/stage";
 import { useScrollDriver } from "@/motion/react";
-import type { MovieViewKey, MovieViewState, ReelState } from "./types";
+
+interface ReelState {
+  project: (path: string | null) => void;
+  reel: string | null;
+}
+
+type MovieViewKey = "overview" | "awards";
+
+interface MovieViewState {
+  show: (view: MovieViewKey) => void;
+  toggle: (view: MovieViewKey) => void;
+  view: MovieViewKey;
+}
 
 const ReelContext = createContext<ReelState>({
   project: () => {},

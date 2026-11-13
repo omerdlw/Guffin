@@ -6,7 +6,7 @@ import { Room } from "@/motion/kit";
 import { bindScore } from "@/motion/react";
 import { defineScore } from "@/motion/score";
 import { PAGE_TEMPO } from "@/motion/time";
-import { ambientImage } from "./utils";
+import { ambientImage } from "./feed";
 
 const HOME = defineScore({
   margin: "0px 0px -13% 0px",

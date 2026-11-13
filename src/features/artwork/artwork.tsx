@@ -6,39 +6,173 @@ import {
   useContextMenu,
 } from "@omerdlw/base-framework/context-menu";
 import { useNavigationIntent } from "@omerdlw/base-framework/navigation";
+import { Image } from "@omerdlw/base-framework/ui";
 import { report } from "@omerdlw/base-framework/utils";
+import { Icon } from "@/design/components/icon";
 import { AwardFoil } from "@/features/detail/awards";
 import { type Awards, isTmdbImagePath, tmdbImageUrl } from "@/lib/tmdb/shared";
 import { StagePart } from "@/motion/react";
 import { readable } from "@/motion/render";
 import { Tilt } from "@/motion/tilt";
-import { Icon } from "@/design/components/icon";
-import { Image } from "@omerdlw/base-framework/ui";
-import {
-  ARTWORK_MENU_LABELS,
-  ARTWORK_PAGE_PATTERN,
-  ARTWORK_STORAGE_KEY,
-  ARTWORK_TARGET_SELECTOR,
-  EMPTY_ARTWORK,
-  PRELOADED_BACKDROP_LIMIT,
-} from "./constants";
-import type {
-  ArtworkContextMenuOptions,
-  ArtworkEntries,
-  ArtworkKind,
+import { artworkAttributes, type ArtworkSlot } from "./store";
+
+type ArtworkKind = "movie" | "person" | "tv";
+
+interface ArtworkEntry {
+  backdrop?: string;
+  poster?: string;
+  updatedAt: number;
+}
+
+type ArtworkEntries = Readonly<Record<string, ArtworkEntry>>;
+
+interface ArtworkStore {
+  clear(kind: ArtworkKind, id: number, slot?: ArtworkSlot): void;
+  getSnapshot(): ArtworkEntries;
+  set(kind: ArtworkKind, id: number, slot: ArtworkSlot, path: string): void;
+  subscribe(listener: () => void): () => void;
+}
+
+interface MenuPayload {
+  path: string;
+  slot: ArtworkSlot;
+}
+
+interface ArtworkContextMenuOptions {
+  defaults: Record<ArtworkSlot, string | null>;
+  id: number;
+  kind: ArtworkKind;
+}
+
+const ARTWORK_STORAGE_KEY = "GUFFIN_ARTWORK";
+
+const ARTWORK_MAX_ENTRIES = 200;
+
+const ARTWORK_SLOTS: readonly ArtworkSlot[] = ["poster", "backdrop"];
+
+const EMPTY_ARTWORK: ArtworkEntries = Object.freeze({});
+
+const ARTWORK_TARGET_SELECTOR = "[data-artwork]";
+
+const ARTWORK_MENU_LABELS: Record<
   ArtworkSlot,
-  ArtworkStore,
-  MenuPayload,
-} from "./types";
-import {
-  artworkAttributes,
-  artworkKey,
-  attempt,
-  parseArtwork,
-  resolveArtwork,
-  withArtwork,
-  withoutArtwork,
-} from "./utils";
+  { icon: string; restore: string; set: string }
+> = {
+  backdrop: {
+    icon: "solar:gallery-edit-bold",
+    restore: "Restore default background",
+    set: "Set as background",
+  },
+  poster: {
+    icon: "solar:sidebar-code-bold",
+    restore: "Restore default poster",
+    set: "Set as poster",
+  },
+};
+
+const ARTWORK_PAGE_PATTERN = /^\/(movie|person|tv)\/([1-9]\d{0,9})$/;
+
+const PRELOADED_BACKDROP_LIMIT = 6;
+
+function artworkKey(kind: ArtworkKind, id: number): string {
+  return `${kind}:${id}`;
+}
+
+function isArtworkKey(key: string): boolean {
+  return /^(?:movie|person|tv):[1-9]\d{0,9}$/.test(key);
+}
+
+function parseEntry(value: unknown): ArtworkEntry | null {
+  if (typeof value !== "object" || value === null) return null;
+  const raw = value as Record<string, unknown>;
+  const entry: ArtworkEntry = {
+    updatedAt:
+      typeof raw.updatedAt === "number" && Number.isFinite(raw.updatedAt)
+        ? raw.updatedAt
+        : 0,
+  };
+  for (const slot of ARTWORK_SLOTS) {
+    const path = raw[slot];
+    if (isTmdbImagePath(path)) entry[slot] = path;
+  }
+  return entry.poster || entry.backdrop ? entry : null;
+}
+
+function pruneEntries(entries: Record<string, ArtworkEntry>): ArtworkEntries {
+  return Object.fromEntries(
+    Object.entries(entries)
+      .sort(([, a], [, b]) => b.updatedAt - a.updatedAt)
+      .slice(0, ARTWORK_MAX_ENTRIES),
+  );
+}
+
+function parseArtwork(raw: string | null): ArtworkEntries {
+  if (!raw) return EMPTY_ARTWORK;
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (typeof parsed !== "object" || parsed === null) return EMPTY_ARTWORK;
+    const entries: Record<string, ArtworkEntry> = {};
+    for (const [key, value] of Object.entries(parsed)) {
+      const entry = isArtworkKey(key) ? parseEntry(value) : null;
+      if (entry) entries[key] = entry;
+    }
+    return pruneEntries(entries);
+  } catch {
+    return EMPTY_ARTWORK;
+  }
+}
+
+function withArtwork(
+  entries: ArtworkEntries,
+  kind: ArtworkKind,
+  id: number,
+  slot: ArtworkSlot,
+  path: string,
+  now: number,
+): ArtworkEntries {
+  if (!isTmdbImagePath(path)) return entries;
+  const key = artworkKey(kind, id);
+  return pruneEntries({
+    ...entries,
+    [key]: { ...entries[key], [slot]: path, updatedAt: now },
+  });
+}
+
+function withoutArtwork(
+  entries: ArtworkEntries,
+  kind: ArtworkKind,
+  id: number,
+  slot?: ArtworkSlot,
+): ArtworkEntries {
+  const key = artworkKey(kind, id);
+  const current = entries[key];
+  if (!current || (slot && !current[slot])) return entries;
+
+  const { [key]: _removed, ...rest } = entries;
+  if (!slot) return rest;
+
+  const next: ArtworkEntry = { ...current };
+  delete next[slot];
+  return next.poster || next.backdrop ? { ...rest, [key]: next } : rest;
+}
+
+function resolveArtwork(
+  entries: ArtworkEntries,
+  kind: ArtworkKind,
+  id: number,
+  slot: ArtworkSlot,
+  fallback: string | null,
+): string | null {
+  return entries[artworkKey(kind, id)]?.[slot] ?? fallback;
+}
+
+function attempt<T>(run: () => T, fallback: T): T {
+  try {
+    return run();
+  } catch {
+    return fallback;
+  }
+}
 
 function createArtworkStore(): ArtworkStore {
   const listeners = new Set<() => void>();

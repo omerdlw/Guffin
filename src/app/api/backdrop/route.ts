@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { parseMovieId } from "@/features/movie/utils";
+import { parseMovieId } from "@/features/movie/movie";
 import { getBackdropPath } from "@/features/person/credits";
-import { parsePersonId } from "@/features/person/utils";
-import { parseShowId } from "@/features/tv/utils";
+import { parsePersonId } from "@/features/person/person";
+import { parseShowId } from "@/features/tv/show";
 import { TV_ENABLED } from "@/lib/env";
 import { getClientIp, rateLimitResponse } from "@/lib/security";
 import {

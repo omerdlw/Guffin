@@ -7,7 +7,7 @@ import { DockLink } from "@/design/components/link";
 import { MediaCard } from "@/design/components/media-card";
 import { RADIUS } from "@/design/foundations/geometry";
 import { useArtworkPath } from "@/features/artwork/artwork";
-import { departmentRole } from "@/features/person/utils";
+import { departmentRole } from "@/features/person/person";
 import { RatingStars } from "@/features/reviews/rating";
 import { pluralize } from "@/lib/format";
 import { accountHref, listHref, personHref, reviewHref } from "@/lib/project";
@@ -20,17 +20,55 @@ import {
 } from "@/motion/lib";
 import { POINTS, step, tween } from "@/motion/time";
 import {
-  HIGHLIGHT_HALO,
-  RESULT_THUMB_WIDTHS,
-  STILL_TRANSITION,
-} from "./constants";
-import type {
-  ListSearchHit,
-  PersonResultRowProps,
-  ReviewSearchHit,
-  UserSearchHit,
-} from "./types";
-import { locateMatch, offsetIn } from "./utils";
+  folded,
+  type ListSearchHit,
+  type ReviewSearchHit,
+  type UserSearchHit,
+} from "./query";
+
+interface PersonResultRowProps {
+  person: {
+    department: string | null;
+    id: number;
+    knownFor?: readonly string[];
+    name: string;
+    profilePath: string | null;
+  };
+  onNavigated?: () => void;
+  query?: string;
+}
+
+const RESULT_THUMB_WIDTHS = ["w185"] as const;
+
+const STILL_TRANSITION = { duration: 0 };
+
+const HIGHLIGHT_HALO = 4;
+
+function locateMatch(text: string, query: string): [number, number] | null {
+  const needle = folded(query).value.trim();
+  if (!needle) return null;
+  const { origin, value } = folded(text);
+
+  const atWord = ` ${value}`.indexOf(` ${needle}`);
+  const at = atWord >= 0 ? atWord : value.indexOf(needle);
+  if (at < 0) return null;
+
+  const last = origin[at + needle.length - 1];
+  const end = last + String.fromCodePoint(text.codePointAt(last) ?? 0).length;
+  return [origin[at], end];
+}
+
+function offsetIn(list: HTMLElement, option: HTMLElement) {
+  const box = list.getBoundingClientRect();
+  const rect = option.getBoundingClientRect();
+  const scale = list.offsetWidth ? box.width / list.offsetWidth : 1;
+  return {
+    height: rect.height / scale,
+    width: rect.width / scale,
+    x: (rect.left - box.left) / scale - list.clientLeft + list.scrollLeft,
+    y: (rect.top - box.top) / scale - list.clientTop + list.scrollTop,
+  };
+}
 
 const ROLL = tween(step(-1), POINTS.glide);
 

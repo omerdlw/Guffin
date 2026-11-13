@@ -1,11 +1,10 @@
 import type { JSX } from "react";
+import { MediaCard } from "@/design/components/media-card";
+import { RADIUS } from "@/design/foundations/geometry";
+import { cn } from "@/design/ui";
 import { tvHref } from "@/lib/project";
 import { tmdbImageSrcSet, tmdbImageUrl } from "@/lib/tmdb/shared";
-import { MediaCard } from "@/design/components/media-card";
-import { cn } from "@/design/ui";
-import { RADIUS } from "@/design/foundations/geometry";
-import type { ContinueItem } from "./types";
-import { formatEpisodeCode, progressRatio } from "./utils";
+import { type ContinueItem, formatEpisodeCode, progressRatio } from "./show";
 
 export function ProgressBar({
   className,

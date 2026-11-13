@@ -1,10 +1,10 @@
 "use client";
 
 import type { JSX, ReactNode } from "react";
-import { useAuth } from "@/features/auth/provider";
 import { Icon } from "@/design/components/icon";
 import { TONE } from "@/design/foundations/tones";
-import { CRAFT } from "./constants";
+import { useAuth } from "@/features/auth/provider";
+import { CRAFT } from "./feed";
 import { Heading, HomePart, HomeSection } from "./motion";
 
 export function GuestOnly({ children }: { children: ReactNode }) {

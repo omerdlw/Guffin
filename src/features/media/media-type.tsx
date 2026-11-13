@@ -10,8 +10,8 @@ import {
 import { SlidingPill, useSlidingPill } from "@omerdlw/base-framework/ui";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/design/ui";
-import type { MediaType } from "@/features/catalog/types";
 import { VITRIN_COOKIE_NAME } from "@/lib/env";
+import type { MediaType } from "@/lib/tmdb/shared";
 import { withVitrin } from "./vitrin";
 
 const VITRIN_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;

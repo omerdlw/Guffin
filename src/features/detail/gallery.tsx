@@ -12,7 +12,7 @@ import { Tooltip } from "@/design/components/tooltip";
 import { RADIUS } from "@/design/foundations/geometry";
 import { TONE } from "@/design/foundations/tones";
 import { cn } from "@/design/ui";
-import { artworkAttributes } from "@/features/artwork/utils";
+import { artworkAttributes } from "@/features/artwork/store";
 import { useWall } from "@/motion/wall";
 import type { ImageModalData, WallPicture, WallSet } from "./detail";
 import { ImageModal } from "./image-modal";

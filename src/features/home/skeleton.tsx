@@ -1,7 +1,6 @@
 "use client";
 
 import type { JSX } from "react";
-import { useAuth } from "@/features/auth/provider";
 import { BackdropHeroSkeleton } from "@/design/components/backdrop";
 import {
   SectionHeaderSkeleton,
@@ -9,7 +8,6 @@ import {
   SkeletonLines,
   skeletonTextWidth,
 } from "@/design/components/skeleton";
-import { cn } from "@/design/ui";
 import {
   CONTAINER_CLASS,
   HEADLINE_BOX,
@@ -19,7 +17,9 @@ import {
   PROSE_TYPE,
 } from "@/design/foundations/layout";
 import { TONE } from "@/design/foundations/tones";
-import { CRAFT, HERO_LIFT, POPULAR_LIMIT } from "./constants";
+import { cn } from "@/design/ui";
+import { useAuth } from "@/features/auth/provider";
+import { CRAFT, HERO_LIFT, POPULAR_LIMIT } from "./feed";
 
 const HEADLINE_ROWS = ["5.9em", "6.6em"];
 

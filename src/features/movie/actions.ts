@@ -2,14 +2,41 @@
 import "server-only";
 
 import { report } from "@omerdlw/base-framework/utils";
-import { fail, ok } from "@/features/auth/mutation";
-import type { MediaType } from "@/features/catalog/types";
-import { isMediaType } from "@/features/catalog/utils";
+import { fail, type MutationResult, ok } from "@/features/auth/mutation";
+import { isMediaType } from "@/features/catalog/quality";
 import { getMediaDetails } from "@/lib/tmdb/server";
+import type { MediaType } from "@/lib/tmdb/shared";
 import { isTmdbId } from "@/lib/tmdb/transport";
-import { REGION_CODE_PATTERN } from "./constants";
-import type { RegionProviders, WatchProvidersResult } from "./types";
-import { providerEntries, sanitizeProviderLink } from "./utils";
+import type { ProviderEntry, RegionProviders } from "./movie";
+
+type WatchProvidersResult = MutationResult<{
+  regions: Record<string, RegionProviders>;
+}>;
+
+type Provider = {
+  displayPriority: number;
+  logoPath: string | null;
+  name: string;
+  providerId: number;
+};
+
+const REGION_CODE_PATTERN = /^[A-Z]{2}$/;
+
+const sanitizeProviderLink = (value: string | null | undefined) =>
+  typeof value === "string" && value.startsWith("https://www.themoviedb.org/")
+    ? value
+    : null;
+
+const providerEntries = (
+  ...groups: readonly (readonly Provider[])[]
+): ProviderEntry[] => {
+  const seen = new Set<number>();
+  return groups
+    .flat()
+    .sort((a, b) => a.displayPriority - b.displayPriority)
+    .filter((p) => !seen.has(p.providerId) && seen.add(p.providerId))
+    .map((p) => ({ id: p.providerId, logoPath: p.logoPath, name: p.name }));
+};
 
 export async function getWatchProvidersAction(
   tmdbId: number,

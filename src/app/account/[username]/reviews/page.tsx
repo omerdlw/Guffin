@@ -1,5 +1,5 @@
 import type { JSX } from "react";
-import { AccountReviewsView } from "@/features/profile/view";
+import { AccountReviewsView } from "@/features/profile/reviews/view";
 import type { SearchParams } from "@/lib/http";
 
 export default async function AccountReviewsPage({

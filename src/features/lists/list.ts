@@ -1,5 +1,5 @@
-import type { MediaType } from "@/features/catalog/types";
 import type { createServerSupabaseClient } from "@/lib/supabase/server";
+import type { MediaType } from "@/lib/tmdb/shared";
 
 export interface MovieListSummary {
   description?: string | null;

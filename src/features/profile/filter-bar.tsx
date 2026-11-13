@@ -7,14 +7,35 @@ import {
   useState,
   useTransition,
 } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@omerdlw/base-framework/ui";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Icon } from "@/design/components/icon";
 import { Input } from "@/design/components/input";
 import { Select } from "@/design/components/select";
-import { cn } from "@/design/ui";
-import { ANY_OPTION, FILTER_BAR_LOOK, SEARCH_SETTLE_MS } from "./constants";
-import type { FilterField } from "./types";
+import { cn, ui } from "@/design/ui";
+
+interface FilterField {
+  allLabel?: string;
+  key: string;
+  options: readonly { label: string; value: string }[];
+  defaultValue?: string;
+}
+
+const ANY_OPTION = "__any__";
+
+const SEARCH_SETTLE_MS = 280;
+
+const FILTER_BAR_LOOK = {
+  form: "relative col-span-full min-w-0 md:flex-1",
+  input: cn(
+    ui.parts.input.field(),
+    "h-10 w-full rounded-full pr-3 pl-10 type-body",
+  ),
+  reset: "col-span-full px-3 font-semibold uppercase md:justify-start",
+  root: "mb-5 grid grid-cols-2 gap-2 md:flex md:flex-wrap md:items-center",
+  select: "min-w-0 md:w-44 md:flex-none lg:w-48",
+  share: "md:w-auto md:flex-1 lg:w-48 lg:flex-none",
+} as const;
 
 function useFilterAddress(fields: readonly FilterField[]) {
   const router = useRouter();

@@ -6,7 +6,7 @@ import { Button } from "@omerdlw/base-framework/ui";
 import { Input } from "@/design/components/input";
 import { defineSurface } from "@/design/surface-definition";
 import { useAuth } from "@/features/auth/provider";
-import { AUTH_INPUT_CLASS } from "@/features/auth/sign-in-surface";
+import { AUTH_INPUT_CLASS } from "@/features/auth/sign-in";
 import { accountHref } from "@/lib/project";
 import { updateAccountAction } from "./actions";
 

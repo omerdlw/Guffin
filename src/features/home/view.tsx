@@ -3,6 +3,7 @@ import { CONTAINER_CLASS, PAGE_CLASS } from "@/design/foundations/layout";
 import { HomeShowing } from "./cinema";
 import { HomeCircle } from "./circle";
 import { HomeCraft } from "./craft";
+import type { HomeFeed } from "./feed";
 import { HomeCanon, HomePopular, HomeShows } from "./films";
 import { HomeJoin } from "./join";
 import { HomeLists } from "./lists";
@@ -11,7 +12,6 @@ import { HomeMembers } from "./members";
 import { HomeStage } from "./motion";
 import { HomeOpening } from "./opening";
 import { HomeReviews } from "./reviews";
-import type { HomeFeed } from "./types";
 
 export function HomeView({ feed }: { feed: HomeFeed }): JSX.Element {
   const { circle } = feed;

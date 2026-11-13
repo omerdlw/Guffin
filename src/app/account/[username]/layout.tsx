@@ -1,9 +1,7 @@
 import type { JSX, ReactNode } from "react";
 import type { Metadata } from "next";
-import {
-  AccountProfileLayout,
-  getAccountMetadata,
-} from "@/features/profile/view";
+import { AccountProfileLayout } from "@/features/profile/layout";
+import { getAccountMetadata } from "@/features/profile/metadata";
 
 interface AccountLayoutProps {
   children: ReactNode;

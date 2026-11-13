@@ -1,60 +1,71 @@
 "use client";
 
 import { type JSX, useCallback, useEffect, useState } from "react";
-import {
-  type SurfaceEntry,
-  useDockActions,
-} from "@omerdlw/base-framework/dock";
+import { useDockActions } from "@omerdlw/base-framework/dock";
 import { globalEvents } from "@omerdlw/base-framework/events";
 import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
-import { useToast } from "@omerdlw/base-framework/notification";
-import {
-  Button,
-  CheckboxIndicator,
-  HighlightGroup,
-  useHighlight,
-} from "@omerdlw/base-framework/ui";
-import { report, toUserMessage } from "@omerdlw/base-framework/utils";
-import { useRouter } from "next/navigation";
-import { Icon } from "@/design/components/icon";
-import {
-  SurfacePart,
-  SurfaceStage,
-  SurfaceSwap,
-} from "@/design/components/surface";
-import {
-  rowVariants,
-  SURFACE_META,
-  SURFACE_STACK,
-  SURFACE_TEXT,
-  SURFACE_TILE_INNER,
-  SURFACE_TITLE,
-} from "@/design/components/surface-classes";
-import { cn } from "@/design/ui";
+import { report } from "@omerdlw/base-framework/utils";
+import { useSurfacePreload } from "@/design/lazy-surface";
 import { useAuth } from "@/features/auth/provider";
-import { useOpenSignIn } from "@/features/auth/sign-in-surface";
+import { useOpenSignIn } from "@/features/auth/sign-in";
 import { DetailAction } from "@/features/detail/stage";
-import { getShowTrackingAction, setShowStatusAction } from "./actions";
+import { getShowTrackingAction } from "./actions";
 import {
   SHOW_EVENTS,
-  SHOW_STATUS_DETAILS,
   SHOW_STATUS_ICONS,
   SHOW_STATUS_LABELS,
-  SHOW_STATUS_ORDER,
-  SHOW_TRACK_ICON,
-} from "./constants";
-import type { ShowStatus } from "./types";
-
-interface ShowChange {
-  showId: number;
-  status?: ShowStatus | null;
-}
+  type ShowStatus,
+} from "./show";
+import { showStatusSurface } from "./surfaces";
 
 export function announceShowChange(change: ShowChange): void {
   globalEvents.emit(SHOW_EVENTS.CHANGE, change);
 }
 
-function useShowStatus(showId: number) {
+export function ShowStatusAction({
+  secondary = false,
+  showId,
+  title,
+}: {
+  secondary?: boolean;
+  showId: number;
+  title: string;
+}): JSX.Element {
+  const { openSurface } = useDockActions();
+  useSurfacePreload(showStatusSurface);
+  const openSignIn = useOpenSignIn();
+  const { key, loaded, ready, status } = useShowStatus(showId);
+  const label = status ? SHOW_STATUS_LABELS[status] : "Track";
+
+  return (
+    <DetailAction
+      active={status !== null}
+      disabled={!ready || !loaded}
+      grow
+      icon={{
+        off: SHOW_TRACK_ICON,
+        on: status ? SHOW_STATUS_ICONS[status] : SHOW_TRACK_ICON,
+      }}
+      label={secondary ? "Your status" : label}
+      onClick={() => {
+        if (!key) openSignIn();
+        else
+          void showStatusSurface.open(openSurface, { data: { showId, title } });
+      }}
+      secondary={secondary}
+      shortLabel={secondary ? label : undefined}
+    />
+  );
+}
+
+export const SHOW_TRACK_ICON = "solar:play-circle-linear";
+
+export interface ShowChange {
+  showId: number;
+  status?: ShowStatus | null;
+}
+
+export function useShowStatus(showId: number) {
   const auth = useAuth();
   const userId = auth.isAuthenticated ? (auth.user?.id ?? null) : null;
   const key = userId ? `${userId}:${showId}` : null;
@@ -93,163 +104,4 @@ function useShowStatus(showId: number) {
     [key],
   );
   return { key, loaded, ready: auth.isReady, set, status };
-}
-
-export function createShowStatusSurfaceEntry(data: {
-  showId: number;
-  title: string;
-}): SurfaceEntry {
-  return {
-    component: ShowStatusSurface,
-    description: `Where you are with ${data.title}`,
-    icon: SHOW_STATUS_ICONS.watching,
-    props: { data },
-    title: "Your status",
-  };
-}
-
-function StatusRow({
-  chosen,
-  onChoose,
-  pending,
-  status,
-}: {
-  chosen: boolean;
-  onChoose: () => void;
-  pending: boolean;
-  status: ShowStatus;
-}): JSX.Element {
-  const highlight = useHighlight(status);
-  return (
-    <Button
-      aria-pressed={chosen}
-      className={rowVariants({ intent: chosen ? "chosen" : "neutral" })}
-      disabled={pending}
-      onClick={onChoose}
-      {...highlight.props}
-    >
-      {highlight.node}
-      <span
-        className={cn(
-          "center relative z-10 size-12 shrink-0",
-          SURFACE_TILE_INNER,
-          chosen ? "bg-grade/15" : "bg-fill",
-        )}
-      >
-        <Icon icon={SHOW_STATUS_ICONS[status]} size={20} />
-      </span>
-      <span className={cn(SURFACE_TEXT, "relative z-10")}>
-        <span className={SURFACE_TITLE}>{SHOW_STATUS_LABELS[status]}</span>
-        <span className={cn(SURFACE_META, "whitespace-normal")}>
-          {SHOW_STATUS_DETAILS[status]}
-        </span>
-      </span>
-      <CheckboxIndicator checked={chosen} pending={pending} />
-    </Button>
-  );
-}
-
-function ShowStatusSurface({
-  data,
-}: {
-  data: { showId: number; title: string };
-}): JSX.Element {
-  const toast = useToast();
-  const router = useRouter();
-  const { loaded, set, status } = useShowStatus(data.showId);
-  const [pending, setPending] = useState<ShowStatus | "stop" | null>(null);
-
-  const choose = async (next: ShowStatus | null) => {
-    if (pending || next === status) return;
-    const before = status;
-    setPending(next ?? "stop");
-    set(next);
-    try {
-      const result = await setShowStatusAction(data.showId, next);
-      if (!result.success) {
-        set(before);
-        toast(result.error);
-        return;
-      }
-      const saved = result.progress?.status ?? null;
-      set(saved);
-      announceShowChange({ showId: data.showId, status: saved });
-      router.refresh();
-    } catch (error) {
-      report("Show status write", error);
-      set(before);
-      toast(toUserMessage(error, { fallback: "Could not update this show" }));
-    } finally {
-      setPending(null);
-    }
-  };
-
-  return (
-    <SurfaceStage>
-      <div className={SURFACE_STACK}>
-        <SurfaceSwap cue="rows" id="statuses" now>
-          <HighlightGroup className="flex flex-col gap-2.5">
-            {SHOW_STATUS_ORDER.map((item, index) => (
-              <SurfacePart index={index} key={item} name="row">
-                <StatusRow
-                  chosen={loaded && status === item}
-                  onChoose={() => void choose(item)}
-                  pending={pending === item || !loaded}
-                  status={item}
-                />
-              </SurfacePart>
-            ))}
-          </HighlightGroup>
-        </SurfaceSwap>
-        {status ? (
-          <SurfacePart name="item">
-            <Button
-              intent="neutral"
-              width="full"
-              disabled={pending !== null}
-              loading={pending === "stop"}
-              onClick={() => void choose(null)}
-            >
-              <Icon icon="solar:close-circle-linear" size={16} />
-              Stop tracking
-            </Button>
-          </SurfacePart>
-        ) : null}
-      </div>
-    </SurfaceStage>
-  );
-}
-
-export function ShowStatusAction({
-  secondary = false,
-  showId,
-  title,
-}: {
-  secondary?: boolean;
-  showId: number;
-  title: string;
-}): JSX.Element {
-  const { openSurface } = useDockActions();
-  const openSignIn = useOpenSignIn();
-  const { key, loaded, ready, status } = useShowStatus(showId);
-  const label = status ? SHOW_STATUS_LABELS[status] : "Track";
-
-  return (
-    <DetailAction
-      active={status !== null}
-      disabled={!ready || !loaded}
-      grow
-      icon={{
-        off: SHOW_TRACK_ICON,
-        on: status ? SHOW_STATUS_ICONS[status] : SHOW_TRACK_ICON,
-      }}
-      label={secondary ? "Your status" : label}
-      onClick={() => {
-        if (!key) openSignIn();
-        else void openSurface(createShowStatusSurfaceEntry({ showId, title }));
-      }}
-      secondary={secondary}
-      shortLabel={secondary ? label : undefined}
-    />
-  );
 }

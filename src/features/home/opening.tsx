@@ -19,15 +19,22 @@ import {
 import { TONE } from "@/design/foundations/tones";
 import { cn } from "@/design/ui";
 import { useAuth } from "@/features/auth/provider";
-import { useOpenSignIn } from "@/features/auth/sign-in-surface";
+import { useOpenSignIn } from "@/features/auth/sign-in";
 import { DetailBackdrop } from "@/features/detail/stage";
 import { MoviePosterLink } from "@/features/movie/stage";
 import { accountHref, CANON_HREF, movieHref } from "@/lib/project";
 import { tmdbImageUrl } from "@/lib/tmdb/shared";
-import { FALLBACK_ICON, HERO_LIFT, TEXT_LINK_CLASS } from "./constants";
+import { ambientImage, type Feature, HERO_LIFT, TEXT_LINK_CLASS } from "./feed";
 import { HomePart, HomeSection, HomeText, useHomeLead } from "./motion";
-import type { Feature } from "./types";
-import { ambientImage, featureReason } from "./utils";
+
+const FALLBACK_ICON = "solar:clapperboard-play-bold";
+
+function featureReason(film: Feature): string {
+  const parts: string[] = [];
+  if (film.social) parts.push("Popular on Guffin");
+  if (film.trending) parts.push(`Trending #${film.trending} worldwide`);
+  return parts.join(" · ") || "Featured";
+}
 
 const HEADLINE_CLASS = `${HEADLINE_BOX} block font-zuume type-display-lg leading-none font-bold uppercase sm:type-display-xl lg:type-display-2xl`;
 

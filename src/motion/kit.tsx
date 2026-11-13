@@ -272,6 +272,7 @@ export function Deck<K extends string>({
       switching.current = false;
       setVisible(wanted.current);
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs per cue; stage is stable per mount
   }, [shown, visible]);
 
   useLayoutEffect(() => {
@@ -287,6 +288,7 @@ export function Deck<K extends string>({
       ...current,
       [visible]: (current[visible] ?? 0) + 1,
     }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs per cue; stage is stable per mount
   }, [visible]);
 
   const trigger = useSectionOf(stage, cue ?? "", scopeOf(first));
@@ -612,6 +614,7 @@ export function Swap({
     latest.current = { id, children };
   });
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- syncs held content after every render; guarded
   useLayoutEffect(() => {
     if (id === shown.id && held !== children) setHeld(children);
   });
@@ -629,6 +632,7 @@ export function Swap({
       swapping.current = false;
       setShown({ id: latest.current.id, scope: `${base}${turns.current}` });
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs per shown item; stage is stable per mount
   }, [id, shown.id]);
 
   useLayoutEffect(() => {
@@ -659,6 +663,7 @@ export function Swap({
         el.style.overflow = "";
       });
     return () => stop();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once per mount, like the cue it plays
   }, [shown.scope]);
 
   useEffect(() => {

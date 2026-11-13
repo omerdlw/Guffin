@@ -1,16 +1,23 @@
 import type { JSX } from "react";
+import { Avatar } from "@omerdlw/base-framework/ui";
+import { Icon } from "@/design/components/icon";
+import { RADIUS } from "@/design/foundations/geometry";
+import { cn } from "@/design/ui";
 import { MoviePosterLink } from "@/features/movie/stage";
 import { RatingStars } from "@/features/reviews/rating";
 import { ProgressBar } from "@/features/tv/progress";
-import type { ContinueItem } from "@/features/tv/types";
-import { formatEpisodeCode, progressRatio } from "@/features/tv/utils";
-import { Avatar } from "@omerdlw/base-framework/ui";
-import { Icon } from "@/design/components/icon";
-import { cn } from "@/design/ui";
-import { RADIUS } from "@/design/foundations/geometry";
-import { CAPTION_CLASS, POSTER_SIZES } from "./constants";
-import { Shelf } from "./shared";
-import type { Circle, FriendLog } from "./types";
+import {
+  type ContinueItem,
+  formatEpisodeCode,
+  progressRatio,
+} from "@/features/tv/show";
+import {
+  CAPTION_CLASS,
+  type Circle,
+  type FriendLog,
+  POSTER_SIZES,
+} from "./feed";
+import { Shelf } from "./shelf";
 
 function FriendCaption({ log }: { log: FriendLog }): JSX.Element {
   const marks = [

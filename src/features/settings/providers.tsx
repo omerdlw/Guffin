@@ -26,8 +26,21 @@ import {
   OAUTH_PROVIDERS,
   type OAuthProvider,
 } from "@/features/auth/session";
-import { PROVIDER_LABELS } from "./constants";
-import { providerOf } from "./utils";
+
+const PROVIDER_LABELS: Record<OAuthProvider, { icon: string; label: string }> =
+  {
+    github: { icon: "mdi:github", label: "GitHub" },
+    google: { icon: "flat-color-icons:google", label: "Google" },
+    x: { icon: "simple-icons:x", label: "X" },
+  };
+
+function providerOf(identity: UserIdentity): OAuthProvider | null {
+  const name = identity.provider.trim().toLowerCase();
+  if (name === "google" || name === "google.com") return "google";
+  if (name === "github" || name === "github.com") return "github";
+  if (["x", "x.com", "twitter", "twitter.com"].includes(name)) return "x";
+  return null;
+}
 
 function ProviderGlyph({ provider }: { provider: OAuthProvider }) {
   return (

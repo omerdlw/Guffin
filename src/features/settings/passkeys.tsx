@@ -1,18 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import type { PasskeyListItem } from "@supabase/supabase-js";
-import {
-  deletePasskey,
-  registerPasskey,
-  renamePasskey,
-} from "@/features/auth/client";
-import { useAuth } from "@/features/auth/provider";
 import {
   Button,
   HighlightGroup,
   useHighlight,
 } from "@omerdlw/base-framework/ui";
+import type { PasskeyListItem } from "@supabase/supabase-js";
 import { Icon } from "@/design/components/icon";
 import { Input } from "@/design/components/input";
 import {
@@ -23,8 +17,14 @@ import {
   tileVariants,
 } from "@/design/components/surface-classes";
 import { cn } from "@/design/ui";
-import { INPUT_CLASS } from "./constants";
-import { Mark, PanelNotice, PanelSkeleton, useSecurityTask } from "./shared";
+import {
+  deletePasskey,
+  registerPasskey,
+  renamePasskey,
+} from "@/features/auth/client";
+import { useAuth } from "@/features/auth/provider";
+import { Mark, PanelNotice, PanelSkeleton, useSecurityTask } from "./panel";
+import { INPUT_CLASS } from "./settings";
 
 function PasskeyRow({
   disabled,

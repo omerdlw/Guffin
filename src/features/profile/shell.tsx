@@ -2,8 +2,10 @@
 
 import {
   createContext,
+  type Dispatch,
   type JSX,
   type ReactNode,
+  type SetStateAction,
   type SyntheticEvent,
   use,
   useCallback,
@@ -16,6 +18,7 @@ import {
   useState,
   useTransition,
 } from "react";
+import type { AmbientPalette } from "@omerdlw/base-framework/ambient";
 import {
   useDockActions,
   useDockContextActions,
@@ -30,36 +33,84 @@ import {
   UserError,
 } from "@omerdlw/base-framework/utils";
 import { usePathname } from "next/navigation";
+import { useSurfacePreload } from "@/design/lazy-surface";
 import {
   DEFAULT_ACCOUNT_ICON,
   SOCIAL_EVENTS,
 } from "@/features/account/account";
 import { useAccount } from "@/features/account/provider";
 import { useAuth } from "@/features/auth/provider";
-import { useOpenSignIn } from "@/features/auth/sign-in-surface";
-import { createAccountSettingsSurfaceEntry } from "@/features/settings/surface";
+import { useOpenSignIn } from "@/features/auth/sign-in";
+import { accountSettingsSurface } from "@/features/settings/surfaces";
 import {
   followUserAction,
   unfollowUserAction,
 } from "@/features/social/actions";
 import { getFollowState } from "@/features/social/client";
 import { accountHref } from "@/lib/project";
+import type { MediaType } from "@/lib/tmdb/shared";
 import { Value } from "@/motion/engine";
 import { ScopeProvider, useEngine, useScope } from "@/motion/react";
 import { childScope } from "@/motion/stage";
 import { CURVE, step } from "@/motion/time";
-import { DOCK_ACTION_ORDER, SHELL_SETTLE_RUNG } from "./constants";
 import { AccountSectionTabs } from "./controls";
 import { AccountLayout } from "./hero";
 import { AccountPart, AccountSection, useAccountStage } from "./motion";
-import type {
-  AccountData,
-  AccountDockConfig,
-  AccountDockEntry,
-  AccountDockSlots,
-  AccountShellProps,
-} from "./types";
-import { followButtonOf } from "./utils";
+import type { AccountData } from "./profile";
+
+interface AccountDockCard {
+  description: string | null;
+  icon: string;
+  title: string;
+}
+
+type AccountDockConfig = Partial<AccountDockCard> & {
+  action?: ReactNode;
+};
+
+interface AccountDockEntry {
+  dock: AccountDockConfig | null;
+  path: string;
+}
+
+interface AccountDockSlots {
+  setPageDock: Dispatch<SetStateAction<AccountDockEntry | null>>;
+}
+
+interface AccountShellProps {
+  account: AccountData;
+  children: ReactNode;
+  followersCount: number;
+  followingCount: number;
+  initialFollowStatus: string | null;
+  isFollower: boolean;
+  isOwner: boolean;
+  palette?: AmbientPalette | null;
+  proofSlot?: ReactNode;
+  rememberedVitrin: MediaType;
+  statsSlot?: ReactNode;
+}
+
+const DOCK_ACTION_ORDER = 10;
+
+const SHELL_SETTLE_RUNG = 1;
+
+function followButtonOf(
+  status: string | null,
+  pending: boolean,
+  username: string,
+): { icon: string; tooltip: string } {
+  if (pending) {
+    return { icon: "svg-spinners:90-ring-with-bg", tooltip: "Updating..." };
+  }
+  if (status === "accepted") {
+    return { icon: "solar:user-cross-bold", tooltip: `Unfollow @${username}` };
+  }
+  if (status === "pending") {
+    return { icon: "solar:user-cross-bold", tooltip: "Cancel follow request" };
+  }
+  return { icon: "solar:user-plus-bold", tooltip: `Follow @${username}` };
+}
 
 const AccountDockContext = createContext<AccountDockSlots | null>(null);
 
@@ -204,6 +255,7 @@ function AccountRegistry({
 }): null {
   const auth = useAuth();
   const { openSurface } = useDockActions();
+  useSurfacePreload(accountSettingsSurface);
   const { avatarUrl, displayName, id, username } = account;
   const { isPending, shownStatus, toggleFollow } = useFollowToggle({
     id,
@@ -220,7 +272,9 @@ function AccountRegistry({
               icon: "solar:settings-bold",
               key: "account.settings",
               onClick: () =>
-                void openSurface(createAccountSettingsSurfaceEntry("overview")),
+                void accountSettingsSurface.open(openSurface, {
+                  section: "overview",
+                }),
               order: DOCK_ACTION_ORDER,
               tooltip: "Account settings",
               visible: auth.isReady && auth.isAuthenticated,
@@ -355,6 +409,7 @@ export function AccountView({
     latest.current = { id, children };
   });
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- syncs held content after every render; guarded
   useLayoutEffect(() => {
     if (id === shown.id && held !== children) setHeld(children);
   });

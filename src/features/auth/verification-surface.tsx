@@ -16,9 +16,10 @@ import { useToast } from "@omerdlw/base-framework/notification";
 import { Loader } from "@omerdlw/base-framework/ui";
 import { Input } from "@/design/components/input";
 import { SurfaceAnchor } from "@/design/components/surface";
+import { useSurfacePreload } from "@/design/lazy-surface";
 import { defineSurface } from "@/design/surface-definition";
 import { cn } from "@/design/ui";
-import { accountSetupSurface } from "@/features/account/setup-surface";
+import { accountSetupSurface } from "@/features/account/surfaces";
 import { hasAccountUsername, requestEmailAuth, verifyEmailOtp } from "./client";
 import { getAuthErrorMessage } from "./errors";
 import { SupabaseSetupNotice } from "./notice";
@@ -175,6 +176,7 @@ function VerificationSurface({ close, data }: VerificationSurfaceProps) {
   const auth = useAuth();
   const toast = useToast();
   const { openSurface } = useDockActions();
+  useSurfacePreload(accountSetupSurface);
   const { next, onVerified } = data;
   const email = data.email.trim();
   const postAuthRedirect = sanitizeNextPath(next, "/account");
@@ -261,7 +263,7 @@ function VerificationSurface({ close, data }: VerificationSurfaceProps) {
         close?.({ success: true });
         window.location.replace(postAuthRedirect);
       } else {
-        openSurface(accountSetupSurface());
+        accountSetupSurface.open(openSurface);
       }
     } catch (error) {
       rejectCode(error);

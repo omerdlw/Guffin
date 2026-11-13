@@ -28,12 +28,26 @@ import {
 } from "@/design/foundations/layout";
 import { cn } from "@/design/ui";
 import { SIDEBAR_FACTS_CLASS } from "@/features/detail/detail";
-import {
-  AFTER_TAGLINE,
-  SKELETON_FACT_WIDTHS,
-  SKELETON_REVIEW_LINES,
-  TAGLINE_TYPE,
-} from "./constants";
+import { AFTER_TAGLINE, TAGLINE_TYPE } from "./movie";
+
+const SKELETON_FACT_WIDTHS = [
+  ["3.5rem", "7rem"],
+  ["2.5rem", "9rem"],
+  ["4.5rem", "6.5rem"],
+  ["3.5rem", "5.5rem"],
+  ["4.5rem", "7.5rem"],
+  ["3rem", "1.25rem"],
+  ["4rem", "3.5rem"],
+  ["3.25rem", "4.5rem"],
+  ["3.5rem", "3rem"],
+  ["4rem", "4.5rem"],
+] as const;
+
+const SKELETON_REVIEW_LINES = [
+  ["100%", "100%", "38%"],
+  ["100%", "72%"],
+  ["100%", "100%", "100%", "54%"],
+] as const;
 
 function Sidebar(): JSX.Element {
   return (

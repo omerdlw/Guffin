@@ -8,9 +8,9 @@ import {
   personSwatch,
 } from "@/features/person/credits";
 import { PersonPageChrome } from "@/features/person/header";
-import { PersonViewProvider } from "@/features/person/views";
-import { describePerson, parsePersonId } from "@/features/person/utils";
+import { describePerson, parsePersonId } from "@/features/person/person";
 import { PersonView } from "@/features/person/view";
+import { PersonViewProvider } from "@/features/person/views";
 import { project, shareMetadata } from "@/lib/project";
 import {
   getAmbientPalette,

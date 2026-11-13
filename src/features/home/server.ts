@@ -1,11 +1,15 @@
 import "server-only";
+
 import { cache } from "react";
+import type { Result } from "@omerdlw/base-framework/result";
 import { report } from "@omerdlw/base-framework/utils";
 import { unstable_rethrow } from "next/navigation";
 import { after } from "next/server";
 import { getOptionalUser } from "@/features/auth/server";
+import { filterEligible } from "@/features/catalog/quality";
 import { getContinueWatching } from "@/features/tv/server";
 import { TV_ENABLED } from "@/lib/env";
+import { toLogline } from "@/lib/format";
 import { getRedisClient } from "@/lib/security";
 import {
   createAdminSupabaseClient,
@@ -18,51 +22,448 @@ import {
   getTrendingMovies,
   getTrendingShows,
 } from "@/lib/tmdb/server";
-import type { FeaturedMovie } from "@/lib/tmdb/shared";
-import {
-  EMPTY_PULSE,
-  FEATURE_LIMIT,
-  LOGGED_LIMIT,
-  LOGGED_SCAN,
-  PICKS_MIN_FILMS,
-  PICKS_RANK_CONSTANT,
-  PULSE_COLD_TIMEOUT_MS,
-  PULSE_FRESH_MS,
-  PULSE_KEEP_SECONDS,
-  PULSE_KEY,
-  PULSE_LOCK_KEY,
-  PULSE_LOCK_SECONDS,
-  ROW_LIMIT,
-  SEED_LIMIT,
-  THEATRES_MIN_VOTES,
-} from "./constants";
 import type {
-  CachedPulse,
-  Circle,
-  CircleRow,
-  Feature,
-  HomeFeed,
-  HomeShows,
-  Picks,
-  PulseRow,
-  RecentLog,
-  ShowingFilm,
-} from "./types";
+  FeaturedMovie,
+  FeaturedMoviePage,
+  MovieDetails,
+  ShowPage,
+} from "@/lib/tmdb/shared";
+import type { TmdbError } from "@/lib/tmdb/transport";
 import {
-  fromTmdb,
-  fuseRankings,
-  mergeFeatureCandidates,
-  pickShowing,
-  resultsOf,
-  selectMembers,
-  toFeature,
-  toFilm,
-  toIsoDate,
-  toMember,
-  toPulseShelves,
-  toShowShelf,
-  uniqueMovies,
-} from "./utils";
+  type Circle,
+  type Feature,
+  type HomeFeed,
+  type HomeFilm,
+  type HomeMember,
+  type HomeShows,
+  type Member,
+  type Picks,
+  POPULAR_LIMIT,
+  type RecentLog,
+  type ShowingFilm,
+} from "./feed";
+
+interface FeatureCandidate {
+  backdropPath: string | null;
+  id: number;
+  social: PulseRow["popular"][number] | null;
+  trending: number | null;
+}
+
+type PulseShelves = Pick<
+  HomeFeed,
+  "lists" | "popular" | "rated" | "reviews" | "rising"
+>;
+
+interface MemberRow {
+  avatar_url: string | null;
+  display_name: string | null;
+  username: string;
+}
+
+interface FilmRow {
+  backdrop_path?: string | null;
+  poster_path: string | null;
+  release_date: string | null;
+  title: string;
+  tmdb_id: number;
+}
+
+interface PulseRow {
+  counts: {
+    films: number;
+    lists: number;
+    logs: number;
+    members: number;
+    reviews: number;
+  };
+  lists: {
+    description: string;
+    id: string;
+    items_count: number;
+    likes_count: number;
+    owner: MemberRow;
+    previews: (string | null)[];
+    slug: string;
+    title: string;
+  }[];
+  popular: (FilmRow & {
+    faces: MemberRow[];
+    members: number;
+    rating: number | null;
+    watchers: number;
+  })[];
+  reviewers: (MemberRow & {
+    bio: string | null;
+    followers: number;
+    id: string;
+    likes: number;
+    reviews: number;
+    watched: number;
+  })[];
+  reviews: (FilmRow & {
+    author: MemberRow;
+    content: string;
+    created_at: string;
+    id: string;
+    likes_count: number;
+    rating: number | null;
+  })[];
+  rising: (FilmRow & { lift: number; week: number })[];
+  top_rated: (FilmRow & { rating: number; ratings: number; watched: number })[];
+}
+
+interface CircleRow {
+  followed: string[];
+  following: number;
+  friends: (FilmRow & {
+    author: MemberRow;
+    id: string;
+    liked: boolean;
+    rating: number | null;
+    reviewed: boolean;
+    rewatch: boolean;
+    watched_at: string;
+  })[];
+  seeds: { title: string; tmdb_id: number }[];
+  seen: number[];
+  shared: (FilmRow & { faces: MemberRow[]; friends: number })[];
+  suggested: (MemberRow & {
+    bio: string | null;
+    followers: number;
+    id: string;
+    mutual: number;
+    reviews: number;
+    watched: number;
+  })[];
+  viewer: { display_name: string | null; username: string | null };
+}
+
+interface CachedPulse {
+  at: number;
+  pulse: PulseRow;
+}
+
+const LOGLINE_LENGTH = 180;
+
+const LOGLINE_ENOUGH_LENGTH = 80;
+
+const EMPTY_PULSE: PulseRow = {
+  counts: { films: 0, lists: 0, logs: 0, members: 0, reviews: 0 },
+  lists: [],
+  popular: [],
+  reviewers: [],
+  reviews: [],
+  rising: [],
+  top_rated: [],
+};
+
+const PULSE_KEY = "home:pulse";
+
+const PULSE_FRESH_MS = 5 * 60_000;
+
+const PULSE_KEEP_SECONDS = 7 * 24 * 60 * 60;
+
+const PULSE_LOCK_KEY = "home:pulse:lock";
+
+const PULSE_LOCK_SECONDS = 60;
+
+const PULSE_COLD_TIMEOUT_MS = 4000;
+
+const FEATURE_LIMIT = 5;
+
+const LOGGED_LIMIT = 18;
+
+const LOGGED_SCAN = 120;
+
+const FEATURE_SPARE_CANDIDATES = 2;
+
+const FEATURE_GENRE_LIMIT = 3;
+
+const REVIEW_LIMIT = 6;
+
+const PICKS_MIN_FILMS = 4;
+
+const PICKS_RANK_CONSTANT = 10;
+
+const ROW_LIMIT = 16;
+
+const SHOWING_LIMIT = 12;
+
+const RISING_LIMIT = 8;
+
+const MEMBER_LIMIT = 6;
+
+const SEED_LIMIT = 3;
+
+const THEATRES_MIN_VOTES = 25;
+
+function fuseRankings<T>(
+  lists: readonly (readonly T[])[],
+  key: (item: T) => number,
+  k = 60,
+): { item: T; score: number }[] {
+  const scores = new Map<number, { item: T; score: number }>();
+  for (const list of lists) {
+    list.forEach((item, rank) => {
+      const id = key(item);
+      const entry = scores.get(id) ?? { item, score: 0 };
+      entry.score += 1 / (k + rank + 1);
+      scores.set(id, entry);
+    });
+  }
+  return [...scores.values()].sort((a, b) => b.score - a.score);
+}
+
+function takeUnseen<T extends { id: number }>(
+  items: readonly T[],
+  shown: Set<number>,
+  limit: number,
+): T[] {
+  const kept = items.filter((item) => !shown.has(item.id)).slice(0, limit);
+  kept.forEach((item) => shown.add(item.id));
+  return kept;
+}
+
+const yearOf = (date: string | null | undefined): number | null => {
+  const year = Number(date?.slice(0, 4));
+  return Number.isFinite(year) && year > 0 ? year : null;
+};
+
+const featureLogline = (overview: string | null | undefined) =>
+  toLogline(overview, LOGLINE_LENGTH, LOGLINE_ENOUGH_LENGTH);
+
+const resultsOf = (
+  outcome: Result<FeaturedMoviePage, TmdbError>,
+): FeaturedMovie[] => (outcome.success ? outcome.data.results : []);
+
+const toMember = (row: MemberRow): Member => ({
+  avatarUrl: row.avatar_url,
+  displayName: row.display_name || row.username,
+  username: row.username,
+});
+
+const toFilm = (row: FilmRow): HomeFilm => ({
+  backdropPath: row.backdrop_path ?? null,
+  id: row.tmdb_id,
+  posterPath: row.poster_path,
+  title: row.title,
+  year: yearOf(row.release_date),
+});
+
+const fromTmdb = (movie: FeaturedMovie): HomeFilm => ({
+  backdropPath: movie.backdropPath,
+  id: movie.id,
+  posterPath: movie.posterPath,
+  title: movie.title,
+  year: movie.releaseYear,
+});
+
+const toShowShelf = (
+  outcome: Result<ShowPage, TmdbError>,
+  limit: number,
+): HomeFilm[] =>
+  outcome.success
+    ? filterEligible(outcome.data.results, "tv")
+        .slice(0, limit)
+        .map((show) => ({
+          backdropPath: show.backdropPath,
+          id: show.id,
+          posterPath: show.posterPath,
+          title: show.title,
+          year: show.releaseYear,
+        }))
+    : [];
+
+const toIsoDate = (time: number) => new Date(time).toISOString().slice(0, 10);
+
+function uniqueMovies(movies: readonly FeaturedMovie[]): FeaturedMovie[] {
+  const seen = new Set<number>();
+  return movies.filter((movie) => {
+    if (seen.has(movie.id)) return false;
+    seen.add(movie.id);
+    return true;
+  });
+}
+
+function selectMembers(
+  pulse: PulseRow,
+  circle: CircleRow | null,
+): HomeMember[] {
+  const self = circle?.viewer.username ?? null;
+  const suggested: HomeMember[] = (circle?.suggested ?? []).map((row) => ({
+    ...toMember(row),
+    bio: row.bio,
+    followers: row.followers,
+    id: row.id,
+    reason: `Followed by ${row.mutual} you follow`,
+    reviews: row.reviews,
+    watched: row.watched,
+  }));
+  const followed = new Set(circle?.followed ?? []);
+  const reviewers: HomeMember[] = pulse.reviewers
+    .filter((row) => row.username !== self && !followed.has(row.id))
+    .map((row) => ({
+      ...toMember(row),
+      bio: row.bio,
+      followers: row.followers,
+      id: row.id,
+      reason: `${row.likes.toLocaleString("en-US")} likes on reviews this month`,
+      reviews: row.reviews,
+      watched: row.watched,
+    }));
+  const taken = new Set(suggested.map((member) => member.id));
+  return [
+    ...suggested,
+    ...reviewers.filter((member) => !taken.has(member.id)),
+  ].slice(0, MEMBER_LIMIT);
+}
+
+function pickShowing(
+  {
+    playing,
+    upcoming,
+  }: { playing: FeaturedMovie[]; upcoming: FeaturedMovie[] },
+  minVotes: number,
+  today: string,
+): { soon: FeaturedMovie[]; theatres: FeaturedMovie[] } {
+  const byPopularity = (a: FeaturedMovie, b: FeaturedMovie) =>
+    b.popularity - a.popularity;
+  const releasedBy = (movie: FeaturedMovie) => movie.releaseDate ?? "";
+
+  const theatres = uniqueMovies(playing)
+    .filter(
+      (movie) =>
+        movie.posterPath &&
+        movie.voteCount >= minVotes &&
+        releasedBy(movie) <= today,
+    )
+    .sort(byPopularity)
+    .slice(0, SHOWING_LIMIT);
+  const soon = uniqueMovies(upcoming)
+    .filter((movie) => movie.posterPath && releasedBy(movie) > today)
+    .sort(byPopularity)
+    .slice(0, SHOWING_LIMIT)
+    .sort((a, b) => releasedBy(a).localeCompare(releasedBy(b)));
+
+  return { soon, theatres };
+}
+
+function mergeFeatureCandidates(
+  trending: readonly FeaturedMovie[],
+  popular: PulseRow["popular"],
+): FeatureCandidate[] {
+  const world: FeatureCandidate[] = trending.map((movie, rank) => ({
+    backdropPath: movie.backdropPath,
+    id: movie.id,
+    social: null,
+    trending: rank + 1,
+  }));
+  const members: FeatureCandidate[] = popular.map((film) => ({
+    backdropPath: film.backdrop_path ?? null,
+    id: film.tmdb_id,
+    social: film,
+    trending: null,
+  }));
+  const find = (list: FeatureCandidate[], id: number) =>
+    list.find((candidate) => candidate.id === id);
+
+  return fuseRankings([world, members], (candidate) => candidate.id)
+    .map(({ item }) => ({
+      ...item,
+      social: item.social ?? find(members, item.id)?.social ?? null,
+      trending: item.trending ?? find(world, item.id)?.trending ?? null,
+    }))
+    .filter((candidate) => candidate.backdropPath)
+    .slice(0, FEATURE_LIMIT + FEATURE_SPARE_CANDIDATES);
+}
+
+function toFeature(
+  candidate: FeatureCandidate,
+  movie: MovieDetails,
+): Feature | null {
+  const backdropPath = movie.backdropPath ?? candidate.backdropPath;
+  if (!backdropPath) return null;
+  const { social } = candidate;
+  return {
+    backdropPath,
+    genres: movie.genres.slice(0, FEATURE_GENRE_LIMIT).map(({ name }) => name),
+    id: movie.id,
+    logline: featureLogline(movie.overview),
+    posterPath: movie.posterPath,
+    runtime: movie.runtimeMinutes,
+    social: social
+      ? {
+          faces: social.faces.map(toMember),
+          rating: social.rating,
+          watchers: social.members,
+        }
+      : null,
+    title: movie.title,
+    trending: candidate.trending,
+    year: movie.releaseYear,
+  };
+}
+
+function toPulseShelves(pulse: PulseRow): PulseShelves {
+  const shown = new Set<number>();
+  const popular = takeUnseen(
+    pulse.popular
+      .filter((row) => row.poster_path)
+      .map((row) => ({
+        ...toFilm(row),
+        faces: row.faces.map(toMember),
+        members: row.members,
+        rating: row.rating,
+        watchers: row.watchers,
+      })),
+    shown,
+    POPULAR_LIMIT,
+  );
+  const rising = takeUnseen(
+    pulse.rising
+      .filter((row) => row.lift >= 1)
+      .map((row) => ({
+        ...toFilm(row),
+        lift: row.lift,
+        week: row.week,
+      })),
+    shown,
+    RISING_LIMIT,
+  );
+
+  return {
+    lists: pulse.lists.map((row) => ({
+      description: row.description,
+      films: row.items_count,
+      id: row.id,
+      likes: row.likes_count,
+      owner: toMember(row.owner),
+      previews: row.previews,
+      slug: row.slug,
+      title: row.title,
+    })),
+    popular,
+    rated: pulse.top_rated
+      .filter((row) => row.poster_path)
+      .slice(0, ROW_LIMIT)
+      .map((row) => ({
+        ...toFilm(row),
+        rating: row.rating,
+        ratings: row.ratings,
+      })),
+    reviews: pulse.reviews.slice(0, REVIEW_LIMIT).map((row) => ({
+      author: toMember(row.author),
+      content: row.content,
+      createdAt: row.created_at,
+      film: toFilm(row),
+      id: row.id,
+      likes: row.likes_count,
+      rating: row.rating,
+    })),
+    rising,
+  };
+}
 
 async function readPulse(signal?: AbortSignal): Promise<PulseRow> {
   const query = createAdminSupabaseClient().rpc("get_home_pulse");

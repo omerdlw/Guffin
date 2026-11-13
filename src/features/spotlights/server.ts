@@ -1,8 +1,11 @@
 import "server-only";
+
 import { cache } from "react";
 import { report } from "@omerdlw/base-framework/utils";
 import { unstable_rethrow } from "next/navigation";
 import { after } from "next/server";
+import { bayesianRating, filterEligible } from "@/features/catalog/quality";
+import { toLogline } from "@/lib/format";
 import { getRedisClient } from "@/lib/security";
 import {
   findMovieByImdb,
@@ -11,26 +14,129 @@ import {
   getShowList,
   searchMovies,
 } from "@/lib/tmdb/server";
-import { bayesianRating, filterEligible } from "@/features/catalog/utils";
+import type { MovieSearchPage, PersonCrewCredit } from "@/lib/tmdb/shared";
+import { BEST_PICTURE, CANON, DIRECTORS } from "./catalog";
 import {
-  BEST_PICTURE,
-  CANON,
-  CATALOG_FRESH_MS,
-  CATALOG_KEEP_SECONDS,
-  DIRECTORS,
-  SHOW_CANON_PAGES,
-  SHOW_CANON_PRIOR,
+  type CanonFilm,
+  type Director,
+  type DirectorFilm,
+  type Laureate,
   SHOW_CANON_SIZE,
-  SPOTLIGHT_GENRE_LIMIT,
-} from "./constants";
-import type { CanonFilm, Director, Kept, Laureate } from "./types";
-import {
-  ceremonyYear,
-  filmographyOf,
-  genreNames,
-  spotlightLogline,
-  winnerAmong,
-} from "./utils";
+} from "./spotlights";
+
+interface Kept<T> {
+  at: number;
+  value: T;
+}
+
+type CatalogHit = MovieSearchPage["results"][number];
+
+const MAX_FILMS = 64;
+
+const GENRE_LABELS: Readonly<Record<number, string>> = {
+  12: "Adventure",
+  14: "Fantasy",
+  16: "Animation",
+  18: "Drama",
+  27: "Horror",
+  28: "Action",
+  35: "Comedy",
+  36: "History",
+  37: "Western",
+  53: "Thriller",
+  80: "Crime",
+  99: "Documentary",
+  878: "Sci-Fi",
+  9648: "Mystery",
+  10402: "Music",
+  10749: "Romance",
+  10751: "Family",
+  10752: "War",
+  10770: "TV Movie",
+};
+
+const FIRST_CEREMONY_YEAR = 1929;
+
+const CATALOG_FRESH_MS = 24 * 60 * 60_000;
+
+const CATALOG_KEEP_SECONDS = 7 * 24 * 60 * 60;
+
+const SPOTLIGHT_LOGLINE_LENGTH = 200;
+
+const SPOTLIGHT_LOGLINE_ENOUGH = 90;
+
+const SPOTLIGHT_GENRE_LIMIT = 3;
+
+const DIRECTOR_KNOWN_VOTES = 50;
+
+const SHOW_CANON_PAGES = 15;
+
+const SHOW_CANON_PRIOR = Object.freeze({
+  mean: 7,
+  minVotes: 500,
+  weight: 2000,
+});
+
+const genreNames = (ids: readonly number[]) =>
+  ids
+    .flatMap((id) => (GENRE_LABELS[id] ? [GENRE_LABELS[id]] : []))
+    .slice(0, SPOTLIGHT_GENRE_LIMIT);
+
+const ceremonyYear = (ceremony: number) =>
+  FIRST_CEREMONY_YEAR + ceremony - (ceremony >= 3 && ceremony <= 5 ? 2 : 1);
+
+const spotlightLogline = (overview: string | null | undefined) =>
+  toLogline(overview, SPOTLIGHT_LOGLINE_LENGTH, SPOTLIGHT_LOGLINE_ENOUGH);
+
+function filmographyOf(crew: readonly PersonCrewCredit[]): DirectorFilm[] {
+  const today = new Date().toISOString().slice(0, 10);
+  const byTitle = new Map<string, PersonCrewCredit>();
+  for (const credit of crew) {
+    if (credit.job !== "Director" || !credit.posterPath) continue;
+    if (!credit.releaseDate || credit.releaseDate > today) continue;
+    if (credit.voteCount < DIRECTOR_KNOWN_VOTES) continue;
+    const key = credit.title.toLowerCase();
+    const held = byTitle.get(key);
+    if (!held || held.voteCount < credit.voteCount) byTitle.set(key, credit);
+  }
+  return [...byTitle.values()]
+    .sort((a, b) => b.voteCount - a.voteCount)
+    .slice(0, MAX_FILMS)
+    .map((credit) => ({
+      id: credit.id,
+      posterPath: credit.posterPath!,
+      title: credit.title,
+      year: credit.releaseYear,
+    }));
+}
+
+const normalTitle = (title: string) =>
+  title
+    .toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+
+function winnerAmong(
+  found: readonly CatalogHit[],
+  title: string,
+  year: number,
+): CatalogHit | null {
+  const wanted = normalTitle(title);
+  const fits = found.filter(
+    (movie) =>
+      movie.posterPath !== null &&
+      movie.releaseYear !== null &&
+      Math.abs(movie.releaseYear - year) <= 1 &&
+      [movie.title, movie.originalTitle].some((name) => {
+        const have = normalTitle(name ?? "");
+        return (
+          have === wanted || have.startsWith(wanted) || wanted.startsWith(have)
+        );
+      }),
+  );
+  return fits.sort((a, b) => b.voteCount - a.voteCount)[0] ?? null;
+}
 
 const building = new Map<string, Promise<unknown>>();
 

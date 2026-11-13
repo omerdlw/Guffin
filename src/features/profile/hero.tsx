@@ -1,15 +1,23 @@
 "use client";
 
 import { type JSX, type ReactNode, useEffect, useRef, useState } from "react";
-import { useAmbientTheme } from "@omerdlw/base-framework/ambient";
+import {
+  type AmbientPalette,
+  useAmbientTheme,
+} from "@omerdlw/base-framework/ambient";
 import { useDockActions } from "@omerdlw/base-framework/dock";
 import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
-import { useNavigationPayload } from "@omerdlw/base-framework/navigation";
+import {
+  type NavigationTrip,
+  pathOf,
+  useNavigationPayload,
+} from "@omerdlw/base-framework/navigation";
 import { Image } from "@omerdlw/base-framework/ui";
 import { usePathname } from "next/navigation";
 import { Icon } from "@/design/components/icon";
 import { TextButton } from "@/design/components/link";
 import { OVERLAP } from "@/design/foundations/layout";
+import { useSurfacePreload } from "@/design/lazy-surface";
 import { cn } from "@/design/ui";
 import {
   applyAvatarFallback,
@@ -18,36 +26,84 @@ import {
   getUserAvatarUrl,
   SOCIAL_EVENTS,
 } from "@/features/account/account";
-import { accountBioSurface } from "@/features/account/bio-surface";
+import { accountBioSurface } from "@/features/account/surfaces";
 import { BackdropProjection } from "@/features/detail/stage";
-import { followsSurface } from "@/features/social/follows-surface";
+import { PlanGuides } from "@/features/profile/progress/guides";
+import { followsSurface } from "@/features/social/surfaces";
 import { accountHref } from "@/lib/project";
 import { Room } from "@/motion/kit";
 import { ProfileStatButton, ProfileStatRow } from "./blocks";
-import {
-  AVATAR_CLASSES,
-  BIO_CLAMP_CLASS,
-  PROFILE_CONTAINER_CLASS,
-} from "./constants";
-import { PlanGuides } from "./guides";
 import {
   AccountPart,
   AccountStageRoot,
   AccountText,
   useAccountPart,
 } from "./motion";
+import { type AccountData, PROFILE_CONTAINER_CLASS } from "./profile";
 import { AccountView } from "./shell";
-import type {
-  AccountBackdropHeroProps,
-  AccountHeroProps,
-  AccountLayoutProps,
-} from "./types";
-import {
-  formatJoinDate,
-  getAccountDisplayName,
-  leavesAccount,
-  resolveAccountBackdropUrl,
-} from "./utils";
+
+interface AccountBackdropHeroProps {
+  image?: string | null;
+}
+
+interface AccountHeroProps {
+  account?: AccountData | null;
+  followersCount?: number;
+  followingCount?: number;
+  palette?: AmbientPalette | null;
+  proofSlot?: ReactNode;
+  statsSlot?: ReactNode;
+}
+
+interface AccountLayoutProps {
+  account?: AccountData | null;
+  children?: ReactNode;
+  followersCount?: number;
+  followingCount?: number;
+  isFollower?: boolean;
+  isOwner?: boolean;
+  palette?: AmbientPalette | null;
+  proofSlot?: ReactNode;
+  statsSlot?: ReactNode;
+  tabsSlot?: ReactNode;
+}
+
+const DEFAULT_DISPLAY_NAME = "Account";
+
+const JOIN_DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  year: "numeric",
+});
+
+const AVATAR_CLASSES =
+  "relative flex size-fib-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-veil type-display-xs font-semibold text-ink ring-2 ring-edge-hover select-none";
+
+const BIO_CLAMP_CLASS =
+  "line-clamp-3 [mask-image:linear-gradient(#000,#000),linear-gradient(to_left,transparent_5.5rem,#000_8rem)] [mask-position:top,bottom] [mask-repeat:no-repeat] [mask-size:100%_calc(100%-20px),100%_20px]";
+
+function formatJoinDate(value?: string | null): string | null {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : JOIN_DATE_FORMATTER.format(date);
+}
+
+function resolveAccountBackdropUrl(
+  profile?: AccountData | null,
+): string | null {
+  const background = profile?.backgroundUrl?.trim() ?? "";
+  if (!background) return null;
+  return /^(https?:\/\/|\/|data:image\/)/.test(background) ? background : null;
+}
+
+const leavesAccount = (base?: string) => (trip: NavigationTrip) => {
+  if (!base) return pathOf(trip.to) !== pathOf(trip.from);
+  const to = pathOf(trip.to).replace(/\/+$/, "") || "/";
+  return to !== base && !to.startsWith(`${base}/`);
+};
+
+function getAccountDisplayName(account?: AccountData | null): string {
+  return account?.displayName || account?.username || DEFAULT_DISPLAY_NAME;
+}
 
 function AvatarStage({
   children,
@@ -149,6 +205,7 @@ function AccountHero({
   statsSlot,
 }: AccountHeroProps) {
   const { openSurface } = useDockActions();
+  useSurfacePreload(followsSurface);
 
   const displayName = getAccountDisplayName(account);
   const backdropUrl = resolveAccountBackdropUrl(account);
@@ -162,17 +219,15 @@ function AccountHero({
 
   const openSocial = (tab: "following" | "followers") => {
     if (!account?.id) return;
-    openSurface(
-      followsSurface({
-        data: {
-          avatarUrl: getUserAvatarUrl(account),
-          displayName,
-          tab,
-          userId: account.id,
-          username: account.username,
-        },
-      }),
-    );
+    followsSurface.open(openSurface, {
+      data: {
+        avatarUrl: getUserAvatarUrl(account),
+        displayName,
+        tab,
+        userId: account.id,
+        username: account.username,
+      },
+    });
   };
 
   const paddingClass = backdropUrl
@@ -350,6 +405,7 @@ export function AccountBio({
   username: string;
 }): JSX.Element {
   const { openSurface } = useDockActions();
+  useSurfacePreload(accountBioSurface);
   const text = useRef<HTMLParagraphElement>(null);
   const [cut, setCut] = useState(false);
 
@@ -369,7 +425,7 @@ export function AccountBio({
   }, [bio]);
 
   const open = () =>
-    openSurface(accountBioSurface({ bio, displayName, username }));
+    accountBioSurface.open(openSurface, { bio, displayName, username });
 
   return (
     <div className="relative type-control leading-5">

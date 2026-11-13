@@ -186,6 +186,7 @@ function useGrading(engine: Engine, grade: Grading | undefined) {
     return () => {
       live = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- re-samples only when the grade's hue changes
   }, [engine, typeof grade === "object" && grade ? grade.h : grade]);
 }
 
@@ -260,6 +261,7 @@ export function usePartOf(
         if (handle.current === registered) handle.current = null;
       };
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- extra deps re-register the element when they change
     [stage, name, scope, carry, touch, renders, css],
   );
 
@@ -315,6 +317,7 @@ export function useSectionOf(
       shown.observe(el);
       return stop;
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- generation re-registers the element on reset
     [stage, name, scope, generation],
   );
 }
@@ -409,6 +412,7 @@ function bindStage<P extends string, S extends string = never>(
         untune();
         stage.halt();
       };
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- engine is stable per mount
     }, [stage]);
 
     useEffect(
@@ -421,6 +425,7 @@ function bindStage<P extends string, S extends string = never>(
           });
           return stage.leave();
         }),
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- engine is stable per mount
       [navigation, stage],
     );
 
@@ -558,6 +563,7 @@ function bindStage<P extends string, S extends string = never>(
           scope: latest.current?.scope ?? scope ?? undefined,
         });
       },
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- text re-mounts the split when the copy changes
       [stage, part, by, text, scope],
     );
     const style = styles[part];

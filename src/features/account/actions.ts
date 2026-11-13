@@ -18,10 +18,9 @@ import {
   ok,
 } from "@/features/auth/mutation";
 import { getOptionalUser, mutate, requireUser } from "@/features/auth/server";
+import { isMediaType } from "@/features/catalog/quality";
 import { ensureCatalogEntry } from "@/features/catalog/server";
-import type { MediaType } from "@/features/catalog/types";
-import { isMediaType } from "@/features/catalog/utils";
-import { FAVORITES_MAX } from "@/features/profile/constants";
+import { FAVORITES_MAX } from "@/features/profile/profile";
 import { setShowCompleted } from "@/features/tv/server";
 import { isUuid } from "@/lib/http";
 import { checkRateLimit } from "@/lib/security";
@@ -32,7 +31,7 @@ import {
   mediaSnapshot,
   movieSnapshot,
 } from "@/lib/tmdb/server";
-import type { MovieDetails, ShowDetails } from "@/lib/tmdb/shared";
+import type { MediaType, MovieDetails, ShowDetails } from "@/lib/tmdb/shared";
 import { isTmdbId } from "@/lib/tmdb/transport";
 import {
   type AccountPatchInput,

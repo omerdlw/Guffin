@@ -1,8 +1,8 @@
 import type { JSX } from "react";
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
+import { parseShowId } from "@/features/tv/show";
 import { ShowPageContent } from "@/features/tv/view";
-import { parseShowId } from "@/features/tv/utils";
 import { TV_ENABLED } from "@/lib/env";
 import { readParam, type SearchParams } from "@/lib/http";
 import { project, reviewHref, shareMetadata } from "@/lib/project";

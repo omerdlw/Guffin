@@ -29,9 +29,17 @@ import {
   FILMOGRAPHY_GRID_CLASS,
   PERSON_FILMOGRAPHY_PREVIEW,
   PERSON_LINKS_CLASS,
-  SKELETON_BAR_COUNT,
-  SKELETON_FACT_WIDTHS,
-} from "./constants";
+} from "./person";
+
+const SKELETON_FACT_WIDTHS = [
+  ["2.5rem", "8rem"],
+  ["2rem", "1.25rem"],
+  ["4.5rem", "9rem"],
+  ["5.5rem", "6.5rem"],
+  ["4.5rem", "10rem"],
+] as const;
+
+const SKELETON_BAR_COUNT = 24;
 
 function Sidebar(): JSX.Element {
   return (

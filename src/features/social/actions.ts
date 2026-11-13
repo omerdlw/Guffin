@@ -15,10 +15,10 @@ import {
 import { revalidateAccount } from "@/features/account/server";
 import { fail, type MutationResult, ok } from "@/features/auth/mutation";
 import { getOptionalUser } from "@/features/auth/server";
-import type { MediaType } from "@/features/catalog/types";
-import { isMediaType } from "@/features/catalog/utils";
+import { isMediaType } from "@/features/catalog/quality";
 import type { Database } from "@/lib/supabase/database.types";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import type { MediaType } from "@/lib/tmdb/shared";
 import { isTmdbId } from "@/lib/tmdb/transport";
 import { type Friend, type MovieSocialProof, toPerson } from "./social";
 

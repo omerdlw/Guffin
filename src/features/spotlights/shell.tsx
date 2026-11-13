@@ -14,23 +14,30 @@ import {
   useDockActions,
   useDockRegistration,
 } from "@omerdlw/base-framework/dock";
-import { MotionConfig } from "@/motion/lib";
+import { Button } from "@omerdlw/base-framework/ui";
+import { Icon } from "@/design/components/icon";
+import { DockAction } from "@/design/components/surface";
 import { Room } from "@/motion/kit";
+import { MotionConfig } from "@/motion/lib";
 import { bindScore } from "@/motion/react";
 import { mountScene } from "@/motion/render";
 import { defineScore } from "@/motion/score";
 import type { Stage } from "@/motion/stage";
-import { Button } from "@omerdlw/base-framework/ui";
-import { Icon } from "@/design/components/icon";
-import { DockAction } from "@/design/components/surface";
-import {
-  DIRECTORS_DOCK_SETTLE_MS,
-  GESTURE_END_MS,
-  GESTURE_THRESHOLD,
-  URL_SYNC_DELAY_MS,
-} from "./constants";
-import type { LoopFactory, SpotlightDockAction } from "./types";
-import { typing } from "./utils";
+import { type LoopFactory, typing } from "./spotlights";
+
+interface SpotlightDockAction {
+  icon: string;
+  label: string;
+  onClick?: () => void;
+}
+
+const DIRECTORS_DOCK_SETTLE_MS = 400;
+
+const GESTURE_THRESHOLD = 28;
+
+const GESTURE_END_MS = 220;
+
+const URL_SYNC_DELAY_MS = 500;
 
 const SALON = defineScore({
   cast: {
@@ -245,6 +252,7 @@ export function SpotlightDock({
           title={title}
         />
       ) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed on the action's fields, not its identity
     [action?.icon, action?.label, action?.onClick, control, href, title],
   );
   const config = useMemo(

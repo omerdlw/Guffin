@@ -1,7 +1,9 @@
 import "server-only";
+
 import { err, ok, type Result } from "@omerdlw/base-framework/result";
+import { report, USER_MESSAGES } from "@omerdlw/base-framework/utils";
 import { NextResponse } from "next/server";
-import { filterEligible } from "@/features/catalog/utils";
+import { filterEligible } from "@/features/catalog/quality";
 import { getClientIp, rateLimitResponse } from "@/lib/security";
 import {
   createAdminSupabaseClient,
@@ -15,56 +17,298 @@ import {
   searchShows,
 } from "@/lib/tmdb/server";
 import type { ShowSummary } from "@/lib/tmdb/shared";
+import type { TmdbError } from "@/lib/tmdb/transport";
 import {
-  CATALOG_LIFETIME_MS,
-  CATALOG_MATCH_LIMIT,
-  CATALOG_MIN_FILMS,
-  CATALOG_PAGES,
-  COMMUNITY_CANDIDATES,
-  COMMUNITY_SEARCH_TYPES,
-  CREDIT_FILMS,
-  CREDIT_MATCH,
-  FAILURE_STATUS,
-  FAME_WEIGHT,
-  INVALID_QUERY_FAILURE,
+  foldText,
+  isSearchable,
+  type ListSearchResponse,
   MATCH_SCORE,
-  NO_PICTURE_PENALTY,
-  ORDER_WEIGHT,
-  PRIVATE_CACHE_CONTROL,
-  PUBLIC_CACHE_CONTROL,
-  RENOWN_WEIGHT,
-  SEARCH_COMMUNITY_LIMIT,
-  STANDOUT_LEAD,
-  STANDOUT_RENOWN,
-  YEAR_BONUS,
-} from "./constants";
-import type {
-  FilmCandidate,
-  ListSearchResponse,
-  MovieSearchResponse,
-  PersonSearchResponse,
-  ReviewSearchResponse,
-  SearchFailure,
-  SearchOptions,
-  SearchRunner,
-  SearchType,
-  UserSearchResponse,
-} from "./types";
-import {
-  bestMatch,
-  byScore,
-  excerpt,
-  failUnavailable,
-  fame,
-  fold,
-  orderWeight,
-  prepareQuery,
-  renown,
-  searchResponse,
-  splitYear,
-  textMatch,
-  toSearchFailure,
-} from "./utils";
+  type MovieSearchResponse,
+  normalizeQuery,
+  type PersonSearchResponse,
+  type ReviewSearchResponse,
+  SEARCH_FALLBACK_MESSAGE,
+  type SearchFailure,
+  type SearchFailureCode,
+  type SearchResponse,
+  type SearchType,
+  type UserSearchResponse,
+} from "./query";
+
+interface FilmCandidate {
+  id: number;
+  originalTitle: string | null;
+  popularity: number;
+  posterPath: string | null;
+  releaseYear: number | null;
+  title: string;
+  voteCount: number;
+}
+
+interface SearchOptions {
+  page?: number;
+  signal?: AbortSignal;
+}
+
+type SearchRunner = (
+  query: string,
+  options: Required<SearchOptions>,
+) => Promise<Result<SearchResponse<unknown>, SearchFailure>>;
+
+const COMMUNITY_SEARCH_TYPES: readonly SearchType[] = [
+  "users",
+  "lists",
+  "reviews",
+];
+
+const SEARCH_COMMUNITY_LIMIT = 12;
+
+const ARTICLE_PATTERN = /^(?:the|a|an) (?=\S)/;
+
+const ACRONYM_PATTERN = /^[\p{L}\p{N}]{2,8}$/u;
+
+const SUBTITLE_PATTERN = /\s*(?::|\s[-–—]\s)/;
+
+const SEQUEL_PATTERN = / (?:(?:vol(?:ume)?|part|chapter) )?(?:\d+|[ivx]+)$/;
+
+const FRANCHISE_PATTERN = / and .*$/;
+
+const RENOWN_VOTES = 20_000;
+
+const RENOWN_WEIGHT = Object.freeze({
+  follows: 1_000,
+  likes: 300,
+  movie: 100,
+  person: 30,
+  show: 100,
+});
+
+const CATALOG_PAGES = {
+  "popularity.desc": 5,
+  "vote_count.desc": 25,
+} as const;
+
+const CATALOG_MATCH_LIMIT = 8;
+
+const CATALOG_MIN_FILMS = 100;
+
+const CATALOG_LIFETIME_MS = 6 * 60 * 60 * 1000;
+
+const INVALID_QUERY_FAILURE: SearchFailure = {
+  code: "invalid_query",
+  message: "Enter a valid search term",
+};
+
+const UNAVAILABLE_FAILURE: SearchFailure = {
+  code: "unavailable",
+  message: SEARCH_FALLBACK_MESSAGE,
+};
+
+const COMMUNITY_CANDIDATES = SEARCH_COMMUNITY_LIMIT * 2;
+
+const FAILURE_MESSAGES: Record<SearchFailureCode, string> = {
+  aborted: "The search was cancelled",
+  invalid_query: "Enter a valid search term",
+  rate_limited: USER_MESSAGES.rateLimited,
+  unavailable: SEARCH_FALLBACK_MESSAGE,
+};
+
+const FAME_WEIGHT = 0.5;
+
+const ORDER_WEIGHT = 0.15;
+
+const YEAR_BONUS = 0.4;
+
+const NO_PICTURE_PENALTY = 0.2;
+
+const CREDIT_MATCH = 0.75;
+
+const CREDIT_FILMS = 8;
+
+const STANDOUT_RENOWN = 0.45;
+
+const STANDOUT_LEAD = 1.5;
+
+const FAILURE_STATUS: Record<SearchFailureCode, number> = {
+  aborted: 499,
+  invalid_query: 400,
+  rate_limited: 429,
+  unavailable: 503,
+};
+
+const PUBLIC_CACHE_CONTROL =
+  "public, max-age=60, s-maxage=3600, stale-while-revalidate=86400";
+
+const PRIVATE_CACHE_CONTROL = "private, max-age=30";
+
+const FAILURE_CODE_BY_TMDB_KIND: Readonly<Record<string, SearchFailureCode>> = {
+  invalid_request: "invalid_query",
+  rate_limited: "rate_limited",
+};
+
+function excerpt(text: string, query: string, max = 140): string {
+  const flat = text.replace(/\s+/g, " ").trim();
+  if (flat.length <= max) return flat;
+
+  const at = flat.toLowerCase().indexOf(query.toLowerCase());
+  const start =
+    at < 0
+      ? 0
+      : Math.max(0, Math.min(at - Math.floor(max / 4), flat.length - max));
+  const end = start + max;
+  return `${start > 0 ? "…" : ""}${flat.slice(start, end).trim()}${end < flat.length ? "…" : ""}`;
+}
+
+function fold(value: string): string {
+  return foldText(value.replace(/&/g, " and ")).trim();
+}
+
+function words(folded: string): string[] {
+  return folded ? folded.split(" ") : [];
+}
+
+function initials(title: string): string {
+  return words(title)
+    .map((word) => word[0])
+    .join("");
+}
+
+function isAcronym(text: string, needle: string): boolean {
+  if (!ACRONYM_PATTERN.test(needle)) return false;
+  const main = fold(text.split(SUBTITLE_PATTERN)[0]);
+  const names = [
+    fold(text),
+    main,
+    main.replace(SEQUEL_PATTERN, ""),
+    main.replace(FRANCHISE_PATTERN, ""),
+  ];
+  return names.some(
+    (name) =>
+      initials(name) === needle ||
+      initials(name.replace(ARTICLE_PATTERN, "")) === needle,
+  );
+}
+
+function textMatch(text: string | null | undefined, query: string): number {
+  const haystack = fold(text ?? "");
+  const needle = fold(query);
+  if (!haystack || !needle) return 0;
+
+  const bareHaystack = haystack.replace(ARTICLE_PATTERN, "");
+  const bareNeedle = needle.replace(ARTICLE_PATTERN, "");
+  if (haystack === needle || bareHaystack === bareNeedle)
+    return MATCH_SCORE.exact;
+  if (isAcronym(text ?? "", needle)) return MATCH_SCORE.acronym;
+  if (
+    haystack.startsWith(`${needle} `) ||
+    bareHaystack.startsWith(`${bareNeedle} `)
+  ) {
+    return MATCH_SCORE.prefix;
+  }
+  if (haystack.startsWith(needle) || bareHaystack.startsWith(bareNeedle)) {
+    return MATCH_SCORE.partialPrefix;
+  }
+
+  const have = words(haystack);
+  const covered =
+    MATCH_SCORE.coverage * Math.min(1, words(needle).length / have.length);
+  const padded = ` ${haystack} `;
+  if (padded.includes(` ${needle} `)) return MATCH_SCORE.phrase + covered;
+  if (padded.includes(` ${needle}`)) return MATCH_SCORE.phraseStart + covered;
+
+  const want = [...new Set(words(needle))];
+  const found = want.filter((word) =>
+    have.some((candidate) => candidate.startsWith(word)),
+  ).length;
+  if (found === want.length) return MATCH_SCORE.allWords + covered;
+  if (haystack.includes(needle)) return MATCH_SCORE.substring;
+  return (MATCH_SCORE.substring * found) / want.length;
+}
+
+function bestMatch(
+  texts: readonly (string | null | undefined)[],
+  query: string,
+): number {
+  return texts.reduce(
+    (best, text) => Math.max(best, textMatch(text, query)),
+    0,
+  );
+}
+
+function splitYear(
+  query: string,
+  now: Date = new Date(),
+): { title: string; year: number } | null {
+  const found = /^(.*\S)\s+\(?(\d{4})\)?$/.exec(query.trim());
+  if (!found) return null;
+  const year = Number(found[2]);
+  if (year < 1874 || year > now.getFullYear() + 1) return null;
+  return { title: found[1], year };
+}
+
+function fame(
+  rows: readonly { popularity: number; votes?: number }[],
+): number[] {
+  const loudest = (pick: (row: (typeof rows)[number]) => number) =>
+    Math.log1p(Math.max(0, ...rows.map(pick)));
+  const popularity = loudest((row) => row.popularity);
+  const votes = loudest((row) => row.votes ?? 0);
+
+  return rows.map((row) => {
+    const p = popularity ? Math.log1p(row.popularity) / popularity : 0;
+    if (row.votes === undefined) return p;
+    const v = votes ? Math.log1p(row.votes) / votes : 0;
+    return 0.6 * Math.max(p, v) + 0.4 * ((p + v) / 2);
+  });
+}
+
+function renown(
+  row: { popularity: number; votes?: number },
+  reference: number,
+): number {
+  const scale = (value: number, top: number) =>
+    Math.min(1, Math.log1p(Math.max(0, value)) / Math.log1p(top));
+  const p = scale(row.popularity, reference);
+  if (row.votes === undefined) return p;
+  const v = scale(row.votes, RENOWN_VOTES);
+  return 0.6 * Math.max(p, v) + 0.4 * ((p + v) / 2);
+}
+
+function orderWeight(index: number, length: number): number {
+  return length > 1 ? 1 - index / length : 1;
+}
+
+function prepareQuery(query: string, { handle = false } = {}): string | null {
+  const normalized = normalizeQuery(handle ? query.replace(/^@+/, "") : query);
+  if (!isSearchable(normalized)) return null;
+
+  const text = normalized
+    .replace(/[\\%_,()*"]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return text.length < 2 ? null : text;
+}
+
+function searchResponse<Hit>(hits: Hit[]): SearchResponse<Hit> {
+  return { hits, page: 1, totalPages: 1, totalResults: hits.length };
+}
+
+function failUnavailable(
+  name: string,
+  error: unknown,
+): Result<never, SearchFailure> {
+  report(name, error);
+  return err(UNAVAILABLE_FAILURE);
+}
+
+function toSearchFailure(error: TmdbError): SearchFailure {
+  const code = FAILURE_CODE_BY_TMDB_KIND[error.kind] ?? "unavailable";
+  return { code, message: FAILURE_MESSAGES[code] };
+}
+
+function byScore<T>(rows: { hit: T; score: number }[]): T[] {
+  return rows.sort((a, b) => b.score - a.score).map(({ hit }) => hit);
+}
 
 let catalogCache: { at: number; films: Promise<FilmCandidate[]> } | null = null;
 

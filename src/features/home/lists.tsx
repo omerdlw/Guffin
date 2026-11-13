@@ -1,13 +1,14 @@
 import type { JSX } from "react";
-import { PosterStack } from "@/features/profile/blocks";
-import { listHref } from "@/lib/project";
 import { Icon } from "@/design/components/icon";
 import { DockLink } from "@/design/components/link";
-import { LIST_LIMIT, TEXT_LINK_CLASS } from "./constants";
+import { PosterStack } from "@/features/profile/blocks";
+import { listHref } from "@/lib/project";
+import { type HomeList, TEXT_LINK_CLASS } from "./feed";
+import { formatCompact } from "./format";
 import { Heading, HomePart, HomeSection } from "./motion";
-import { MemberLink } from "./shared";
-import type { HomeList } from "./types";
-import { formatCompact } from "./utils";
+import { MemberLink } from "./shelf";
+
+const LIST_LIMIT = 6;
 
 function ListCard({
   index,

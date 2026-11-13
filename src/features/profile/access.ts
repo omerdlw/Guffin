@@ -10,26 +10,77 @@ import { report } from "@omerdlw/base-framework/utils";
 import { unstable_cache } from "next/cache";
 import { notFound } from "next/navigation";
 import { after } from "next/server";
+import type { PublicAccount } from "@/features/account/account";
 import { getPublicAccount } from "@/features/account/server";
 import { getOptionalUser } from "@/features/auth/server";
-import { toPerson } from "@/features/social/social";
+import { type MutualFollowers, toPerson } from "@/features/social/social";
 import { isPublicHttps, pinnedFetch } from "@/lib/security";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import {
-  EMPTY_HEADER,
-  PALETTE_BUDGET_MS,
-  PALETTE_MAX_BYTES,
-  PALETTE_REVALIDATE_SECONDS,
-  PALETTE_TIMEOUT_MS,
-  PALETTE_VERSION,
-  TMDB_IMAGE,
-} from "./constants";
-import type {
-  AccountHeader,
-  AccountPageContext,
-  HeaderRow,
-  ProfileClient,
-} from "./types";
+import type { ProfileClient } from "./profile";
+
+interface AccountPageContext {
+  account: PublicAccount;
+  client: Awaited<ReturnType<typeof createServerSupabaseClient>>;
+  isOwner: boolean;
+  locked: boolean;
+  viewerId: string | null;
+}
+
+interface AccountHeader {
+  followersCount: number;
+  followingCount: number;
+  followStatus: string | null;
+  library: {
+    lists: number;
+    reviews: number;
+    shows: number;
+    thisYear: number;
+    watched: number;
+  } | null;
+  mutual: MutualFollowers | null;
+}
+
+interface HeaderRow {
+  follow_status: string | null;
+  followers_count: number;
+  following_count: number;
+  library: {
+    lists: number;
+    reviews: number;
+    shows?: number;
+    this_year: number;
+    watched: number;
+  } | null;
+  mutual: {
+    people: {
+      account_id: string;
+      avatar_url: string | null;
+      display_name: string | null;
+      username: string;
+    }[];
+    total: number;
+  } | null;
+}
+
+const PALETTE_REVALIDATE_SECONDS = 60 * 60 * 24 * 7;
+
+const EMPTY_HEADER: AccountHeader = {
+  followersCount: 0,
+  followingCount: 0,
+  followStatus: null,
+  library: null,
+  mutual: null,
+};
+
+const PALETTE_VERSION = "account-ambient";
+
+const PALETTE_TIMEOUT_MS = 3_000;
+
+const PALETTE_MAX_BYTES = 8 * 1024 * 1024;
+
+const TMDB_IMAGE = /^(https:\/\/image\.tmdb\.org\/t\/p\/)[^/]+(\/[^/]+)$/i;
+
+const PALETTE_BUDGET_MS = 600;
 
 async function isAcceptedFollower(
   client: ProfileClient,

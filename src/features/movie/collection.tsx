@@ -11,6 +11,7 @@ import { useDockActions } from "@omerdlw/base-framework/dock";
 import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
 import { useToast } from "@omerdlw/base-framework/notification";
 import { report, toUserMessage } from "@omerdlw/base-framework/utils";
+import { useSurfacePreload } from "@/design/lazy-surface";
 import {
   applyMovieLibraryChange,
   EMPTY_MOVIE_LIBRARY,
@@ -24,13 +25,13 @@ import {
   setMovieLibraryAction,
 } from "@/features/account/actions";
 import { useAuth } from "@/features/auth/provider";
-import { useOpenSignIn } from "@/features/auth/sign-in-surface";
-import type { MediaType } from "@/features/catalog/types";
+import { useOpenSignIn } from "@/features/auth/sign-in";
 import { DetailAction as Action } from "@/features/detail/stage";
-import { listPickerSurface } from "@/features/lists/picker-surface";
-import { SHOW_EVENTS } from "@/features/tv/constants";
+import { listPickerSurface } from "@/features/lists/surfaces";
+import { SHOW_EVENTS } from "@/features/tv/show";
 import { announceShowChange } from "@/features/tv/status";
-import { COLLECTION_ICONS } from "./constants";
+import type { MediaType } from "@/lib/tmdb/shared";
+import { COLLECTION_ICONS } from "./movie";
 
 function useMovieLibrary(
   movieId: number,
@@ -161,6 +162,7 @@ export function MovieCollectionActions({
 }): JSX.Element {
   const auth = useAuth();
   const { openSurface } = useDockActions();
+  useSurfacePreload(listPickerSurface);
   const openSignIn = useOpenSignIn();
   const accountId = auth.isAuthenticated ? (auth.user?.id ?? null) : null;
   const key = accountId ? `${accountId}:${mediaType}:${movieId}` : null;
@@ -177,7 +179,9 @@ export function MovieCollectionActions({
   const openLists = () => {
     if (!auth.isReady) return;
     if (key) {
-      void openSurface(listPickerSurface({ data: { mediaType, movieId } }));
+      void listPickerSurface.open(openSurface, {
+        data: { mediaType, movieId },
+      });
     } else openSignIn();
   };
 

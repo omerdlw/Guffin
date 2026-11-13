@@ -1,4 +1,9 @@
-import type { GoldenCase, RawTitle } from "./types";
+import type { RawTitle } from "./quality";
+
+interface GoldenCase {
+  expected: boolean;
+  raw: RawTitle;
+}
 
 const film = (
   id: number,

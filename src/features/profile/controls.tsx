@@ -29,23 +29,51 @@ import {
   setFavoriteAction,
   setMovieLibraryAction,
 } from "@/features/account/actions";
-import type { MediaType } from "@/features/catalog/types";
 import { setMovieListMembershipAction } from "@/features/lists/actions";
 import { MediaTypeSwitch, useVitrin } from "@/features/media/media-type";
 import { MEDIA_TYPE_COPY, withVitrin } from "@/features/media/vitrin";
 import { TV_ENABLED } from "@/lib/env";
 import { accountHref } from "@/lib/project";
-import {
-  LIBRARY_KIND_BY_SOURCE,
-  PAGE_CURRENT_CLASS,
-  PAGE_IDLE_CLASS,
-  PAGE_STEP_CLASS,
-  SECTION_TABS,
-  TILE_ACTION_LABELS,
-  TV_SECTION_TABS,
-} from "./constants";
-import type { SectionKey, TileSource } from "./types";
-import { pageWindow } from "./utils";
+import type { MediaType } from "@/lib/tmdb/shared";
+import { pageWindow } from "./params";
+import type { TileSource } from "./profile";
+
+type SectionKey = (typeof SECTION_TABS)[number]["key"];
+
+const PAGE_STEP_CLASS =
+  "center size-9 shrink-0 rounded-full type-meta font-semibold ring-1 ring-inset";
+
+const PAGE_IDLE_CLASS =
+  "text-ink-body ring-edge hover:text-ink focus-visible:text-ink";
+
+const PAGE_CURRENT_CLASS = "text-ink ring-edge-focus";
+
+const LIBRARY_KIND_BY_SOURCE = {
+  likes: "liked",
+  watched: "watched",
+  watchlist: "watchlist",
+} as const;
+
+const SECTION_TABS = [
+  { key: null, label: "Profile" },
+  { key: "activity", label: "Activity" },
+  { key: "watched", label: "Films" },
+  { key: "diary", label: "Diary" },
+  { key: "reviews", label: "Reviews" },
+  { key: "watchlist", label: "Watchlist" },
+  { key: "lists", label: "Lists" },
+  { key: "likes", label: "Likes" },
+  { key: "progress", label: "Progress" },
+] as const;
+
+const TV_SECTION_TABS: ReadonlySet<string> = new Set(["progress"]);
+
+const TILE_ACTION_LABELS: Record<TileSource["kind"], string> = {
+  likes: "likes",
+  list: "this list",
+  watched: "watched",
+  watchlist: "your watchlist",
+};
 
 function PageLink({
   ariaLabel,

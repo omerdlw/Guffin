@@ -1,19 +1,26 @@
 import type { JSX } from "react";
-import { MoviePosterLink } from "@/features/movie/stage";
-import { AvatarStack } from "@/features/social/proof";
 import { Icon } from "@/design/components/icon";
 import { RADIUS } from "@/design/foundations/geometry";
 import { TONE } from "@/design/foundations/tones";
+import { MoviePosterLink } from "@/features/movie/stage";
+import { AvatarStack } from "@/features/social/proof";
 import {
-  CANON_LIMIT,
   CAPTION_CLASS,
+  type HomeFilm,
+  type Member,
   POPULAR_LIMIT,
+  type PopularFilm,
   POSTER_SIZES,
-} from "./constants";
+  type RatedFilm,
+} from "./feed";
+import { formatCompact } from "./format";
 import { Heading, HomePart, HomeSection } from "./motion";
-import { FilmTitle, Shelf } from "./shared";
-import type { HomeFilm, PopularFilm, RatedFilm } from "./types";
-import { formatCompact, toAvatarPeople } from "./utils";
+import { FilmTitle, Shelf } from "./shelf";
+
+const CANON_LIMIT = 10;
+
+const toAvatarPeople = (members: Member[]) =>
+  members.map((member) => ({ ...member, id: member.username }));
 
 export function HomePopular({
   films,

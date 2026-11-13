@@ -1,7 +1,7 @@
 import type { JSX } from "react";
 import { notFound, redirect } from "next/navigation";
 import { resolveVitrin } from "@/features/media/server";
-import { AccountProgressView } from "@/features/profile/view";
+import { AccountProgressView } from "@/features/profile/progress/view";
 import { TV_ENABLED } from "@/lib/env";
 import type { SearchParams } from "@/lib/http";
 import { accountHref } from "@/lib/project";
