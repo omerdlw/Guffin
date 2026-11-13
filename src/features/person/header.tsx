@@ -36,20 +36,17 @@ import {
 } from "@/lib/tmdb/shared";
 import { readable } from "@/motion/render";
 import { ExternalLink, TextButton } from "@/design/components/link";
-import {
-  HighlightGroup,
-  useHighlight,
-} from "@/design/components/highlight-group";
+import { HighlightGroup, useHighlight } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
 import { Tooltip } from "@/design/components/tooltip";
-import { cn } from "@/design/foundations/cn";
+import { cn } from "@/design/ui";
 import { PROSE_CLASS, RULE_GAP } from "@/design/foundations/layout";
 import { TONE } from "@/design/foundations/tones";
 import { PERSON_FALLBACK_ICON, PERSON_LINKS_CLASS } from "./constants";
 import { countFilms, getBackdropPath, personSwatch } from "./credits";
 import { createPersonBioSurfaceEntry } from "./sections";
 import type { SocialLink } from "./types";
-import { describePerson, personNameClass, formatYears } from "./utils";
+import { describePerson, formatYears, personNameClass } from "./utils";
 
 function HeaderRule({
   links,

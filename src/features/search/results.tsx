@@ -1,25 +1,24 @@
 "use client";
 
 import { type ReactNode, type RefObject, useLayoutEffect, useRef } from "react";
-import {
-  animate,
-  AnimatePresence,
-  motion,
-  useReducedMotion,
-} from "@/motion/lib";
+import { Avatar } from "@omerdlw/base-framework/ui";
+import { Icon } from "@/design/components/icon";
+import { DockLink } from "@/design/components/link";
+import { MediaCard } from "@/design/components/media-card";
+import { RADIUS } from "@/design/foundations/geometry";
 import { useArtworkPath } from "@/features/artwork/artwork";
 import { departmentRole } from "@/features/person/utils";
 import { RatingStars } from "@/features/reviews/rating";
 import { pluralize } from "@/lib/format";
 import { accountHref, listHref, personHref, reviewHref } from "@/lib/project";
 import { tmdbImageSrcSet, tmdbImageUrl } from "@/lib/tmdb/shared";
-import { POINTS } from "@/motion/constants";
-import { step, tween } from "@/motion/utils";
-import { DockLink } from "@/design/components/link";
-import { Avatar } from "@/design/components/avatar";
-import { Icon } from "@/design/components/icon";
-import { MediaCard } from "@/design/components/media-card";
-import { RADIUS } from "@/design/foundations/geometry";
+import {
+  animate,
+  AnimatePresence,
+  motion,
+  useReducedMotion,
+} from "@/motion/lib";
+import { POINTS, step, tween } from "@/motion/time";
 import {
   HIGHLIGHT_HALO,
   RESULT_THUMB_WIDTHS,

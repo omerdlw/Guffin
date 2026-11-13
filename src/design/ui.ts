@@ -1,7 +1,5 @@
 import { defineUi } from "@omerdlw/base-framework/recipes";
-import { POINTS } from "@/motion/constants";
-import { SPRING } from "@/motion/time";
-import { step } from "@/motion/utils";
+import { POINTS, SPRING, step } from "@/motion/time";
 import { PARTS } from "./recipes";
 
 const STAGGER_LIMIT = 5;
@@ -126,3 +124,5 @@ declare module "@omerdlw/base-framework/recipes" {
     ui: typeof ui;
   }
 }
+
+export const cn = ui.cn;

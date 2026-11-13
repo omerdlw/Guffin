@@ -1,21 +1,24 @@
 "use client";
 
 import { createElement, type JSX, type ReactNode } from "react";
-import { type AppRegistryEntry, Compose } from "@omerdlw/base-framework/kernel";
 import { ambientModule } from "@omerdlw/base-framework/ambient";
 import { contextMenuModule } from "@omerdlw/base-framework/context-menu";
 import { controlsModule } from "@omerdlw/base-framework/controls";
 import { dockModule } from "@omerdlw/base-framework/dock";
+import { type AppRegistryEntry, Compose } from "@omerdlw/base-framework/kernel";
 import { modalModule } from "@omerdlw/base-framework/modal";
 import {
   configureNavigation,
   navigationModule,
 } from "@omerdlw/base-framework/navigation";
 import { notificationModule } from "@omerdlw/base-framework/notification";
-import { ThemeSync } from "@/lib/theme";
 import { CoreProvider } from "@omerdlw/base-framework/provider";
 import { ThemeProvider } from "@omerdlw/base-framework/theme";
 import { TooltipProvider, UiProvider } from "@omerdlw/base-framework/ui";
+import { Logo } from "@/design/components/logo";
+import { Passage } from "@/design/components/passage";
+import { themes } from "@/design/theme";
+import { ui } from "@/design/ui";
 import { DEFAULT_ACCOUNT_ICON } from "@/features/account/constants";
 import {
   AccountGuard,
@@ -27,15 +30,12 @@ import { AuthListener, AuthProvider } from "@/features/auth/provider";
 import { SearchDockCommand } from "@/features/search/action";
 import { ThemeDockCommand } from "@/features/theme/command";
 import { project } from "@/lib/project";
+import { ThemeSync } from "@/lib/theme";
 import { Cursor } from "@/motion/cursor";
+import { isFilmPage } from "@/motion/dom";
 import { EngineProvider } from "@/motion/react";
 import { TintedFavicon } from "@/motion/screen";
 import { motion } from "@/motion/time";
-import { isFilmPage } from "@/motion/utils";
-import { Logo } from "@/design/components/logo";
-import { Passage } from "@/design/components/passage";
-import { ui } from "@/design/ui";
-import { themes } from "./theme";
 
 const APP_REGISTRY_ENTRIES: readonly AppRegistryEntry[] = Object.freeze([
   {

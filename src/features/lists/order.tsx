@@ -10,14 +10,14 @@ import { report, toUserMessage } from "@omerdlw/base-framework/utils";
 import { Reorder, useDragControls } from "@/motion/lib";
 import { useRouter } from "next/navigation";
 import { tmdbImageUrl } from "@/lib/tmdb/shared";
-import { Button } from "@/design/components/button";
 import {
+  Button,
   HighlightGroup,
+  Image,
+  Loader,
   useHighlight,
-} from "@/design/components/highlight-group";
+} from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
-import { Image } from "@/design/components/image";
-import { Loader } from "@/design/components/loader";
 import {
   SURFACE_META,
   SURFACE_PANEL,
@@ -27,11 +27,10 @@ import {
   SURFACE_TEXT,
   SURFACE_TILE_INNER,
   SURFACE_TITLE,
-  SurfacePart,
-  SurfaceStage,
   tileVariants,
-} from "@/design/components/surface";
-import { cn } from "@/design/foundations/cn";
+} from "@/design/components/surface-classes";
+import { SurfacePart, SurfaceStage } from "@/design/components/surface";
+import { cn } from "@/design/ui";
 import { getListOrderAction, reorderListAction } from "./actions";
 import type { ListOrderData, ListOrderItem, ListOrderState } from "./types";
 import { moveItem, orderKeyTarget } from "./utils";

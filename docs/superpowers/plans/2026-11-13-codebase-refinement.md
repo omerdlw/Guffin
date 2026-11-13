@@ -21,10 +21,7 @@
 - ESLint guardrails stay: layer direction, `motion` only through `@/motion/lib`, `Z_INDEX` instead of literal z-index, no raw `duration-*`/`ease-*`. Only globs and paths change.
 - Import with `@/…` from outside a folder and `./…` inside it.
 - Read `node_modules/next/dist/docs/` and use Context7 before writing against a Next/React API. Read `node_modules/@omerdlw/base-framework/docs/` before using a framework API.
-- **Execution:** native (one session, no per-task subagents or reviews). Reuse `$SCRATCH/outline.txt`, `$SCRATCH/unused.txt`, `$SCRATCH/motion-map.txt` and the findings in this plan; don't rescan files already mapped.
-- **While working:** `npm run typecheck && npm run lint`, plus `npm test` when a tested module changes. The per-task "Gate" steps below mean this, with no build and no screenshot run.
-- **Milestones (prod build + screenshot diff against the Task 0 baseline):** M1 after Task 3 (design + motion), M2 after Task 16 (all features), M3 after Task 18 (perf), final after Task 19 (the before/after comparison).
-- **Commits, grouped (5):** C1 Tasks 1–3 (cleanup, design, motion). C2 Tasks 4–9 (shared features: theme, auth, account/social, reviews, lists, media/detail). C3 Tasks 10–16 (page features). C4 Tasks 17–18 (framework fit + performance). C5 Task 19 (docs + report). Ignore the per-task "Commit" steps below; commit at these points only.
+- Every task ends with `npm run typecheck && npm run lint && npm test && npm run build` passing and the Task 0 screenshot diff clean, then one commit. Feature tasks get one commit each.
 
 ## Review Focus
 

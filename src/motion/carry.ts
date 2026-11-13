@@ -1,8 +1,49 @@
-import { CARRY_FADE_RUNG, CARRY_LAYER } from "./constants";
-import { Value } from "./engine";
-import { CURVE } from "./time";
-import type { Engine, Flight } from "./types";
-import { mix, placeShell, rectOf, step } from "./utils";
+import { Z_INDEX } from "@/design/foundations/z-index";
+import { type Engine, Value } from "./engine";
+import { CURVE, step } from "./time";
+
+interface Rect {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+  radius: number;
+}
+
+interface Flight {
+  key: string;
+  shell: HTMLDivElement;
+  from: Rect;
+  target: HTMLElement | null;
+  progress: Value | null;
+  expire: ReturnType<typeof setTimeout>;
+  release: () => void;
+}
+
+const CARRY_FADE_RUNG = 0;
+
+const CARRY_LAYER = Z_INDEX.DOCK_BACKDROP - 10;
+
+function rectOf(el: HTMLElement): Rect {
+  const box = el.getBoundingClientRect();
+  return {
+    left: box.left,
+    top: box.top,
+    width: box.width,
+    height: box.height,
+    radius: Number.parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0,
+  };
+}
+
+const mix = (a: number, b: number, p: number) => a + (b - a) * p;
+
+function placeShell(shell: HTMLElement, rect: Rect) {
+  const { style } = shell;
+  style.transform = `translate3d(${rect.left}px, ${rect.top}px, 0)`;
+  style.width = `${rect.width}px`;
+  style.height = `${rect.height}px`;
+  style.borderRadius = `${rect.radius}px`;
+}
 
 const CARRY_FRESH = step(3);
 const CARRY_PATIENCE = step(6);

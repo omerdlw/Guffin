@@ -7,7 +7,7 @@ import { Carousel } from "@/design/components/carousel";
 import { Icon } from "@/design/components/icon";
 import { DockLink } from "@/design/components/link";
 import { MediaCard } from "@/design/components/media-card";
-import { cn } from "@/design/foundations/cn";
+import { cn } from "@/design/ui";
 import { RADIUS } from "@/design/foundations/geometry";
 import { CAROUSEL_WIDE_ITEM } from "@/design/foundations/layout";
 import { TONE } from "@/design/foundations/tones";

@@ -2,7 +2,7 @@
 
 import { type JSX, type PointerEvent, useMemo, useRef, useState } from "react";
 import { TOOLTIP } from "@/design/components/tooltip";
-import { cn } from "@/design/foundations/cn";
+import { cn } from "@/design/ui";
 import { pluralize } from "@/lib/format";
 import {
   ACTIVITY_DATE_FORMAT,

@@ -57,7 +57,7 @@ export function bayesianRating(
   );
 }
 
-export function qualityFlags(
+function qualityFlags(
   item: Omit<MediaItem, "quality">,
   today: string = new Date().toISOString().slice(0, 10),
 ): QualityFlag[] {
@@ -96,7 +96,7 @@ export function qualityFlags(
   return flags;
 }
 
-export function communityScore(signal: CommunitySignal | null): number {
+function communityScore(signal: CommunitySignal | null): number {
   if (!signal || signal.ratingsCount === 0 || signal.ratingAverage === null)
     return 0;
   const confidence = Math.min(
@@ -148,7 +148,7 @@ export function isEligible(
   );
 }
 
-export function assessQuality(
+function assessQuality(
   item: Omit<MediaItem, "quality">,
   community: CommunitySignal | null = null,
 ): Quality {

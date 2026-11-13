@@ -23,16 +23,16 @@ import { DetailAction } from "@/features/detail/stage";
 import { COLLECTION_ICONS } from "@/features/movie/constants";
 import { RatingSelector, RatingStars } from "@/features/reviews/rating";
 import { tmdbImageSrcSet, tmdbImageUrl } from "@/lib/tmdb/shared";
-import { Button } from "@/design/components/button";
 import {
+  Button,
   HighlightGroup,
+  Image,
   useHighlight,
-} from "@/design/components/highlight-group";
+} from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
-import { Image } from "@/design/components/image";
 import { Unfold } from "@/design/components/surface";
 import { Tooltip } from "@/design/components/tooltip";
-import { cn } from "@/design/foundations/cn";
+import { cn } from "@/design/ui";
 import { nested, RADIUS } from "@/design/foundations/geometry";
 import { TONE } from "@/design/foundations/tones";
 import {

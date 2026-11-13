@@ -1,8 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { Signal } from "./engine";
+import {
+  type Clock,
+  type Engine,
+  type Frame,
+  type Phase,
+  Signal,
+} from "./engine";
 import { Passage } from "./passage";
-import type { Clock, Engine, Frame, Phase } from "./types";
-import { step } from "./utils";
+import { step } from "./time";
 
 function manualClock(): Clock {
   const tasks: Record<Phase, Set<(frame: Frame) => void>> = {

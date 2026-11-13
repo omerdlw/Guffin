@@ -13,7 +13,7 @@ import { StagePart } from "@/motion/react";
 import { readable } from "@/motion/render";
 import { Tilt } from "@/motion/tilt";
 import { Icon } from "@/design/components/icon";
-import { Image } from "@/design/components/image";
+import { Image } from "@omerdlw/base-framework/ui";
 import {
   ARTWORK_MENU_LABELS,
   ARTWORK_PAGE_PATTERN,

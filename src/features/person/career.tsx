@@ -2,12 +2,14 @@
 
 import { type MouseEvent, useEffect, useRef, useState } from "react";
 import {
-  animate,
-  motion,
-  useMotionValue,
-  useReducedMotion,
-  useTransform,
-} from "@/motion/lib";
+  Button,
+  HighlightGroup,
+  useHighlight,
+} from "@omerdlw/base-framework/ui";
+import { Icon } from "@/design/components/icon";
+import { DockLink, TextButton } from "@/design/components/link";
+import { TONE } from "@/design/foundations/tones";
+import { cn } from "@/design/ui";
 import { PosterThumb } from "@/features/artwork/artwork";
 import { Heading } from "@/features/detail/layout";
 import {
@@ -17,18 +19,17 @@ import {
 } from "@/features/detail/motion";
 import type { MediaType } from "@/features/media/types";
 import { mediaHref } from "@/lib/project";
-import { POINTS } from "@/motion/constants";
-import { useEngine } from "@/motion/react";
-import { clamp, layoutTop, step } from "@/motion/utils";
-import { Button } from "@/design/components/button";
+import { layoutTop } from "@/motion/dom";
 import {
-  HighlightGroup,
-  useHighlight,
-} from "@/design/components/highlight-group";
-import { DockLink, TextButton } from "@/design/components/link";
-import { Icon } from "@/design/components/icon";
-import { cn } from "@/design/foundations/cn";
-import { TONE } from "@/design/foundations/tones";
+  animate,
+  motion,
+  useMotionValue,
+  useReducedMotion,
+  useTransform,
+} from "@/motion/lib";
+import { clamp } from "@/motion/math";
+import { useEngine } from "@/motion/react";
+import { POINTS, step } from "@/motion/time";
 import {
   CAREER_EDGE_SLOTS,
   CAREER_ROLL_RUNG,
@@ -36,7 +37,6 @@ import {
   MAX_TIMELINE_TITLES,
   TIMELINE_SPINE_CLASS,
 } from "./constants";
-import { PersonMediumControl, usePersonMedium, usePersonView } from "./views";
 import type {
   ByMedium,
   Career as CareerData,
@@ -45,6 +45,7 @@ import type {
   TimelineYear,
 } from "./types";
 import { chartLabelStep, filmCountLabel } from "./utils";
+import { PersonMediumControl, usePersonMedium, usePersonView } from "./views";
 
 function YearRoll({ year }: { year: number }) {
   const reduced = useReducedMotion();

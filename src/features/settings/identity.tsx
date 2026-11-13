@@ -6,10 +6,10 @@ import { useRouter } from "next/navigation";
 import { updateAccountAction } from "@/features/account/actions";
 import { useAccount } from "@/features/account/provider";
 import { accountHref } from "@/lib/project";
-import { Button } from "@/design/components/button";
+import { Button, Image, Switch, Textarea } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
-import { Image } from "@/design/components/image";
-import { Input, inputVariants, Textarea } from "@/design/components/input";
+import { Input } from "@/design/components/input";
+import { cn, ui } from "@/design/ui";
 import {
   SURFACE_META,
   SURFACE_STACK,
@@ -17,9 +17,7 @@ import {
   SURFACE_TILE_END,
   SURFACE_TITLE,
   tileVariants,
-} from "@/design/components/surface";
-import { Switch } from "@/design/components/switch";
-import { cn } from "@/design/foundations/cn";
+} from "@/design/components/surface-classes";
 import {
   INPUT_CLASS,
   TEXTAREA_CLASS,
@@ -187,7 +185,7 @@ function UrlInput({
     <div className="relative flex w-full items-center">
       <Input
         className={cn(
-          inputVariants(),
+          ui.parts.input.field(),
           "h-10 w-full pl-4 type-body",
           value ? "pr-9" : "pr-4",
         )}

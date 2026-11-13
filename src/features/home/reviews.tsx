@@ -4,7 +4,7 @@ import { RatingStars } from "@/features/reviews/rating";
 import { movieHref, reviewHref } from "@/lib/project";
 import { tmdbImageUrl } from "@/lib/tmdb/shared";
 import { Icon } from "@/design/components/icon";
-import { Image } from "@/design/components/image";
+import { Image } from "@omerdlw/base-framework/ui";
 import { DockLink } from "@/design/components/link";
 import { RADIUS } from "@/design/foundations/geometry";
 import { TONE } from "@/design/foundations/tones";

@@ -4,7 +4,7 @@ import { pluralize } from "@/lib/format";
 import { accountHref, listHref } from "@/lib/project";
 import { Header } from "@/motion/kit";
 import { StagePart, StageSection } from "@/motion/react";
-import { Avatar } from "@/design/components/avatar";
+import { Avatar } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
 import { DockLink } from "@/design/components/link";
 import { TONE } from "@/design/foundations/tones";

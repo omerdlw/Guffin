@@ -1,17 +1,35 @@
-import { blend, css, neutral } from "./color";
-import { MATTER, PHI } from "./constants";
-import { Value } from "./engine";
-import { response } from "./time";
-import type {
-  Engine,
-  Force,
-  Matter,
-  Placement,
-  Shade,
-  TouchOptions,
-  TouchVerb,
-} from "./types";
-import { clamp, haze, parallax, reach, speed } from "./utils";
+import { blend, css, neutral, type Shade } from "./color";
+import { type Engine, Value } from "./engine";
+import { clamp, PHI } from "./math";
+import {
+  haze,
+  MATTER,
+  type Matter,
+  type MatterName,
+  reach,
+  response,
+  type TouchVerb,
+} from "./time";
+
+export interface Placement {
+  top: number;
+  fixed: boolean;
+}
+
+export interface Force {
+  shade(): Shade;
+  subscribe(listener: () => void): () => void;
+}
+
+interface TouchOptions {
+  verb?: TouchVerb;
+  matter?: MatterName | Matter;
+  tempo?: number;
+}
+
+const speed = (depth: number) => PHI ** (-depth / 2);
+
+const parallax = (depth: number) => 1 - speed(depth);
 
 export function depthShade(
   depth: number,

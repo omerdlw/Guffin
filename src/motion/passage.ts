@@ -1,17 +1,26 @@
-import {
-  PASSAGE_ABANDON_RUNG,
-  PASSAGE_CLOSE_RUNG,
-  PASSAGE_DEBOUNCE_RUNG,
-  PASSAGE_GRACE_RUNG,
-  PASSAGE_OPEN_RUNG,
-  PASSAGE_PATIENCE_RUNG,
-  PASSAGE_QUICK_RUNG,
-  QUIET_RUNG,
-} from "./constants";
-import { Signal, Value } from "./engine";
-import { CURVE } from "./time";
-import type { Engine, PassagePhase } from "./types";
-import { step } from "./utils";
+import { Z_INDEX } from "@/design/foundations/z-index";
+import { type Engine, Signal, Value } from "./engine";
+import { CURVE, QUIET_RUNG, step } from "./time";
+
+type PassagePhase = "clear" | "closing" | "covered" | "lifting";
+
+export const PASSAGE_LAYER = Z_INDEX.DOCK_BACKDROP - 30;
+
+const PASSAGE_CLOSE_RUNG = 0;
+
+const PASSAGE_QUICK_RUNG = -2;
+
+const PASSAGE_OPEN_RUNG = 2;
+
+const PASSAGE_ABANDON_RUNG = -1;
+
+const PASSAGE_GRACE_RUNG = 1;
+
+const PASSAGE_PATIENCE_RUNG = 5;
+
+const PASSAGE_DEBOUNCE_RUNG = -3;
+
+export const PASSAGE_GLOW = `radial-gradient(64% 52% at 50% 46%, color-mix(in oklch, var(--ambient-vibrant-70, transparent) 14%, transparent), transparent 74%)`;
 
 export class Passage {
   readonly phase = new Signal<PassagePhase>("clear");

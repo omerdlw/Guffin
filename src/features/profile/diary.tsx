@@ -15,15 +15,15 @@ import { RatingStars, Star } from "@/features/reviews/rating";
 import { isRated } from "@/features/reviews/utils";
 import { mediaHref, reviewHref } from "@/lib/project";
 import { useScrollDriver } from "@/motion/react";
-import { Button } from "@/design/components/button";
+import { Button } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
 import { DockLink } from "@/design/components/link";
 import { MediaCard } from "@/design/components/media-card";
 import { DockAction } from "@/design/components/surface";
-import { cn } from "@/design/foundations/cn";
+import { cn } from "@/design/ui";
 import { RADIUS } from "@/design/foundations/geometry";
 import { TONE } from "@/design/foundations/tones";
-import { useConfirmedAction } from "@/design/hooks/use-confirm";
+import { useConfirmedAction } from "@/design/components/confirm";
 import {
   DIARY_CALENDAR_GRID,
   DIARY_DAY_COLUMNS,

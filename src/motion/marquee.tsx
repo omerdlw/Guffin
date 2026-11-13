@@ -1,60 +1,222 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import {
-  MARQUEE_DENSITY,
-  MARQUEE_DEVELOP_RUNG,
-  MARQUEE_DIVE,
-  MARQUEE_DIVE_MAX,
-  MARQUEE_DIVE_MIN,
-  MARQUEE_DIVE_REACH,
-  MARQUEE_DRIFT,
-  MARQUEE_EDGES,
-  MARQUEE_FADE,
-  MARQUEE_GLARE,
-  MARQUEE_GLARE_GAIN,
-  MARQUEE_GLOW,
-  MARQUEE_HEIGHT,
-  MARQUEE_LEADING,
-  MARQUEE_LIGHT_EVERY,
-  MARQUEE_LINES,
-  MARQUEE_MARGIN,
-  MARQUEE_MEASURE,
-  MARQUEE_MEASURE_NARROW,
-  MARQUEE_NARROW,
-  MARQUEE_OUTPUT,
-  MARQUEE_REFERENCE,
-  MARQUEE_REST_RUNG,
-  MARQUEE_RIM,
-  MARQUEE_RIM_LEVEL,
-  MARQUEE_SIZE,
-  MARQUEE_SLIP,
-  MARQUEE_SPREAD,
-  MARQUEE_TRACK_FOCUS,
-  MARQUEE_TRACK_OPEN,
-  MARQUEE_TRACK_REST,
-  MARQUEE_UNSEEN,
-  MARQUEE_WASH,
-  MARQUEE_WASH_LEVEL,
-  PHI,
-} from "./constants";
+  type CSSProperties,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { createPortal } from "react-dom";
+import { Z_INDEX } from "@/design/foundations/z-index";
 import { Value } from "./engine";
+import { clamp, PHI, within } from "./math";
 import { passageOf } from "./passage";
 import { useAnyStage, useEngine, usePartOf, useScrollDriver } from "./react";
 import { PATIENCE } from "./stage";
-import { CURVE } from "./time";
-import type { MarqueeCard, MarqueeProps } from "./types";
-import {
-  balance,
-  clamp,
-  coverOf,
-  elapsed,
-  marqueeHold,
-  pictureIn,
-  step,
-  within,
-} from "./utils";
+import { CURVE, elapsed, step } from "./time";
+
+interface MarqueeFrame {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
+
+interface MarqueeEdges {
+  side: readonly (readonly [number, number])[];
+  bottom: readonly (readonly [number, number])[];
+}
+
+interface MarqueeLetter {
+  char: string;
+  x: number;
+}
+
+interface MarqueeLine {
+  letters: MarqueeLetter[];
+  baseline: number;
+}
+
+interface MarqueeCard {
+  lines: MarqueeLine[];
+  size: number;
+  font: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  ratio: number;
+  frame: MarqueeFrame;
+  picture: MarqueeFrame;
+  image: HTMLImageElement;
+}
+
+export interface MarqueeProps {
+  part: string;
+  text: string;
+  src: string;
+  focus?: readonly [number, number];
+  edges: MarqueeEdges;
+  target?: string;
+  quiet?: boolean;
+  className?: string;
+}
+
+const MARQUEE_DEVELOP_RUNG = 2;
+
+const MARQUEE_REST_RUNG = 1;
+
+const MARQUEE_DIVE = [0.03, 0.76] as const;
+
+const MARQUEE_EDGES = [0, 0.4] as const;
+
+const MARQUEE_SPREAD = [0.02, 0.72] as const;
+
+const MARQUEE_FADE = [0.4, 0.74] as const;
+
+const MARQUEE_GLARE = [0.3, 0.74] as const;
+
+const MARQUEE_UNSEEN = 0.004;
+
+const MARQUEE_GLARE_GAIN = 0.55;
+
+const MARQUEE_DIVE_REACH = 2.6;
+
+const MARQUEE_DIVE_MIN = 10;
+
+const MARQUEE_DIVE_MAX = 40;
+
+const MARQUEE_DRIFT = 0.035;
+
+const MARQUEE_TRACK_REST = 0.03;
+
+const MARQUEE_TRACK_FOCUS = 0.07;
+
+const MARQUEE_TRACK_OPEN = 0.46;
+
+const MARQUEE_SLIP = 12;
+
+const MARQUEE_MEASURE = 0.78;
+
+const MARQUEE_MEASURE_NARROW = 0.9;
+
+const MARQUEE_NARROW = 640;
+
+const MARQUEE_HEIGHT = 0.46;
+
+const MARQUEE_SIZE = 0.36;
+
+const MARQUEE_LEADING = 0.94;
+
+const MARQUEE_LINES = 3;
+
+const MARQUEE_REFERENCE = 100;
+
+const MARQUEE_MARGIN = 0.06;
+
+const MARQUEE_DENSITY = 2;
+
+const MARQUEE_RIM = "--ambient-vibrant-90";
+
+const MARQUEE_WASH = "--ambient-dominant-70";
+
+const MARQUEE_RIM_LEVEL = 0.55;
+
+const MARQUEE_WASH_LEVEL = 0.18;
+
+const MARQUEE_GLOW = `radial-gradient(58% 46% at 50% 48%, color-mix(in oklch, var(--ambient-vibrant-70, white) 24%, transparent), transparent 72%)`;
+
+const MARQUEE_LIGHT_EVERY = 250;
+
+const MARQUEE_LAYER = Z_INDEX.DOCK_BACKDROP - 20;
+
+const MARQUEE_OUTPUT: CSSProperties = {
+  position: "fixed",
+  inset: 0,
+  zIndex: MARQUEE_LAYER,
+  userSelect: "none",
+  WebkitUserSelect: "none",
+};
+
+const marqueeHold = (tempo = 0) =>
+  step(MARQUEE_DEVELOP_RUNG + tempo) + step(MARQUEE_REST_RUNG + tempo);
+
+function balance(widths: number[], gap: number, count: number) {
+  const n = widths.length;
+  const span = (from: number, to: number) => {
+    let total = gap * (to - from - 1);
+    for (let i = from; i < to; i++) total += widths[i];
+    return total;
+  };
+  const cost = Array.from({ length: count + 1 }, () =>
+    Array<number>(n + 1).fill(Infinity),
+  );
+  const cut = Array.from({ length: count + 1 }, () => Array<number>(n + 1));
+  cost[0][0] = 0;
+  for (let j = 1; j <= count; j++)
+    for (let i = j; i <= n; i++)
+      for (let t = j - 1; t < i; t++) {
+        const worst = Math.max(cost[j - 1][t], span(t, i));
+        if (worst < cost[j][i]) {
+          cost[j][i] = worst;
+          cut[j][i] = t;
+        }
+      }
+  const breaks: number[] = [];
+  for (let j = count, i = n; j > 0; j--) {
+    breaks.unshift(cut[j][i]);
+    i = cut[j][i];
+  }
+  return { breaks, width: cost[count][n] };
+}
+
+function pictureIn(
+  frame: MarqueeFrame,
+  image: { width: number; height: number },
+  [fx, fy]: readonly [number, number],
+): MarqueeFrame {
+  const scale = Math.max(
+    frame.width / image.width,
+    frame.height / image.height,
+  );
+  const width = image.width * scale;
+  const height = image.height * scale;
+  return {
+    left: frame.left + (frame.width - width) * fx,
+    top: frame.top + (frame.height - height) * fy,
+    width,
+    height,
+  };
+}
+
+function coverOf(
+  context: CanvasRenderingContext2D,
+  frame: MarqueeFrame,
+  edges: MarqueeEdges,
+) {
+  const across = context.createLinearGradient(
+    frame.left,
+    0,
+    frame.left + frame.width,
+    0,
+  );
+  const mirrored = [...edges.side.slice(0, -1)]
+    .reverse()
+    .map(([at, cover]) => [100 - at, cover] as const);
+  for (const [at, cover] of [...edges.side, ...mirrored])
+    across.addColorStop(at / 100, `rgb(0 0 0 / ${cover / 100})`);
+  const down = context.createLinearGradient(
+    0,
+    frame.top,
+    0,
+    frame.top + frame.height,
+  );
+  for (const [at, cover] of edges.bottom)
+    down.addColorStop(at / 100, `rgb(0 0 0 / ${cover / 100})`);
+  return { across, down };
+}
+
 export const marqueePatience = (tempo = 0) => PATIENCE + marqueeHold(tempo);
 
 function setName(

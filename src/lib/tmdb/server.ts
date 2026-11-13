@@ -27,7 +27,6 @@ import {
 import type { TmdbError } from "./transport";
 import type {
   ShowDetailsOptions,
-  ShowDiscoverOptions,
   ShowList,
   ShowListOptions,
   ShowSearchOptions,
@@ -115,14 +114,6 @@ export function getTrendingShows(
 
 export function getShowList(list: ShowList, options?: ShowListOptions) {
   return getTmdb().tv.list(list, options);
-}
-
-export function discoverShows(options?: ShowDiscoverOptions) {
-  return getTmdb().tv.discover(options);
-}
-
-export function findShowByImdb(imdbId: string, options?: ShowListOptions) {
-  return getTmdb().tv.findByImdb(imdbId, options);
 }
 
 export type MediaDetails =

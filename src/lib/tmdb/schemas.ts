@@ -757,10 +757,6 @@ const showSummarySchema = z
 
 export const showPageSchema = pageSchema(showSummarySchema);
 
-export const foundShowsSchema = z
-  .object({ tv_results: lenientList(showSummarySchema) })
-  .transform((f) => f.tv_results);
-
 const showRole = z
   .object({
     credit_id: z.string(),

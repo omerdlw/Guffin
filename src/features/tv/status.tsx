@@ -13,12 +13,12 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/features/auth/provider";
 import { useOpenSignIn } from "@/features/auth/sign-in";
 import { DetailAction } from "@/features/detail/stage";
-import { Button } from "@/design/components/button";
 import {
+  Button,
+  CheckboxIndicator,
   HighlightGroup,
   useHighlight,
-} from "@/design/components/highlight-group";
-import { CheckboxIndicator } from "@/design/components/checkbox";
+} from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
 import {
   rowVariants,
@@ -27,11 +27,13 @@ import {
   SURFACE_TEXT,
   SURFACE_TILE_INNER,
   SURFACE_TITLE,
+} from "@/design/components/surface-classes";
+import {
   SurfacePart,
   SurfaceStage,
   SurfaceSwap,
 } from "@/design/components/surface";
-import { cn } from "@/design/foundations/cn";
+import { cn } from "@/design/ui";
 import { getShowTrackingAction, setShowStatusAction } from "./actions";
 import {
   SHOW_EVENTS,
@@ -43,7 +45,7 @@ import {
 } from "./constants";
 import type { ShowStatus } from "./types";
 
-export interface ShowChange {
+interface ShowChange {
   showId: number;
   status?: ShowStatus | null;
 }

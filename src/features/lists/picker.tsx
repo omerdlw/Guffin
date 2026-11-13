@@ -13,15 +13,16 @@ import { useToast } from "@omerdlw/base-framework/notification";
 import { report, toUserMessage } from "@omerdlw/base-framework/utils";
 import { pluralize } from "@/lib/format";
 import { tmdbImageUrl } from "@/lib/tmdb/shared";
-import { Button } from "@/design/components/button";
 import {
+  Button,
+  CheckboxIndicator,
   HighlightGroup,
+  Image,
   useHighlight,
-} from "@/design/components/highlight-group";
-import { CheckboxIndicator } from "@/design/components/checkbox";
+} from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
-import { Image } from "@/design/components/image";
-import { Input, inputVariants } from "@/design/components/input";
+import { Input } from "@/design/components/input";
+import { cn, ui } from "@/design/ui";
 import { SKELETON } from "@/design/components/skeleton";
 import {
   rowVariants,
@@ -32,12 +33,13 @@ import {
   SURFACE_TILE_END,
   SURFACE_TILE_INNER,
   SURFACE_TITLE,
+  tileVariants,
+} from "@/design/components/surface-classes";
+import {
   SurfacePart,
   SurfaceStage,
   SurfaceSwap,
-  tileVariants,
 } from "@/design/components/surface";
-import { cn } from "@/design/foundations/cn";
 import {
   createMovieListAction,
   getMovieListsAction,
@@ -423,7 +425,7 @@ function ListPickerSurface({ data }: { data: ListPickerData }): JSX.Element {
           <form className="flex items-center gap-2.5" onSubmit={create}>
             <Input
               aria-label="New list name"
-              className={inputVariants({
+              className={ui.parts.input.field({
                 className: "h-10 min-w-0 flex-1 px-4 type-body",
               })}
               disabled={creating}

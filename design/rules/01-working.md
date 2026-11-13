@@ -60,8 +60,8 @@ Outside `src/design`:
 | Time, curves, springs (the ladder)        | `src/motion/utils.ts` (`step`), `constants.ts` (`POINTS`), `time.ts` (`SPRING`, matter) |
 | The ladder as CSS (`--step-*`, `--curve`) | `src/motion/color.ts`, written to `:root` by the engine                                 |
 | Page choreography (scores)                | `src/features/*/motion.tsx`                                                             |
-| Motion reference (laws, kit, lab)         | `docs/motion-engine.md`, `/lab/engine`, `/lab/kit` (dev only)                           |
-| Framework slots: dock, modal, menu, toast | `src/app/theme.ts` (built from `foundations/` and component variants)                   |
+| Motion reference (laws, kit)              | `src/motion/` and sections 6 to 6.10 (`09`–`12`, `15`)                                  |
+| Framework slots: dock, modal, menu, toast | `src/design/theme/<module>.ts` (built from `foundations/` and component variants)                   |
 
 ### 1.3 Workflow for any UI change
 

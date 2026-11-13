@@ -1,4 +1,5 @@
 import "server-only";
+
 import { type JSX, Suspense } from "react";
 import { notFound } from "next/navigation";
 import {
@@ -39,7 +40,7 @@ import {
 import { Carousel } from "@/design/components/carousel";
 import { Icon } from "@/design/components/icon";
 import { Tooltip } from "@/design/components/tooltip";
-import { cn } from "@/design/foundations/cn";
+import { cn } from "@/design/ui";
 import { RADIUS } from "@/design/foundations/geometry";
 import {
   CAROUSEL_ITEM,

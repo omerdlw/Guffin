@@ -8,21 +8,21 @@ import { OAUTH_PROVIDERS } from "@/features/auth/constants";
 import { useAuth } from "@/features/auth/provider";
 import type { OAuthProvider } from "@/features/auth/types";
 import { getAuthCallbackUrl, getAuthErrorMessage } from "@/features/auth/utils";
-import { Button } from "@/design/components/button";
 import {
+  Button,
   HighlightGroup,
   useHighlight,
-} from "@/design/components/highlight-group";
+} from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
 import {
+  rowVariants,
   SURFACE_META,
   SURFACE_STACK,
   SURFACE_TEXT,
   SURFACE_TITLE,
-  rowVariants,
   tileVariants,
-} from "@/design/components/surface";
-import { cn } from "@/design/foundations/cn";
+} from "@/design/components/surface-classes";
+import { cn } from "@/design/ui";
 import { PROVIDER_LABELS } from "./constants";
 import { providerOf } from "./utils";
 

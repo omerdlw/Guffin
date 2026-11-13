@@ -10,7 +10,7 @@ import {
 import { report } from "@omerdlw/base-framework/utils";
 import { useAuth } from "@/features/auth/provider";
 import type { MediaType } from "@/features/media/types";
-import { Button } from "@/design/components/button";
+import { Button } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
 import { DockAction } from "@/design/components/surface";
 import { getOwnMovieReviewAction } from "./actions";

@@ -14,11 +14,11 @@ import type { SurfaceEntry } from "@omerdlw/base-framework/dock";
 import { useAuth } from "@/features/auth/provider";
 import { accountHref } from "@/lib/project";
 import { Link } from "@/design/components/link";
-import { Button } from "@/design/components/button";
 import {
+  Button,
   HighlightGroup,
   useHighlight,
-} from "@/design/components/highlight-group";
+} from "@omerdlw/base-framework/ui";
 import { SurfaceSegmentedControl } from "@/design/components/segmented-control";
 import { SKELETON } from "@/design/components/skeleton";
 import {
@@ -27,16 +27,18 @@ import {
   SURFACE_TEXT,
   SURFACE_TILE_INNER,
   SURFACE_TITLE,
+} from "@/design/components/surface-classes";
+import {
   SurfaceAnchor,
   SurfaceSearch,
   useSurfaceSearch,
 } from "@/design/components/surface";
-import { cn } from "@/design/foundations/cn";
-import { useConfirm } from "@/design/hooks/use-confirm";
+import { cn } from "@/design/ui";
+import { useConfirm } from "@/design/components/confirm";
 import { fetchFollowPage } from "./client";
 import {
-  SOCIAL_EVENTS,
   SOCIAL_BUTTON,
+  SOCIAL_EVENTS,
   SOCIAL_ROW,
   SOCIAL_TAB_LABELS,
 } from "./constants";

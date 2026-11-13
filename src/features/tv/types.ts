@@ -24,7 +24,7 @@ export interface ShowProgress {
   watchedEpisodes: number;
 }
 
-export type WatchedEpisodeKeys = string[];
+type WatchedEpisodeKeys = string[];
 
 export interface EpisodeRatingMark {
   episode: number;
@@ -63,4 +63,4 @@ export type ShowPageKind =
   | { kind: "show" }
   | { kind: "reviews"; reviewer: string | null; sort: ShowReviewSort };
 
-export type ShowReviewSort = MovieReviewSort;
+type ShowReviewSort = MovieReviewSort;

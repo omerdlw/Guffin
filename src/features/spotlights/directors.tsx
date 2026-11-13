@@ -13,7 +13,7 @@ import {
 import { useDockActionClass } from "@omerdlw/base-framework/dock";
 import { DIRECTORS_HREF, movieHref, personHref } from "@/lib/project";
 import { tmdbImageSrcSet, tmdbImageUrl } from "@/lib/tmdb/shared";
-import { Button } from "@/design/components/button";
+import { Button } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
 import { MediaCard } from "@/design/components/media-card";
 import { DockAction } from "@/design/components/surface";

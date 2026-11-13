@@ -1,4 +1,4 @@
-import { SURFACE_PANEL } from "@/design/components/surface";
+import { SURFACE_PANEL } from "@/design/components/surface-classes";
 
 export function SupabaseSetupNotice() {
   return (

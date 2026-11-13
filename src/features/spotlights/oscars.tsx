@@ -8,6 +8,11 @@ import {
   useRef,
   useState,
 } from "react";
+import { Image } from "@omerdlw/base-framework/ui";
+import { Link } from "@/design/components/link";
+import { cn } from "@/design/ui";
+import { movieHref, OSCARS_HREF } from "@/lib/project";
+import { tmdbImageUrl } from "@/lib/tmdb/shared";
 import {
   animate,
   AnimatePresence,
@@ -15,12 +20,8 @@ import {
   useMotionValue,
   useReducedMotion,
 } from "@/motion/lib";
-import { movieHref, OSCARS_HREF } from "@/lib/project";
-import { tmdbImageUrl } from "@/lib/tmdb/shared";
-import { POINTS } from "@/motion/constants";
-import { step } from "@/motion/utils";
-import { Link } from "@/design/components/link";
-import { cn } from "@/design/foundations/cn";
+import { POINTS, step } from "@/motion/time";
+import styles from "./oscars.module.css";
 import {
   SalonPart,
   SalonStage,
@@ -29,8 +30,6 @@ import {
 } from "./shell";
 import type { Laureate } from "./types";
 import { ordinal, posterOf } from "./utils";
-import styles from "./oscars.module.css";
-import { Image } from "@/design/components/image";
 
 const RING = 300;
 const TICK_IN = 272;

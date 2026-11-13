@@ -3,6 +3,7 @@
 import {
   createContext,
   type CSSProperties,
+  type ElementType,
   type JSX,
   type ReactNode,
   useCallback,
@@ -14,59 +15,131 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { useOptionalNavigation } from "@omerdlw/base-framework/navigation";
+import {
+  type NavigationTrip,
+  useOptionalNavigation,
+} from "@omerdlw/base-framework/navigation";
 import { carrierOf } from "./carry";
-import { gradeOf, sampledTint, tempoScale, tokenSheet } from "./color";
 import {
-  SECTION_MARGIN,
-  STAGE_MASK,
-  TEXT_WORD_ATTRIBUTE,
-  UNSTAGED,
-} from "./constants";
-import { sharedEngine } from "./engine";
-import { Expose } from "./expose";
-import { touch } from "./forces";
-import { Count, Deck, Header, Swap } from "./kit";
-import { Marquee } from "./marquee";
+  type Css,
+  gradeOf,
+  sampledTint,
+  tempoScale,
+  type Tint,
+  tokenSheet,
+} from "./color";
+import { changesPage, topOf } from "./dom";
+import { type Engine, sharedEngine } from "./engine";
+import { Expose, type ExposeProps } from "./expose";
+import {
+  Count,
+  type CountProps,
+  Deck,
+  type DeckProps,
+  Header,
+  type HeaderProps,
+  Swap,
+  type SwapProps,
+} from "./kit";
+import { Marquee, type MarqueeProps } from "./marquee";
 import { passageOf } from "./passage";
-import { letters, mountScene, mountText, words } from "./render";
-import { driverOf } from "./scroll";
-import { childScope, Stage } from "./stage";
-import type {
-  Act,
-  BloomProps,
-  CountProps,
-  DeckProps,
-  Engine,
-  EngineProviderProps,
-  ExposeProps,
-  Grading,
-  Handle,
-  HeaderProps,
-  MarqueeProps,
-  Named,
-  PartComponentProps,
-  PartOptions,
-  PartProps,
-  SceneOptions,
-  SceneSetup,
-  Score,
-  SectionProps,
-  StageRootProps,
-  SwapProps,
-  TextProps,
-  TouchOptions,
-  WallStageProps,
-} from "./types";
 import {
-  changesPage,
-  readReducedMotion,
-  reducedMotionOnServer,
-  styleOf,
-  subscribeReducedMotion,
-  topOf,
-} from "./utils";
-import { Bloom, WallStage } from "./wall";
+  letters,
+  mountScene,
+  mountText,
+  type PartOptions,
+  type SceneOptions,
+  type SceneSetup,
+  type Split,
+  TEXT_WORD_ATTRIBUTE,
+  words,
+} from "./render";
+import type { Score } from "./score";
+import { driverOf } from "./scroll";
+import { type Act, childScope, type Handle, Stage } from "./stage";
+import { Bloom, type BloomProps, WallStage, type WallStageProps } from "./wall";
+
+interface EngineProviderProps {
+  engine?: Engine;
+  drive?: boolean;
+  children: ReactNode;
+}
+
+interface PartProps {
+  ref: (el: HTMLElement | null) => (() => void) | undefined;
+  style: CSSProperties;
+  "data-part": string;
+}
+
+type Grading = string | Tint | null;
+
+interface StageRootProps {
+  pace?: number;
+  grade?: Grading;
+  leaves?: (trip: NavigationTrip) => boolean;
+  children: ReactNode;
+}
+
+type PartComponentProps<P extends string> = PartOptions & {
+  name: P;
+  as?: ElementType;
+  className?: string;
+  children?: ReactNode;
+};
+
+interface SectionProps<S extends string> {
+  cue: S;
+  as?: ElementType;
+  className?: string;
+  now?: boolean;
+  children?: ReactNode;
+}
+
+interface TextProps<P extends string> {
+  part: P;
+  text: string;
+  by?: Split;
+  mask?: boolean;
+  as?: ElementType;
+  className?: string;
+  options?: Omit<PartOptions, "index" | "render" | "carry">;
+}
+
+type Named<T, K extends keyof T, N> = Omit<T, K> & { [key in K]: N };
+
+const UNSTAGED =
+  "[data-part],[data-print]{opacity:1!important;transform:none!important;filter:none!important;clip-path:none!important;visibility:visible!important;-webkit-mask-image:none!important;mask-image:none!important}";
+
+const SECTION_MARGIN = "0px 0px -38.2% 0px";
+
+const STAGE_MASK: CSSProperties = {
+  display: "inline-block",
+  overflow: "clip",
+  verticalAlign: "top",
+  paddingBottom: "0.08em",
+  marginBottom: "-0.08em",
+};
+
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+
+function styleOf(initial: Css): CSSProperties {
+  return {
+    opacity: Number(initial.opacity),
+    transform: initial.transform,
+    filter: initial.filter,
+    clipPath: initial.clipPath,
+  };
+}
+
+function subscribeReducedMotion(change: () => void) {
+  const media = matchMedia(REDUCED_MOTION_QUERY);
+  media.addEventListener("change", change);
+  return () => media.removeEventListener("change", change);
+}
+
+const readReducedMotion = () => matchMedia(REDUCED_MOTION_QUERY).matches;
+
+const reducedMotionOnServer = () => false;
 
 const EngineContext = createContext<Engine | null>(null);
 
@@ -556,21 +629,6 @@ function bindStage<P extends string, S extends string = never>(
     Section,
     Text,
   };
-}
-
-export function useTouch(options?: TouchOptions) {
-  const engine = useEngine();
-  const latest = useRef(options);
-  useEffect(() => {
-    latest.current = options;
-  });
-  return useCallback(
-    (el: HTMLElement | null) => {
-      if (!el) return;
-      return touch(engine, el, latest.current);
-    },
-    [engine, options?.verb],
-  );
 }
 
 export function useScrollDriver() {

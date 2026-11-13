@@ -4,7 +4,7 @@ import type { JSX } from "react";
 import { bindScore } from "@/motion/react";
 import { defineScore } from "@/motion/score";
 import { DockLink, ExternalLink } from "@/design/components/link";
-import { cn } from "@/design/foundations/cn";
+import { cn } from "@/design/ui";
 import { PAGE_CLASS } from "@/design/foundations/layout";
 import { TONE } from "@/design/foundations/tones";
 import {

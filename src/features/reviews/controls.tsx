@@ -6,10 +6,10 @@ import { useToast } from "@omerdlw/base-framework/notification";
 import { report, toUserMessage } from "@omerdlw/base-framework/utils";
 import { useRouter } from "next/navigation";
 import { useOpenSignIn } from "@/features/auth/sign-in";
-import { Button } from "@/design/components/button";
+import { Button } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
-import { cn } from "@/design/foundations/cn";
-import { useConfirmedAction } from "@/design/hooks/use-confirm";
+import { cn } from "@/design/ui";
+import { useConfirmedAction } from "@/design/components/confirm";
 import { deleteReviewAction, setReviewLikeAction } from "./actions";
 import { REVIEW_EVENTS } from "./constants";
 

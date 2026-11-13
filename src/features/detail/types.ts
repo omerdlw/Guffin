@@ -1,7 +1,7 @@
 import type { ModalContainerProps } from "@omerdlw/base-framework/modal";
 import type { ReactNode } from "react";
 import type { AwardRecipient } from "@/lib/tmdb/shared";
-import { type MediaCardAspect } from "@/design/components/media-card";
+import type { MediaCardAspect } from "@/design/components/media-card";
 
 export type AwardsGrouping = "organizations" | "projects" | "timeline";
 

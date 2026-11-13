@@ -1,11 +1,11 @@
 "use client";
 
 import { createContext, type ReactNode, use, useMemo, useState } from "react";
-import { PAGE_TEMPO } from "@/motion/constants";
+import { cn } from "@/design/ui";
 import { Room } from "@/motion/kit";
 import { bindScore } from "@/motion/react";
 import { defineScore } from "@/motion/score";
-import { cn } from "@/design/foundations/cn";
+import { PAGE_TEMPO } from "@/motion/time";
 import { ambientImage } from "./utils";
 
 const HOME = defineScore({
@@ -64,18 +64,14 @@ const HomeHeader = bound.Header;
 export const HomeSwap = bound.Swap;
 
 interface Lighting {
-  glimpse: (src: string | null) => void;
   lead: (src: string | null) => void;
 }
 
 const LightContext = createContext<Lighting>({
-  glimpse: () => {},
   lead: () => {},
 });
 
 export const useHomeLead = () => use(LightContext).lead;
-
-export const useHomeGlimpse = () => use(LightContext).glimpse;
 
 export function HomeStage({
   backdrop,
@@ -85,11 +81,10 @@ export function HomeStage({
   children: ReactNode;
 }) {
   const [lead, setLead] = useState<string | null>(null);
-  const [glimpse, setGlimpse] = useState<string | null>(null);
-  const lighting = useMemo(() => ({ glimpse: setGlimpse, lead: setLead }), []);
+  const lighting = useMemo(() => ({ lead: setLead }), []);
 
   return (
-    <HomeStageRoot grade={glimpse ?? lead ?? ambientImage(backdrop)}>
+    <HomeStageRoot grade={lead ?? ambientImage(backdrop)}>
       <Room black />
       <LightContext value={lighting}>{children}</LightContext>
     </HomeStageRoot>

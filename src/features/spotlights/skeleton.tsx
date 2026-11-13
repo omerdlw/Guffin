@@ -4,7 +4,7 @@ import {
   SkeletonLines,
   skeletonTextWidth,
 } from "@/design/components/skeleton";
-import { cn } from "@/design/foundations/cn";
+import { cn } from "@/design/ui";
 import { SHOW_CANON_SIZE as CANON_SIZE, TUNNEL_SLOT_CLASS } from "./constants";
 
 const DEPTHS = [0.82, 0.66, 0.52] as const;

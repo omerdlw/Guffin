@@ -1,27 +1,145 @@
-import {
-  ENGINE_FIRST_DELTA,
-  ENGINE_MAX_DELTA,
-  ENGINE_PHASES,
-  ENGINE_REDUCED,
-  ENGINE_REST,
-} from "./constants";
-import type {
-  Clock,
-  ClockOptions,
-  Drive,
-  Engine,
-  EngineOptions,
-  Frame,
-  Motion,
-  MouseSample,
-  Phase,
-  Pointer,
-  Source,
-  Task,
-  TimeSpring,
-  Viewport,
-} from "./types";
-import { samePointer, sameViewport, springAt } from "./utils";
+import type { Curve, TimeSpring } from "./time";
+
+interface Source<T> {
+  get(): T;
+  subscribe(listener: (value: T) => void): () => void;
+}
+
+export type Phase = "read" | "update" | "render";
+
+export interface Frame {
+  time: number;
+  delta: number;
+}
+
+type Task = (frame: Frame) => void;
+
+export interface Clock {
+  readonly time: number;
+  rate: number;
+  add(phase: Phase, task: Task): () => void;
+  once(phase: Phase, task: Task): void;
+  advance(delta: number): void;
+  dispose(): void;
+}
+
+interface ClockOptions {
+  manual?: boolean;
+}
+
+type Drive =
+  | { tween: number; curve: Curve; delay?: number }
+  | { spring: TimeSpring; delay?: number };
+
+type Motion =
+  | {
+      kind: "tween";
+      from: number;
+      to: number;
+      start: number;
+      duration: number;
+      curve: Curve;
+    }
+  | {
+      kind: "spring";
+      target: number;
+      start: number;
+      offset: number;
+      velocity: number;
+      spring: TimeSpring;
+    };
+
+export interface Viewport {
+  width: number;
+  height: number;
+}
+
+export interface Pointer {
+  x: number;
+  y: number;
+  active: boolean;
+}
+
+export interface Engine {
+  clock: Clock;
+  scroll: Signal<number>;
+  viewport: Source<Viewport>;
+  pointer: Source<Pointer>;
+  reduced: Source<boolean>;
+  layout: Source<number>;
+  dispose(): void;
+}
+
+interface EngineOptions {
+  clock?: Clock;
+  scroll?: Source<number>;
+  reduced?: Source<boolean>;
+}
+
+interface MouseSample {
+  at: number;
+  x: number;
+  y: number;
+  present: boolean;
+}
+
+type State = readonly [position: number, velocity: number];
+
+const ENGINE_PHASES: readonly Phase[] = ["read", "update", "render"];
+
+const ENGINE_MAX_DELTA = 1 / 20;
+
+const ENGINE_FIRST_DELTA = 1 / 60;
+
+const ENGINE_REDUCED = "(prefers-reduced-motion: reduce)";
+
+const ENGINE_REST: Pointer = { x: 0, y: 0, active: false };
+
+const sameViewport = (a: Viewport, b: Viewport) =>
+  a.width === b.width && a.height === b.height;
+
+const samePointer = (a: Pointer, b: Pointer) =>
+  a.x === b.x && a.y === b.y && a.active === b.active;
+
+function springAt(
+  spring: TimeSpring,
+  offset: number,
+  velocity: number,
+  t: number,
+): State {
+  const omega = (2 * Math.PI) / spring.period;
+  const zeta = spring.damping;
+
+  if (zeta < 1) {
+    const wd = omega * Math.sqrt(1 - zeta * zeta);
+    const a = offset;
+    const b = (velocity + zeta * omega * offset) / wd;
+    const decay = Math.exp(-zeta * omega * t);
+    const cos = Math.cos(wd * t);
+    const sin = Math.sin(wd * t);
+    return [
+      decay * (a * cos + b * sin),
+      decay *
+        ((b * wd - zeta * omega * a) * cos - (a * wd + zeta * omega * b) * sin),
+    ];
+  }
+
+  if (zeta === 1) {
+    const a = offset;
+    const b = velocity + omega * offset;
+    const decay = Math.exp(-omega * t);
+    return [decay * (a + b * t), decay * (b - omega * (a + b * t))];
+  }
+
+  const root = omega * Math.sqrt(zeta * zeta - 1);
+  const r1 = -zeta * omega + root;
+  const r2 = -zeta * omega - root;
+  const c2 = (velocity - r1 * offset) / (r2 - r1);
+  const c1 = offset - c2;
+  const e1 = Math.exp(r1 * t);
+  const e2 = Math.exp(r2 * t);
+  return [c1 * e1 + c2 * e2, r1 * c1 * e1 + r2 * c2 * e2];
+}
 
 export class Signal<T> implements Source<T> {
   private listeners = new Set<(value: T) => void>();

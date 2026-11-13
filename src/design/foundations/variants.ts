@@ -1,6 +1,6 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import type { ClassValue } from "clsx";
-import { cn } from "./cn";
+import { cn } from "@/design/ui";
 
 export function variants<T>(
   base?: ClassValue,

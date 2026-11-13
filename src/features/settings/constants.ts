@@ -1,6 +1,6 @@
 import type { OAuthProvider } from "@/features/auth/types";
 import type { MarkTone, SettingsKey } from "./types";
-import { inputVariants } from "@/design/components/input";
+import { ui } from "@/design/ui";
 
 export const USERNAME_PATTERN = /^[a-zA-Z0-9_-]{3,30}$/;
 
@@ -18,7 +18,7 @@ export const PROVIDER_LABELS: Record<
 
 export const DELETE_CONFIRMATION = "DELETE";
 
-const FIELD_CLASS = inputVariants({
+const FIELD_CLASS = ui.parts.input.field({
   className: "w-full resize-none type-body",
 });
 

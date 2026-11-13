@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { type CSSProperties, useEffect, useRef, useState } from "react";
 import {
   motion,
   motionValue,
@@ -12,12 +12,39 @@ import {
   BACKDROP_HERO,
   BACKDROP_HERO_MASK,
 } from "@/design/components/backdrop";
-import { cn } from "@/design/foundations/cn";
+import { cn } from "@/design/ui";
+import { project, type Projector } from "./gl-projection";
 import { useEngine } from "./react";
 import { readable } from "./render";
-import type { ProjectionProps, Projector } from "./types";
-import { parsePosition } from "./utils";
-import { project } from "./gl-projection";
+
+interface ProjectionProps {
+  className?: string;
+  cut?: number;
+  defocusAt?: (scrollY: number) => number;
+  halation?: number;
+  mask?: CSSProperties;
+  onReady?: () => void;
+  position?: string;
+  reel?: string | null;
+  src: string;
+}
+
+const PROJECTION_KEYWORDS: Record<string, number> = {
+  bottom: 1,
+  center: 0.5,
+  left: 0,
+  right: 1,
+  top: 0,
+};
+
+function parsePosition(position: string): [number, number] {
+  const [x = "center", y = "center"] = position.trim().split(/\s+/);
+  const read = (value: string) =>
+    value.endsWith("%")
+      ? Number.parseFloat(value) / 100
+      : (PROJECTION_KEYWORDS[value] ?? 0.5);
+  return [read(x), read(y)];
+}
 
 export function useScrollY(): MotionValue<number> {
   const engine = useEngine();

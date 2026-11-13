@@ -10,7 +10,7 @@ import { useAuth } from "@/features/auth/provider";
 import { useOpenSignIn } from "@/features/auth/sign-in";
 import { useLikeToggle } from "@/features/reviews/controls";
 import { createReviewEditorSurfaceEntry } from "@/features/reviews/editor";
-import { Button } from "@/design/components/button";
+import { Button } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
 import { setListLikeAction } from "./actions";
 import type { ListCommentTarget } from "./types";

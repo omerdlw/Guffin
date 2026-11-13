@@ -9,17 +9,19 @@ import {
   useState,
 } from "react";
 import { useDockContextActions } from "@omerdlw/base-framework/dock";
-import { Z_INDEX } from "@/design/foundations/z-index";
-import { AnimatePresence, motion, useReducedMotion } from "@/motion/lib";
+import {
+  Button,
+  SlidingPill,
+  useSlidingPill,
+} from "@omerdlw/base-framework/ui";
 import { createPortal } from "react-dom";
-import { setThemeChoice, THEME_CHOICES, useThemeChoice } from "@/lib/theme";
-import { POINTS } from "@/motion/constants";
-import { step, tween } from "@/motion/utils";
-import { Button } from "@/design/components/button";
 import { Icon } from "@/design/components/icon";
-import { SlidingPill, useSlidingPill } from "@/design/components/indicator";
-import { cn } from "@/design/foundations/cn";
 import { SHELL } from "@/design/foundations/layers";
+import { Z_INDEX } from "@/design/foundations/z-index";
+import { cn } from "@/design/ui";
+import { setThemeChoice, THEME_CHOICES, useThemeChoice } from "@/lib/theme";
+import { AnimatePresence, motion, useReducedMotion } from "@/motion/lib";
+import { POINTS, step, tween } from "@/motion/time";
 import {
   THEME_ACTION_KEY,
   THEME_ACTION_ORDER,

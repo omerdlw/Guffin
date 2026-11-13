@@ -37,7 +37,7 @@ export interface PopularFilm extends HomeFilm {
   watchers: number;
 }
 
-export interface RisingFilm extends HomeFilm {
+interface RisingFilm extends HomeFilm {
   lift: number;
   week: number;
 }
@@ -101,7 +101,7 @@ export interface RecentLog {
   watchedAt: string;
 }
 
-export interface SharedFilm extends HomeFilm {
+interface SharedFilm extends HomeFilm {
   faces: Member[];
   friends: number;
 }
@@ -111,7 +111,7 @@ export interface Picks {
   films: HomeFilm[];
 }
 
-export interface Pulse {
+interface Pulse {
   films: number;
   lists: number;
   logs: number;

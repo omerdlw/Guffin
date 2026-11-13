@@ -16,7 +16,6 @@ export const TONES = {
     "ui-iris bg-transparent text-ink-body ring-1 ring-transparent ring-inset hover:text-ink focus-visible:text-ink",
 } as const;
 
-export type Tone = keyof typeof TONES;
 
 export const STATE = {
   disabled:

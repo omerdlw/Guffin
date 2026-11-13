@@ -13,8 +13,8 @@ import {
   SURFACE_STACK,
   SURFACE_TILE_INNER,
   tileVariants,
-} from "@/design/components/surface";
-import { cn } from "@/design/foundations/cn";
+} from "@/design/components/surface-classes";
+import { cn } from "@/design/ui";
 import { MARK_TONE_CLASS } from "./constants";
 import type { AuthSession, MarkTone } from "./types";
 

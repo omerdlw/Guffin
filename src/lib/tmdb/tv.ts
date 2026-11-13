@@ -1,16 +1,13 @@
-import { err, ok, type Result } from "@omerdlw/base-framework/result";
+import { err, type Result } from "@omerdlw/base-framework/result";
 import {
-  foundShowsSchema,
   seasonDetailsSchema,
   showDetailsSchema,
   showPageSchema,
 } from "./schemas";
 import {
-  GENRE,
   type SeasonDetails,
   type ShowDetails,
   type ShowPage,
-  type ShowSummary,
   TMDB_DEFAULT_LANGUAGE,
   TMDB_REVALIDATE,
   tmdbCacheTag,
@@ -30,7 +27,7 @@ export interface ShowDetailsOptions {
   signal?: AbortSignal;
 }
 
-export interface SeasonOptions extends ShowDetailsOptions {
+interface SeasonOptions extends ShowDetailsOptions {
   airing?: boolean;
 }
 
@@ -50,40 +47,10 @@ export type ShowList = (typeof SHOW_LISTS)[number];
 const SHOW_TRENDING_WINDOWS = ["day", "week"] as const;
 type ShowTrendingWindow = (typeof SHOW_TRENDING_WINDOWS)[number];
 
-const SHOW_DISCOVER_SORTS = [
-  "popularity.desc",
-  "vote_count.desc",
-  "vote_average.desc",
-  "first_air_date.desc",
-] as const;
-export type ShowDiscoverSort = (typeof SHOW_DISCOVER_SORTS)[number];
-
-const SHOW_MIN_VOTES: Record<ShowDiscoverSort, number> = {
-  "popularity.desc": 50,
-  "vote_count.desc": 0,
-  "vote_average.desc": 200,
-  "first_air_date.desc": 15,
-};
-
-const SHOW_WITHOUT_GENRES = [
-  GENRE.documentary,
-  GENRE.news,
-  GENRE.reality,
-  GENRE.soap,
-  GENRE.talk,
-].join(",");
-
 export interface ShowListOptions {
   language?: string;
   page?: number;
   signal?: AbortSignal;
-}
-
-export interface ShowDiscoverOptions extends ShowListOptions {
-  genre?: number | null;
-  decade?: number | null;
-  sort?: ShowDiscoverSort;
-  originalLanguage?: string | null;
 }
 
 const APPENDED_RESOURCES = [
@@ -97,7 +64,6 @@ const APPENDED_RESOURCES = [
   "keywords",
 ].join(",");
 
-const IMDB_ID = /^tt\d{7,9}$/;
 const MAX_SEASON = 500;
 
 export interface TvApi {
@@ -122,11 +88,6 @@ export interface TvApi {
     list: ShowList,
     options?: ShowListOptions,
   ): Promise<Result<ShowPage, TmdbError>>;
-  discover(options?: ShowDiscoverOptions): Promise<Result<ShowPage, TmdbError>>;
-  findByImdb(
-    imdbId: string,
-    options?: ShowListOptions,
-  ): Promise<Result<ShowSummary | null, TmdbError>>;
 }
 
 const badId = () =>
@@ -240,75 +201,6 @@ export function createTvApi(transport: TmdbTransport): TvApi {
         tags: [tmdbCacheTag("discover", "tv")],
         signal,
       });
-    },
-
-    async discover({
-      decade = null,
-      genre = null,
-      language = TMDB_DEFAULT_LANGUAGE,
-      originalLanguage = null,
-      page = 1,
-      signal,
-      sort = "popularity.desc",
-    } = {}) {
-      const invalid = checkLanguage(language) ?? checkPage(page);
-      if (invalid) return err(invalid);
-      if (!SHOW_DISCOVER_SORTS.includes(sort)) {
-        return err(tmdbErrors.invalidRequest(`Unknown sort "${sort}"`));
-      }
-      if (genre !== null && !Number.isSafeInteger(genre)) {
-        return err(tmdbErrors.invalidRequest("Genre must be an integer"));
-      }
-      if (decade !== null && !Number.isSafeInteger(decade)) {
-        return err(tmdbErrors.invalidRequest("Decade must be an integer"));
-      }
-      if (originalLanguage !== null && !/^[a-z]{2}$/.test(originalLanguage)) {
-        return err(tmdbErrors.invalidRequest("Unknown original language"));
-      }
-
-      return transport.request({
-        path: "/discover/tv",
-        query: {
-          language,
-          page,
-          include_adult: false,
-          include_null_first_air_dates: false,
-          sort_by: sort,
-          with_genres: genre ?? undefined,
-          without_genres: SHOW_WITHOUT_GENRES,
-          with_original_language: originalLanguage ?? undefined,
-          "first_air_date.gte": decade === null ? undefined : `${decade}-01-01`,
-          "first_air_date.lte":
-            decade !== null
-              ? `${decade + 9}-12-31`
-              : new Date().toISOString().slice(0, 10),
-          "vote_count.gte": SHOW_MIN_VOTES[sort],
-        },
-        schema: showPageSchema,
-        revalidate: TMDB_REVALIDATE.feed,
-        tags: [tmdbCacheTag("discover", "tv")],
-        signal,
-      });
-    },
-
-    async findByImdb(
-      imdbId,
-      { language = TMDB_DEFAULT_LANGUAGE, signal } = {},
-    ) {
-      const invalid = checkLanguage(language);
-      if (invalid) return err(invalid);
-      if (!IMDB_ID.test(imdbId)) {
-        return err(tmdbErrors.invalidRequest(`Not an IMDb id: "${imdbId}"`));
-      }
-
-      const found = await transport.request({
-        path: `/find/${imdbId}`,
-        query: { external_source: "imdb_id", language },
-        schema: foundShowsSchema,
-        revalidate: TMDB_REVALIDATE.tv,
-        signal,
-      });
-      return found.success ? ok(found.data[0] ?? null) : found;
     },
   };
 }

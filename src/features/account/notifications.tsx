@@ -22,27 +22,29 @@ import { toUserMessage } from "@omerdlw/base-framework/utils";
 import { useAuth } from "@/features/auth/provider";
 import { accountHref } from "@/lib/project";
 import { Link } from "@/design/components/link";
-import { Button } from "@/design/components/button";
 import {
+  Button,
   HighlightGroup,
+  SegmentedControl,
   useHighlight,
-} from "@/design/components/highlight-group";
+} from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
-import { SegmentedControl } from "@/design/components/segmented-control";
 import { SKELETON } from "@/design/components/skeleton";
 import {
   DockAction,
+  SurfaceAnchor,
+  SurfaceSearch,
+  useSurfaceSearch,
+} from "@/design/components/surface";
+import {
   SURFACE_META,
   SURFACE_SCROLL,
   SURFACE_TEXT,
   SURFACE_TILE_INNER,
   SURFACE_TITLE,
-  SurfaceAnchor,
-  SurfaceSearch,
   tileVariants,
-  useSurfaceSearch,
-} from "@/design/components/surface";
-import { cn } from "@/design/foundations/cn";
+} from "@/design/components/surface-classes";
+import { cn } from "@/design/ui";
 import {
   deleteAllNotifications,
   deleteNotification,

@@ -9,7 +9,7 @@ import {
   SkeletonLines,
   TabsSkeleton,
 } from "@/design/components/skeleton";
-import { cn } from "@/design/foundations/cn";
+import { cn } from "@/design/ui";
 import {
   ASIDE_CLASS,
   CAROUSEL_ITEM,

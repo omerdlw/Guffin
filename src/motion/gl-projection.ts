@@ -1,30 +1,7 @@
+import type { RefObject } from "react";
 import { cancelFrame, frame } from "motion/react";
-import {
-  PROJECTION_AWAY_SOFT,
-  PROJECTION_BLUR_ROUNDS,
-  PROJECTION_CAMERA,
-  PROJECTION_DEVICE_CAP,
-  PROJECTION_EXPOSURE,
-  PROJECTION_EXPOSURE_MAX,
-  PROJECTION_FAST,
-  PROJECTION_FRAME_MS,
-  PROJECTION_GRAIN,
-  PROJECTION_HALO_FROM,
-  PROJECTION_HALO_WIDTH,
-  PROJECTION_LENS,
-  PROJECTION_LENS_EXPOSURE,
-  PROJECTION_LEVEL_WIDTHS,
-  PROJECTION_LINGER,
-  PROJECTION_MAX_TEXTURE,
-  PROJECTION_PIXEL_BUDGET,
-  PROJECTION_SETTLING_MS,
-  PROJECTION_SOFT_FROM,
-  PROJECTION_STREAK_GAIN,
-  PROJECTION_TRAIL_MAX,
-  PROJECTION_UNIFORMS,
-  PROJECTION_UNPROJECTED,
-} from "./constants";
 import { pointerFromCentre, pointerSample, watchPointer } from "./engine";
+import type { useScrollY } from "./projection";
 import {
   bindFullscreen,
   createProgram,
@@ -33,8 +10,143 @@ import {
   sampleClamped,
   uniforms,
 } from "./render";
-import type { Mass, ProjectionOptions, Projector, Reel, Speck } from "./types";
-import { dissolve, pull } from "./utils";
+
+interface Speck {
+  life: number;
+  size: number;
+  strength: number;
+  x: number;
+  y: number;
+}
+
+interface Mass {
+  vx: number;
+  vy: number;
+  x: number;
+  y: number;
+}
+
+interface Reel {
+  halo: WebGLTexture;
+  levels: WebGLTexture[];
+  size: [number, number];
+  src: string;
+  streak: WebGLTexture;
+  texture: WebGLTexture;
+}
+
+export interface Projector {
+  show: (src: string) => void;
+  stop: () => void;
+}
+
+interface ProjectionOptions {
+  cut: number;
+  defocusAt: RefObject<((y: number) => number) | undefined>;
+  focus: [number, number];
+  halation: number;
+  onFail: () => void;
+  onLive: (live: boolean) => void;
+  onRestore: () => void;
+  reduced: boolean;
+  scrollY: ReturnType<typeof useScrollY>;
+  src: string;
+}
+
+const PROJECTION_STREAK_GAIN = 2.5;
+
+const PROJECTION_AWAY_SOFT = 0.32;
+
+const PROJECTION_LEVEL_WIDTHS = [960, 320, 110] as const;
+
+const PROJECTION_HALO_WIDTH = 320;
+
+const PROJECTION_HALO_FROM = 0.62;
+
+const PROJECTION_BLUR_ROUNDS = 2;
+
+const PROJECTION_UNIFORMS = [
+  "uImage",
+  "uLevel1",
+  "uLevel2",
+  "uLevel3",
+  "uHalo",
+  "uImageB",
+  "uLevelB1",
+  "uLevelB2",
+  "uLevelB3",
+  "uHaloB",
+  "uStreak",
+  "uCanvas",
+  "uImageSize",
+  "uImageSizeB",
+  "uCut",
+  "uFocus",
+  "uWeave",
+  "uParallax",
+  "uPool",
+  "uPoolTrail",
+  "uMotion",
+  "uRack",
+  "uDefocus",
+  "uVelocity",
+  "uHalation",
+  "uFlicker",
+  "uGrain",
+  "uDust",
+  "uScratch",
+] as const;
+
+const PROJECTION_GRAIN = 0.18;
+
+const PROJECTION_FRAME_MS = 1000 / 24;
+
+const PROJECTION_CAMERA = { damping: 8.6, stiffness: 48 };
+
+const PROJECTION_LENS = { damping: 20.4, stiffness: 104 };
+
+const PROJECTION_LINGER = 4000;
+
+const PROJECTION_EXPOSURE = 0.58;
+
+const PROJECTION_EXPOSURE_MAX = 1.6;
+
+const PROJECTION_LENS_EXPOSURE = 0.12;
+
+const PROJECTION_TRAIL_MAX = 0.32;
+
+const PROJECTION_MAX_TEXTURE = 2560;
+
+const PROJECTION_DEVICE_CAP = 1.5;
+
+const PROJECTION_PIXEL_BUDGET = 3_200_000;
+
+const PROJECTION_SOFT_FROM = 0.3;
+
+const PROJECTION_FAST = 4200;
+
+const PROJECTION_SETTLING_MS = 9000;
+
+const PROJECTION_UNPROJECTED: Projector = {
+  show: () => {},
+  stop: () => {},
+};
+
+function pull(
+  mass: Mass,
+  tx: number,
+  ty: number,
+  dt: number,
+  stiffness: number,
+  damping: number,
+) {
+  mass.vx += ((tx - mass.x) * stiffness - mass.vx * damping) * dt;
+  mass.vy += ((ty - mass.y) * stiffness - mass.vy * damping) * dt;
+  mass.x += mass.vx * dt;
+  mass.y += mass.vy * dt;
+}
+
+const dissolve = (progress: number) => progress * progress * (3 - 2 * progress);
 
 const FRAGMENT = `#version 300 es
 precision highp float;

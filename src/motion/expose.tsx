@@ -1,17 +1,43 @@
 "use client";
 
-import { useCallback, useRef } from "react";
-import {
-  EXPOSE_EDGE,
-  EXPOSE_GLINT,
-  EXPOSE_GLINT_RUNG,
-  EXPOSE_LIGHT,
-} from "./constants";
+import { type ElementType, useCallback, useRef } from "react";
+import { clearMask, setMask } from "./dom";
 import { Value } from "./engine";
 import { useAnyStage, useEngine, usePartOf } from "./react";
-import { CURVE } from "./time";
-import type { ExposeProps, Exposure } from "./types";
-import { clearMask, setMask, shine, step } from "./utils";
+import { CURVE, step } from "./time";
+
+export interface Exposure {
+  print: HTMLElement;
+  light: HTMLElement;
+}
+
+export interface ExposeProps {
+  part: string;
+  text: string;
+  index?: number;
+  as?: ElementType;
+  className?: string;
+  hover?: boolean;
+  truncate?: boolean;
+}
+
+const EXPOSE_EDGE = 24;
+
+const EXPOSE_BAND = 34;
+
+const EXPOSE_GLINT = 0.55;
+
+const EXPOSE_LIGHT = "rgb(255 253 247)";
+
+const EXPOSE_GLINT_RUNG = 1;
+
+function shine(light: HTMLElement, edge: number, level: number) {
+  setMask(
+    light,
+    `linear-gradient(90deg, transparent ${edge - EXPOSE_BAND}%, #000 ${edge - EXPOSE_EDGE * 0.4}%, transparent ${edge + 3}%)`,
+  );
+  light.style.opacity = level.toFixed(3);
+}
 
 const edgeAt = (p: number, linear: boolean) =>
   (100 + EXPOSE_EDGE) * (linear ? p : CURVE.silk(p));

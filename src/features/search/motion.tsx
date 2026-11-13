@@ -1,10 +1,10 @@
 "use client";
 
-import { type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { bindScore } from "@/motion/react";
 import { defineScore } from "@/motion/score";
 import { Unfold } from "@/design/components/surface";
-import { cn } from "@/design/foundations/cn";
+import { cn } from "@/design/ui";
 
 const SEARCH = defineScore({
   tempo: -3,
@@ -22,7 +22,7 @@ const SEARCH = defineScore({
 
 const bound = bindScore(SEARCH);
 
-export const SearchRoot = bound.SurfaceRoot;
+const SearchRoot = bound.SurfaceRoot;
 export const SearchPart = bound.Part;
 export const SearchSwap = bound.Swap;
 

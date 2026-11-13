@@ -4,11 +4,11 @@ import {
   type SurfaceEntry,
   useDockActions,
 } from "@omerdlw/base-framework/dock";
-import { Button } from "@/design/components/button";
 import {
+  Button,
   HighlightGroup,
   useHighlight,
-} from "@/design/components/highlight-group";
+} from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
 import {
   rowVariants,
@@ -16,9 +16,8 @@ import {
   SURFACE_STACK,
   SURFACE_TEXT,
   SURFACE_TITLE,
-  SurfacePart,
-  SurfaceStage,
-} from "@/design/components/surface";
+} from "@/design/components/surface-classes";
+import { SurfacePart, SurfaceStage } from "@/design/components/surface";
 import {
   SECURITY_SECTIONS,
   SETTINGS_OVERVIEW,

@@ -205,18 +205,6 @@ export const votesOf = (votes: number) =>
     notation: "compact",
   }).format(votes);
 
-export function pixelsOf(
-  bitmap: ImageBitmap,
-  width: number,
-  height: number,
-): Uint8ClampedArray | null {
-  const canvas = new OffscreenCanvas(width, height);
-  const context = canvas.getContext("2d", { willReadFrequently: true });
-  if (!context) return null;
-  context.drawImage(bitmap, 0, 0, width, height);
-  return context.getImageData(0, 0, width, height).data;
-}
-
 export const approach = (from: number, to: number, time: number, dt: number) =>
   to + (from - to) * Math.exp(-dt / Math.max(1e-4, time / 4));
 

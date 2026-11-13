@@ -1,9 +1,9 @@
 import type { JSX, ReactNode } from "react";
 import { accountHref, movieHref } from "@/lib/project";
-import { Avatar } from "@/design/components/avatar";
+import { Avatar } from "@omerdlw/base-framework/ui";
 import { Carousel } from "@/design/components/carousel";
 import { DockLink } from "@/design/components/link";
-import { cn } from "@/design/foundations/cn";
+import { cn } from "@/design/ui";
 import { TONE } from "@/design/foundations/tones";
 import { ROW_ITEM_CLASS, TEXT_LINK_CLASS } from "./constants";
 import { Heading, HomeSection } from "./motion";

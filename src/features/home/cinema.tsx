@@ -3,7 +3,7 @@
 import { type JSX, useState } from "react";
 import { MoviePosterLink } from "@/features/movie/stage";
 import { Carousel } from "@/design/components/carousel";
-import { SegmentedControl } from "@/design/components/segmented-control";
+import { SegmentedControl } from "@omerdlw/base-framework/ui";
 import { RADIUS } from "@/design/foundations/geometry";
 import { TONE } from "@/design/foundations/tones";
 import { POSTER_SIZES, ROW_ITEM_CLASS } from "./constants";

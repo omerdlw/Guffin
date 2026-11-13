@@ -6,7 +6,7 @@ import { CATALOG_STALE_MS } from "./constants";
 import type { MediaItem, MediaType } from "./types";
 import { toCatalogRow, toMediaItem } from "./utils";
 
-export async function upsertCatalogEntry(
+async function upsertCatalogEntry(
   media: MediaDetails,
 ): Promise<MediaItem> {
   const item = toMediaItem(media.details, media.mediaType);

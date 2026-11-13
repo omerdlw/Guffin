@@ -20,7 +20,7 @@ import { bindScore } from "@/motion/react";
 import { mountScene } from "@/motion/render";
 import { defineScore } from "@/motion/score";
 import type { Stage } from "@/motion/stage";
-import { Button } from "@/design/components/button";
+import { Button } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
 import { DockAction } from "@/design/components/surface";
 import {
@@ -44,7 +44,6 @@ const bound = bindScore(SALON);
 
 const SalonStageRoot = bound.StageRoot;
 export const SalonPart = bound.Part;
-export const useSalonPart = bound.usePart;
 
 export function SalonStage({
   children,

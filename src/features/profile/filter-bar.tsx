@@ -8,11 +8,11 @@ import {
   useTransition,
 } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Button } from "@/design/components/button";
+import { Button } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
 import { Input } from "@/design/components/input";
 import { Select } from "@/design/components/select";
-import { cn } from "@/design/foundations/cn";
+import { cn } from "@/design/ui";
 import { ANY_OPTION, FILTER_BAR_LOOK, SEARCH_SETTLE_MS } from "./constants";
 import type { FilterField } from "./types";
 

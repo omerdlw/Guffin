@@ -1,7 +1,7 @@
 import { pluralize } from "@/lib/format";
 import type { Awards } from "@/lib/tmdb/shared";
+import { clamp } from "@/motion/math";
 import { CURVE } from "@/motion/time";
-import { clamp } from "@/motion/utils";
 import {
   BACKDROP_DEFOCUS_FROM,
   BACKDROP_DEFOCUS_TO,

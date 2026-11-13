@@ -3,23 +3,21 @@ import { RatingStars, Star } from "@/features/reviews/rating";
 import { pluralize } from "@/lib/format";
 import { accountHref, mediaHref, movieHref } from "@/lib/project";
 import { tmdbImageUrl } from "@/lib/tmdb/shared";
-import { Button } from "@/design/components/button";
-import { Avatar } from "@/design/components/avatar";
+import { Avatar, Button, Image } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
-import { Image } from "@/design/components/image";
 import { DockLink } from "@/design/components/link";
 import { MediaCard } from "@/design/components/media-card";
 import { Tooltip } from "@/design/components/tooltip";
-import { cn } from "@/design/foundations/cn";
+import { cn } from "@/design/ui";
 import { RADIUS } from "@/design/foundations/geometry";
 import {
   DIARY_DIGEST_MONTH_FORMAT,
   PEOPLE_COLUMNS,
-  PROFILE_GRID,
   POSTER_STACK_SLOTS,
+  PROFILE_GRID,
+  STAR_COUNT,
   STAT_AFTER_CLASS,
   STAT_CELL_CLASS,
-  STAR_COUNT,
   STAT_LABEL_CLASS,
 } from "./constants";
 import { TileActions } from "./controls";

@@ -4,8 +4,8 @@ Guffin has one motion engine, `src/motion/`. Every page, dock surface,
 scroll and CSS duration answers to it, so the interface moves like one
 material. The engine standardises _laws_, not movements: a page writes a score
 (who is on stage, what each part is made of, in what order they arrive) and the
-engine supplies the time, the shape and the physics. `docs/motion-engine.md` is
-the full reference; this section is the contract.
+engine supplies the time, the shape and the physics. the modules under
+`src/motion/` are the full reference; this section is the contract.
 
 ```ts
 const movie = defineScore({

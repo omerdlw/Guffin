@@ -1,27 +1,122 @@
-import { blend, css, neutral } from "./color";
+import { blend, css, type Css, neutral } from "./color";
+import { PHI } from "./math";
 import {
-  CUE_LEAD,
-  EVEN_DROP,
-  LINES_RUNG,
+  arrival,
+  departure,
+  ENTER,
+  type EnterVerb,
+  type LeaveVerb,
   MATTER,
-  STAIRS_DROP,
-} from "./constants";
-import { arrival, departure, ENTER } from "./time";
-import type {
-  Beat,
-  Cadence,
-  Casting,
-  Cue,
-  LeaveVerb,
-  Matter,
-  OpeningStep,
-  Plan,
-  Role,
-  Score,
-  ScoreInput,
-  Step,
-} from "./types";
-import { tempo as clampTempo, step, steps, trail, trailWindow } from "./utils";
+  type Matter,
+  type MatterName,
+  step,
+  tempo as clampTempo,
+} from "./time";
+
+export type Cadence = "trail" | "even" | "stairs" | "lines";
+
+type Casting =
+  | MatterName
+  | {
+      matter: MatterName;
+      enter?: EnterVerb;
+      leave?: LeaveVerb;
+      depth?: number;
+      drift?: number;
+      cadence?: Cadence;
+      beat?: number;
+    };
+
+type Beat<P extends string> = P | readonly P[] | { rest: number; with?: P };
+
+interface Release {
+  release: true;
+}
+
+interface ScoreInput<P extends string, S extends string> {
+  margin?: string;
+  tempo?: number;
+  cast: Record<P, Casting>;
+  opening: readonly (Beat<NoInfer<P>> | Release)[];
+  sections?: Record<S, readonly Beat<NoInfer<P>>[]>;
+  leave?: LeaveVerb;
+  ordered?: boolean;
+  tight?: boolean;
+}
+
+export interface Role {
+  matter: Matter;
+  enter: EnterVerb;
+  leave: LeaveVerb;
+  depth: number;
+  drift: number;
+  cadence: Cadence;
+  beat: number;
+  initial: Css;
+}
+
+export type Step<P extends string> =
+  { parts: readonly P[] } | { rest: number; with?: P };
+
+type OpeningStep<P extends string> = Step<P> | Release;
+
+export interface Score<P extends string, S extends string> {
+  margin: string | undefined;
+  tempo: number;
+  roles: Record<P, Role>;
+  opening: readonly OpeningStep<P>[];
+  sections: Record<S, readonly Step<P>[]>;
+  ordered: boolean;
+  tight: boolean;
+}
+
+interface Cue<P extends string> {
+  parts: readonly P[];
+  at: number;
+  length: number;
+}
+
+export interface Plan<P extends string> {
+  cues: Cue<P>[];
+  length: number;
+  after: number;
+}
+
+const CUE_LEAD = 3;
+
+const TRAIL_DROP = 1;
+
+const STAIRS_DROP = 4;
+
+const EVEN_DROP = 5;
+
+const LINES_RUNG = -1.5;
+
+const trailWindow = (role: Role, tempo: number) =>
+  step(role.matter.rung + tempo - TRAIL_DROP);
+
+function steps<P extends string>(beats: readonly Beat<P>[]): Step<P>[];
+
+function steps<P extends string>(
+  beats: readonly (Beat<P> | Release)[],
+): OpeningStep<P>[];
+
+function steps<P extends string>(
+  beats: readonly (Beat<P> | Release)[],
+): OpeningStep<P>[] {
+  return beats.map((beat) =>
+    typeof beat === "string"
+      ? { parts: [beat] }
+      : "release" in beat
+        ? { release: true }
+        : "rest" in beat
+          ? { rest: beat.rest, with: beat.with }
+          : { parts: [...beat] },
+  );
+}
+
+const trail = (index: number, window: number) =>
+  index <= 0 ? 0 : window * (1 - PHI ** -index);
 
 export const lead = (role: Role, tempo: number) =>
   step(role.matter.rung + tempo - CUE_LEAD);

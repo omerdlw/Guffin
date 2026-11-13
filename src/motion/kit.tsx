@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  type ElementType,
   type ReactNode,
   useEffect,
   useId,
@@ -10,27 +11,9 @@ import {
   useSyncExternalStore,
 } from "react";
 import { preload } from "react-dom";
-import {
-  KIT_ACTION_SHARE,
-  KIT_ACTIONS,
-  KIT_GLASS,
-  KIT_GRAIN_TILE,
-  KIT_HOUSE_LEVEL,
-  KIT_HOUSE_RUNG,
-  KIT_LAMP,
-  KIT_LETTER_SHARE,
-  KIT_NAME,
-  KIT_RECOUNT_RUNG,
-  KIT_ROOM,
-  KIT_RULE,
-  KIT_SETTLE_RUNG,
-  KIT_SHEEN,
-  KIT_TILE,
-  KIT_WASH,
-  KIT_WIPE,
-  PHI,
-} from "./constants";
+import { clearMask, setMask, topOf } from "./dom";
 import { Signal, Value } from "./engine";
+import { clamp, PHI } from "./math";
 import {
   OwnedScope,
   ScopeGeneration,
@@ -43,25 +26,149 @@ import {
 } from "./react";
 import { letters, words } from "./render";
 import { childScope } from "./stage";
-import { CURVE } from "./time";
-import type {
-  CountProps,
-  DeckProps,
-  HeaderProps,
-  RoomProps,
-  SwapProps,
-} from "./types";
-import {
-  clamp,
-  elapsed,
-  handsOf,
-  reach,
-  staggered,
-  step,
-  topOf,
-  wipe,
-  withinWindow,
-} from "./utils";
+import { CURVE, elapsed, reach, step } from "./time";
+
+export interface CountProps {
+  part: string;
+  value: number;
+  format: (value: number) => string;
+  index?: number;
+  className?: string;
+  hover?: boolean;
+}
+
+export interface DeckProps<K extends string> {
+  views: Record<K, ReactNode>;
+  shown: K;
+  cue?: string;
+  className?: string;
+  viewClassName?: string;
+  onSwitch?: (view: K) => void;
+}
+
+type ProgressWindow = readonly [from: number, to: number];
+
+export interface HeaderProps {
+  part: string;
+  title: string;
+  icon?: ReactNode;
+  actions?: ReactNode;
+  className?: string;
+  nameClassName?: string;
+  progress?: number;
+}
+
+interface RoomProps {
+  black?: boolean;
+  grain?: boolean;
+  grainClassName?: string;
+}
+
+export interface SwapProps {
+  id: string;
+  cue: string;
+  as?: ElementType;
+  className?: string;
+  now?: boolean;
+  intro?: string;
+  children: ReactNode;
+}
+
+const KIT_RECOUNT_RUNG = 1;
+
+const KIT_LAMP = [0, 0.3] as const;
+
+const KIT_NAME = [0.1, 0.65] as const;
+
+const KIT_RULE = [0.3, 0.85] as const;
+
+const KIT_ACTIONS = [0.5, 1] as const;
+
+const KIT_WIPE = [0.25, 0.85] as const;
+
+const KIT_WIPE_EDGE = 32;
+
+const KIT_ROOM = "0.5rem";
+
+const KIT_LETTER_SHARE = 0.45;
+
+const KIT_ACTION_SHARE = 0.5;
+
+const KIT_TAKES_A_HAND =
+  'button, a[href], [role="tab"], [role="combobox"], [role="switch"]';
+
+const KIT_WASH = [
+  "radial-gradient(70% 55% at 22% 38%, color-mix(in oklch, var(--tint, transparent) var(--wash-tint-a), transparent), transparent 70%)",
+  "radial-gradient(60% 50% at 88% 92%, color-mix(in oklch, var(--tint, transparent) var(--wash-tint-b), transparent), transparent 70%)",
+  "radial-gradient(65% 50% at 15% 0%, color-mix(in oklab, var(--ambient-top, transparent) var(--wash-top), transparent), transparent 72%)",
+  "radial-gradient(60% 55% at 100% 20%, color-mix(in oklab, var(--ambient-right, transparent) var(--wash-right), transparent), transparent 72%)",
+  "radial-gradient(70% 50% at 0% 100%, color-mix(in oklab, var(--ambient-left, transparent) var(--wash-left), transparent), transparent 72%)",
+  "radial-gradient(60% 45% at 85% 100%, color-mix(in oklab, var(--ambient-bottom, transparent) var(--wash-bottom), transparent), transparent 72%)",
+].join(", ");
+
+const KIT_SHEEN =
+  "radial-gradient(60% 45% at 16% 0%, rgb(255 255 255 / var(--sheen-a)), transparent 70%)";
+
+const KIT_GLASS = [
+  "radial-gradient(ellipse 125% 105% at 50% 45%, transparent 60%, rgb(var(--vignette-rgb) / var(--vignette-a)))",
+  "linear-gradient(to right, rgb(var(--vignette-rgb) / var(--vignette-edge)), transparent 6%, transparent 94%, rgb(var(--vignette-rgb) / var(--vignette-edge)))",
+  "linear-gradient(to bottom, rgb(var(--vignette-rgb) / var(--vignette-edge)), transparent 8%, transparent 92%, rgb(var(--vignette-rgb) / var(--vignette-edge)))",
+].join(", ");
+
+const KIT_HOUSE_LEVEL = 1 / PHI;
+
+const KIT_HOUSE_RUNG = 1;
+
+const KIT_GRAIN_TILE = "/grain.png";
+
+const KIT_TILE = 512;
+
+const KIT_SETTLE_RUNG = 1;
+
+const withinWindow = (progress: number, [from, to]: ProgressWindow) =>
+  clamp((progress - from) / (to - from), 0, 1);
+
+function staggered(
+  progress: number,
+  window: ProgressWindow,
+  i: number,
+  n: number,
+  share: number,
+) {
+  const [from, to] = window;
+  const span = to - from;
+  const run = span * share;
+  const start = from + (n > 1 ? i / (n - 1) : 0) * (span - run);
+  return clamp((progress - start) / run, 0, 1);
+}
+
+function wipe(host: HTMLElement, reached: number) {
+  if (reached <= 0) {
+    clearMask(host);
+    host.style.opacity = "0";
+    return;
+  }
+  host.style.removeProperty("opacity");
+  if (reached >= 1) {
+    clearMask(host);
+    return;
+  }
+  const edge = (100 + KIT_WIPE_EDGE) * reached;
+  setMask(
+    host,
+    `linear-gradient(90deg, #000 ${edge - KIT_WIPE_EDGE}%, transparent ${edge}%)`,
+  );
+}
+
+function handsOf(host: HTMLElement) {
+  const found = Array.from(
+    host.querySelectorAll<HTMLElement>(KIT_TAKES_A_HAND),
+  );
+  const own = found.filter(
+    (el) => !found.some((other) => other !== el && other.contains(el)),
+  );
+  return own.length > 0 ? own : [host];
+}
 
 const house = new Signal(0);
 

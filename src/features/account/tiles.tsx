@@ -1,13 +1,13 @@
 import type { ReactNode } from "react";
 import { Icon } from "@/design/components/icon";
-import { Image } from "@/design/components/image";
+import { Image } from "@omerdlw/base-framework/ui";
 import {
   SURFACE_META,
   SURFACE_TEXT,
   SURFACE_TILE_INNER,
   SURFACE_TITLE,
   tileVariants,
-} from "@/design/components/surface";
+} from "@/design/components/surface-classes";
 import type { AvatarSource } from "./types";
 import {
   applyAvatarFallback,

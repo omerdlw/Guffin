@@ -5,7 +5,7 @@ import type {
   PersonTvCastCredit,
   PersonTvCrewCredit,
 } from "@/lib/tmdb/shared";
-import { type MediaCardAspect } from "@/design/components/media-card";
+import type { MediaCardAspect } from "@/design/components/media-card";
 
 export interface FilmographyCredit {
   episodes?: number;

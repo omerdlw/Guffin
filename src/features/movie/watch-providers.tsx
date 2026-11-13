@@ -7,10 +7,10 @@ import { tmdbImageUrl } from "@/lib/tmdb/shared";
 import { ExternalLink } from "@/design/components/link";
 import {
   HighlightGroup,
+  Loader,
   useHighlight,
-} from "@/design/components/highlight-group";
+} from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
-import { Loader } from "@/design/components/loader";
 import { MediaCard } from "@/design/components/media-card";
 import { SurfaceSegmentedControl } from "@/design/components/segmented-control";
 import { Select } from "@/design/components/select";
@@ -19,6 +19,8 @@ import {
   SURFACE_STACK,
   SURFACE_TEXT,
   SURFACE_TITLE,
+} from "@/design/components/surface-classes";
+import {
   SurfacePart,
   SurfaceStage,
   SurfaceSwap,

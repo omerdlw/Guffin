@@ -4,12 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import { defineModal, useModal } from "@omerdlw/base-framework/modal";
 import { artworkAttributes } from "@/features/artwork/utils";
 import { useWall } from "@/motion/wall";
-import { Button } from "@/design/components/button";
+import { Button, Image, SegmentedControl } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
 import { MediaCard } from "@/design/components/media-card";
-import { SegmentedControl } from "@/design/components/segmented-control";
 import { Tooltip } from "@/design/components/tooltip";
-import { cn } from "@/design/foundations/cn";
+import { cn } from "@/design/ui";
 import { RADIUS } from "@/design/foundations/geometry";
 import { TONE } from "@/design/foundations/tones";
 import { MEDIA_GRID_CLASS, WALL_REACH_STEP } from "./constants";
@@ -17,7 +16,6 @@ import { Heading } from "./layout";
 import { DetailPart, DetailSection, DetailSwap } from "./motion";
 import { useLead, useWallSet } from "./stage";
 import type { ImageModalData, ModalProps, WallPicture, WallSet } from "./types";
-import { Image } from "@/design/components/image";
 
 function ImageModalView({ data }: ModalProps<ImageModalData>) {
   return (

@@ -17,10 +17,9 @@ import {
 import { useToast } from "@omerdlw/base-framework/notification";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Link } from "@/design/components/link";
-import { Button } from "@/design/components/button";
+import { Button, Spinner } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
 import { Input } from "@/design/components/input";
-import { Spinner } from "@/design/components/loader";
 import { SurfaceAnchor } from "@/design/components/surface";
 import {
   requestEmailAuth,

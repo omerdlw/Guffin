@@ -18,7 +18,5 @@ places the rules above bend:
   from the engine.
 - **Data-viz geometry** (the career chart's 3px gaps and bar corners) follows
   the chart, not the radius scale.
-- **The labs** (`/lab/*`) follow the same tokens; only their stand-in pictures
-  (gradients in place of stills) use raw colours, because they are pictures.
 
 Anything else that seems to need an exception needs a role instead.

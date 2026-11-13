@@ -1,6 +1,6 @@
 import { variants } from "./variants";
 
-export const layerVariants = variants("", {
+const layerVariants = variants("", {
   variants: {
     kind: {
       shell: "bg-glass ring-1 ring-edge-hover ring-inset backdrop-saturate-150",

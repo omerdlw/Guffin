@@ -10,7 +10,7 @@ import {
   SkeletonLines,
   skeletonTextWidth,
 } from "@/design/components/skeleton";
-import { cn } from "@/design/foundations/cn";
+import { cn } from "@/design/ui";
 import {
   CALENDAR_CELL,
   DIARY_CALENDAR_GRID,
@@ -177,7 +177,7 @@ function Posters({
   );
 }
 
-export function PosterStackSkeleton(): JSX.Element {
+function PosterStackSkeleton(): JSX.Element {
   return (
     <div aria-hidden="true" className="flex w-full">
       {Array.from({ length: 5 }, (_, index) => (

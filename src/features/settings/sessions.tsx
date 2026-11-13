@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { requestJson } from "@/lib/http";
-import { Button } from "@/design/components/button";
 import {
+  Button,
   HighlightGroup,
   useHighlight,
-} from "@/design/components/highlight-group";
+} from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
 import {
   SURFACE_META,
@@ -15,8 +15,8 @@ import {
   SURFACE_TILE_INNER,
   SURFACE_TITLE,
   tileVariants,
-} from "@/design/components/surface";
-import { cn } from "@/design/foundations/cn";
+} from "@/design/components/surface-classes";
+import { cn } from "@/design/ui";
 import { Mark, PanelNotice, PanelSkeleton, useSecurityTask } from "./shared";
 import type { AuthSession } from "./types";
 import { describeDevice, describeSession } from "./utils";

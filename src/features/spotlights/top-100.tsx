@@ -15,7 +15,7 @@ import { CANON_HREF, mediaHref } from "@/lib/project";
 import { tmdbImageUrl } from "@/lib/tmdb/shared";
 import { useAnyStage } from "@/motion/react";
 import { Link } from "@/design/components/link";
-import { cn } from "@/design/foundations/cn";
+import { cn } from "@/design/ui";
 import {
   TOP_100_KEYS,
   TUNNEL_DOCK_SETTLE_MS,

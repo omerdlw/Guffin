@@ -25,11 +25,11 @@ import {
   MEDIA_PAGE_SIZE,
   MEDIA_SORTS,
   MEDIA_VIEW_KINDS,
+  PROGRESS_ORDER,
+  PROGRESS_SECTION_LIMIT,
   REVIEW_KINDS,
   REVIEW_SORTS,
   VIEW_MONTH_FORMAT,
-  PROGRESS_ORDER,
-  PROGRESS_SECTION_LIMIT,
 } from "./constants";
 import { Pagination } from "./controls";
 import { FilterBar } from "./filter-bar";

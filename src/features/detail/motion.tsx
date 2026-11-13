@@ -1,8 +1,8 @@
 "use client";
 
-import { PAGE_TEMPO } from "@/motion/constants";
 import { bindScore } from "@/motion/react";
 import { defineScore } from "@/motion/score";
+import { PAGE_TEMPO } from "@/motion/time";
 
 const DETAIL = defineScore({
   tempo: PAGE_TEMPO,

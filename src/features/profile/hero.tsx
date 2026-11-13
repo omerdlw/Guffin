@@ -20,8 +20,8 @@ import { accountHref } from "@/lib/project";
 import { Room } from "@/motion/kit";
 import { TextButton } from "@/design/components/link";
 import { Icon } from "@/design/components/icon";
-import { Image } from "@/design/components/image";
-import { cn } from "@/design/foundations/cn";
+import { Image } from "@omerdlw/base-framework/ui";
+import { cn } from "@/design/ui";
 import { OVERLAP } from "@/design/foundations/layout";
 import { ProfileStatButton, ProfileStatRow } from "./blocks";
 import {

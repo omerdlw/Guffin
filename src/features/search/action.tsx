@@ -17,17 +17,16 @@ import {
   useDockRegistration,
   useDockSelector,
 } from "@omerdlw/base-framework/dock";
-import { ACTION_TONE } from "@/design/foundations/tones";
-import { AnimatePresence, motion, useReducedMotion } from "@/motion/lib";
+import { Button, SegmentedControl } from "@omerdlw/base-framework/ui";
 import { usePathname } from "next/navigation";
-import { POINTS } from "@/motion/constants";
-import { step, tween } from "@/motion/utils";
-import { Button } from "@/design/components/button";
 import { Icon } from "@/design/components/icon";
 import { Input } from "@/design/components/input";
-import { SegmentedControl } from "@/design/components/segmented-control";
-import { SURFACE_SCROLL } from "@/design/components/surface";
-import { cn } from "@/design/foundations/cn";
+import { SURFACE_SCROLL } from "@/design/components/surface-classes";
+import { ACTION_TONE } from "@/design/foundations/tones";
+import { cn } from "@/design/ui";
+import { AnimatePresence, motion, useReducedMotion } from "@/motion/lib";
+import { POINTS, step, tween } from "@/motion/time";
+import styles from "./action.module.css";
 import {
   SEARCH_ACTION_KEY,
   SEARCH_ACTION_ORDER,
@@ -40,12 +39,11 @@ import {
   SEARCH_SCOPE_ITEMS,
 } from "./constants";
 import { useSearch } from "./hooks";
+import { SearchPart, SearchStage, SearchSwap } from "./motion";
 import { ResultSheet, Roll } from "./results";
+import { PagerButton, ResultsSkeleton, Section } from "./sections";
 import type { SearchScope } from "./types";
 import { arrange, hrefsOf } from "./utils";
-import styles from "./action.module.css";
-import { SearchPart, SearchStage, SearchSwap } from "./motion";
-import { PagerButton, ResultsSkeleton, Section } from "./sections";
 
 const TURN = tween(step(-1), POINTS.expo);
 

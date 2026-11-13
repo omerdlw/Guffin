@@ -1,8 +1,7 @@
-import type { Variants } from "@/motion/lib";
-import { POINTS } from "@/motion/constants";
-import { step } from "@/motion/utils";
-import { type MediaCardAspect } from "@/design/components/media-card";
+import type { MediaCardAspect } from "@/design/components/media-card";
 import { TONE } from "@/design/foundations/tones";
+import type { Variants } from "@/motion/lib";
+import { POINTS, step } from "@/motion/time";
 import type { AwardsGrouping, AwardsLook } from "./types";
 
 export const WALL_REACH_STEP = 30;

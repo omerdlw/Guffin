@@ -13,18 +13,18 @@ import {
   useState,
 } from "react";
 import { useOptionalDockState } from "@omerdlw/base-framework/dock";
-import { POINTS, SCROLLING } from "@/motion/constants";
+import { ActionButton } from "@/design/components/action-button";
+import { BOTTOM_COVER, SIDE_COVER } from "@/design/components/backdrop";
+import { MAIN_COLUMN_CLASS, VIEW_CLASS } from "@/design/foundations/layout";
+import { cn } from "@/design/ui";
 import { Room } from "@/motion/kit";
 import { marqueePatience } from "@/motion/marquee";
 import { Projection } from "@/motion/projection";
 import { useScrollDriver } from "@/motion/react";
 import { Intermission } from "@/motion/screen";
-import { step } from "@/motion/utils";
+import { SCROLLING } from "@/motion/scroll";
+import { POINTS, step } from "@/motion/time";
 import { useWall } from "@/motion/wall";
-import { BOTTOM_COVER, SIDE_COVER } from "@/design/components/backdrop";
-import { ActionButton } from "@/design/components/button";
-import { cn } from "@/design/foundations/cn";
-import { MAIN_COLUMN_CLASS, VIEW_CLASS } from "@/design/foundations/layout";
 import {
   BACKDROP_CUT_RUNG,
   BACKDROP_FOCUS,

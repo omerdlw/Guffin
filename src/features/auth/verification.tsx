@@ -10,9 +10,9 @@ import {
 import { useToast } from "@omerdlw/base-framework/notification";
 import { createAccountSetupSurfaceEntry } from "@/features/account/setup";
 import { Input } from "@/design/components/input";
-import { Loader } from "@/design/components/loader";
+import { Loader } from "@omerdlw/base-framework/ui";
 import { SurfaceAnchor } from "@/design/components/surface";
-import { cn } from "@/design/foundations/cn";
+import { cn } from "@/design/ui";
 import { hasAccountUsername, requestEmailAuth, verifyEmailOtp } from "./client";
 import {
   ERROR_RESET_DELAY_MS,

@@ -1,8 +1,8 @@
 "use client";
 
-import { PAGE_TEMPO } from "@/motion/constants";
 import { bindScore } from "@/motion/react";
 import { defineScore } from "@/motion/score";
+import { PAGE_TEMPO } from "@/motion/time";
 
 const ACCOUNT = defineScore({
   margin: "0px 0px -13% 0px",

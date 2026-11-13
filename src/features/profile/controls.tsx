@@ -20,16 +20,17 @@ import {
 } from "@/features/account/actions";
 import { setMovieListMembershipAction } from "@/features/lists/actions";
 import { accountHref } from "@/lib/project";
-import { Button } from "@/design/components/button";
 import {
+  Button,
   HighlightGroup,
+  SlidingPill,
   useHighlight,
-} from "@/design/components/highlight-group";
+  useSlidingPill,
+} from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
-import { SlidingPill, useSlidingPill } from "@/design/components/indicator";
 import { DockLink } from "@/design/components/link";
-import { cn } from "@/design/foundations/cn";
-import { useConfirmedAction } from "@/design/hooks/use-confirm";
+import { cn } from "@/design/ui";
+import { useConfirmedAction } from "@/design/components/confirm";
 import { MEDIA_TYPE_COPY } from "@/features/media/constants";
 import { MediaTypeSwitch, useVitrin } from "@/features/media/media-type";
 import { withVitrin } from "@/features/media/utils";
@@ -159,7 +160,11 @@ export function AccountSectionTabs({
 }): JSX.Element {
   const active = useSelectedLayoutSegment() as SectionKey;
   const base = accountHref(username);
-  const { asked, choose: chooseVitrin, value: vitrin } = useVitrin(rememberedVitrin);
+  const {
+    asked,
+    choose: chooseVitrin,
+    value: vitrin,
+  } = useVitrin(rememberedVitrin);
   const [chosen, setChosen] = useState<SectionKey>(active);
   const [prevActive, setPrevActive] = useState<SectionKey>(active);
   if (active !== prevActive) {

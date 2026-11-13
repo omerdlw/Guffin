@@ -9,7 +9,6 @@ import {
   tmdbImageUrl,
 } from "@/lib/tmdb/shared";
 import { toLogline } from "@/lib/format";
-import { headlineClass } from "@/design/foundations/layout";
 import {
   COMPACT_NUMBER_FORMAT,
   FEATURE_GENRE_LIMIT,
@@ -92,9 +91,6 @@ const yearOf = (date: string | null | undefined): number | null => {
 
 const featureLogline = (overview: string | null | undefined) =>
   toLogline(overview, LOGLINE_LENGTH, LOGLINE_ENOUGH_LENGTH);
-
-export const featureTitleClass = (title: string) =>
-  headlineClass(title, [22, 32, 44]);
 
 export function featureReason(film: Feature): string {
   const parts: string[] = [];

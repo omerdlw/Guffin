@@ -18,12 +18,10 @@ import {
 import { mediaHref, personHref } from "@/lib/project";
 import { tmdbImageUrl } from "@/lib/tmdb/shared";
 import { DockLink } from "@/design/components/link";
-import { Button } from "@/design/components/button";
+import { Button, Image, SegmentedControl } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
-import { Image } from "@/design/components/image";
 import { MediaCard } from "@/design/components/media-card";
-import { SegmentedControl } from "@/design/components/segmented-control";
-import { cn } from "@/design/foundations/cn";
+import { cn } from "@/design/ui";
 import { nested, RADIUS } from "@/design/foundations/geometry";
 import { TONE } from "@/design/foundations/tones";
 import { MOVIE_COMPACT_PEOPLE, MOVIE_FEATURED_PEOPLE } from "./constants";

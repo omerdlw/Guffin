@@ -139,8 +139,6 @@ export type ShowSummary = ShowPage["results"][number];
 export type SeasonSummary = ShowDetails["seasons"][number];
 export type SeasonDetails = z.output<typeof seasonDetailsSchema>;
 export type Episode = SeasonDetails["episodes"][number];
-export type ShowCastMember = ShowDetails["credits"]["cast"][number];
-export type ShowCrewMember = ShowDetails["credits"]["crew"][number];
 
 export type MediaType = "movie" | "tv";
 

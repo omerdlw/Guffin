@@ -1,19 +1,16 @@
 "use client";
 
 import { Fragment, type ReactNode, use, useMemo, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "@/motion/lib";
+import { Button, Image, SegmentedControl } from "@omerdlw/base-framework/ui";
+import { Icon } from "@/design/components/icon";
+import { DockLink } from "@/design/components/link";
+import { Select } from "@/design/components/select";
+import { cn } from "@/design/ui";
 import { PosterThumb } from "@/features/artwork/artwork";
 import { movieHref, personHref } from "@/lib/project";
 import { type Awards, tmdbImageUrl } from "@/lib/tmdb/shared";
-import { Foil } from "@/motion/tilt";
-import type { TiltLight } from "@/motion/types";
-import { DockLink } from "@/design/components/link";
-import { Button } from "@/design/components/button";
-import { Icon } from "@/design/components/icon";
-import { Image } from "@/design/components/image";
-import { SegmentedControl } from "@/design/components/segmented-control";
-import { Select } from "@/design/components/select";
-import { cn } from "@/design/foundations/cn";
+import { AnimatePresence, motion, useReducedMotion } from "@/motion/lib";
+import { Foil, type TiltLight } from "@/motion/tilt";
 import {
   ALL_ORGANIZATIONS,
   AWARD_GROUP_VARIANTS,

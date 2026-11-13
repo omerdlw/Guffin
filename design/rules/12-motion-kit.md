@@ -65,7 +65,5 @@ it.
 | A piece of chrome | A kit component, bound to the score            | `kit.tsx`               |
 | A new page        | A score, in the feature's `motion.tsx`         | `features/<name>/`      |
 
-Then document it here if it changes a contract, and in `docs/motion-engine.md`
-for the detail. Try it in `/lab/kit` (every kit piece) or `/lab/engine` (tempo,
-replay, leave, hand-over, wheel, depth, scene, touch); both are development
-only and return 404 in production.
+Then document it here if it changes a contract; the detail lives in the
+module itself under `src/motion/`.

@@ -8,11 +8,11 @@ import {
   renamePasskey,
 } from "@/features/auth/client";
 import { useAuth } from "@/features/auth/provider";
-import { Button } from "@/design/components/button";
 import {
+  Button,
   HighlightGroup,
   useHighlight,
-} from "@/design/components/highlight-group";
+} from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
 import { Input } from "@/design/components/input";
 import {
@@ -21,8 +21,8 @@ import {
   SURFACE_TILE_INNER,
   SURFACE_TITLE,
   tileVariants,
-} from "@/design/components/surface";
-import { cn } from "@/design/foundations/cn";
+} from "@/design/components/surface-classes";
+import { cn } from "@/design/ui";
 import { INPUT_CLASS } from "./constants";
 import { Mark, PanelNotice, PanelSkeleton, useSecurityTask } from "./shared";
 

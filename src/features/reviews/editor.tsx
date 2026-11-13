@@ -8,14 +8,11 @@ import {
 } from "@omerdlw/base-framework/dock";
 import { useToast } from "@omerdlw/base-framework/notification";
 import { report, toUserMessage } from "@omerdlw/base-framework/utils";
-import { Button } from "@/design/components/button";
+import { Button, Textarea } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
-import { inputVariants, Textarea } from "@/design/components/input";
-import {
-  SURFACE_STACK,
-  SurfacePart,
-  SurfaceStage,
-} from "@/design/components/surface";
+import { ui } from "@/design/ui";
+import { SURFACE_STACK } from "@/design/components/surface-classes";
+import { SurfacePart, SurfaceStage } from "@/design/components/surface";
 import { saveListCommentAction, saveMovieReviewAction } from "./actions";
 import {
   REVIEW_EDITOR_SURFACE_WIDTH,
@@ -125,7 +122,7 @@ function ReviewEditorSurface({
           <SurfacePart className="relative w-full" name="item">
             <Textarea
               aria-label={isList ? "Comment" : "Review"}
-              className={inputVariants({
+              className={ui.parts.input.field({
                 className: "min-h-[130px] w-full p-4 pb-9 type-body",
               })}
               disabled={saving}

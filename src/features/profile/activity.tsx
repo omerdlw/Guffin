@@ -15,7 +15,7 @@ import { Icon } from "@/design/components/icon";
 import { DockLink } from "@/design/components/link";
 import { MediaCard } from "@/design/components/media-card";
 import { DockAction } from "@/design/components/surface";
-import { cn } from "@/design/foundations/cn";
+import { cn } from "@/design/ui";
 import { RADIUS } from "@/design/foundations/geometry";
 import { ActivityCalendar } from "./calendar";
 import {

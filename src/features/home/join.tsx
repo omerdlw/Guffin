@@ -2,7 +2,7 @@
 
 import type { JSX } from "react";
 import { useOpenSignIn } from "@/features/auth/sign-in";
-import { Button } from "@/design/components/button";
+import { Button } from "@omerdlw/base-framework/ui";
 import { HEADLINE_BOX } from "@/design/foundations/layout";
 import { TONE } from "@/design/foundations/tones";
 import { GuestOnly } from "./craft";

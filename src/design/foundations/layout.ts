@@ -32,7 +32,7 @@ const HEADLINE_SIZES = [
   "type-display-sm sm:type-display-md lg:type-display-lg",
   "type-display-xs sm:type-display-sm lg:type-display-md",
 ] as const;
-export const HEADLINE_FACE = "font-zuume leading-none font-bold uppercase";
+const HEADLINE_FACE = "font-zuume leading-none font-bold uppercase";
 
 export const HEADLINE_BOX =
   "relative top-[calc(-0.14em-round(-0.14em,1px))] mt-[round(-0.14em,1px)] mb-[round(-0.16em,1px)] max-w-full";

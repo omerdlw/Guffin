@@ -2,6 +2,8 @@
 
 import {
   createContext,
+  type ElementType,
+  type ReactNode,
   useCallback,
   useContext,
   useEffect,
@@ -11,16 +13,9 @@ import {
   useRef,
   useState,
 } from "react";
-import {
-  WALL_BAND,
-  WALL_EDGE,
-  WALL_GLOW,
-  WALL_LIGHT,
-  WALL_RETURN_MARGIN,
-  WALL_ROOM,
-  WALL_SWEEP,
-} from "./constants";
-import { useExposure } from "./expose";
+import { clearMask, setMask } from "./dom";
+import { type Exposure, useExposure } from "./expose";
+import { within } from "./math";
 import {
   OwnedScope,
   ScopeProvider,
@@ -31,15 +26,43 @@ import {
 } from "./react";
 import { driverOf } from "./scroll";
 import { childScope } from "./stage";
-import { CURVE } from "./time";
-import type {
-  BloomProps,
-  Exposure,
-  WallPhase,
-  WallStageProps,
-  WallState,
-} from "./types";
-import { clearMask, elapsed, setMask, within } from "./utils";
+import { CURVE, elapsed } from "./time";
+
+type WallPhase = "page" | "leaving" | "wall" | "closing" | "returning";
+
+interface WallState {
+  phase: WallPhase;
+  open: (from?: HTMLElement | null) => void;
+  close: () => void;
+}
+
+export interface WallStageProps {
+  cue: string;
+  wall: ReactNode;
+  children: ReactNode;
+}
+
+export interface BloomProps {
+  part: string;
+  text: string;
+  as?: ElementType;
+  className?: string;
+}
+
+const WALL_RETURN_MARGIN = 24;
+
+const WALL_SWEEP = [0, 0.62] as const;
+
+const WALL_EDGE = 30;
+
+const WALL_BAND = 46;
+
+const WALL_ROOM = "0.6em";
+
+const WALL_LIGHT = "rgb(255 253 247)";
+
+const WALL_GLOW =
+  "0 0 0.3em rgb(150 190 255 / 0.8), 0 0 0.9em rgb(110 160 255 / 0.5)";
 
 const WallContext = createContext<WallState | null>(null);
 

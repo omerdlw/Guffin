@@ -16,20 +16,20 @@ import {
   useState,
   useTransition,
 } from "react";
-import { usePathname } from "next/navigation";
-import { globalEvents } from "@omerdlw/base-framework/events";
-import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
-import { REGISTRY_SOURCES, usePage } from "@omerdlw/base-framework/kernel";
 import {
   useDockActions,
   useDockContextActions,
 } from "@omerdlw/base-framework/dock";
+import { globalEvents } from "@omerdlw/base-framework/events";
+import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
+import { REGISTRY_SOURCES, usePage } from "@omerdlw/base-framework/kernel";
 import { useToast } from "@omerdlw/base-framework/notification";
 import {
   report,
   toUserMessage,
   UserError,
 } from "@omerdlw/base-framework/utils";
+import { usePathname } from "next/navigation";
 import {
   followUserAction,
   unfollowUserAction,
@@ -47,8 +47,7 @@ import { accountHref } from "@/lib/project";
 import { Value } from "@/motion/engine";
 import { ScopeProvider, useEngine, useScope } from "@/motion/react";
 import { childScope } from "@/motion/stage";
-import { CURVE } from "@/motion/time";
-import { step } from "@/motion/utils";
+import { CURVE, step } from "@/motion/time";
 import { DOCK_ACTION_ORDER, SHELL_SETTLE_RUNG } from "./constants";
 import { AccountSectionTabs } from "./controls";
 import { AccountLayout } from "./hero";

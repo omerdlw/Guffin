@@ -9,32 +9,32 @@ import { useToast } from "@omerdlw/base-framework/notification";
 import { report, toUserMessage } from "@omerdlw/base-framework/utils";
 import { useRouter } from "next/navigation";
 import { accountHref, listHref } from "@/lib/project";
-import { Button } from "@/design/components/button";
 import {
+  Button,
   HighlightGroup,
+  Switch,
+  Textarea,
   useHighlight,
   useHighlightReset,
-} from "@/design/components/highlight-group";
+} from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
-import { Input, inputVariants, Textarea } from "@/design/components/input";
+import { Input } from "@/design/components/input";
+import { cn, ui } from "@/design/ui";
 import {
   SURFACE_META,
   SURFACE_STACK,
   SURFACE_TEXT,
   SURFACE_TILE_INNER,
   SURFACE_TITLE,
-  SurfacePart,
-  SurfaceStage,
-} from "@/design/components/surface";
-import { Switch } from "@/design/components/switch";
-import { cn } from "@/design/foundations/cn";
+} from "@/design/components/surface-classes";
+import { SurfacePart, SurfaceStage } from "@/design/components/surface";
 import { deleteListAction, saveListAction } from "./actions";
 import {
   LIST_DESCRIPTION_MAX,
   LIST_TILE_CLASS,
   LIST_TITLE_MAX,
 } from "./constants";
-import { useConfirm } from "@/design/hooks/use-confirm";
+import { useConfirm } from "@/design/components/confirm";
 import { createListOrderSurfaceEntry } from "./order";
 import type { ListDraft, ListFormData } from "./types";
 
@@ -227,7 +227,7 @@ function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
             <SurfacePart name="item">
               <Input
                 aria-label="List name"
-                className={cn(inputVariants(), "h-10 w-full px-4 type-body")}
+                className={cn(ui.parts.input.field(), "h-10 w-full px-4 type-body")}
                 disabled={disabled}
                 maxLength={LIST_TITLE_MAX}
                 onChange={(event) => updateDraft({ title: event.target.value })}
@@ -240,7 +240,7 @@ function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
               <Textarea
                 aria-label="Description"
                 className={cn(
-                  inputVariants(),
+                  ui.parts.input.field(),
                   "w-full px-4 py-3 type-body leading-6",
                 )}
                 disabled={disabled}

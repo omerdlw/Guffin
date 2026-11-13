@@ -127,12 +127,12 @@ export interface TmdbConfig {
   baseUrl?: string;
 }
 
-export type TmdbQuery = Record<
+type TmdbQuery = Record<
   string,
   string | number | boolean | null | undefined
 >;
 
-export interface TmdbRequest<T> {
+interface TmdbRequest<T> {
   path: string;
   query?: TmdbQuery;
   schema: z.ZodType<T, unknown>;

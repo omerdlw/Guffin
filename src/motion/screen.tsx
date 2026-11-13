@@ -1,7 +1,6 @@
 "use client";
 
 import { type ReactNode, useEffect, useRef, useState } from "react";
-import { Z_INDEX } from "@/design/foundations/z-index";
 import {
   AnimatePresence,
   motion,
@@ -10,22 +9,49 @@ import {
   useReducedMotion,
 } from "motion/react";
 import { LOGO_PATH, LOGO_VIEWBOX } from "@/design/components/logo";
-import { cn } from "@/design/foundations/cn";
-import { gradeOf, rgbOf } from "./color";
-import {
-  POINTS,
-  SCREEN_BEAM,
-  SCREEN_DIM,
-  SCREEN_LINE,
-  SCREEN_OFF,
-  SCREEN_ON,
-  SCREEN_UNTINTED,
-  SCREEN_WAKE,
-} from "./constants";
+import { Z_INDEX } from "@/design/foundations/z-index";
+import { cn } from "@/design/ui";
+import { gradeOf, rgbOf, type Tint } from "./color";
 import { houseDown } from "./kit";
 import { useEngine } from "./react";
-import type { Tint } from "./types";
-import { passThrough } from "./utils";
+import { POINTS } from "./time";
+
+type Bezier = [number, number, number, number];
+
+const SCREEN_ON = { line: 0.3, run: 0.95 };
+
+const SCREEN_OFF = { collapse: 0.18, point: 0.26, glow: 0.9 };
+
+const SCREEN_LINE = 0.004;
+
+const SCREEN_BEAM = "rgb(255 250 242)";
+
+const SCREEN_WAKE = [
+  "pointermove",
+  "pointerdown",
+  "keydown",
+  "wheel",
+  "touchstart",
+  "scroll",
+] as const;
+
+const SCREEN_THROUGH = 1.06;
+
+const SCREEN_DIM: Bezier = [0.3, 0, 0.2, 1];
+
+const SCREEN_UNTINTED = "data-untinted";
+
+function passThrough(run: number): TargetAndTransition {
+  return {
+    opacity: 0,
+    scale: SCREEN_THROUGH,
+    transition: {
+      duration: run,
+      opacity: { duration: run, ease: SCREEN_DIM },
+      scale: { duration: run, ease: POINTS.dolly },
+    },
+  };
+}
 
 function afterglow(box: DOMRect) {
   const point = document.createElement("div");

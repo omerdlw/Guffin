@@ -10,7 +10,7 @@ import { useAuth } from "@/features/auth/provider";
 import { getAuthCallbackUrl, getAuthErrorMessage } from "@/features/auth/utils";
 import { createVerificationSurfaceEntry } from "@/features/auth/verification";
 import { requestJson } from "@/lib/http";
-import { Button } from "@/design/components/button";
+import { Button } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
 import { Input } from "@/design/components/input";
 import {
@@ -19,7 +19,7 @@ import {
   SURFACE_TEXT,
   SURFACE_TITLE,
   tileVariants,
-} from "@/design/components/surface";
+} from "@/design/components/surface-classes";
 import { DELETE_CONFIRMATION, INPUT_CLASS } from "./constants";
 import { Mark } from "./shared";
 

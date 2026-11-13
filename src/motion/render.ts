@@ -1,15 +1,76 @@
-import { neutral } from "./color";
-import { TEXT_WORD_ATTRIBUTE } from "./constants";
+import { type Look, neutral } from "./color";
+import { lines } from "./dom";
+import type { Frame, Pointer, Viewport } from "./engine";
+import type { Force } from "./forces";
+import type { Cadence } from "./score";
 import type { Stage } from "./stage";
-import type {
-  Frame,
-  PartOptions,
-  PartState,
-  SceneOptions,
-  SceneSetup,
-  Split,
-} from "./types";
-import { compile, lines } from "./utils";
+import type { TouchVerb } from "./time";
+
+interface PartState {
+  enter: number;
+  leave: number;
+  moving: boolean;
+  quiet: boolean;
+}
+
+export interface PartOptions {
+  index?: number;
+  scope?: string;
+  ready?: boolean;
+  patience?: number;
+  cadence?: Cadence;
+  carry?: string;
+  forces?: readonly Force[];
+  touch?: TouchVerb;
+  render?: (look: Look, state: PartState) => void;
+  css?: boolean;
+}
+
+export type Split = "word" | "line" | "char" | "block";
+
+interface SceneFrame extends PartState {
+  time: number;
+  delta: number;
+  look: Look;
+  scroll: number;
+  pointer: Pointer;
+  viewport: Viewport;
+  width: number;
+  height: number;
+  ratio: number;
+}
+
+interface Renderer {
+  draw(frame: SceneFrame): boolean | void;
+  resize?(width: number, height: number, ratio: number): void;
+  dispose?(): void;
+}
+
+export type SceneSetup = (
+  canvas: HTMLCanvasElement,
+  wake: () => void,
+) => Renderer | null;
+
+export interface SceneOptions extends Omit<PartOptions, "render"> {
+  pixelRatio?: number;
+}
+
+export const TEXT_WORD_ATTRIBUTE = "data-word";
+
+function compile(gl: WebGL2RenderingContext, type: number, source: string) {
+  const shader = gl.createShader(type);
+  if (!shader) return null;
+  gl.shaderSource(shader, source);
+  gl.compileShader(shader);
+  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    if (process.env.NODE_ENV !== "production") {
+      console.error(gl.getShaderInfoLog(shader));
+    }
+    gl.deleteShader(shader);
+    return null;
+  }
+  return shader;
+}
 
 export function mountScene<P extends string, S extends string>(
   stage: Stage<P, S>,

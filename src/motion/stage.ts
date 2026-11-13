@@ -1,32 +1,118 @@
 import { carrierOf } from "./carry";
-import { blank, blend, css, neutral, paint } from "./color";
+import { blank, blend, css, neutral, paint, type Written } from "./color";
+import { type Engine, Signal, Value } from "./engine";
 import {
-  BULK_SHARE,
-  CARRY_CAP,
-  CARRY_DROP,
-  HURRY_CAP,
-  PHI,
-  QUIET,
+  depthShade,
+  driftReach,
+  type Force,
+  type Placement,
+  Touch,
+} from "./forces";
+import { PHI } from "./math";
+import type { PartOptions } from "./render";
+import {
+  type Cadence,
+  lead,
+  leaveLength,
+  plan,
+  type Plan,
+  type Role,
+  type Score,
+  spacing,
+  type Step,
+} from "./score";
+import {
+  arrival,
+  CURVE,
+  departure,
+  ENTER,
+  LEAVE,
   QUIET_RUNG,
-  SCOPE_SEPARATOR,
-} from "./constants";
-import { Signal, Value } from "./engine";
-import { depthShade, driftReach, Touch } from "./forces";
-import { lead, leaveLength, plan, spacing } from "./score";
-import { arrival, CURVE, departure, ENTER, LEAVE, response } from "./time";
-import type {
-  Act,
-  Actor,
-  Engine,
-  Handle,
-  PartOptions,
-  Placement,
-  Plan,
-  Queued,
-  Score,
-  StageOptions,
-} from "./types";
-import { inScope, keyOf, liftOf, scopeOfKey, step } from "./utils";
+  response,
+  step,
+  type Verb,
+} from "./time";
+
+export type Act = "waiting" | "arriving" | "present" | "leaving" | "gone";
+
+interface StageOptions {
+  pace?: number;
+}
+
+export interface Handle {
+  ready(): void;
+  index(index: number): void;
+  dispose(): void;
+}
+
+interface Actor {
+  name: string;
+  scope: string | null;
+  role: Role;
+  index: number;
+  cadence: Cadence;
+  el: HTMLElement;
+  ready: boolean;
+  patience: number;
+  enter: Value;
+  leave: Value;
+  drift: { x: Value; y: Value } | null;
+  placement: Placement;
+  forces: readonly Force[];
+  render: PartOptions["render"];
+  css: boolean;
+  written: Written;
+  radius: string | null;
+  bulk: boolean | null;
+  release: () => void;
+}
+
+interface Queued<P extends string> {
+  step: Step<P>;
+  cue: string;
+  scope: string | null;
+  at?: number;
+}
+
+const BULK_SHARE = 0.3;
+
+const HURRY_CAP = 2;
+
+const CARRY_DROP = 1;
+
+const CARRY_CAP = 2;
+
+const SCOPE_SEPARATOR = "/";
+
+const QUIET = {
+  enter: (p) => ({ opacity: p }),
+  leave: (p) => ({ opacity: 1 - p }),
+} satisfies Record<string, Verb>;
+
+const keyOf = (name: string, scope: string | null) =>
+  scope === null ? name : `${name}\u0000${scope}`;
+
+const scopeOfKey = (key: string) => {
+  const at = key.indexOf("\u0000");
+  return at === -1 ? null : key.slice(at + 1);
+};
+
+const inScope = (scope: string | null, outer: string | null) =>
+  outer === null
+    ? scope === null
+    : scope !== null &&
+      (scope === outer || scope.startsWith(outer + SCOPE_SEPARATOR));
+
+function liftOf(
+  depth: number,
+  moving: boolean,
+  quiet: boolean,
+  softened: boolean,
+) {
+  if (depth !== 0 && !quiet) return "transform, opacity, filter";
+  if (!moving) return "";
+  return softened ? "transform, opacity, filter" : "transform, opacity";
+}
 
 export const PATIENCE = step(3);
 

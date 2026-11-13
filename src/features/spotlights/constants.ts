@@ -457,12 +457,6 @@ export const GESTURE_THRESHOLD = 28;
 
 export const GESTURE_END_MS = 220;
 
-export const BACKDROP_REACH = 0.12;
-
-export const BACKDROP_SPAN = 0.4;
-
-export const BACKDROP_STEP = 0.045;
-
 export const TOP_100_FILTERS: readonly { label: string; value: Filter }[] = [
   { label: "All", value: "all" },
   { label: "Seen", value: "seen" },

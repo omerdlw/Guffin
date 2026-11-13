@@ -2,7 +2,7 @@ import type { JSX } from "react";
 import { tvHref } from "@/lib/project";
 import { tmdbImageSrcSet, tmdbImageUrl } from "@/lib/tmdb/shared";
 import { MediaCard } from "@/design/components/media-card";
-import { cn } from "@/design/foundations/cn";
+import { cn } from "@/design/ui";
 import { RADIUS } from "@/design/foundations/geometry";
 import type { ContinueItem } from "./types";
 import { formatEpisodeCode, progressRatio } from "./utils";
@@ -33,7 +33,7 @@ export function ProgressBar({
   );
 }
 
-export function progressCaption(show: ContinueItem): string {
+function progressCaption(show: ContinueItem): string {
   const code = formatEpisodeCode(show.lastSeason, show.lastEpisode);
   const count = show.airedEpisodes
     ? `${show.watchedEpisodes}/${show.airedEpisodes}`
@@ -41,11 +41,7 @@ export function progressCaption(show: ContinueItem): string {
   return [code, count].filter(Boolean).join(" · ");
 }
 
-export function ShowProgressCard({
-  show,
-}: {
-  show: ContinueItem;
-}): JSX.Element {
+function ShowProgressCard({ show }: { show: ContinueItem }): JSX.Element {
   const caption = progressCaption(show);
   return (
     <div className="flex min-w-0 flex-col gap-1.5">

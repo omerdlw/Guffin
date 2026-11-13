@@ -12,11 +12,11 @@ import { DetailBackdrop } from "@/features/detail/stage";
 import { MoviePosterLink } from "@/features/movie/stage";
 import { accountHref, CANON_HREF, movieHref } from "@/lib/project";
 import { tmdbImageUrl } from "@/lib/tmdb/shared";
-import { Button } from "@/design/components/button";
+import { Button } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
 import { DockLink } from "@/design/components/link";
 import { DockAction } from "@/design/components/surface";
-import { cn } from "@/design/foundations/cn";
+import { cn } from "@/design/ui";
 import { RADIUS } from "@/design/foundations/geometry";
 import {
   HEADLINE_BOX,

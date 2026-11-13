@@ -1,4 +1,4 @@
-import { tileVariants } from "@/design/components/surface";
+import { tileVariants } from "@/design/components/surface-classes";
 import type { AccountState, MovieLibraryState, SocialTab } from "./types";
 
 export const INITIAL_ACCOUNT_STATE: AccountState = Object.freeze({

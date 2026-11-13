@@ -1,7 +1,7 @@
 import type { CSSProperties, JSX } from "react";
 import { MoviePosterLink } from "@/features/movie/stage";
-import { Avatar } from "@/design/components/avatar";
-import { cn } from "@/design/foundations/cn";
+import { Avatar } from "@omerdlw/base-framework/ui";
+import { cn } from "@/design/ui";
 import { RADIUS } from "@/design/foundations/geometry";
 import { TONE } from "@/design/foundations/tones";
 import { CAPTION_CLASS, LOGGED_SECONDS_PER_FILM } from "./constants";

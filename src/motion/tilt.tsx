@@ -1,8 +1,8 @@
 "use client";
 
 import {
-  type ReactNode,
   type PointerEvent as ReactPointerEvent,
+  type ReactNode,
   useEffect,
   useRef,
 } from "react";
@@ -14,11 +14,18 @@ import {
   useSpring,
   useTransform,
 } from "motion/react";
-import { cn } from "@/design/foundations/cn";
-import { MATTER, POINTS, TILT_GLARE_RADIUS, TILT_LEAN } from "./constants";
-import { response } from "./time";
-import type { TiltLight } from "./types";
-import { springForce, step } from "./utils";
+import { cn } from "@/design/ui";
+import { MATTER, POINTS, response, springForce, step } from "./time";
+
+export interface TiltLight {
+  glow: MotionValue<number>;
+  x: MotionValue<number>;
+  y: MotionValue<number>;
+}
+
+const TILT_LEAN = 9;
+
+const TILT_GLARE_RADIUS = 560;
 
 const SPRING = springForce({
   ...response(MATTER.paper, -1),

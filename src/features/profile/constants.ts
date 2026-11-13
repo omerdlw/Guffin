@@ -1,6 +1,5 @@
 import type { MediaType } from "@/features/catalog/types";
-import { inputVariants } from "@/design/components/input";
-import { cn } from "@/design/foundations/cn";
+import { cn, ui } from "@/design/ui";
 import { TONE } from "@/design/foundations/tones";
 import type {
   AccountHeader,
@@ -284,7 +283,7 @@ export const SEARCH_SETTLE_MS = 280;
 
 export const FILTER_BAR_LOOK = {
   form: "relative col-span-full min-w-0 md:flex-1",
-  input: cn(inputVariants(), "h-10 w-full rounded-full pr-3 pl-10 type-body"),
+  input: cn(ui.parts.input.field(), "h-10 w-full rounded-full pr-3 pl-10 type-body"),
   reset: "col-span-full px-3 font-semibold uppercase md:justify-start",
   root: "mb-5 grid grid-cols-2 gap-2 md:flex md:flex-wrap md:items-center",
   select: "min-w-0 md:w-44 md:flex-none lg:w-48",

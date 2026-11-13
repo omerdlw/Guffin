@@ -1,8 +1,8 @@
 "use client";
 
 import { type CSSProperties, type FocusEvent, type JSX, useState } from "react";
-import { Button } from "@/design/components/button";
-import { cn } from "@/design/foundations/cn";
+import { Button } from "@omerdlw/base-framework/ui";
+import { cn } from "@/design/ui";
 import { STAR_GAP, STAR_PATH } from "./constants";
 import { isRated, starFillWidth } from "./utils";
 import styles from "./rating.module.css";

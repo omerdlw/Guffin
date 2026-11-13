@@ -1,4 +1,5 @@
 import "server-only";
+
 import type { JSX } from "react";
 import { notFound } from "next/navigation";
 import { ArtworkPrint } from "@/features/artwork/artwork";
@@ -66,7 +67,7 @@ import { Carousel } from "@/design/components/carousel";
 import { DockLink } from "@/design/components/link";
 import { Icon } from "@/design/components/icon";
 import { Tooltip } from "@/design/components/tooltip";
-import { cn } from "@/design/foundations/cn";
+import { cn } from "@/design/ui";
 import { RADIUS } from "@/design/foundations/geometry";
 import {
   CAROUSEL_ITEM,
@@ -81,7 +82,7 @@ import {
   SeasonWatchAction,
   SeasonWatchedStat,
 } from "./episodes";
-import { type ShelfProgress, SeasonShelf } from "./seasons";
+import { SeasonShelf, type ShelfProgress } from "./seasons";
 import { getSeasonStills, getShowTracking } from "./server";
 import { ShowPageChrome } from "./stage";
 import { ShowStatusAction } from "./status";

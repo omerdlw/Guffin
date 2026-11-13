@@ -10,13 +10,13 @@ import { useAuth } from "@/features/auth/provider";
 import { RatingStars } from "@/features/reviews/rating";
 import { accountHref, reviewHref } from "@/lib/project";
 import { StagePart } from "@/motion/react";
-import { Button } from "@/design/components/button";
-import { Link } from "@/design/components/link";
-import { Avatar } from "@/design/components/avatar";
 import {
+  Avatar,
+  Button,
   HighlightGroup,
   useHighlight,
-} from "@/design/components/highlight-group";
+} from "@omerdlw/base-framework/ui";
+import { Link } from "@/design/components/link";
 import { Icon } from "@/design/components/icon";
 import { SurfaceSegmentedControl } from "@/design/components/segmented-control";
 import {
@@ -27,17 +27,17 @@ import {
   SURFACE_TILE_END,
   SURFACE_TILE_INNER,
   SURFACE_TITLE,
-  SurfaceAnchor,
   tileVariants,
-} from "@/design/components/surface";
-import { cn } from "@/design/foundations/cn";
+} from "@/design/components/surface-classes";
+import { SurfaceAnchor } from "@/design/components/surface";
+import { cn } from "@/design/ui";
 import { useMediaType } from "@/features/media/context";
 import { getMovieSocialProofAction } from "./actions";
 import { AVATAR_OVERLAP } from "./constants";
 import type {
   Friend,
-  MutualFollowers,
   MovieSocialProof as Proof,
+  MutualFollowers,
   ProofTab,
   SocialPerson,
   SocialProofSurfaceData,

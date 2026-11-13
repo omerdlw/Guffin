@@ -9,7 +9,7 @@ import {
   SkeletonLines,
   skeletonTextWidth,
 } from "@/design/components/skeleton";
-import { cn } from "@/design/foundations/cn";
+import { cn } from "@/design/ui";
 import {
   CONTAINER_CLASS,
   HEADLINE_BOX,

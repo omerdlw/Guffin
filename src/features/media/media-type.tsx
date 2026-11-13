@@ -1,11 +1,10 @@
 "use client";
 
-import type { JSX } from "react";
+import { type JSX, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useTransition } from "react";
 import { VITRIN_COOKIE_NAME } from "@/lib/env";
-import { SlidingPill, useSlidingPill } from "@/design/components/indicator";
-import { cn } from "@/design/foundations/cn";
+import { SlidingPill, useSlidingPill } from "@omerdlw/base-framework/ui";
+import { cn } from "@/design/ui";
 import { VITRIN_COOKIE_MAX_AGE, VITRIN_ITEMS } from "./constants";
 import type { MediaType } from "./types";
 import { withVitrin } from "./utils";

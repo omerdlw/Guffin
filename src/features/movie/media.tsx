@@ -1,23 +1,22 @@
 "use client";
 
 import { useModal } from "@omerdlw/base-framework/modal";
-import { AnimatePresence, motion } from "@/motion/lib";
+import { Button } from "@omerdlw/base-framework/ui";
+import { Icon } from "@/design/components/icon";
+import { TONE } from "@/design/foundations/tones";
 import { ArtworkPrint, useArtworkPath } from "@/features/artwork/artwork";
 import { ImageModal } from "@/features/detail/gallery";
-import { useMediaType } from "@/features/media/context";
 import { DetailCount } from "@/features/detail/motion";
 import { DetailBackdrop, DetailIntermission } from "@/features/detail/stage";
 import type { ImageModalData } from "@/features/detail/types";
+import { useMediaType } from "@/features/media/context";
 import {
   type Awards,
   type MovieDetails,
   tmdbImageUrl,
 } from "@/lib/tmdb/shared";
-import { POINTS } from "@/motion/constants";
-import { step } from "@/motion/utils";
-import { Button } from "@/design/components/button";
-import { Icon } from "@/design/components/icon";
-import { TONE } from "@/design/foundations/tones";
+import { AnimatePresence, motion } from "@/motion/lib";
+import { POINTS, step } from "@/motion/time";
 import { REEL_IMAGE_SIZE, STILL_BADGE_RUNG } from "./constants";
 import type { MovieArtwork } from "./types";
 import { formatMoneyOrZero, readableUrl } from "./utils";

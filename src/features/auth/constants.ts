@@ -1,5 +1,5 @@
 import type { AuthState, OAuthProvider, OtpState, SignInMethod } from "./types";
-import { inputVariants } from "@/design/components/input";
+import { ui } from "@/design/ui";
 
 export const AUTH_CALLBACK_PATH = "/auth/callback";
 
@@ -82,7 +82,7 @@ export const SIGN_IN_METHODS: Record<
   x: { icon: "simple-icons:x", label: "X" },
 };
 
-export const AUTH_INPUT_CLASS = inputVariants({
+export const AUTH_INPUT_CLASS = ui.parts.input.field({
   className: "h-10 w-full px-4 type-body",
 });
 

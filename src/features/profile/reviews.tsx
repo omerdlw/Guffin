@@ -7,7 +7,7 @@ import { RatingStars } from "@/features/reviews/rating";
 import { reviewHref } from "@/lib/project";
 import { DockLink, TextButton } from "@/design/components/link";
 import { MediaCard } from "@/design/components/media-card";
-import { cn } from "@/design/foundations/cn";
+import { cn } from "@/design/ui";
 import { RADIUS } from "@/design/foundations/geometry";
 import { AccountPart } from "./motion";
 import type { ActivityReview } from "./types";

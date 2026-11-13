@@ -20,16 +20,12 @@ import {
   tmdbImageSrcSet,
   tmdbImageUrl,
 } from "@/lib/tmdb/shared";
-import { Button } from "@/design/components/button";
+import { Button, SegmentedControl } from "@omerdlw/base-framework/ui";
 import { Carousel } from "@/design/components/carousel";
 import { MediaCard } from "@/design/components/media-card";
-import { SegmentedControl } from "@/design/components/segmented-control";
 import { Select } from "@/design/components/select";
-import {
-  SurfacePart,
-  SurfaceProse,
-  SurfaceStage,
-} from "@/design/components/surface";
+import { SurfacePart, SurfaceStage } from "@/design/components/surface";
+import { SurfaceProse } from "@/design/components/surface-prose";
 import { RADIUS } from "@/design/foundations/geometry";
 import { TONE } from "@/design/foundations/tones";
 import {
@@ -48,7 +44,7 @@ import type {
   GalleryTab,
   PersonBioData,
 } from "./types";
-import { isFilmographySort, buildGalleryShelves } from "./utils";
+import { buildGalleryShelves, isFilmographySort } from "./utils";
 import { PersonMediumControl, usePersonMedium } from "./views";
 
 export function PersonFilmography({

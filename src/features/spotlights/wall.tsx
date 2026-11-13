@@ -5,14 +5,13 @@ import { useDockActionClass } from "@omerdlw/base-framework/dock";
 import { mediaHref } from "@/lib/project";
 import { tmdbImageUrl } from "@/lib/tmdb/shared";
 import { Link, TextButton } from "@/design/components/link";
-import { Button } from "@/design/components/button";
+import { Button, Image } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
 import { DockAction } from "@/design/components/surface";
-import { cn } from "@/design/foundations/cn";
+import { cn } from "@/design/ui";
 import { TOP_100_FILTERS } from "./constants";
 import type { CanonFilm, Filter } from "./types";
 import { votesOf } from "./utils";
-import { Image } from "@/design/components/image";
 
 export function SeenPanel({
   count,

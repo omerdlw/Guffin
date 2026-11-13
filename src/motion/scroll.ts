@@ -1,16 +1,27 @@
-import {
-  SCROLL_LATCH,
-  SCROLL_LINE,
-  SCROLL_LOCK,
-  SCROLL_LIMIT_TTL,
-  SCROLL_LOCK_TTL,
-  SCROLL_RUNG,
-  SCROLL_STYLE_TTL,
-  SCROLLING,
-} from "./constants";
-import { Value } from "./engine";
-import type { Engine, ScrollTarget } from "./types";
-import { clamp, step } from "./utils";
+import { type Engine, Value } from "./engine";
+import { clamp } from "./math";
+import { step } from "./time";
+
+interface ScrollTarget {
+  offset?: number;
+  immediate?: boolean;
+}
+
+const SCROLL_RUNG = 1;
+
+const SCROLL_LINE = 40;
+
+const SCROLL_LATCH = 160;
+
+const SCROLL_STYLE_TTL = 2000;
+
+const SCROLL_LOCK_TTL = 250;
+
+const SCROLL_LIMIT_TTL = 200;
+
+export const SCROLLING = "data-scrolling";
+
+const SCROLL_LOCK = "data-scroll-lock";
 
 function wheelPixels(event: WheelEvent) {
   if (event.deltaMode === 1) return event.deltaY * SCROLL_LINE;

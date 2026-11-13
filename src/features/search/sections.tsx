@@ -1,12 +1,12 @@
 "use client";
 
-import { type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { useDockActionClass } from "@omerdlw/base-framework/dock";
 import {
   MoviePosterLink,
   MoviePosterPlaceholder,
 } from "@/features/movie/stage";
-import { Button } from "@/design/components/button";
+import { Button } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
 import { SkeletonBlock } from "@/design/components/skeleton";
 import { TONE } from "@/design/foundations/tones";
@@ -28,7 +28,7 @@ import {
 import type { SearchScope, SearchSection } from "./types";
 import { SearchPart } from "./motion";
 
-export function Option({
+function Option({
   active,
   children,
   halo = false,
@@ -64,13 +64,7 @@ export function Option({
   );
 }
 
-export function Spacers({
-  count,
-  kind,
-}: {
-  count: number;
-  kind: "poster" | "row";
-}) {
+function Spacers({ count, kind }: { count: number; kind: "poster" | "row" }) {
   if (count <= 0) return null;
   return Array.from({ length: count }, (_, index) =>
     kind === "poster" ? (

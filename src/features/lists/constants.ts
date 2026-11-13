@@ -1,5 +1,8 @@
-import { SURFACE_TILE_END, tileVariants } from "@/design/components/surface";
-import { cn } from "@/design/foundations/cn";
+import {
+  SURFACE_TILE_END,
+  tileVariants,
+} from "@/design/components/surface-classes";
+import { cn } from "@/design/ui";
 
 export const LIST_TITLE_MAX = 120;
 

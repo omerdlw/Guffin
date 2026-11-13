@@ -2,43 +2,227 @@
 
 import { useEffect, useRef } from "react";
 import { Z_INDEX } from "@/design/foundations/z-index";
-import {
-  CURSOR_CARD_FRAMING,
-  CURSOR_FRAME_AWAY,
-  CURSOR_FRAMING,
-  CURSOR_IDLE,
-  CURSOR_LABELS,
-  CURSOR_LEAVE_GRACE,
-  CURSOR_MAGNET,
-  CURSOR_MAGNET_MAX,
-  CURSOR_MOST,
-  CURSOR_OWNER,
-  CURSOR_REREAD_MS,
-  CURSOR_RELEASED,
-  CURSOR_ROW_MAX,
-  CURSOR_SHAPES,
-  CURSOR_SLATE,
-  CURSOR_SLATE_MARGIN,
-  CURSOR_SNAP_MAX,
-  CURSOR_STEP,
-  CURSOR_STILL,
-  CURSOR_TEXT_INPUT,
-  CURSOR_TURN,
-  CURSOR_WRAP,
-} from "./constants";
+import { LAYER_MEMORY_MS, raised } from "./dom";
 import { pointerSample, watchPointer } from "./engine";
 import { useHydratedReducedMotion } from "./react";
-import type {
-  CursorBox,
-  CursorInk,
-  CursorMode,
-  CursorReading,
-  CursorSpring,
-  SpringTune,
-} from "./types";
-import { layerOf, pullSpring, spring, tune, unitClamp } from "./utils";
 import "./reticle.css";
 import ticker from "./ticker.module.css";
+
+interface CursorSpring {
+  v: number;
+  x: number;
+}
+
+const spring = (x = 0): CursorSpring => ({ v: 0, x });
+
+type CursorMode =
+  "action" | "card" | "drag" | "frame" | "idle" | "none" | "text" | "wrap";
+
+interface CursorReading {
+  corner?: number;
+  label: string;
+  mode: CursorMode;
+  target: HTMLElement | null;
+}
+
+interface CursorShape {
+  bracket: number;
+  caption: number;
+  dot: number;
+  glass: number;
+  h: number;
+  label: number;
+  r: number;
+  solid: number;
+  w: number;
+}
+
+interface SpringTune {
+  damping: number;
+  stiffness: number;
+}
+
+interface CursorBox {
+  bottom: number;
+  left: number;
+  right: number;
+  top: number;
+}
+
+interface CursorInk {
+  above: number;
+  below: number;
+  key: string;
+  lead: number;
+  tail: number;
+}
+
+const CURSOR_SHAPES: Record<Exclude<CursorMode, "none">, CursorShape> = {
+  action: {
+    bracket: 0,
+    caption: 0,
+    dot: 0,
+    glass: 1,
+    h: 0,
+    label: 0,
+    r: 0,
+    solid: 0,
+    w: 0,
+  },
+  card: {
+    bracket: 1,
+    caption: 1,
+    dot: 1,
+    glass: 0,
+    h: 0,
+    label: 0,
+    r: 4,
+    solid: 0,
+    w: 0,
+  },
+  drag: {
+    bracket: 0,
+    caption: 0,
+    dot: 0,
+    glass: 1,
+    h: 46,
+    label: 1,
+    r: 23,
+    solid: 0,
+    w: 96,
+  },
+  frame: {
+    bracket: 1,
+    caption: 0,
+    dot: 1,
+    glass: 0,
+    h: 116,
+    label: 0,
+    r: 4,
+    solid: 0,
+    w: 116,
+  },
+  idle: {
+    bracket: 0,
+    caption: 0,
+    dot: 1,
+    glass: 1,
+    h: 34,
+    label: 0,
+    r: 17,
+    solid: 0,
+    w: 34,
+  },
+  text: {
+    bracket: 0,
+    caption: 0,
+    dot: 0,
+    glass: 0,
+    h: 26,
+    label: 0,
+    r: 1,
+    solid: 1,
+    w: 2,
+  },
+  wrap: {
+    bracket: 1,
+    caption: 0,
+    dot: 1,
+    glass: 0,
+    h: 0,
+    label: 0,
+    r: 4,
+    solid: 0,
+    w: 0,
+  },
+};
+
+const CURSOR_LABELS: Partial<Record<CursorMode, string>> = {
+  card: "View",
+  drag: "Drag",
+};
+
+const CURSOR_TEXT_INPUT =
+  "input:not([type=button],[type=checkbox],[type=file],[type=image],[type=radio],[type=range],[type=reset],[type=submit]), textarea, [contenteditable=''], [contenteditable='true']";
+
+const CURSOR_OWNER = `[data-cursor], [data-dragging], ${CURSOR_TEXT_INPUT}, a[href], button, summary, select, label, [role='button'], [role='link'], [role='tab'], [role='switch'], [role='menuitem']`;
+
+const CURSOR_WRAP = 7;
+
+const CURSOR_FRAMING = 14;
+
+const CURSOR_CARD_FRAMING = 6;
+
+const CURSOR_SLATE = /^(.*\S)\s+\((\d{4})\)(?:,\s*(.+))?$/;
+
+const CURSOR_SLATE_MARGIN = 12;
+
+const CURSOR_SNAP_MAX = [560, 280] as const;
+
+const CURSOR_ROW_MAX = [960, 120] as const;
+
+const CURSOR_FRAME_AWAY = 0.7;
+
+const CURSOR_RELEASED = "data-reticle-off";
+
+const CURSOR_MAGNET = 0.08;
+
+const CURSOR_MAGNET_MAX = 6;
+
+const CURSOR_LEAVE_GRACE = 90;
+
+const CURSOR_STEP = 1 / 240;
+
+const CURSOR_MOST = 1 / 20;
+
+const CURSOR_TURN = 9;
+
+const CURSOR_STILL = 0.01;
+
+const CURSOR_REREAD_MS = 120;
+
+const CURSOR_IDLE: CursorReading = {
+  label: "",
+  mode: "idle",
+  target: null,
+};
+
+const tune = (stiffness: number, ratio: number): SpringTune => ({
+  damping: 2 * ratio * Math.sqrt(stiffness),
+  stiffness,
+});
+
+function pullSpring(
+  s: CursorSpring,
+  to: number,
+  dt: number,
+  { damping, stiffness }: SpringTune,
+) {
+  s.v += ((to - s.x) * stiffness - s.v * damping) * dt;
+  s.x += s.v * dt;
+}
+
+const unitClamp = (n: number) => Math.max(0, Math.min(n, 1));
+
+function isLayer(node: Element, now: number) {
+  const known = raised.get(node);
+  if (known && now - known.at < LAYER_MEMORY_MS) return known.layer;
+  const style = getComputedStyle(node);
+  const layer =
+    style.position !== "static" &&
+    Number.parseInt(style.zIndex, 10) >= Z_INDEX.DOCK_BACKDROP;
+  raised.set(node, { at: now, layer });
+  return layer;
+}
+
+function layerOf(from: Element): HTMLElement | null {
+  const now = performance.now();
+  for (let node: Element | null = from; node; node = node.parentElement) {
+    if (isLayer(node, now)) return node instanceof HTMLElement ? node : null;
+  }
+  return null;
+}
+
 const FOLLOW = tune(190, 0.9);
 const GRIP = tune(360, 0.96);
 const HUNT = tune(130, 0.78);
