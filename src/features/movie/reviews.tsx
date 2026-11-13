@@ -1,23 +1,29 @@
 "use client";
 
-import { type JSX, useEffect, useState } from "react";
+import { type JSX, useEffect, useRef, useState } from "react";
 import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
 import { useDockActions } from "@omerdlw/base-framework/dock";
 import { report } from "@omerdlw/base-framework/utils";
 import { useRouter } from "next/navigation";
+import { useScrollDriver } from "@/motion/react";
 import { Heading } from "@/features/detail/layout";
 import {
   DetailPart,
   DetailSection,
   DetailSwap,
+  useDetailAct,
 } from "@/features/detail/motion";
-import { getMovieReviewsPageAction } from "@/features/reviews/actions";
+import {
+  getMovieReviewsPageAction,
+  getViewerMovieReviewAction,
+} from "@/features/reviews/actions";
 import {
   MOVIE_REVIEW_FILTERS,
   REVIEW_EVENTS,
   REVIEWS_PAGE_SIZE,
 } from "@/features/reviews/constants";
 import { ReviewActions, ReviewBody } from "@/features/reviews/controls";
+import { setReviewsPager } from "@/features/reviews/pager";
 import { useMediaType } from "@/features/media/context";
 import { createReviewEditorSurfaceEntry } from "@/features/reviews/editor";
 import { RatingStars, Star } from "@/features/reviews/rating";
@@ -29,13 +35,11 @@ import {
 } from "@/features/reviews/utils";
 import { accountHref, movieReviewsHref } from "@/lib/project";
 import { Avatar } from "@/design/components/avatar";
-import { Button } from "@/design/components/button";
 import { Icon } from "@/design/components/icon";
 import { DockLink } from "@/design/components/link";
 import { Select } from "@/design/components/select";
 import { TONE } from "@/design/foundations/tones";
 import {
-  REVIEW_SELECT_CLASS,
   DIGEST_LIGHTS,
   DIGEST_SHOWN,
   REVIEW_DATE_FORMAT,
@@ -205,6 +209,8 @@ function ReviewCard({
 }
 
 function ReviewsSection({
+  actions,
+  className = "",
   icon,
   movieId,
   reviews,
@@ -213,6 +219,8 @@ function ReviewsSection({
   movieTitle,
   viewerId,
 }: {
+  actions?: JSX.Element | null;
+  className?: string;
   icon: string;
   movieId: number;
   movieTitle: string;
@@ -223,19 +231,26 @@ function ReviewsSection({
 }): JSX.Element {
   const mediaType = useMediaType();
   return (
-    <DetailSection className="flex w-full flex-col" cue="digest">
+    <DetailSection
+      className={`flex w-full min-w-0 flex-col ${className}`}
+      cue="digest"
+    >
       <Heading
         actions={
-          <DockLink
-            className={TONE.link}
-            href={movieReviewsHref(
-              movieId,
-              { sort: sort === "newest" ? undefined : sort },
-              mediaType,
-            )}
-          >
-            More
-          </DockLink>
+          actions !== undefined ? (
+            actions
+          ) : (
+            <DockLink
+              className={TONE.link}
+              href={movieReviewsHref(
+                movieId,
+                { sort: sort === "newest" ? undefined : sort },
+                mediaType,
+              )}
+            >
+              More
+            </DockLink>
+          )
         }
         icon={icon}
         title={title}
@@ -282,14 +297,24 @@ export function MovieReviewDigest({
         mediaType,
       );
 
-    Promise.all([read("likes_desc"), read("newest")])
-      .then(([popular, recent]) => {
+    Promise.all([
+      read("likes_desc"),
+      read("newest"),
+      getViewerMovieReviewAction(movieId, mediaType),
+    ])
+      .then(([popular, recent, mine]) => {
         if (cancelled) return;
         if (!popular.success) return report("Review digest", popular.error);
         if (!recent.success) return report("Review digest", recent.error);
+        if (!mine.success) report("Review digest", mine.error);
+        const own = mine.success ? mine.review : null;
+        const others = (review: MovieReview) => review.id !== own?.id;
         setDigest({
-          popular: popular.reviews.filter((review) => review.likesCount > 0),
-          recent: recent.reviews,
+          mine: own,
+          popular: popular.reviews.filter(
+            (review) => review.likesCount > 0 && others(review),
+          ),
+          recent: recent.reviews.filter(others),
           viewerId: recent.viewerId,
         });
       })
@@ -301,83 +326,49 @@ export function MovieReviewDigest({
   }, [mediaType, movieId, version]);
 
   if (!digest) return null;
-  const { popular, recent, viewerId } = digest;
+  const { mine, popular, recent, viewerId } = digest;
 
   return (
     <>
-      {popular.length > 0 ? (
+      {mine ? (
         <ReviewsSection
-          icon="solar:fire-bold"
+          actions={null}
+          icon="solar:user-bold"
           movieId={movieId}
           movieTitle={title}
-          reviews={popular}
-          sort="likes_desc"
-          title="Popular Reviews"
-          viewerId={viewerId}
-        />
-      ) : null}
-      {recent.length > 0 ? (
-        <ReviewsSection
-          icon="solar:clock-circle-bold"
-          movieId={movieId}
-          movieTitle={title}
-          reviews={recent}
+          reviews={[mine]}
           sort="newest"
-          title="Recent Reviews"
+          title="Your Review"
           viewerId={viewerId}
         />
       ) : null}
+      <div className="grid w-full gap-x-10 gap-y-12 lg:grid-cols-2">
+        {popular.length > 0 ? (
+          <ReviewsSection
+            className="lg:only:col-span-2"
+            icon="solar:fire-bold"
+            movieId={movieId}
+            movieTitle={title}
+            reviews={popular}
+            sort="likes_desc"
+            title="Popular Reviews"
+            viewerId={viewerId}
+          />
+        ) : null}
+        {recent.length > 0 ? (
+          <ReviewsSection
+            className="lg:only:col-span-2"
+            icon="solar:clock-circle-bold"
+            movieId={movieId}
+            movieTitle={title}
+            reviews={recent}
+            sort="newest"
+            title="Recent Reviews"
+            viewerId={viewerId}
+          />
+        ) : null}
+      </div>
     </>
-  );
-}
-
-function ReviewStats({
-  stats,
-}: {
-  stats: { average: number | null; rated: number; total: number };
-}): JSX.Element {
-  return (
-    <div className="flex items-center gap-3 type-meta font-semibold text-ink-muted">
-      {stats.average !== null ? (
-        <span className="inline-flex items-center gap-1">
-          <Icon className="text-rated" icon="solar:star-bold" size={12} />
-          <strong className="text-ink">{stats.average}/5</strong>
-          <span className="hidden sm:inline">({stats.rated} rated)</span>
-        </span>
-      ) : null}
-      <span>
-        <strong className="text-ink">{stats.total}</strong>{" "}
-        {stats.total === 1 ? "review" : "reviews"}
-      </span>
-    </div>
-  );
-}
-
-function ReviewerChip({
-  name,
-  onClear,
-}: {
-  name: string;
-  onClear: () => void;
-}): JSX.Element {
-  return (
-    <Button
-      aria-label={`Show everyone's reviews, not only ${name}'s`}
-      className="group min-w-0 pr-2"
-      intent="chosen"
-      shape="pill"
-      size="sm"
-      onClick={onClear}
-      title="Show everyone's"
-      type="button"
-    >
-      <span className="truncate">@{name}</span>
-      <Icon
-        className="ui-fade shrink-0 opacity-70 group-hover:opacity-100 group-focus-visible:opacity-100 group-has-focus-visible:opacity-100"
-        icon="material-symbols:close-rounded"
-        size={14}
-      />
-    </Button>
   );
 }
 
@@ -442,12 +433,18 @@ export function MovieReviews({
   const change = (patch: Partial<ReviewsQuery>) =>
     setQuery((current) => ({ ...current, ...patch }));
 
-  const clearAccount = () => {
-    change({ username: null });
-    const url = new URL(window.location.href);
-    url.searchParams.delete("user");
-    window.history.replaceState(null, "", url);
-  };
+  const router = useRouter();
+  const clearAccount = () =>
+    router.replace(
+      movieReviewsHref(
+        movieId,
+        { sort: sort === "newest" ? undefined : sort },
+        mediaType,
+      ),
+      {
+        scroll: false,
+      },
+    );
 
   const loadMore = () => {
     if (!page || loadingMore) return;
@@ -485,44 +482,70 @@ export function MovieReviews({
       .finally(() => setLoadingMore(false));
   };
 
+  const left = page ? page.total - page.reviews.length : 0;
+  const stats = page?.stats ?? null;
+  const latest = useRef(loadMore);
+  const clearRef = useRef(clearAccount);
+  useEffect(() => {
+    latest.current = loadMore;
+    clearRef.current = clearAccount;
+  });
+  useEffect(() => {
+    setReviewsPager(
+      stats
+        ? {
+            clear: () => clearRef.current(),
+            left,
+            loading: loadingMore,
+            more: () => latest.current(),
+            reviewer: username,
+            stats,
+          }
+        : null,
+    );
+  }, [left, loadingMore, stats, username]);
+
+  const driver = useScrollDriver();
+  const act = useDetailAct();
+  const landed = useRef(false);
+  useEffect(() => {
+    if (!username || !page || act === "waiting" || landed.current) return;
+    landed.current = true;
+    const bottom = document.documentElement.scrollHeight - window.innerHeight;
+    if (driver.active) driver.to(bottom);
+    else window.scrollTo({ behavior: "smooth", top: bottom });
+  }, [act, driver, page, username]);
+  useEffect(() => () => setReviewsPager(null), []);
+
   return (
     <DetailSection className="flex w-full flex-col" cue="board">
-      <Heading
-        actions={page ? <ReviewStats stats={page.stats} /> : null}
-        icon="solar:chat-round-line-bold"
-        title="Reviews"
-      />
-
-      <DetailPart
-        className="mb-6 flex flex-wrap items-center gap-3"
-        name="control"
-      >
-        <Select
-          ariaLabel="Filter reviews"
-          className={REVIEW_SELECT_CLASS}
-          shape="pill"
-          onChange={(value) =>
-            isMovieReviewFilter(value) && change({ filter: value })
-          }
-          options={MOVIE_REVIEW_FILTERS}
-          size="sm"
-          value={filter}
-        />
-        <Select
-          ariaLabel="Sort reviews"
-          className={REVIEW_SELECT_CLASS}
-          shape="pill"
-          onChange={(value) =>
-            isMovieReviewSort(value) && change({ sort: value })
-          }
-          options={REVIEW_SORT_OPTIONS}
-          size="sm"
-          value={sort}
-        />
-        {username ? (
-          <ReviewerChip name={username} onClear={clearAccount} />
-        ) : null}
-      </DetailPart>
+      {username ? null : (
+        <DetailPart
+          className="mb-6 grid w-full grid-cols-2 gap-3"
+          name="control"
+        >
+          <Select
+            ariaLabel="Filter reviews"
+            className="w-full min-w-0"
+            shape="pill"
+            onChange={(value) =>
+              isMovieReviewFilter(value) && change({ filter: value })
+            }
+            options={MOVIE_REVIEW_FILTERS}
+            value={filter}
+          />
+          <Select
+            ariaLabel="Sort reviews"
+            className="w-full min-w-0"
+            shape="pill"
+            onChange={(value) =>
+              isMovieReviewSort(value) && change({ sort: value })
+            }
+            options={REVIEW_SORT_OPTIONS}
+            value={sort}
+          />
+        </DetailPart>
+      )}
 
       {page ? (
         <DetailSwap
@@ -552,25 +575,6 @@ export function MovieReviews({
             </DetailPart>
           )}
         </DetailSwap>
-      ) : null}
-
-      {page && page.reviews.length < page.total ? (
-        <DetailPart className="mt-6" name="control">
-          <Button
-            shape="pill"
-            width="full"
-            intent="neutral"
-            className="cine-press ui-still"
-            disabled={loadingMore}
-            onClick={loadMore}
-            type="button"
-          >
-            {loadingMore ? (
-              <Icon icon="svg-spinners:90-ring-with-bg" size={14} />
-            ) : null}
-            More reviews ({page.total - page.reviews.length})
-          </Button>
-        </DetailPart>
       ) : null}
     </DetailSection>
   );

@@ -38,8 +38,10 @@ import type {
   RegionProviders,
 } from "./types";
 
+export const TITLE_LIMITS = [26, 37, 49] as const;
+
 export const movieTitleClass = (title: string) =>
-  headlineClass(title, [26, 37, 49]);
+  headlineClass(title, TITLE_LIMITS);
 
 export function parseMovieId(raw: string): number | null {
   return /^[1-9]\d{0,9}$/.test(raw) ? Number(raw) : null;

@@ -128,6 +128,7 @@ export async function getDiaryMonth({
         hasReview: Boolean(review?.content.trim()),
         id: entry.id,
         isRewatch: entry.is_rewatch,
+        mediaType,
         posterPath: entry.poster_path,
         rating:
           review?.rating === null || review?.rating === undefined

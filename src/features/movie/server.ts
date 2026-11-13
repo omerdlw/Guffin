@@ -1,8 +1,11 @@
 import "server-only";
 import { report } from "@omerdlw/base-framework/utils";
 import type { MediaType } from "@/features/catalog/types";
+import { getKnownFor } from "@/features/person/credits";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import type { FilmStats } from "./types";
+import { getPersonDetails } from "@/lib/tmdb/server";
+import { CAST_KNOWN_FOR, MOVIE_FEATURED_PEOPLE } from "./constants";
+import type { FilmStats, KnownForMap, PersonEntry } from "./types";
 
 export async function getFilmStats(
   tmdbId: number,
@@ -31,5 +34,32 @@ export async function getFilmStats(
   } catch (error) {
     report("Film stats read", error);
     return null;
+  }
+}
+
+export async function getPeopleKnownFor(
+  people: { cast: readonly PersonEntry[]; crew: readonly PersonEntry[] },
+  skip: { id: number; mediaType: MediaType },
+): Promise<KnownForMap> {
+  const load = async (kind: "cast" | "crew") => {
+    const featured = people[kind].slice(0, MOVIE_FEATURED_PEOPLE);
+    const entries = await Promise.all(
+      featured.map(async (person) => {
+        const result = await getPersonDetails(person.id);
+        if (!result.success) return [person.id, []] as const;
+        return [
+          person.id,
+          getKnownFor(result.data, kind, skip, CAST_KNOWN_FOR),
+        ] as const;
+      }),
+    );
+    return Object.fromEntries(entries);
+  };
+  try {
+    const [cast, crew] = await Promise.all([load("cast"), load("crew")]);
+    return { cast, crew };
+  } catch (error) {
+    report("Cast known-for read", error);
+    return { cast: {}, crew: {} };
   }
 }

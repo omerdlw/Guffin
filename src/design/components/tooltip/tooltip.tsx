@@ -24,12 +24,20 @@ export interface TooltipProps {
   "data-cursor-owned"?: string;
   position?: "top" | "right" | "bottom" | "left";
   text: ReactNode;
+  /**
+   * Renders the trigger span here, on the client. Server components must use
+   * this instead of passing their own element: during SSR such a child can be
+   * a lazy reference, so the UI Tooltip wraps it in an extra span and
+   * hydration mismatches.
+   */
+  triggerClassName?: string;
 }
 
 export function Tooltip({
   children,
   position = "top",
   text,
+  triggerClassName,
   ...props
 }: TooltipProps) {
   const trigger = useRef<HTMLButtonElement>(null);
@@ -52,7 +60,11 @@ export function Tooltip({
       text={<Slate text={text} />}
       triggerRef={trigger}
     >
-      {children}
+      {triggerClassName === undefined ? (
+        children
+      ) : (
+        <span className={triggerClassName}>{children}</span>
+      )}
     </UiTooltip>
   );
 }

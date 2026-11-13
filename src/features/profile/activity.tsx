@@ -4,7 +4,13 @@ import { type JSX, type ReactNode, useMemo } from "react";
 import { useDockActionClass } from "@omerdlw/base-framework/dock";
 import { formatCompactAge } from "@/features/account/utils";
 import { RatingStars } from "@/features/reviews/rating";
-import { accountHref, listHref, mediaHref } from "@/lib/project";
+import {
+  accountHref,
+  listHref,
+  mediaHref,
+  movieReviewsHref,
+  reviewHref,
+} from "@/lib/project";
 import { Icon } from "@/design/components/icon";
 import { DockLink } from "@/design/components/link";
 import { MediaCard } from "@/design/components/media-card";
@@ -33,12 +39,23 @@ function episodeSummary(item: ActivityItem): string {
     : "an episode";
 }
 
-function describeActivity(item: ActivityItem): ReactNode {
-  const movie = item.tmdbId ? (
-    <DockLink
-      className={STRONG_CLASS}
-      href={mediaHref(item.mediaType, item.tmdbId)}
-    >
+function activityHref(item: ActivityItem, actor: string): string | null {
+  if (!item.tmdbId) return null;
+  if (item.type === "REVIEW_PUBLISHED") {
+    return reviewHref(item.tmdbId, actor, item.mediaType);
+  }
+  if (item.type === "REVIEW_LIKED") {
+    return item.target
+      ? reviewHref(item.tmdbId, item.target.username, item.mediaType)
+      : movieReviewsHref(item.tmdbId, {}, item.mediaType);
+  }
+  return mediaHref(item.mediaType, item.tmdbId);
+}
+
+function describeActivity(item: ActivityItem, actor: string): ReactNode {
+  const href = activityHref(item, actor);
+  const movie = href ? (
+    <DockLink className={STRONG_CLASS} href={href}>
       {item.title ?? (item.mediaType === "tv" ? "a show" : "a movie")}
     </DockLink>
   ) : (
@@ -208,7 +225,7 @@ export function ActivityRow({
           fallbackIcon="solar:clapperboard-play-bold"
           fallbackIconSize={18}
           frameClassName="h-[5.15625rem] w-fib-6"
-          href={mediaHref(item.mediaType, item.tmdbId)}
+          href={activityHref(item, actor.username) ?? undefined}
           image={posterImage(item.posterPath, "56px")}
           label={item.title ?? "Movie"}
           radius={RADIUS.thumb}
@@ -220,7 +237,7 @@ export function ActivityRow({
           <DockLink className={STRONG_CLASS} href={accountHref(actor.username)}>
             {actor.displayName}
           </DockLink>{" "}
-          {describeActivity(item)}
+          {describeActivity(item, actor.username)}
         </p>
         <p className="type-meta text-ink-muted">
           {ACTIVITY_KINDS[item.type] ?? "Activity"}
@@ -343,7 +360,7 @@ export function ActivityFeed({
             className="absolute top-1.5 -left-[3.5px] size-1.5 rounded-full bg-ink-muted"
           />
           <span className="font-medium text-ink-lead">{actor.displayName}</span>{" "}
-          {describeActivity(item)}{" "}
+          {describeActivity(item, actor.username)}{" "}
           <time
             className="type-meta whitespace-nowrap text-ink-muted tabular-nums"
             dateTime={item.createdAt}

@@ -1,6 +1,6 @@
 "use client";
 
-import { isValidElement, type ReactNode, useState } from "react";
+import { isValidElement, type ReactNode, Suspense, use, useState } from "react";
 import {
   defineModal,
   ModalContainer,
@@ -15,11 +15,12 @@ import {
   DetailSection,
   DetailSwap,
 } from "@/features/detail/motion";
-import { personHref } from "@/lib/project";
+import { mediaHref, personHref } from "@/lib/project";
 import { tmdbImageUrl } from "@/lib/tmdb/shared";
 import { DockLink } from "@/design/components/link";
 import { Button } from "@/design/components/button";
 import { Icon } from "@/design/components/icon";
+import { Image } from "@/design/components/image";
 import { MediaCard } from "@/design/components/media-card";
 import { SegmentedControl } from "@/design/components/segmented-control";
 import { cn } from "@/design/foundations/cn";
@@ -28,6 +29,7 @@ import { TONE } from "@/design/foundations/tones";
 import { MOVIE_COMPACT_PEOPLE, MOVIE_FEATURED_PEOPLE } from "./constants";
 import type {
   CastModalProps,
+  KnownForMap,
   MoviePeopleProps,
   PeopleModalData,
   PeopleTab,
@@ -36,7 +38,48 @@ import type {
 import { compactCells, peopleTabs } from "./utils";
 import cast from "./cast.module.css";
 
-function CastCard({ index, person }: { index: number; person: PersonEntry }) {
+const FAN_SLOTS = ["l1", "r1", "l2", "r2"] as const;
+
+function KnownForFan({
+  knownFor,
+  personId,
+  tab,
+}: {
+  knownFor: Promise<KnownForMap>;
+  personId: number;
+  tab: PeopleTab;
+}) {
+  const titles = use(knownFor)[tab][personId] ?? [];
+  return titles.slice(0, FAN_SLOTS.length).map((title, index) => (
+    <DockLink
+      aria-label={title.title}
+      className={cast.poster}
+      data-slot={FAN_SLOTS[index]}
+      href={mediaHref(title.mediaType, title.id)}
+      key={`${title.mediaType}-${title.id}`}
+      style={{ borderRadius: RADIUS.tile }}
+    >
+      <Image
+        alt=""
+        className="object-cover"
+        sizes="120px"
+        src={tmdbImageUrl("poster", title.posterPath, "w185")}
+      />
+    </DockLink>
+  ));
+}
+
+function CastCard({
+  index,
+  knownFor,
+  person,
+  tab,
+}: {
+  index: number;
+  knownFor?: Promise<KnownForMap>;
+  person: PersonEntry;
+  tab: PeopleTab;
+}) {
   const photoPath = useArtworkPath(
     "person",
     person.id,
@@ -44,17 +87,37 @@ function CastCard({ index, person }: { index: number; person: PersonEntry }) {
     person.profilePath,
   );
   const src = tmdbImageUrl("profile", photoPath, "h632");
+  const href = personHref(person.id);
 
-  const foot = (
-    <>
-      <div
+  return (
+    <div className={cn(cast.card, "flex min-w-0 flex-col gap-3")}>
+      <div className={cast.stage}>
+        {knownFor ? (
+          <Suspense fallback={null}>
+            <KnownForFan knownFor={knownFor} personId={person.id} tab={tab} />
+          </Suspense>
+        ) : null}
+        <MediaCard
+          aspect="free"
+          className={cast.portrait}
+          fallbackIcon="solar:user-bold"
+          fallbackIconSize={24}
+          frameClassName="h-full w-full"
+          href={href}
+          image={{ sizes: "(min-width: 640px) 160px, 44vw", src }}
+          label={`${person.name}, ${person.subtitle}`}
+          radius={RADIUS.panel}
+        />
+      </div>
+      <DockLink
         aria-hidden="true"
-        className={cn(cast.sheen, "pointer-events-none absolute inset-0")}
-      />
-      <div className="on-photo absolute inset-x-0 bottom-0 flex min-w-0 flex-col px-2.5 pb-3 text-center">
+        className="flex min-w-0 flex-col items-center px-2 text-center"
+        href={href}
+        tabIndex={-1}
+      >
         <DetailExpose
           as="div"
-          className="truncate type-control font-semibold text-ink-lead"
+          className="max-w-full truncate type-control font-semibold text-ink-lead"
           index={index}
           part="credit"
           text={person.name}
@@ -62,29 +125,14 @@ function CastCard({ index, person }: { index: number; person: PersonEntry }) {
         />
         <DetailExpose
           as="div"
-          className="truncate type-meta font-medium text-ink-body"
+          className="max-w-full truncate type-meta font-medium text-ink-muted"
           index={index}
           part="credit"
           text={person.subtitle}
           truncate
         />
-      </div>
-    </>
-  );
-
-  return (
-    <MediaCard
-      aspect="free"
-      className="w-full"
-      fallbackIcon="solar:user-bold"
-      fallbackIconSize={24}
-      frameClassName="aspect-[3/4] w-full"
-      href={personHref(person.id)}
-      image={{ sizes: "(min-width: 768px) 12vw, 44vw", src }}
-      label={`${person.name}, ${person.subtitle}`}
-      overlay={foot}
-      radius={RADIUS.panel}
-    />
+      </DockLink>
+    </div>
   );
 }
 
@@ -231,7 +279,12 @@ const PeopleModal = defineModal({
   title: "Cast & crew",
 });
 
-export function MoviePeople({ cast, crew, now = true }: MoviePeopleProps) {
+export function MoviePeople({
+  cast,
+  crew,
+  knownFor,
+  now = true,
+}: MoviePeopleProps) {
   const [openModal] = useModal(PeopleModal);
   const tabs = peopleTabs(cast, crew);
   const [tab, setTab] = useState<PeopleTab>(tabs[0]?.key ?? "cast");
@@ -272,16 +325,21 @@ export function MoviePeople({ cast, crew, now = true }: MoviePeopleProps) {
         intro="casting"
         now={now}
       >
-        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <ul className="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2">
           {featured.map((person, index) => (
             <DetailPart
               as="li"
-              className="min-w-0"
+              className={cn("min-w-0", index >= 4 && "hidden sm:block")}
               index={index}
               key={person.key}
               name="person"
             >
-              <CastCard index={index} person={person} />
+              <CastCard
+                index={index}
+                knownFor={knownFor}
+                person={person}
+                tab={tab}
+              />
             </DetailPart>
           ))}
         </ul>

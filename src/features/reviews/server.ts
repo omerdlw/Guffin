@@ -36,6 +36,7 @@ function toMovieReview(
 }
 
 export async function getMovieReviews({
+  authorId,
   client,
   filter = "all",
   from = 0,
@@ -46,6 +47,7 @@ export async function getMovieReviews({
   username,
   viewerId,
 }: {
+  authorId?: string | null;
   client: ReviewsClient;
   filter?: MovieReviewFilter;
   from?: number;
@@ -63,6 +65,7 @@ export async function getMovieReviews({
     .select(REVIEW_COLUMNS, { count: "exact" })
     .eq("media_type", mediaType)
     .eq("tmdb_id", tmdbId);
+  if (authorId) query = query.eq("account_id", authorId);
   if (username) query = query.eq("author.username", username.toLowerCase());
   if (filter === "written") query = query.neq("content", "");
   else if (filter !== "all") {

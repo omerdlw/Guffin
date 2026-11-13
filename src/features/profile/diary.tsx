@@ -13,7 +13,7 @@ import { useRouter } from "next/navigation";
 import { deleteDiaryEntryAction } from "@/features/account/actions";
 import { RatingStars, Star } from "@/features/reviews/rating";
 import { isRated } from "@/features/reviews/utils";
-import { movieHref, reviewHref } from "@/lib/project";
+import { mediaHref, reviewHref } from "@/lib/project";
 import { useScrollDriver } from "@/motion/react";
 import { Button } from "@/design/components/button";
 import { Icon } from "@/design/components/icon";
@@ -395,7 +395,9 @@ function Entry({
   row: DiaryRow;
   username: string;
 }): JSX.Element {
-  const href = movieHref(row.tmdbId);
+  const href = row.hasReview
+    ? reviewHref(row.tmdbId, username, row.mediaType)
+    : mediaHref(row.mediaType, row.tmdbId);
 
   return (
     <li className="group/entry flex items-center gap-fib-3 py-2.5 sm:gap-fib-4">
@@ -432,7 +434,7 @@ function Entry({
           {row.hasReview ? (
             <DockLink
               className="inline-flex items-center gap-1 type-meta text-ink-body hover:text-ink focus-visible:text-ink"
-              href={reviewHref(row.tmdbId, username)}
+              href={reviewHref(row.tmdbId, username, row.mediaType)}
             >
               <Icon icon="solar:pen-new-square-linear" size={13} />
               Review

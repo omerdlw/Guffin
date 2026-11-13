@@ -10,18 +10,7 @@ import { VITRIN_COOKIE_MAX_AGE, VITRIN_ITEMS } from "./constants";
 import type { MediaType } from "./types";
 import { withVitrin } from "./utils";
 
-function readCookie(): MediaType {
-  try {
-    const match = document.cookie
-      .split("; ")
-      .find((part) => part.startsWith(`${VITRIN_COOKIE_NAME}=`));
-    return match?.split("=")[1] === "tv" ? "tv" : "movie";
-  } catch {
-    return "movie";
-  }
-}
-
-export function useVitrin(): {
+export function useVitrin(remembered: MediaType): {
   asked: MediaType | null;
   choose: (next: MediaType, to?: string) => void;
   value: MediaType;
@@ -33,7 +22,9 @@ export function useVitrin(): {
   const raw = params.get("v");
   const asked: MediaType | null =
     raw === "tv" ? "tv" : raw === "movie" ? "movie" : null;
-  const value: MediaType = asked ?? readCookie();
+  // The cookie is read on the server and passed in; reading document.cookie
+  // during render made SSR and hydration disagree.
+  const value: MediaType = asked ?? remembered;
 
   const choose = (next: MediaType, to?: string) => {
     if (next === value) return;

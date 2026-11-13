@@ -356,3 +356,42 @@ export function getGalleryImages(
     .sort((a, b) => b.voteAverage - a.voteAverage || b.voteCount - a.voteCount)
     .slice(0, limit);
 }
+
+export interface KnownTitle {
+  id: number;
+  mediaType: MediaType;
+  posterPath: string;
+  title: string;
+}
+
+export function getKnownFor(
+  person: PersonDetails,
+  kind: "cast" | "crew",
+  skip: { id: number; mediaType: MediaType },
+  limit: number,
+): KnownTitle[] {
+  const best = new Map<string, KnownTitle & { score: number }>();
+  const consider = (credit: SourceCredit | TvSourceCredit) => {
+    const mediaType: MediaType = "episodeCount" in credit ? "tv" : "movie";
+    if (!credit.posterPath) return;
+    if (credit.id === skip.id && mediaType === skip.mediaType) return;
+    const score = backdropScore(credit, kind);
+    const key = `${mediaType}:${credit.id}`;
+    const known = best.get(key);
+    if (known && known.score >= score) return;
+    best.set(key, {
+      id: credit.id,
+      mediaType,
+      posterPath: credit.posterPath,
+      score,
+      title: credit.title,
+    });
+  };
+  person.credits[kind].forEach(consider);
+  tvCredits(person)[kind].forEach(consider);
+
+  return [...best.values()]
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map(({ score: _score, ...title }) => title);
+}

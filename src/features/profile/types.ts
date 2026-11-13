@@ -102,6 +102,7 @@ export interface DiaryRow {
   hasReview: boolean;
   id: string;
   isRewatch: boolean;
+  mediaType: MediaType;
   posterPath: string | null;
   rating: number | null;
   title: string;
@@ -494,6 +495,7 @@ export interface AccountShellProps {
   isOwner: boolean;
   palette?: AmbientPalette | null;
   proofSlot?: ReactNode;
+  rememberedVitrin: MediaType;
   statsSlot?: ReactNode;
 }
 

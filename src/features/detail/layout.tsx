@@ -261,3 +261,40 @@ export async function DetailAwards({
     </DetailSection>
   );
 }
+
+export function DetailReviewsLayout({
+  backdrop,
+  className,
+  header,
+  intermission,
+  main,
+}: {
+  backdrop: ReactNode | null;
+  className: string;
+  header: ReactNode;
+  intermission: ReactNode;
+  main: ReactNode;
+}): JSX.Element {
+  return (
+    <main
+      id="main"
+      className={`${className} ui-scene overflow-x-clip ${PAGE_CLASS}`}
+      data-cinematic=""
+    >
+      {intermission}
+      <DetailWallStage cue="wall" wall={null}>
+        <div className={CONTAINER_CLASS}>
+          {backdrop}
+          <div
+            className={`${pageBodyClass(Boolean(backdrop))} mx-auto max-w-3xl items-center`}
+          >
+            <header className="relative flex w-full min-w-0 flex-col items-center text-center">
+              {header}
+            </header>
+            <div className="flex w-full min-w-0 flex-col">{main}</div>
+          </div>
+        </div>
+      </DetailWallStage>
+    </main>
+  );
+}

@@ -142,6 +142,34 @@ export async function getMovieReviewsPageAction(
   }
 }
 
+export async function getViewerMovieReviewAction(
+  tmdbId: number,
+  mediaType: MediaType = "movie",
+): Promise<ReviewResult<{ review: MovieReview | null }>> {
+  if (!isTmdbId(tmdbId) || !isMediaType(mediaType)) {
+    return fail("Invalid request");
+  }
+  try {
+    const viewer = await getOptionalUser();
+    if (!viewer) return ok({ review: null });
+    const { reviews } = await getMovieReviews({
+      authorId: viewer.id,
+      client: await createServerSupabaseClient(),
+      limit: 1,
+      mediaType,
+      sort: "newest",
+      tmdbId,
+      viewerId: viewer.id,
+    });
+    return ok({ review: reviews[0] ?? null });
+  } catch (error) {
+    report("Viewer review read", error);
+    return fail(
+      toUserMessage(error, { fallback: "Could not load your review" }),
+    );
+  }
+}
+
 export async function saveMovieReviewAction(
   tmdbId: number,
   input: ReviewInput,

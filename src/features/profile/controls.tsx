@@ -151,13 +151,15 @@ function spanOf(index: number, count: number): number {
 }
 
 export function AccountSectionTabs({
+  rememberedVitrin,
   username,
 }: {
+  rememberedVitrin: MediaType;
   username: string;
 }): JSX.Element {
   const active = useSelectedLayoutSegment() as SectionKey;
   const base = accountHref(username);
-  const { asked, choose: chooseVitrin, value: vitrin } = useVitrin();
+  const { asked, choose: chooseVitrin, value: vitrin } = useVitrin(rememberedVitrin);
   const [chosen, setChosen] = useState<SectionKey>(active);
   const [prevActive, setPrevActive] = useState<SectionKey>(active);
   if (active !== prevActive) {

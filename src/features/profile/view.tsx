@@ -121,9 +121,10 @@ export async function AccountProfileLayout({
 }): Promise<JSX.Element> {
   const { account, client, isOwner } = await getAccountPageContext(username);
 
-  const [header, palette] = await Promise.all([
+  const [header, palette, rememberedVitrin] = await Promise.all([
     getAccountHeader({ accountId: account.id, client }),
     getAccountAmbientPalette(account.backgroundUrl || account.avatarUrl),
+    resolveVitrin(undefined),
   ]);
   const { library, mutual } = header;
   const base = accountHref(account.username);
@@ -131,6 +132,7 @@ export async function AccountProfileLayout({
   return (
     <AccountShell
       account={account}
+      rememberedVitrin={rememberedVitrin}
       followersCount={header.followersCount}
       followingCount={header.followingCount}
       initialFollowStatus={header.followStatus}

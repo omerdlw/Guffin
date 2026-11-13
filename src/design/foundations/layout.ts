@@ -32,7 +32,7 @@ const HEADLINE_SIZES = [
   "type-display-sm sm:type-display-md lg:type-display-lg",
   "type-display-xs sm:type-display-sm lg:type-display-md",
 ] as const;
-const HEADLINE_FACE = "font-zuume leading-none font-bold uppercase";
+export const HEADLINE_FACE = "font-zuume leading-none font-bold uppercase";
 
 export const HEADLINE_BOX =
   "relative top-[calc(-0.14em-round(-0.14em,1px))] mt-[round(-0.14em,1px)] mb-[round(-0.16em,1px)] max-w-full";
@@ -46,6 +46,18 @@ export function headlineClass(
   const step = limits.findIndex((limit) => length <= limit);
   const size = HEADLINE_SIZES[step === -1 ? HEADLINE_SIZES.length - 1 : step];
   return `${HEADLINE_BOX} ${HEADLINE_FACE} ${size} text-balance [overflow-wrap:anywhere]`;
+}
+
+const MARQUEE_SIZE = "text-[96px] leading-none sm:text-[128px] lg:text-[168px]";
+
+export function marqueeClass(
+  text: string,
+  limits: readonly [number, number, number],
+): string {
+  if (text.trim().length > limits[0]) {
+    return headlineClass(text, [limits[1], limits[2], Infinity]);
+  }
+  return `${HEADLINE_BOX} ${HEADLINE_FACE} ${MARQUEE_SIZE} text-balance [overflow-wrap:anywhere]`;
 }
 
 export const RULE_GAP = "mt-10 mb-6";

@@ -10,6 +10,8 @@ export const MOVIE_FEATURED_PEOPLE = 8;
 
 export const MOVIE_COMPACT_PEOPLE = 3;
 
+export const CAST_KNOWN_FOR = 4;
+
 export const MOVIE_TAG_LIMIT = 10;
 
 export const MOVIE_TAG_MAX_LENGTH = 28;
@@ -140,8 +142,6 @@ export const REVIEW_SORT_OPTIONS = MOVIE_REVIEW_SORTS.map((sort) => ({
   label: SORT_LABELS[sort.value],
   value: sort.value,
 }));
-
-export const REVIEW_SELECT_CLASS = "min-w-0 flex-1 sm:w-44 sm:flex-none";
 
 export const SKELETON_FACT_WIDTHS = [
   ["3.5rem", "7rem"],

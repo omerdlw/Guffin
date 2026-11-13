@@ -1,11 +1,107 @@
 @layer components {
-  .sheen {
-    background: linear-gradient(
-      to top,
-      rgb(0 0 0 / 0.42),
-      rgb(0 0 0 / 0.14) 34%,
-      transparent 50%
-    );
-    border-radius: inherit;
+  /* Fan geometry in % of the stage width W. Portrait P = 38.5%W at 3:4;
+     inner posters are 82% of its height, outer 70%, all bottom-aligned
+     and pivoting from their bottom edge so they tuck behind it. */
+  .stage {
+    position: relative;
+    isolation: isolate;
+    aspect-ratio: 39 / 20;
+  }
+
+  .portrait {
+    position: absolute;
+    inset-block: 0;
+    left: 30.75%;
+    z-index: 5;
+    width: 38.5%;
+    box-shadow: 0 18px 36px -18px rgb(0 0 0 / 0.75);
+  }
+
+  .poster {
+    --r: 0deg;
+    --y: 0%;
+    --s: 1;
+    --spread: 0%;
+    position: absolute;
+    bottom: 4%;
+    z-index: 2;
+    display: block;
+    aspect-ratio: 2 / 3;
+    overflow: hidden;
+    background: var(--color-fill, rgb(255 255 255 / 0.06));
+    box-shadow: 0 10px 24px -14px rgb(0 0 0 / 0.8);
+    transform-origin: 50% 100%;
+    transform: translate(var(--spread), var(--y)) rotate(var(--r))
+      scale(var(--s));
+    filter: blur(1.5px) brightness(0.45) saturate(0.8);
+    outline: none;
+    animation: fan-in var(--step-3, 420ms) var(--ease-out-cream, ease-out) both;
+    transition:
+      transform var(--step-3, 420ms) var(--ease-out-cream, ease-out),
+      filter var(--step-3, 420ms) var(--ease-out-cream, ease-out);
+  }
+
+  .poster[data-slot="l1"],
+  .poster[data-slot="r1"] {
+    z-index: 3;
+    width: 28.1%;
+  }
+  .poster[data-slot="l1"] {
+    left: 16.15%;
+    --r: -5deg;
+  }
+  .poster[data-slot="r1"] {
+    left: 55.75%;
+    --r: 5deg;
+  }
+
+  .poster[data-slot="l2"],
+  .poster[data-slot="r2"] {
+    width: 23.9%;
+  }
+  .poster[data-slot="l2"] {
+    left: 2.25%;
+    --r: -10deg;
+  }
+  .poster[data-slot="r2"] {
+    left: 73.85%;
+    --r: 10deg;
+  }
+
+  @media (hover: hover) {
+    .card:hover .poster[data-slot^="l"] {
+      --spread: -4%;
+    }
+    .card:hover .poster[data-slot^="r"] {
+      --spread: 4%;
+    }
+
+    .poster:hover {
+      z-index: 4;
+      --y: -6%;
+      --s: 1.08;
+      filter: none;
+    }
+  }
+
+  .poster:focus-visible {
+    z-index: 4;
+    --y: -6%;
+    --s: 1.08;
+    filter: none;
+  }
+
+  @keyframes fan-in {
+    from {
+      opacity: 0;
+      transform: rotate(0deg) scale(0.92);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .poster {
+      animation: none;
+      transition: filter var(--step-3, 420ms) ease;
+    }
   }
 }

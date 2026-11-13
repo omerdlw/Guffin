@@ -8,6 +8,7 @@ import type {
   MovieReviewFilter,
   MovieReviewSort,
 } from "@/features/reviews/types";
+import type { KnownTitle } from "@/features/person/credits";
 import type { Awards, MovieDetails } from "@/lib/tmdb/shared";
 
 export interface PersonEntry {
@@ -80,9 +81,15 @@ export type VideoModalData = {
 
 export type PeopleTab = "cast" | "crew";
 
+export type KnownForMap = Record<
+  PeopleTab,
+  Record<number, readonly KnownTitle[]>
+>;
+
 export interface MoviePeopleProps {
   cast: PersonEntry[];
   crew: PersonEntry[];
+  knownFor?: Promise<KnownForMap>;
   now?: boolean;
 }
 
@@ -107,6 +114,7 @@ export type MovieArtwork = Pick<
 >;
 
 export interface ReviewDigest {
+  mine: MovieReview | null;
   popular: MovieReview[];
   recent: MovieReview[];
   viewerId: string | null;

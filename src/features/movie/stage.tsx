@@ -19,6 +19,7 @@ import {
 import { DetailAction as Action, DetailStage } from "@/features/detail/stage";
 import { useMediaType } from "@/features/media/context";
 import { MovieAction } from "@/features/reviews/movie-action";
+import { describeReviewStats, useReviewsPager } from "@/features/reviews/pager";
 import { mediaHref } from "@/lib/project";
 import {
   type MovieDetails,
@@ -62,9 +63,11 @@ export function MovieStage({
 export function MoviePageChrome({
   movie,
   palette = null,
+  reviews = false,
 }: {
   movie: MovieDetails;
   palette?: AmbientPalette | null;
+  reviews?: boolean;
 }): null {
   const posterPath = useArtworkPath(
     "movie",
@@ -88,11 +91,15 @@ export function MoviePageChrome({
   });
 
   const { openSurface } = useDockActions();
+  const pager = useReviewsPager();
+  const board = reviews ? pager : null;
   const hasProviders = Object.keys(movie.watchProviders).length > 0;
   const action = useMemo(
     () => (
       <MovieAction
         hasProviders={hasProviders}
+        reviews={reviews}
+        pager={board}
         movieId={movie.id}
         onOpenProviders={() =>
           void openSurface(
@@ -105,7 +112,7 @@ export function MoviePageChrome({
         title={movie.title}
       />
     ),
-    [hasProviders, movie.id, movie.title, openSurface],
+    [board, hasProviders, reviews, movie.id, movie.title, openSurface],
   );
 
   const departure = useDeparture()?.href;
@@ -115,7 +122,9 @@ export function MoviePageChrome({
     title: movie.title,
     dock: {
       action,
-      description: describeMovie(movie) || undefined,
+      description:
+        (board ? describeReviewStats(board.stats) : describeMovie(movie)) ||
+        undefined,
       icon: poster ?? MOVIE_FALLBACK_ICON,
       name: `movie-${movie.id}`,
       targetPath: departure,

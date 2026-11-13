@@ -6,6 +6,7 @@ import { ensureCatalogEntry } from "@/features/catalog/server";
 import { isAiring } from "@/features/catalog/utils";
 import {
   DetailLayout,
+  DetailReviewsLayout,
   DetailSidebar,
   Heading,
   namesFact,
@@ -38,7 +39,8 @@ import {
   MovieProjection,
 } from "@/features/movie/media";
 import { MovieReviewDigest, MovieReviews } from "@/features/movie/reviews";
-import { getFilmStats } from "@/features/movie/server";
+import { MediaReviewsHeader } from "@/features/movie/reviews-header";
+import { getFilmStats, getPeopleKnownFor } from "@/features/movie/server";
 import { MoviePosterLink, MovieStage } from "@/features/movie/stage";
 import {
   capitalizeWords,
@@ -61,14 +63,13 @@ import {
 } from "@/lib/tmdb/server";
 import { tmdbImageUrl } from "@/lib/tmdb/shared";
 import { Carousel } from "@/design/components/carousel";
-import { Icon } from "@/design/components/icon";
 import { DockLink } from "@/design/components/link";
+import { Icon } from "@/design/components/icon";
 import { Tooltip } from "@/design/components/tooltip";
 import { cn } from "@/design/foundations/cn";
 import { RADIUS } from "@/design/foundations/geometry";
 import {
   CAROUSEL_ITEM,
-  MAIN_COLUMN_CLASS,
   PROSE_CLASS,
   RULE_GAP,
 } from "@/design/foundations/layout";
@@ -130,11 +131,13 @@ function Stat({
 }): JSX.Element {
   return (
     <DetailPart name="stat">
-      <Tooltip position="top" text={tip}>
-        <span className="flex cursor-help items-center gap-1.5 type-control leading-5 font-medium text-ink-body tabular-nums">
-          <Icon className={tone} icon={icon} size={16} />
-          {value}
-        </span>
+      <Tooltip
+        position="top"
+        text={tip}
+        triggerClassName="flex cursor-help items-center gap-1.5 type-control leading-5 font-medium text-ink-body tabular-nums"
+      >
+        <Icon className={tone} icon={icon} size={16} />
+        {value}
       </Tooltip>
     </DetailPart>
   );
@@ -214,11 +217,9 @@ function buildShowFacts(show: ShowDetails): Fact[] {
 }
 
 function ShowHeader({
-  page,
   show,
   stats,
 }: {
-  page: ShowPageKind;
   show: ShowDetails;
   stats: Awaited<ReturnType<typeof getFilmStats>>;
 }): JSX.Element {
@@ -232,16 +233,7 @@ function ShowHeader({
   );
   return (
     <>
-      {page.kind === "reviews" ? (
-        <DockLink
-          className="ui-fade hover:opacity-80 focus-visible:opacity-80"
-          href={tvHref(show.id)}
-        >
-          {title}
-        </DockLink>
-      ) : (
-        title
-      )}
+      {title}
       <div className={`${RULE_GAP} relative flex w-full items-center gap-5`}>
         <DetailPart className="h-px flex-1 bg-grade/40" name="rule" />
         <div className="relative flex shrink-0 items-center gap-5">
@@ -375,10 +367,49 @@ export async function ShowPageContent({
   const page: ShowPageKind = reviews ?? { kind: "show" };
   const backdrop = tmdbImageUrl("backdrop", show.backdropPath, "original");
   const { cast, crew } = toShowPersonEntries(show);
+  const knownFor = getPeopleKnownFor(
+    { cast, crew },
+    { id: show.id, mediaType: "tv" },
+  );
   const backdrops = getGalleryImages(show.images);
   const posters = getPosterImages(show.images);
   const { regular, seasons, watchedBySeason } = seasonShelf(show, tracking);
   const stills = await getSeasonStills(show.id, seasons, isAiring(show.status));
+
+  if (page.kind === "reviews") {
+    return (
+      <MediaTypeProvider mediaType="tv">
+        <MovieViewProvider>
+          <ShowPageChrome palette={palette} reviews show={show} />
+          <ReelProvider>
+            <MovieStage movie={show}>
+              <DetailReviewsLayout
+                backdrop={backdrop ? <MovieBackdropHero movie={show} /> : null}
+                className="movie-page"
+                header={
+                  <MediaReviewsHeader
+                    href={tvHref(show.id)}
+                    media={show}
+                    poster={!page.reviewer}
+                  />
+                }
+                intermission={<MovieProjection movie={show} />}
+                main={
+                  <MovieReviews
+                    key={page.reviewer ?? ""}
+                    initialSort={page.sort}
+                    movieId={show.id}
+                    reviewer={page.reviewer}
+                    title={show.title}
+                  />
+                }
+              />
+            </MovieStage>
+          </ReelProvider>
+        </MovieViewProvider>
+      </MediaTypeProvider>
+    );
+  }
 
   return (
     <MediaTypeProvider mediaType="tv">
@@ -387,56 +418,45 @@ export async function ShowPageContent({
         <ReelProvider>
           <MovieStage movie={show}>
             <DetailLayout
-              after={
-                page.kind === "show" ? (
-                  <MovieReviewDigest movieId={show.id} title={show.title} />
-                ) : null
-              }
+              after={<MovieReviewDigest movieId={show.id} title={show.title} />}
               backdrop={backdrop ? <MovieBackdropHero movie={show} /> : null}
               className="movie-page"
-              header={<ShowHeader page={page} show={show} stats={stats} />}
+              header={<ShowHeader show={show} stats={stats} />}
               intermission={<MovieProjection movie={show} />}
               main={
-                page.kind === "reviews" ? (
-                  <div className={MAIN_COLUMN_CLASS}>
-                    <MovieReviews
-                      initialSort={page.sort}
-                      movieId={show.id}
-                      reviewer={page.reviewer}
-                      title={show.title}
-                    />
-                  </div>
-                ) : (
-                  <DetailViews
-                    shown="overview"
-                    views={{
-                      overview: (
-                        <>
-                          <SeasonShelf
-                            backdropFallback={show.backdropPath}
-                            now
-                            progress={shelfProgress(show, tracking, regular)}
-                            seasons={seasons}
-                            showId={show.id}
-                            stills={stills}
-                            watchedBySeason={watchedBySeason}
-                          />
-                          <MoviePeople cast={cast} crew={crew} />
-                          <MovieGallery
-                            backdrops={backdrops}
-                            posters={posters}
-                            title={show.title}
-                          />
-                          <MovieVideos
-                            types={getVideoTypes(show)}
-                            videos={show.videos}
-                          />
-                          <Recommendations show={show} />
-                        </>
-                      ),
-                    }}
-                  />
-                )
+                <DetailViews
+                  shown="overview"
+                  views={{
+                    overview: (
+                      <>
+                        <SeasonShelf
+                          backdropFallback={show.backdropPath}
+                          now
+                          progress={shelfProgress(show, tracking, regular)}
+                          seasons={seasons}
+                          showId={show.id}
+                          stills={stills}
+                          watchedBySeason={watchedBySeason}
+                        />
+                        <MoviePeople
+                          cast={cast}
+                          crew={crew}
+                          knownFor={knownFor}
+                        />
+                        <MovieGallery
+                          backdrops={backdrops}
+                          posters={posters}
+                          title={show.title}
+                        />
+                        <MovieVideos
+                          types={getVideoTypes(show)}
+                          videos={show.videos}
+                        />
+                        <Recommendations show={show} />
+                      </>
+                    ),
+                  }}
+                />
               }
               sidebar={
                 <DetailSidebar facts={buildShowFacts(show)}>

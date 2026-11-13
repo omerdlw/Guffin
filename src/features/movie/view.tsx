@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import {
   DetailAwards,
   DetailLayout,
+  DetailReviewsLayout,
   DetailSidebar,
   Heading,
   namesFact,
@@ -37,13 +38,11 @@ import {
 } from "@/lib/tmdb/shared";
 import { Carousel } from "@/design/components/carousel";
 import { Icon } from "@/design/components/icon";
-import { DockLink } from "@/design/components/link";
 import { Tooltip } from "@/design/components/tooltip";
 import { cn } from "@/design/foundations/cn";
 import { RADIUS } from "@/design/foundations/geometry";
 import {
   CAROUSEL_ITEM,
-  MAIN_COLUMN_CLASS,
   PROSE_CLASS,
   RULE_GAP,
 } from "@/design/foundations/layout";
@@ -67,7 +66,8 @@ import {
 } from "./media";
 import { MovieViewProvider, MovieViews, ReelProvider } from "./views";
 import { MovieReviewDigest, MovieReviews } from "./reviews";
-import { getFilmStats } from "./server";
+import { MediaReviewsHeader } from "./reviews-header";
+import { getFilmStats, getPeopleKnownFor } from "./server";
 import {
   AwardsAction,
   MoviePageChrome,
@@ -219,11 +219,13 @@ export function MovieStats({
     <div className="relative flex shrink-0 items-center gap-5">
       {FILM_STAT_ROWS.map((row) => (
         <DetailPart key={row.icon} name="stat">
-          <Tooltip position="top" text={row.label(stats)}>
-            <span className="flex cursor-help items-center gap-1.5 type-control leading-5 font-medium text-ink-body tabular-nums">
-              <Icon className="text-ink-muted" icon={row.icon} size={16} />
-              {COMPACT_NUMBER_FORMAT.format(row.value(stats))}
-            </span>
+          <Tooltip
+            position="top"
+            text={row.label(stats)}
+            triggerClassName="flex cursor-help items-center gap-1.5 type-control leading-5 font-medium text-ink-body tabular-nums"
+          >
+            <Icon className="text-ink-muted" icon={row.icon} size={16} />
+            {COMPACT_NUMBER_FORMAT.format(row.value(stats))}
           </Tooltip>
         </DetailPart>
       ))}
@@ -268,11 +270,9 @@ function MovieRecommendations({
 
 function MovieHeader({
   movie,
-  page,
   stats,
 }: {
   movie: MovieDetails;
-  page: MoviePageKind;
   stats: FilmStats | null;
 }): JSX.Element {
   const title = (
@@ -286,16 +286,7 @@ function MovieHeader({
 
   return (
     <>
-      {page.kind === "reviews" ? (
-        <DockLink
-          className="ui-fade hover:opacity-80 focus-visible:opacity-80"
-          href={movieHref(movie.id)}
-        >
-          {title}
-        </DockLink>
-      ) : (
-        title
-      )}
+      {title}
       {movie.tagline || movie.overview || hasFilmStats(stats) ? (
         <div className={`${RULE_GAP} relative flex w-full items-center gap-5`}>
           <DetailPart className="h-px flex-1 bg-grade/40" name="rule" />
@@ -342,64 +333,85 @@ function MovieView({
 }): JSX.Element {
   const backdrop = tmdbImageUrl("backdrop", movie.backdropPath, "original");
   const { cast, crew } = toPersonEntries(movie);
+  const knownFor = getPeopleKnownFor(
+    { cast, crew },
+    { id: movie.id, mediaType: "movie" },
+  );
   const backdrops = getGalleryImages(images);
   const posters = getPosterImages(images);
+
+  if (page.kind === "reviews") {
+    return (
+      <ReelProvider>
+        <MovieStage movie={movie}>
+          <DetailReviewsLayout
+            backdrop={backdrop ? <MovieBackdropHero movie={movie} /> : null}
+            className="movie-page"
+            header={
+              <MediaReviewsHeader
+                href={movieHref(movie.id)}
+                media={movie}
+                poster={!page.reviewer}
+              />
+            }
+            intermission={<MovieProjection movie={movie} />}
+            main={
+              <MovieReviews
+                key={page.reviewer ?? ""}
+                initialSort={page.sort}
+                movieId={movie.id}
+                reviewer={page.reviewer}
+                title={movie.title}
+              />
+            }
+          />
+        </MovieStage>
+      </ReelProvider>
+    );
+  }
 
   return (
     <ReelProvider>
       <MovieStage movie={movie}>
         <DetailLayout
           after={
-            page.kind === "film" ? (
-              <>
-                <MovieReviewDigest movieId={movie.id} title={movie.title} />
-                <Suspense fallback={null}>
-                  <MoviePopularLists lists={page.popularLists} />
-                </Suspense>
-              </>
-            ) : null
+            <>
+              <MovieReviewDigest movieId={movie.id} title={movie.title} />
+              <Suspense fallback={null}>
+                <MoviePopularLists lists={page.popularLists} />
+              </Suspense>
+            </>
           }
           backdrop={backdrop ? <MovieBackdropHero movie={movie} /> : null}
           className="movie-page"
-          header={<MovieHeader movie={movie} page={page} stats={stats} />}
+          header={<MovieHeader movie={movie} stats={stats} />}
           intermission={<MovieProjection movie={movie} />}
           main={
-            page.kind === "reviews" ? (
-              <div className={MAIN_COLUMN_CLASS}>
-                <MovieReviews
-                  initialSort={page.sort}
-                  movieId={movie.id}
-                  reviewer={page.reviewer}
-                  title={movie.title}
-                />
-              </div>
-            ) : (
-              <MovieViews
-                views={{
-                  awards: (
-                    <Suspense fallback={null}>
-                      <MovieAwards awards={awards} />
-                    </Suspense>
-                  ),
-                  overview: (
-                    <>
-                      <MoviePeople cast={cast} crew={crew} />
-                      <MovieGallery
-                        backdrops={backdrops}
-                        now
-                        posters={posters}
-                        title={movie.title}
-                      />
-                      <MovieVideos
-                        types={getVideoTypes(movie)}
-                        videos={movie.videos}
-                      />
-                      <MovieRecommendations movie={movie} />
-                    </>
-                  ),
-                }}
-              />
-            )
+            <MovieViews
+              views={{
+                awards: (
+                  <Suspense fallback={null}>
+                    <MovieAwards awards={awards} />
+                  </Suspense>
+                ),
+                overview: (
+                  <>
+                    <MoviePeople cast={cast} crew={crew} knownFor={knownFor} />
+                    <MovieGallery
+                      backdrops={backdrops}
+                      now
+                      posters={posters}
+                      title={movie.title}
+                    />
+                    <MovieVideos
+                      types={getVideoTypes(movie)}
+                      videos={movie.videos}
+                    />
+                    <MovieRecommendations movie={movie} />
+                  </>
+                ),
+              }}
+            />
           }
           sidebar={<MovieSidebar awards={awards} movie={movie} />}
           wall={
@@ -446,7 +458,11 @@ export async function MoviePageContent({
 
   return (
     <MovieViewProvider>
-      <MoviePageChrome movie={result.data} palette={palette} />
+      <MoviePageChrome
+        movie={result.data}
+        palette={palette}
+        reviews={reviews !== null}
+      />
       <MovieView
         awards={awards}
         images={pictures.success ? pictures.data : result.data.images}

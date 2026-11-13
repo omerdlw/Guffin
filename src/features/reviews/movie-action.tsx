@@ -16,11 +16,14 @@ import { DockAction } from "@/design/components/surface";
 import { getOwnMovieReviewAction } from "./actions";
 import { REVIEW_EVENTS } from "./constants";
 import { createReviewEditorSurfaceEntry } from "./editor";
+import type { ReviewsPager } from "./pager";
 import type { ReviewInput } from "./types";
 
 export function MovieAction({
   extra = null,
   hasProviders,
+  pager = null,
+  reviews = false,
   mediaType = "movie",
   movieId,
   onOpenProviders,
@@ -31,6 +34,8 @@ export function MovieAction({
   mediaType?: MediaType;
   movieId: number;
   onOpenProviders: () => void;
+  pager?: ReviewsPager | null;
+  reviews?: boolean;
   title: string;
 }): JSX.Element | null {
   const auth = useAuth();
@@ -85,7 +90,45 @@ export function MovieAction({
 
   if (!auth.isReady) return null;
 
-  const providers = hasProviders ? (
+  const clear =
+    reviews && pager?.reviewer ? (
+      <Button
+        className={actionClass({
+          className: userId ? slots.actionFill : "w-full",
+        })}
+        onClick={pager.clear}
+        type="button"
+      >
+        <Icon icon="solar:users-group-rounded-bold" size={16} />
+        <span className={slots.actionLabel}>All reviews</span>
+      </Button>
+    ) : null;
+
+  const more =
+    reviews && pager && !pager.reviewer && pager.left > 0 ? (
+      <Button
+        className={actionClass({
+          className: userId ? slots.actionFill : "w-full",
+        })}
+        disabled={pager.loading}
+        onClick={pager.more}
+        type="button"
+      >
+        <Icon
+          icon={
+            pager.loading
+              ? "svg-spinners:90-ring-with-bg"
+              : "solar:alt-arrow-down-bold"
+          }
+          size={16}
+        />
+        <span className={slots.actionLabel}>More reviews ({pager.left})</span>
+      </Button>
+    ) : null;
+
+  const providers = reviews ? (
+    (clear ?? more)
+  ) : hasProviders ? (
     <Button
       className={actionClass({
         className: userId ? slots.actionFill : "w-full",

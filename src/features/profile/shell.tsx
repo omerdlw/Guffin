@@ -282,6 +282,7 @@ export function AccountShell({
   isOwner: initialIsOwner,
   palette,
   proofSlot,
+  rememberedVitrin,
   statsSlot,
 }: AccountShellProps): JSX.Element {
   const auth = useAuth();
@@ -319,7 +320,10 @@ export function AccountShell({
           statsSlot={statsSlot}
           tabsSlot={
             activeAccount.username ? (
-              <AccountSectionTabs username={activeAccount.username} />
+              <AccountSectionTabs
+                rememberedVitrin={rememberedVitrin}
+                username={activeAccount.username}
+              />
             ) : null
           }
         >

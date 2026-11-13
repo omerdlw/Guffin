@@ -19,6 +19,7 @@ import {
 import { movieSwatch } from "@/features/movie/utils";
 import { createWatchProvidersSurfaceEntry } from "@/features/movie/watch-providers";
 import { MovieAction } from "@/features/reviews/movie-action";
+import { describeReviewStats, useReviewsPager } from "@/features/reviews/pager";
 import { tmdbImageUrl } from "@/lib/tmdb/shared";
 import { SHOW_FALLBACK_ICON } from "./constants";
 import type { ShowDetails } from "./types";
@@ -26,9 +27,11 @@ import { describeShow } from "./utils";
 
 export function ShowPageChrome({
   palette = null,
+  reviews = false,
   show,
 }: {
   palette?: AmbientPalette | null;
+  reviews?: boolean;
   show: Pick<
     ShowDetails,
     | "backdropPath"
@@ -61,12 +64,16 @@ export function ShowPageChrome({
   });
 
   const { openSurface } = useDockActions();
+  const pager = useReviewsPager();
+  const board = reviews ? pager : null;
   const hasProviders = Object.keys(show.watchProviders).length > 0;
 
   const action = useMemo(
     () => (
       <MovieAction
         hasProviders={hasProviders}
+        reviews={reviews}
+        pager={board}
         mediaType="tv"
         movieId={show.id}
         onOpenProviders={() =>
@@ -81,7 +88,7 @@ export function ShowPageChrome({
         title={show.title}
       />
     ),
-    [hasProviders, openSurface, show.id, show.title],
+    [board, hasProviders, openSurface, reviews, show.id, show.title],
   );
 
   const departure = useDeparture()?.href;
@@ -91,7 +98,9 @@ export function ShowPageChrome({
     title: show.title,
     dock: {
       action,
-      description: describeShow(show) || undefined,
+      description:
+        (board ? describeReviewStats(board.stats) : describeShow(show)) ||
+        undefined,
       icon: poster ?? SHOW_FALLBACK_ICON,
       name: `tv-${show.id}`,
       targetPath: departure,

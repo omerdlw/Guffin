@@ -4,7 +4,7 @@ import { type JSX, useState } from "react";
 import { formatShortDate } from "@/features/account/utils";
 import { ReviewActions } from "@/features/reviews/controls";
 import { RatingStars } from "@/features/reviews/rating";
-import { mediaHref, reviewHref } from "@/lib/project";
+import { reviewHref } from "@/lib/project";
 import { DockLink, TextButton } from "@/design/components/link";
 import { MediaCard } from "@/design/components/media-card";
 import { cn } from "@/design/foundations/cn";
@@ -53,7 +53,7 @@ function ReviewRow({
   username: string;
 }) {
   const mediaType = review.mediaType ?? "movie";
-  const href = mediaHref(mediaType, review.tmdbId);
+  const href = reviewHref(review.tmdbId, username, mediaType);
   const body = (
     <>
       <MediaCard
