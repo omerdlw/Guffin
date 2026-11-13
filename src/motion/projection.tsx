@@ -15,7 +15,7 @@ import {
 import { cn } from "@/design/ui";
 import type { Projector } from "./gl-projection";
 import { useEngine } from "./react";
-import { readable } from "./render";
+import { readable } from "./gl";
 
 interface ProjectionProps {
   className?: string;

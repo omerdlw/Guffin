@@ -6,52 +6,42 @@ import { defineTheme } from "@omerdlw/base-framework/theme";
 import { SHELL } from "@/design/foundations/layers";
 import { TONE } from "@/design/foundations/tones";
 import { Z_INDEX } from "@/design/foundations/z-index";
-import { hazy, motion, SHARP, step, tween } from "@/motion/time";
+import { INSTANT } from "./motion";
 
-const { durations: time, easings: ease, springs } = motion;
-
-const leave = tween(time.leave, ease.fade);
 const ORIGIN = "top left";
 
-const rowDelay = (index: unknown) =>
-  time.step + Math.min(Math.max(Number(index) || 0, 0), 5) * time.step;
+const AT_REST = "translate3d(0px, 0px, 0) scale(1)";
 
 const contextMenuMotion: ContextMenuMotion = {
   pop: {
     hidden: {
       opacity: 0,
-      transform: "translate3d(0px, 0px, 0) scale(0.96)",
+      transform: AT_REST,
       transformOrigin: ORIGIN,
     },
     visible: {
       opacity: 1,
-      transform: "translate3d(0px, 0px, 0) scale(1)",
+      transform: AT_REST,
       transformOrigin: ORIGIN,
-      transition: {
-        transform: tween(step(1), ease.silk),
-        opacity: tween(step(0), ease.fade),
-      },
+      transition: INSTANT,
     },
     exit: {
       opacity: 0,
-      transform: "translate3d(0px, 0px, 0) scale(0.98)",
+      transform: AT_REST,
       transformOrigin: ORIGIN,
-      transition: leave,
+      transition: INSTANT,
     },
   },
   content: {
     hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: tween(time.reveal, ease.fade) },
+    visible: { opacity: 1, transition: INSTANT },
   },
   item: {
-    hidden: hazy(2),
-    visible: (index: unknown = 0) => ({
-      ...SHARP,
-      transition: tween(step(0), ease.silk, rowDelay(index)),
-    }),
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: INSTANT },
   },
-  itemTap: { transform: "translate3d(0px, 0px, 0) scale(1)" },
-  itemTransition: springs.press,
+  itemTap: { transform: AT_REST },
+  itemTransition: INSTANT,
 };
 
 export const contextMenuThemeConfig = defineTheme(contextMenuTheme, {

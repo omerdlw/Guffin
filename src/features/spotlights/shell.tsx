@@ -17,12 +17,11 @@ import {
 import { Button } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
 import { DockAction } from "@/design/components/surface";
-import { Room } from "@/motion/kit";
+import { Room } from "@/design/components/room";
 import { MotionConfig } from "@/motion/lib";
-import { bindScore } from "@/motion/react";
-import { mountScene } from "@/motion/render";
-import { defineScore } from "@/motion/score";
-import type { Stage } from "@/motion/stage";
+import { defineStage } from "@/motion/stage";
+import type { Engine } from "@/motion/engine";
+import { mountScene } from "@/motion/scene";
 import { type LoopFactory, typing } from "./spotlights";
 
 interface SpotlightDockAction {
@@ -39,15 +38,11 @@ const GESTURE_END_MS = 220;
 
 const URL_SYNC_DELAY_MS = 500;
 
-const SALON = defineScore({
-  cast: {
-    scene: { matter: "plate", enter: "still", leave: "fade" },
-    chrome: { matter: "glass", enter: "still", leave: "fade" },
-  },
-  opening: [["scene", "chrome"]],
+const SALON = defineStage({
+  parts: ["scene", "chrome"],
 });
 
-const bound = bindScore(SALON);
+const bound = SALON;
 
 const SalonStageRoot = bound.StageRoot;
 export const SalonPart = bound.Part;
@@ -76,15 +71,14 @@ export function SalonStage({
 }
 
 export function mountSpotlight<R extends { dispose(): void }>(
-  stage: Stage<string, string>,
+  engine: Engine,
   canvas: HTMLCanvasElement,
   build: (canvas: HTMLCanvasElement, loop: LoopFactory) => R | null,
   pixelRatio: number,
 ): { renderer: R | null; dispose: () => void } {
   const built: { renderer: R | null } = { renderer: null };
   const dispose = mountScene(
-    stage,
-    "scene",
+    engine,
     canvas,
     (element, wake) => {
       let step: ((now: number, dt: number) => boolean) | null = null;
@@ -104,7 +98,7 @@ export function mountSpotlight<R extends { dispose(): void }>(
         dispose: () => renderer.dispose(),
       };
     },
-    { css: true, pixelRatio },
+    { pixelRatio },
   );
   return { renderer: built.renderer, dispose };
 }

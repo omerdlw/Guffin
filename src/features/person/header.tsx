@@ -46,7 +46,7 @@ import {
   type PersonDetails,
   tmdbImageUrl,
 } from "@/lib/tmdb/shared";
-import { readable } from "@/motion/render";
+import { readable } from "@/motion/gl";
 import { countFilms, getBackdropPath, personSwatch } from "./credits";
 import { describePerson, PERSON_LINKS_CLASS, type SocialLink } from "./person";
 import { personBioSurface } from "./surfaces";
@@ -99,7 +99,7 @@ function ProfileLink({
         <Tooltip position="top" text={link.label}>
           <ExternalLink
             aria-label={`${name} on ${link.label}`}
-            className="cine-fade center relative z-10 size-9 rounded-full text-ink-body hover:text-ink focus-visible:text-ink"
+            className="center relative z-10 size-9 rounded-full text-ink-body hover:text-ink focus-visible:text-ink"
             href={link.url}
             referrerPolicy="no-referrer"
             {...highlight.props}
@@ -159,11 +159,7 @@ function BiographyExcerpt({
         text={excerpt}
       />
       {truncated ? (
-        <DetailPart
-          cadence="even"
-          index={Number.MAX_SAFE_INTEGER}
-          name="overview"
-        >
+        <DetailPart index={Number.MAX_SAFE_INTEGER} name="overview">
           <TextButton
             aria-label={`Read the full biography of ${name}`}
             onClick={openFull}

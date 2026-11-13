@@ -33,8 +33,6 @@ import {
   reviewHref,
   tvHref,
 } from "@/lib/project";
-import { AnimatePresence, motion, useReducedMotion } from "@/motion/lib";
-import { POINTS, step, tween } from "@/motion/time";
 import styles from "./search-command.module.css";
 import { SearchPart, SearchStage, SearchSwap } from "./motion";
 import {
@@ -48,7 +46,7 @@ import {
   type SearchSection,
   type SearchType,
 } from "./query";
-import { ResultSheet, Roll } from "./results";
+import { ResultSheet } from "./results";
 import { PagerButton, ResultsSkeleton, Section } from "./sections";
 import { useSearch } from "./use-search";
 
@@ -210,14 +208,11 @@ function hrefsOf(item: SearchSection): string[] {
   }
 }
 
-const TURN = tween(step(-1), POINTS.expo);
-
 function SearchAction({ onClose }: { onClose?: () => void } = {}) {
   const { navigate } = useDockActions();
   const actionClass = useDockActionClass();
   const listId = useId();
   const listRef = useRef<HTMLDivElement>(null);
-  const reduced = useReducedMotion();
   const [scope, setScope] = useState<SearchScope>("all");
   const [page, setPage] = useState(0);
   const [cursor, setCursor] = useState<{
@@ -351,7 +346,7 @@ function SearchAction({ onClose }: { onClose?: () => void } = {}) {
         >
           <Icon
             className={cn(
-              "cine-fade pointer-events-none absolute top-1/2 left-4 -translate-y-1/2",
+              "pointer-events-none absolute top-1/2 left-4 -translate-y-1/2",
               input
                 ? "text-grade"
                 : "text-ink-muted group-focus-within/field:text-ink",
@@ -381,39 +376,25 @@ function SearchAction({ onClose }: { onClose?: () => void } = {}) {
             value={input}
           />
           <div className="absolute top-1/2 right-2 -translate-y-1/2">
-            <AnimatePresence initial={false} mode="popLayout">
-              {input ? (
-                <motion.div
-                  animate={{ opacity: 1, rotate: 0, scale: 1 }}
-                  exit={{ opacity: 0, rotate: reduced ? 0 : -45, scale: 0.7 }}
-                  initial={{
-                    opacity: 0,
-                    rotate: reduced ? 0 : -45,
-                    scale: 0.7,
-                  }}
-                  key="clear"
-                  transition={TURN}
-                >
-                  <Button
-                    aria-label="Clear search"
-                    className="size-7 rounded-inset text-ink-muted"
-                    icon
-                    intent="ghost"
-                    size="xs"
-                    onClick={handleClear}
-                  >
-                    <Icon icon="material-symbols:close-rounded" size={16} />
-                  </Button>
-                </motion.div>
-              ) : null}
-            </AnimatePresence>
+            {input ? (
+              <Button
+                aria-label="Clear search"
+                className="size-7 rounded-inset text-ink-muted"
+                icon
+                intent="ghost"
+                size="xs"
+                onClick={handleClear}
+              >
+                <Icon icon="material-symbols:close-rounded" size={16} />
+              </Button>
+            ) : null}
           </div>
         </form>
       </SearchPart>
 
       <div
         className={cn(
-          "grid transition-[grid-template-rows,opacity] duration-settle ease-in-out-cubic",
+          "grid",
           query ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
         )}
         inert={!query}
@@ -490,7 +471,7 @@ function SearchAction({ onClose }: { onClose?: () => void } = {}) {
                   name="row"
                 >
                   <span className="type-meta text-ink-muted tabular-nums">
-                    <Roll value={`${from}–${to} of ${view.total}`} />
+                    {`${from}–${to} of ${view.total}`}
                   </span>
                   <span className="flex items-center gap-1">
                     <PagerButton

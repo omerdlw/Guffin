@@ -1,13 +1,14 @@
 import { type Engine, Value } from "./engine";
 import { clamp } from "./math";
-import { step } from "./time";
 
 interface ScrollTarget {
   offset?: number;
   immediate?: boolean;
 }
 
-const SCROLL_RUNG = 1;
+const SCROLL_PERIOD = 0.636;
+
+const SCROLL_REST_MS = 191;
 
 const SCROLL_LINE = 40;
 
@@ -79,7 +80,6 @@ function locked(now: number) {
 
 class ScrollDriver {
   private position: Value;
-  private tempo = 0;
   private written = 0;
   private started = false;
   private resting: ReturnType<typeof setTimeout> | null = null;
@@ -110,7 +110,7 @@ class ScrollDriver {
   }
 
   private get spring() {
-    return { period: step(SCROLL_RUNG + this.tempo), damping: 1, mass: 1 };
+    return { period: SCROLL_PERIOD, damping: 1, mass: 1 };
   }
 
   start() {
@@ -137,14 +137,6 @@ class ScrollDriver {
     for (const stop of this.detach) stop();
     this.detach = [];
     this.rest();
-  }
-
-  tune(tempo: number) {
-    const previous = this.tempo;
-    this.tempo = tempo;
-    return () => {
-      this.tempo = previous;
-    };
   }
 
   to(
@@ -200,12 +192,12 @@ class ScrollDriver {
     this.movedAt = performance.now();
     if (this.resting !== null) return;
     document.documentElement.setAttribute(SCROLLING, "");
-    this.wait(step(-2) * 1000);
+    this.wait(SCROLL_REST_MS);
   }
 
   private wait(ms: number) {
     this.resting = setTimeout(() => {
-      const left = step(-2) * 1000 - (performance.now() - this.movedAt);
+      const left = SCROLL_REST_MS - (performance.now() - this.movedAt);
       if (left > 1) this.wait(left);
       else this.rest();
     }, ms);

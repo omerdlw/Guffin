@@ -1,32 +1,3 @@
-@layer base {
-  *:not(
-    [data-cinematic],
-    [data-cinematic] *,
-    .ui-motion,
-    .ui-motion *,
-    .ui-scene :is(button, a[href], [role="button"], [class*="hover:"]),
-    .ui-scene :is(button, a[href], [role="button"], [class*="hover:"]) *
-  ),
-  *:not(
-      [data-cinematic],
-      [data-cinematic] *,
-      .ui-motion,
-      .ui-motion *,
-      .ui-scene :is(button, a[href], [role="button"], [class*="hover:"]),
-      .ui-scene :is(button, a[href], [role="button"], [class*="hover:"]) *
-    )::before,
-  *:not(
-      [data-cinematic],
-      [data-cinematic] *,
-      .ui-motion,
-      .ui-motion *,
-      .ui-scene :is(button, a[href], [role="button"], [class*="hover:"]),
-      .ui-scene :is(button, a[href], [role="button"], [class*="hover:"]) *
-    )::after {
-    transition: none !important;
-  }
-}
-
 :where(.account-page, .home-page, .movie-page, .person-page)
   :focus-visible:not(input, textarea, [contenteditable], [data-own-focus]) {
   outline-color: var(--focus-ring-grade, var(--focus-ring));

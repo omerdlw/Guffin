@@ -6,8 +6,7 @@ import { PAGE_CLASS } from "@/design/foundations/layout";
 import { TONE } from "@/design/foundations/tones";
 import { cn } from "@/design/ui";
 import { TV_ENABLED } from "@/lib/env";
-import { bindScore } from "@/motion/react";
-import { defineScore } from "@/motion/score";
+import { defineStage } from "@/motion/stage";
 import {
   LEGAL_CONTACT_EMAIL,
   type LegalBlock,
@@ -22,7 +21,7 @@ const LEGAL_LINKS = [
 ] as const;
 
 const LEGAL_PILL_BASE_CLASS =
-  "cine-fade flex-1 px-4 py-3 text-center type-body font-medium ring-1 ring-inset outline-none focus-visible:ring-edge-focus";
+  "flex-1 px-4 py-3 text-center type-body font-medium ring-1 ring-inset outline-none focus-visible:ring-edge-focus";
 
 const LEGAL_PILL_IDLE_CLASS =
   "bg-fill text-ink-body ring-edge hover:bg-fill-hover focus-visible:bg-fill-hover hover:text-ink focus-visible:text-ink hover:ring-edge-hover focus-visible:ring-edge-focus";
@@ -33,22 +32,12 @@ const LEGAL_TOKEN_PATTERN = /(\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\))/g;
 
 const LEGAL_LINK_PATTERN = /^\[([^\]]+)\]\(([^)]+)\)$/;
 
-const LEGAL = defineScore({
-  tempo: -1,
-  cast: {
-    title: "ink",
-    intro: "light",
-    updated: "light",
-    links: "glass",
-    sheet: { matter: "paper", leave: "fade" },
-    heading: "ink",
-    prose: { matter: "ink", leave: "fade" },
-  },
-  opening: ["title", ["intro", "updated"], "links", "sheet"],
-  sections: { block: ["heading", "prose"] },
+const LEGAL = defineStage({
+  parts: ["title", "intro", "updated", "links", "sheet", "heading", "prose"],
+  sections: ["block"],
 });
 
-const bound = bindScore(LEGAL);
+const bound = LEGAL;
 
 const LegalStage = bound.StageRoot;
 const LegalPart = bound.Part;

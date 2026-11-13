@@ -7,11 +7,7 @@ import {
 } from "@omerdlw/base-framework/ambient";
 import { useDockActions } from "@omerdlw/base-framework/dock";
 import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
-import {
-  type NavigationTrip,
-  pathOf,
-  useNavigationPayload,
-} from "@omerdlw/base-framework/navigation";
+import { useNavigationPayload } from "@omerdlw/base-framework/navigation";
 import { Image } from "@omerdlw/base-framework/ui";
 import { usePathname } from "next/navigation";
 import { Icon } from "@/design/components/icon";
@@ -30,8 +26,7 @@ import { accountBioSurface } from "@/features/account/surfaces";
 import { BackdropProjection } from "@/features/detail/stage";
 import { PlanGuides } from "@/features/profile/progress/guides";
 import { followsSurface } from "@/features/social/surfaces";
-import { accountHref } from "@/lib/project";
-import { Room } from "@/motion/kit";
+import { Room } from "@/design/components/room";
 import { ProfileStatButton, ProfileStatRow } from "./blocks";
 import {
   AccountPart,
@@ -94,12 +89,6 @@ function resolveAccountBackdropUrl(
   if (!background) return null;
   return /^(https?:\/\/|\/|data:image\/)/.test(background) ? background : null;
 }
-
-const leavesAccount = (base?: string) => (trip: NavigationTrip) => {
-  if (!base) return pathOf(trip.to) !== pathOf(trip.from);
-  const to = pathOf(trip.to).replace(/\/+$/, "") || "/";
-  return to !== base && !to.startsWith(`${base}/`);
-};
 
 function getAccountDisplayName(account?: AccountData | null): string {
   return account?.displayName || account?.username || DEFAULT_DISPLAY_NAME;
@@ -167,12 +156,10 @@ function useSocialFollowSync(
 }
 
 function AccountBackdropHero({ image }: AccountBackdropHeroProps) {
-  const [ready, setReady] = useState(false);
-
   return (
     <div className="relative">
-      <AccountPart name="backdrop" ready={ready}>
-        <BackdropProjection onReady={() => setReady(true)} src={image ?? ""} />
+      <AccountPart name="backdrop">
+        <BackdropProjection src={image ?? ""} />
       </AccountPart>
     </div>
   );
@@ -351,14 +338,10 @@ export function AccountLayout({
 
   const pathname = usePathname();
   const isPrivateLocked = account?.isPrivate && !isOwner && !isFollower;
-  const scope = account?.username ? accountHref(account.username) : undefined;
   const backdropUrl = resolveAccountBackdropUrl(account);
 
   return (
-    <AccountStageRoot
-      grade={backdropUrl || account?.avatarUrl || null}
-      leaves={leavesAccount(scope)}
-    >
+    <AccountStageRoot grade={backdropUrl || account?.avatarUrl || null}>
       <Room grain={false} />
       <main
         id="main"

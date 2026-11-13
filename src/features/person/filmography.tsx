@@ -150,7 +150,7 @@ export function PersonFilmography({
               shape="pill"
               width="full"
               intent="neutral"
-              className="cine-press ui-still mt-3"
+              className="mt-3"
               onClick={() => setExpanded(new Set(expanded).add(expandKey))}
               type="button"
             >

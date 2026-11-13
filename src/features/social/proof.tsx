@@ -36,7 +36,7 @@ import { useMediaType } from "@/features/media/media-type";
 import { RatingStars } from "@/features/reviews/rating";
 import { pluralize } from "@/lib/format";
 import { accountHref, reviewHref } from "@/lib/project";
-import { StagePart } from "@/motion/react";
+import { Part } from "@/motion/stage";
 import { getMovieSocialProofAction } from "./actions";
 import type {
   Friend,
@@ -399,7 +399,7 @@ export function MovieSocialProof({
   return (
     <div
       className={cn(
-        "grid transition-[grid-template-rows,opacity,margin] duration-reveal ease-out-expo",
+        "grid",
         open
           ? "mt-0 grid-rows-[1fr] opacity-100"
           : "-mt-3 grid-rows-[0fr] opacity-0",
@@ -408,9 +408,9 @@ export function MovieSocialProof({
     >
       <div className="min-h-0 overflow-hidden">
         {proof && summary ? (
-          <StagePart name={part}>
+          <Part name={part}>
             <Button
-              className="cine-card cine-fade group relative flex h-14 w-full cursor-pointer items-center overflow-hidden rounded-full bg-fill px-3.5 text-left ring-1 ring-edge ring-inset hover:bg-fill-hover focus-visible:bg-fill-hover hover:ring-edge-hover focus-visible:ring-edge-focus"
+              className="cine-card group relative flex h-14 w-full cursor-pointer items-center overflow-hidden rounded-full bg-fill px-3.5 text-left ring-1 ring-edge ring-inset hover:bg-fill-hover focus-visible:bg-fill-hover hover:ring-edge-hover focus-visible:ring-edge-focus"
               onClick={() =>
                 void openSurface(
                   socialProofSurface({ data: { movieId, proof, title } }),
@@ -431,13 +431,13 @@ export function MovieSocialProof({
                   ) : null}
                 </span>
                 <Icon
-                  className="shrink-0 text-ink-muted transition-colors duration-light group-hover:text-ink group-focus-visible:text-ink group-has-focus-visible:text-ink"
+                  className="shrink-0 text-ink-muted group-hover:text-ink group-focus-visible:text-ink group-has-focus-visible:text-ink"
                   icon="solar:alt-arrow-right-linear"
                   size={16}
                 />
               </span>
             </Button>
-          </StagePart>
+          </Part>
         ) : null}
       </div>
     </div>

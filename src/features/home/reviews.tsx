@@ -58,7 +58,7 @@ function Lead({ review }: { review: HomeReview }): JSX.Element {
           >
             <Image
               alt=""
-              className="cine-zoom object-cover"
+              className="object-cover"
               sizes="(min-width: 1024px) 640px, 100vw"
               src={still}
               wrapperClassName="absolute inset-0"

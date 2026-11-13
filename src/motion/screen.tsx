@@ -1,30 +1,18 @@
 "use client";
 
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   AnimatePresence,
   motion,
   type TargetAndTransition,
-  useIsPresent,
   useReducedMotion,
 } from "motion/react";
 import { LOGO_PATH, LOGO_VIEWBOX } from "@/design/components/logo";
 import { Z_INDEX } from "@/design/foundations/z-index";
-import { cn } from "@/design/ui";
-import { gradeOf, rgbOf, type Tint } from "./color";
-import { houseDown } from "./kit";
-import { useEngine } from "./react";
-import { POINTS } from "./time";
+import { houseDown } from "@/design/components/room";
+import { grade, rgbOf, type Tint } from "@/design/grade";
 
 type Bezier = [number, number, number, number];
-
-const SCREEN_ON = { line: 0.3, run: 0.95 };
-
-const SCREEN_OFF = { collapse: 0.18, point: 0.26, glow: 0.9 };
-
-const SCREEN_LINE = 0.004;
-
-const SCREEN_BEAM = "rgb(255 250 242)";
 
 const SCREEN_WAKE = [
   "pointermove",
@@ -39,6 +27,8 @@ const SCREEN_THROUGH = 1.06;
 
 const SCREEN_DIM: Bezier = [0.3, 0, 0.2, 1];
 
+const SCREEN_DOLLY: Bezier = [0.5, 0, 0.12, 1];
+
 const SCREEN_UNTINTED = "data-untinted";
 
 function passThrough(run: number): TargetAndTransition {
@@ -48,110 +38,9 @@ function passThrough(run: number): TargetAndTransition {
     transition: {
       duration: run,
       opacity: { duration: run, ease: SCREEN_DIM },
-      scale: { duration: run, ease: POINTS.dolly },
+      scale: { duration: run, ease: SCREEN_DOLLY },
     },
   };
-}
-
-function afterglow(box: DOMRect) {
-  const point = document.createElement("div");
-  point.setAttribute("aria-hidden", "true");
-  Object.assign(point.style, {
-    background: SCREEN_BEAM,
-    borderRadius: "9999px",
-    height: "2px",
-    left: `${box.left}px`,
-    pointerEvents: "none",
-    position: "fixed",
-    top: `${box.top + box.height / 2 - 1}px`,
-    width: `${box.width}px`,
-    zIndex: String(Z_INDEX.MODAL + 1),
-  });
-  document.body.append(point);
-  const animation = point.animate(
-    [
-      { offset: 0, opacity: 0, transform: "scaleX(1)" },
-      { offset: 0.04, opacity: 1, transform: "scaleX(1)" },
-      {
-        easing: "cubic-bezier(0.06, 0.62, 0.2, 1)",
-        offset: SCREEN_OFF.point / (SCREEN_OFF.point + SCREEN_OFF.glow),
-        opacity: 1,
-        transform: "scaleX(0.006)",
-      },
-      { opacity: 0, transform: "scaleX(0.004)" },
-    ],
-    {
-      delay: SCREEN_OFF.collapse * 1000 * 0.8,
-      duration: (SCREEN_OFF.point + SCREEN_OFF.glow) * 1000,
-      easing: "cubic-bezier(0.5, 0, 0.9, 0.6)",
-      fill: "both",
-    },
-  );
-  const remove = () => point.remove();
-  animation.onfinish = remove;
-  animation.oncancel = remove;
-}
-
-export function Tube({
-  children,
-  className,
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
-  const reduced = useReducedMotion();
-  const present = useIsPresent();
-  const set = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (present || reduced || !set.current) return;
-    afterglow(set.current.getBoundingClientRect());
-  }, [present, reduced]);
-
-  const line = SCREEN_ON.line / SCREEN_ON.run;
-  return (
-    <motion.div
-      animate={{
-        scaleX: [0, 1, 1],
-        scaleY: [SCREEN_LINE, SCREEN_LINE, 1],
-        transition: {
-          duration: SCREEN_ON.run,
-          ease: [
-            [0.3, 0.85, 0.3, 1],
-            [0.33, 0.35, 0.15, 1],
-          ],
-          times: [0, line, 1],
-        },
-      }}
-      className={cn("relative", className)}
-      exit={{
-        scaleY: SCREEN_LINE,
-        transition: { duration: SCREEN_OFF.collapse, ease: [0.55, 0, 1, 0.45] },
-      }}
-      initial={reduced ? false : { scaleX: 0, scaleY: SCREEN_LINE }}
-      ref={set}
-    >
-      {children}
-      <motion.div
-        animate={{
-          opacity: [1, 1, 0],
-          transition: {
-            duration: SCREEN_ON.run,
-            ease: POINTS.fade,
-            times: [0, line * 1.2, 1],
-          },
-        }}
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 rounded-[inherit]"
-        exit={{
-          opacity: 1,
-          transition: { duration: SCREEN_OFF.collapse * 0.7, ease: "easeIn" },
-        }}
-        initial={reduced ? false : { opacity: 1 }}
-        style={{ background: SCREEN_BEAM }}
-      />
-    </motion.div>
-  );
 }
 
 const dialogOpen = () =>
@@ -325,17 +214,14 @@ function paint(tint: Tint | null) {
 }
 
 export function TintedFavicon() {
-  const engine = useEngine();
-
   useEffect(() => {
-    const { target } = gradeOf(engine);
-    paint(target.get());
-    const stop = target.subscribe(paint);
+    paint(grade.get());
+    const stop = grade.subscribe(paint);
     return () => {
       stop();
       paint(null);
     };
-  }, [engine]);
+  }, []);
 
   return null;
 }

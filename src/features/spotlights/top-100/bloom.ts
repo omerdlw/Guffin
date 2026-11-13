@@ -1,9 +1,4 @@
-import {
-  createProgram,
-  createTexture,
-  readable,
-  uniforms,
-} from "@/motion/render";
+import { createProgram, createTexture, readable, uniforms } from "@/motion/gl";
 
 interface RenderTarget {
   depth: WebGLRenderbuffer | null;

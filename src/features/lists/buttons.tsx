@@ -102,12 +102,12 @@ export function ListLikeButton({
       type="button"
     >
       <Icon
-        className={liked ? "ui-develop center text-liked" : "ui-develop center"}
+        className={liked ? "center text-liked" : "center"}
         icon={liked ? "solar:heart-bold" : "solar:heart-linear"}
         key={liked ? "liked" : "unliked"}
         size={16}
       />
-      <span className="ui-develop tabular-nums" key={count}>
+      <span className="tabular-nums" key={count}>
         {count}
       </span>
     </Button>

@@ -139,10 +139,7 @@ export function RatingSelector({
               <clipPath id={`rating-star-${star}`}>
                 <rect
                   height="24"
-                  style={{
-                    transition: `width var(--step-0) var(--ease-out-cream) calc(var(--step-n6) * ${star - 1})`,
-                    width: starFillWidth(star, shown),
-                  }}
+                  style={{ width: starFillWidth(star, shown) }}
                   x="0"
                   y="0"
                 />

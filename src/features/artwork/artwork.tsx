@@ -11,8 +11,8 @@ import { report } from "@omerdlw/base-framework/utils";
 import { Icon } from "@/design/components/icon";
 import { AwardFoil } from "@/features/detail/awards";
 import { type Awards, isTmdbImagePath, tmdbImageUrl } from "@/lib/tmdb/shared";
-import { StagePart } from "@/motion/react";
-import { readable } from "@/motion/render";
+import { Part } from "@/motion/stage";
+import { readable } from "@/motion/gl";
 import { Tilt } from "@/motion/tilt";
 import { artworkAttributes, type ArtworkSlot } from "./store";
 
@@ -359,7 +359,7 @@ export function ArtworkPrint({
       frameClassName={`overflow-hidden ${frameClassName}`}
     >
       {(light) => (
-        <StagePart
+        <Part
           className="absolute inset-0 overflow-hidden rounded-[inherit]"
           name={part}
         >
@@ -386,7 +386,7 @@ export function ArtworkPrint({
               <AwardFoil awards={awards} {...light} />
             </Suspense>
           ) : null}
-        </StagePart>
+        </Part>
       )}
     </Tilt>
   );

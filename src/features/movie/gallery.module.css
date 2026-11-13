@@ -1,8 +1,0 @@
-@layer components {
-  :global([data-cinematic]) .play {
-    transition: transform var(--touch-out) var(--ease-out-cream);
-  }
-  :global([data-cinematic] .cine-card:is(:hover, :focus-visible)) .play {
-    transform: scale(1.14);
-  }
-}

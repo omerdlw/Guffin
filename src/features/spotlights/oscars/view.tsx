@@ -20,14 +20,7 @@ import {
 import type { Laureate } from "@/features/spotlights/spotlights";
 import { movieHref, OSCARS_HREF } from "@/lib/project";
 import { tmdbImageUrl } from "@/lib/tmdb/shared";
-import {
-  animate,
-  AnimatePresence,
-  motion,
-  useMotionValue,
-  useReducedMotion,
-} from "@/motion/lib";
-import { POINTS, step } from "@/motion/time";
+import { useMotionValue } from "@/motion/lib";
 import styles from "./oscars.module.css";
 
 function ordinal(value: number): string {
@@ -66,7 +59,6 @@ function Ring({
   onPick: (index: number) => void;
   shown: boolean;
 }): JSX.Element {
-  const reduced = useReducedMotion();
   const count = laureates.length;
   const gap = 360 / count;
   const film = laureates[active];
@@ -99,17 +91,10 @@ function Ring({
     };
   }, [aim, turn]);
 
-  const glide = (value: typeof turn, to: number) =>
-    reduced
-      ? value.set(to)
-      : animate(value, to, { damping: 30, stiffness: 260, type: "spring" });
-
   useEffect(() => {
     if (hand.current?.moved) return;
-    const controls = glide(turn, near(turn.get(), -index * gap));
-    return () => controls?.stop();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- glide is recreated each render; re-aim only when the slot changes
-  }, [gap, index]);
+    turn.set(near(turn.get(), -index * gap));
+  }, [gap, index, turn]);
 
   const angleOf = (event: { clientX: number; clientY: number }) => {
     const box = svg.current!.getBoundingClientRect();
@@ -120,8 +105,7 @@ function Ring({
   };
   const tickAt = (deg: number) =>
     wrap(Math.round((deg - turn.get()) / gap), count);
-  const aimAt = (i: number) =>
-    glide(aim, near(aim.get(), i * gap + turn.get()));
+  const aimAt = (i: number) => aim.set(near(aim.get(), i * gap + turn.get()));
   const atTop = () => wrap(Math.round(-turn.get() / gap), count);
 
   return (
@@ -213,7 +197,7 @@ function Ring({
           hand.current = null;
           setHeld(false);
           onHover(null);
-          glide(turn, near(turn.get(), -index * gap));
+          turn.set(near(turn.get(), -index * gap));
         }}
         onPointerDown={(event) => {
           event.currentTarget.setPointerCapture(event.pointerId);
@@ -261,7 +245,7 @@ function Ring({
           const next = grip.moved ? atTop() : tickAt(angleOf(event));
           onHover(grip.moved ? null : next);
           if (grip.moved) {
-            glide(turn, near(turn.get(), -next * gap));
+            turn.set(near(turn.get(), -next * gap));
             aimAt(tickAt(angleOf(event)));
           }
           onPick(next);
@@ -280,7 +264,6 @@ function Oscars({
   initial: number;
   laureates: Laureate[];
 }): JSX.Element {
-  const reduced = useReducedMotion();
   const [index, setIndex] = useState(initial);
   const [hover, setHover] = useState<number | null>(null);
   const [shown, setShown] = useState(false);
@@ -321,29 +304,20 @@ function Oscars({
             shown={shown}
           />
           <div className="pointer-events-none absolute inset-[23%] flex items-center justify-center">
-            <AnimatePresence initial={false} mode="popLayout">
-              <motion.div
-                animate={{ opacity: 1, scale: 1 }}
-                className="flex h-full w-full items-center justify-center"
-                exit={{ opacity: 0, scale: reduced ? 1 : 0.98 }}
-                initial={{ opacity: 0, scale: reduced ? 1 : 1.02 }}
-                key={seen.ceremony}
-                transition={{ duration: step(-2), ease: POINTS.fade }}
+            <div className="flex h-full w-full items-center justify-center">
+              <Link
+                aria-label={`${seen.title}, Best Picture at the ${ordinal(seen.ceremony)} Academy Awards (${seen.ceremonyYear})`}
+                className="pointer-events-auto relative aspect-[2/3] h-full shrink-0 overflow-hidden rounded-md shadow-lg"
+                href={movieHref(seen.id)}
               >
-                <Link
-                  aria-label={`${seen.title}, Best Picture at the ${ordinal(seen.ceremony)} Academy Awards (${seen.ceremonyYear})`}
-                  className="pointer-events-auto relative aspect-[2/3] h-full shrink-0 overflow-hidden rounded-md shadow-lg"
-                  href={movieHref(seen.id)}
-                >
-                  <Image
-                    alt=""
-                    priority
-                    src={posterOf(seen)}
-                    wrapperClassName="absolute inset-0"
-                  />
-                </Link>
-              </motion.div>
-            </AnimatePresence>
+                <Image
+                  alt=""
+                  priority
+                  src={posterOf(seen)}
+                  wrapperClassName="absolute inset-0"
+                />
+              </Link>
+            </div>
           </div>
         </div>
       </SalonPart>

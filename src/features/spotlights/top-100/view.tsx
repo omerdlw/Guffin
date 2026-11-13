@@ -37,7 +37,7 @@ import {
 import { CANON_HREF, mediaHref } from "@/lib/project";
 import { tmdbImageUrl } from "@/lib/tmdb/shared";
 import { useReducedMotion } from "@/motion/lib";
-import { useAnyStage } from "@/motion/react";
+import { useEngine } from "@/motion/react";
 import styles from "./top-100.module.css";
 import type { Tunnel } from "./tunnel";
 
@@ -160,7 +160,7 @@ function Canon({
   title: string;
 }): JSX.Element {
   const reduced = Boolean(useReducedMotion());
-  const stage = useAnyStage();
+  const engine = useEngine();
   const { navigate } = useDockActions();
   const canvas = useRef<HTMLCanvasElement>(null);
   const slot = useRef<HTMLDivElement>(null);
@@ -211,7 +211,7 @@ function Canon({
     let unmount: (() => void) | undefined;
     const start = (TunnelScene: typeof Tunnel): (() => void) => {
       const { renderer: scene, dispose } = mountSpotlight(
-        stage,
+        engine,
         element,
         (canvas, loop) =>
           TunnelScene.create(
@@ -266,7 +266,7 @@ function Canon({
       unmount?.();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mounts the tunnel once per film set; patchView is recreated each render
-  }, [films, openAt, pick, stage]);
+  }, [films, openAt, pick, engine]);
 
   useEffect(() => tunnel.current?.setReduced(reduced), [reduced]);
 
@@ -357,7 +357,7 @@ function Canon({
         aria-hidden="true"
         className={cn(
           TUNNEL_SLOT_CLASS,
-          "flex items-center justify-center transition-opacity duration-settle ease-out-quint",
+          "flex items-center justify-center",
           opened && !failed ? "opacity-100" : "opacity-0",
         )}
       >
@@ -390,7 +390,7 @@ function Canon({
           <>
             <p
               className={cn(
-                "pointer-events-none fixed top-[clamp(1.25rem,4.5svh,2.5rem)] left-4 z-10 flex flex-col gap-1 type-meta text-ink-muted transition-opacity duration-settle ease-out-quint sm:left-8",
+                "pointer-events-none fixed top-[clamp(1.25rem,4.5svh,2.5rem)] left-4 z-10 flex flex-col gap-1 type-meta text-ink-muted sm:left-8",
                 opened ? "opacity-100" : "opacity-0",
               )}
             >
@@ -422,7 +422,7 @@ function Canon({
       <div
         aria-hidden="true"
         className={cn(
-          "pointer-events-none fixed top-0 left-0 z-20 max-w-64 transition-opacity duration-light ease-out-cream",
+          "pointer-events-none fixed top-0 left-0 z-20 max-w-64",
           pointed && !failed ? "opacity-100" : "opacity-0",
         )}
         ref={tip}

@@ -237,7 +237,7 @@ export function MoviePeople({
                 shape="pill"
                 width="full"
                 intent="neutral"
-                className="cine-press ui-still"
+                className=""
                 onClick={openAll}
               >
                 <Icon icon="solar:alt-arrow-right-linear" size={16} />

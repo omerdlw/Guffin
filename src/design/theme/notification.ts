@@ -5,21 +5,14 @@ import {
 import { defineTheme } from "@omerdlw/base-framework/theme";
 import { FLOAT } from "@/design/foundations/layers";
 import { Z_INDEX } from "@/design/foundations/z-index";
-import { motion, tween } from "@/motion/time";
-
-const { durations: notificationTime, easings: notificationEase } = motion;
-
-const enter = tween(notificationTime.light, notificationEase.fade);
+import { INSTANT } from "./motion";
 
 const notificationMotion: NotificationMotion = {
-  transition: enter,
+  transition: INSTANT,
   toast: {
     hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: enter },
-    exit: {
-      opacity: 0,
-      transition: tween(notificationTime.leave, notificationEase.fade),
-    },
+    visible: { opacity: 1, transition: INSTANT },
+    exit: { opacity: 0, transition: INSTANT },
   },
 };
 

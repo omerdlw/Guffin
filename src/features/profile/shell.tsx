@@ -10,11 +10,9 @@ import {
   use,
   useCallback,
   useEffect,
-  useId,
   useLayoutEffect,
   useMemo,
   useOptimistic,
-  useRef,
   useState,
   useTransition,
 } from "react";
@@ -49,13 +47,9 @@ import {
 import { getFollowState } from "@/features/social/client";
 import { accountHref } from "@/lib/project";
 import type { MediaType } from "@/lib/tmdb/shared";
-import { Value } from "@/motion/engine";
-import { ScopeProvider, useEngine, useScope } from "@/motion/react";
-import { childScope } from "@/motion/stage";
-import { CURVE, step } from "@/motion/time";
 import { AccountSectionTabs } from "./controls";
 import { AccountLayout } from "./hero";
-import { AccountPart, AccountSection, useAccountStage } from "./motion";
+import { AccountPart, AccountSection } from "./motion";
 import type { AccountData } from "./profile";
 
 interface AccountDockCard {
@@ -92,8 +86,6 @@ interface AccountShellProps {
 }
 
 const DOCK_ACTION_ORDER = 10;
-
-const SHELL_SETTLE_RUNG = 1;
 
 function followButtonOf(
   status: string | null,
@@ -394,74 +386,9 @@ export function AccountView({
   children: ReactNode;
   id: string;
 }) {
-  const stage = useAccountStage();
-  const engine = useEngine();
-  const base = childScope(useScope(), useId());
-  const box = useRef<HTMLDivElement>(null);
-  const [shown, setShown] = useState({ id, scope: `${base}0` });
-  const [held, setHeld] = useState<ReactNode>(children);
-  const swapping = useRef(false);
-  const latest = useRef({ id, children });
-  const turns = useRef(0);
-  const settle = useRef<Value | null>(null);
-
-  useEffect(() => {
-    latest.current = { id, children };
-  });
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- syncs held content after every render; guarded
-  useLayoutEffect(() => {
-    if (id === shown.id && held !== children) setHeld(children);
-  });
-
-  useEffect(() => {
-    if (id === shown.id || swapping.current) return;
-    swapping.current = true;
-    const el = box.current;
-    if (el) {
-      el.style.height = `${el.offsetHeight}px`;
-      el.style.overflow = "clip";
-    }
-    void stage.dismiss(shown.scope).then(() => {
-      turns.current += 1;
-      swapping.current = false;
-      setShown({ id: latest.current.id, scope: `${base}${turns.current}` });
-    });
-  }, [id, shown.id, shown.scope, stage, base]);
-
-  useLayoutEffect(() => {
-    if (turns.current === 0) return;
-    const el = box.current;
-    if (!el) return;
-    const from = el.offsetHeight;
-    el.style.height = "";
-    const to = el.offsetHeight;
-    el.style.height = `${from}px`;
-    const height = (settle.current ??= new Value(engine.clock));
-    height.set(from);
-    const stop = height.subscribe((h) => {
-      el.style.height = `${h}px`;
-    });
-    void height
-      .to(to, {
-        tween: engine.reduced.get() ? 0 : step(SHELL_SETTLE_RUNG + stage.tempo),
-        curve: CURVE.silk,
-      })
-      .then(() => {
-        stop();
-        el.style.height = "";
-        el.style.overflow = "";
-      });
-    return () => stop();
-  }, [shown.scope, engine, stage]);
-
-  const content = id === shown.id ? children : held;
-
   return (
-    <div className="w-full pt-fib-5 lg:pt-fib-6" ref={box}>
-      <ScopeProvider value={shown.scope}>
-        <div key={shown.scope}>{content}</div>
-      </ScopeProvider>
+    <div className="w-full pt-fib-5 lg:pt-fib-6">
+      <div key={id}>{children}</div>
     </div>
   );
 }

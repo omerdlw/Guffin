@@ -36,7 +36,7 @@ export function ActionButton({
       aria-label={ariaLabel}
       aria-pressed={active}
       className={cn(
-        "cine-card cine-fade group w-full gap-2.5 overflow-hidden",
+        "cine-card group w-full gap-2.5 overflow-hidden",
         className,
       )}
       disabled={disabled}
@@ -48,7 +48,7 @@ export function ActionButton({
       <Magnet className="gap-2.5">
         <span
           className={cn(
-            "inline-flex shrink-0 transition-[scale] duration-reveal ease-out-expo",
+            "inline-flex shrink-0",
             active ? "scale-108" : "group-hover:scale-108",
           )}
         >
@@ -58,13 +58,13 @@ export function ActionButton({
           <span
             className={cn(
               hoverLabel &&
-                "cine-fade group-hover:opacity-0 group-focus-visible:opacity-0 group-has-focus-visible:opacity-0",
+                "group-hover:opacity-0 group-focus-visible:opacity-0 group-has-focus-visible:opacity-0",
             )}
           >
             {label}
           </span>
           {hoverLabel ? (
-            <span className="cine-fade absolute inset-0 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 group-has-focus-visible:opacity-100">
+            <span className="absolute inset-0 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 group-has-focus-visible:opacity-100">
               {hoverLabel}
             </span>
           ) : null}

@@ -14,14 +14,10 @@ import {
   type MovieDetails,
   tmdbImageUrl,
 } from "@/lib/tmdb/shared";
-import { AnimatePresence, motion } from "@/motion/lib";
-import { POINTS, step } from "@/motion/time";
 import { formatMoney, type MovieArtwork, readableUrl } from "./movie";
 import { useReel } from "./views";
 
 const REEL_IMAGE_SIZE = "w1280";
-
-const STILL_BADGE_RUNG = 1;
 
 const formatMoneyOrZero = (amount: number) => formatMoney(amount) ?? "$0";
 
@@ -52,46 +48,36 @@ export function MoviePoster({
 function Slate({ title }: { title: string }) {
   const { project, reel } = useReel();
   const [openImage] = useModal(ImageModal);
+  if (!reel) return null;
   return (
-    <AnimatePresence>
-      {reel ? (
-        <motion.div
-          animate={{ opacity: 1, y: 0 }}
-          className={`absolute top-6 right-4 z-20 flex items-center gap-1 p-1 sm:right-6 lg:right-8 ${TONE.glass}`}
-          exit={{ opacity: 0, y: -8 }}
-          initial={{ opacity: 0, y: -8 }}
-          transition={{
-            duration: step(STILL_BADGE_RUNG),
-            ease: [...POINTS.expo],
-          }}
-        >
-          <span className={`px-3 ${TONE.label} text-ink-muted`}>Still</span>
-          <Button
-            aria-label="View this still"
-            icon
-            intent="ghost"
-            shape="pill"
-            size="sm"
-            onClick={() => {
-              const src = tmdbImageUrl("backdrop", reel, "original");
-              if (!src) return;
-              void openImage({ alt: `Still of ${title}`, src });
-            }}
-            type="button"
-          >
-            <Icon icon="solar:maximize-square-minimalistic-linear" size={16} />
-          </Button>
-          <Button
-            intent="ghost"
-            onClick={() => project(null)}
-            shape="pill"
-            size="sm"
-          >
-            Back to the film
-          </Button>
-        </motion.div>
-      ) : null}
-    </AnimatePresence>
+    <div
+      className={`absolute top-6 right-4 z-20 flex items-center gap-1 p-1 sm:right-6 lg:right-8 ${TONE.glass}`}
+    >
+      <span className={`px-3 ${TONE.label} text-ink-muted`}>Still</span>
+      <Button
+        aria-label="View this still"
+        icon
+        intent="ghost"
+        shape="pill"
+        size="sm"
+        onClick={() => {
+          const src = tmdbImageUrl("backdrop", reel, "original");
+          if (!src) return;
+          void openImage({ alt: `Still of ${title}`, src });
+        }}
+        type="button"
+      >
+        <Icon icon="solar:maximize-square-minimalistic-linear" size={16} />
+      </Button>
+      <Button
+        intent="ghost"
+        onClick={() => project(null)}
+        shape="pill"
+        size="sm"
+      >
+        Back to the film
+      </Button>
+    </div>
   );
 }
 

@@ -150,7 +150,7 @@ function OtpBoxes({
               )}
             >
               {digit ? (
-                <span className="ui-develop" key={digit}>
+                <span className="" key={digit}>
                   {digit}
                 </span>
               ) : isActive ? (

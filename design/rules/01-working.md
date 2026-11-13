@@ -54,15 +54,13 @@ src/design/
 
 Outside `src/design`:
 
-| What                                      | Where                                                                                   |
-| ----------------------------------------- | --------------------------------------------------------------------------------------- |
-| The document reset and nothing else       | `src/app/globals.css`                                                                   |
-| A feature's own CSS                       | Beside it, as `*.module.css` (e.g. `src/features/home/logged.module.css`)                 |
-| Time, curves, springs (the ladder)        | `src/motion/time.ts` (`step`, `POINTS`, `SPRING`, matter) |
-| The ladder as CSS (`--step-*`, `--curve`) | `src/motion/color.ts`, written to `:root` by the engine                                 |
-| Page choreography (scores)                | `src/features/*/motion.tsx`                                                             |
-| Motion reference (laws, kit)              | `src/motion/` and sections 6 to 6.10 (`09`–`12`, `15`)                                  |
-| Framework slots: dock, modal, menu, toast | `src/design/theme/<module>.ts` (built from `foundations/` and component variants)                   |
+| What                                      | Where                                                                             |
+| ----------------------------------------- | --------------------------------------------------------------------------------- |
+| The document reset and nothing else       | `src/app/globals.css`                                                             |
+| A feature's own CSS                       | Beside it, as `*.module.css` (e.g. `src/features/home/logged.module.css`)         |
+| Page choreography (roles)                 | `src/features/*/motion.tsx`                                                       |
+| Motion reference                          | `src/motion/` and section 6 (`06-motion.md`)                                      |
+| Framework slots: dock, modal, menu, toast | `src/design/theme/<module>.ts` (built from `foundations/` and component variants) |
 
 ### 1.3 Workflow for any UI change
 
@@ -92,6 +90,6 @@ Outside `src/design`:
    or focused.
 8. Raw white is the primary action and nothing else; a chosen control is never
    white.
-9. Time comes from the ladder in section 3.7; a page names what a part is made
-   of and never how long it takes (section 6).
+9. Motion belongs to the page that renders it; components only name their
+   roles (section 6).
 10. Components do not draw their own focus outline.

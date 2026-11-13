@@ -76,8 +76,8 @@ const inputArea = defineRecipe({
 
 const switchTrack = defineRecipe({
   base: [
-    "group/switch ui-still relative inline-flex shrink-0 cursor-pointer items-center rounded-full bg-fill-hover p-0.5 ring-1 ring-edge ring-inset",
-    "transition-[background-color,box-shadow,outline-color,outline-offset] duration-reveal ease-out-cream",
+    "group/switch relative inline-flex shrink-0 cursor-pointer items-center rounded-full bg-fill-hover p-0.5 ring-1 ring-edge ring-inset",
+    "",
     "hover:bg-fill-active hover:ring-edge-hover focus-visible:bg-fill-active focus-visible:ring-edge-focus",
     "data-[state=checked]:bg-primary data-[state=checked]:ring-primary data-[state=checked]:hover:bg-primary-hover data-[state=checked]:focus-visible:bg-primary-hover",
     "disabled:cursor-not-allowed disabled:opacity-50",
@@ -88,7 +88,7 @@ const switchTrack = defineRecipe({
 
 const switchThumb = defineRecipe({
   base: [
-    "pointer-events-none block translate-x-0 rounded-full bg-ink-body transition-[translate,width,background-color] duration-reveal ease-out-cream",
+    "pointer-events-none block translate-x-0 rounded-full bg-ink-body",
     "group-hover/switch:bg-ink-lead group-focus-visible/switch:bg-ink-lead group-has-focus-visible/switch:bg-ink-lead",
     "data-[state=checked]:bg-on-primary",
   ],
@@ -157,7 +157,7 @@ const segmentedRoot = defineRecipe({
 const segmentedSegment = defineRecipe({
   base: [
     "ui-fade relative inline-flex min-w-fit cursor-pointer items-center justify-center gap-1.5 font-medium whitespace-nowrap outline-none focus-visible:ring-1 focus-visible:ring-edge-focus focus-visible:ring-inset",
-    "cine-fade",
+    "",
   ],
   variants: {
     active: {
@@ -206,7 +206,7 @@ const selectTrigger = defineRecipe({
     "ui-fade group flex w-full items-center justify-between gap-2 bg-fill text-left text-ink ring-1 ring-edge ring-inset",
     "hover:bg-fill-hover hover:ring-edge-hover focus-visible:bg-fill-hover focus-visible:ring-edge-focus aria-expanded:bg-fill-hover aria-expanded:ring-edge-focus",
     "disabled:cursor-not-allowed disabled:opacity-50",
-    "cine-fade",
+    "",
   ],
   variants: {
     size: {
@@ -232,9 +232,9 @@ const selectPlaceholder = defineRecipe({ base: "truncate text-ink-muted" });
 
 const selectChevron = defineRecipe({
   base: [
-    "ui-turn shrink-0 text-ink-muted group-aria-expanded:rotate-180 group-aria-expanded:text-ink",
+    "shrink-0 text-ink-muted group-aria-expanded:rotate-180 group-aria-expanded:text-ink",
     glyph16,
-    "cine-turn",
+    "",
   ],
 });
 
@@ -310,7 +310,7 @@ const carouselSlide = defineRecipe({ base: "shrink-0" });
 
 const carouselArrow = defineRecipe({
   base: [
-    "center absolute top-1/2 z-10 size-control-chrome -translate-y-1/2 cursor-pointer transition-[opacity,scale,background-color] duration-move ease-out-expo sm:size-control-md",
+    "center absolute top-1/2 z-10 size-control-chrome -translate-y-1/2 cursor-pointer sm:size-control-md",
     "rounded-full bg-veil text-ink ring-1 ring-edge-hover ring-inset backdrop-saturate-150 hover:bg-glass focus-visible:bg-glass",
   ],
   variants: {
@@ -349,7 +349,7 @@ const loaderRoot = defineRecipe({
 });
 
 const loaderSpinner = defineRecipe({
-  base: "inline-flex animate-spin items-center justify-center align-middle leading-none",
+  base: "inline-flex items-center justify-center align-middle leading-none",
 });
 
 const loaderDots = defineRecipe({ base: "ui-dots [--loader-size:14px]" });

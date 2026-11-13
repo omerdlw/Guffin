@@ -82,7 +82,7 @@ export function PersonCard({
       href={href}
       onNavigated={onNavigated}
       className={cn(
-        "cine-card cine-fade relative flex items-center gap-3 overflow-hidden",
+        "cine-card relative flex items-center gap-3 overflow-hidden",
         TONE.surface,
         compact
           ? "h-10 min-w-0 flex-1 p-1 pr-2"

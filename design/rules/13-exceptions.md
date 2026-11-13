@@ -12,7 +12,7 @@ places the rules above bend:
 - **A member's backdrop** washed behind a notification: 25, 40 on hover.
 - **Pointer followers** (the reticle's cursor loop, `layout-flow`'s FLIP
   playback) run their own frame or Web Animation, because they track the
-  pointer or the layout, not a score; their curves still come from `POINTS`.
+  pointer or the layout.
 - **Scene renderers** (the three salons, the projection) keep their own
   time-bases and shaders; only their frames, `dt`, pixel ratio and leaving come
   from the engine.

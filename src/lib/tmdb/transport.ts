@@ -127,10 +127,7 @@ export interface TmdbConfig {
   baseUrl?: string;
 }
 
-type TmdbQuery = Record<
-  string,
-  string | number | boolean | null | undefined
->;
+type TmdbQuery = Record<string, string | number | boolean | null | undefined>;
 
 interface TmdbRequest<T> {
   path: string;

@@ -46,11 +46,7 @@ Shells hold content on the card scale: a shell is `rounded-shell` (26), or
 `rounded-sheet` (24) for the menu, and what sits inside is `rounded-card`. A
 select's list is a menu: `SHELL` with `backdrop-blur-xl`.
 
-**Layer motion.** Every layer opens with its opacity over `light` and its shape
-over `reveal` (menu) or `move` (modal, dock), from a scale of `0.98`; it closes
-over `leave`. Rows inside a menu or select come in one `step` (`step(-5)`) apart,
-at most five. A piece inside an open layer stepping aside (a dock action, a
-control, a tooltip) leaves over `touch`.
+**Layer motion.** Layers open and close in one cut until the modules get their own choreography (section 6.2).
 
 ### 5.3 Inside a surface
 

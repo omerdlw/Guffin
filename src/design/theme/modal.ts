@@ -7,78 +7,39 @@ import { defineTheme } from "@omerdlw/base-framework/theme";
 import { BACKDROP, DIM, SHELL } from "@/design/foundations/layers";
 import { FILL } from "@/design/foundations/tones";
 import { Z_INDEX } from "@/design/foundations/z-index";
-import { hazy, motion, SHARP, step, tween } from "@/motion/time";
-
-const { durations: modalTime, easings: modalEase } = motion;
+import { INSTANT } from "./motion";
 
 const REST = "translate3d(0px, 0px, 0) scale(1)";
 
-const sheet = (offset: string): ModalPositionMotion => ({
+const still: ModalPositionMotion = {
   variants: {
-    hidden: { opacity: 0, transform: offset },
-    visible: {
-      opacity: 1,
-      transform: REST,
-      transition: {
-        transform: tween(modalTime.move, modalEase.pour),
-        opacity: tween(modalTime.light, modalEase.fade),
-      },
-    },
-    exit: {
-      opacity: 0,
-      transform: offset,
-      transition: {
-        transform: tween(modalTime.reveal, modalEase.glide),
-        opacity: tween(modalTime.reveal, modalEase.fade, modalTime.leave),
-      },
-    },
+    hidden: { opacity: 0, transform: REST },
+    visible: { opacity: 1, transform: REST, transition: INSTANT },
+    exit: { opacity: 0, transform: REST, transition: INSTANT },
   },
-});
+  transition: INSTANT,
+};
 
 const focusing = {
-  hidden: hazy(3),
-  visible: {
-    ...SHARP,
-    transition: tween(step(0), modalEase.silk, step(-3)),
-  },
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: INSTANT },
 };
 
 const modalMotion: ModalMotion = {
   backdrop: {
     hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: tween(step(1), modalEase.fade) },
-    exit: { opacity: 0, transition: tween(modalTime.reveal, modalEase.fade) },
+    visible: { opacity: 1, transition: INSTANT },
+    exit: { opacity: 0, transition: INSTANT },
   },
   content: focusing,
   header: focusing,
   footer: focusing,
   positions: {
-    center: {
-      variants: {
-        hidden: {
-          opacity: 0,
-          transform: "translate3d(0px, 0px, 0) scale(0.96)",
-        },
-        visible: {
-          opacity: 1,
-          transform: REST,
-          transition: {
-            transform: tween(step(1), modalEase.silk),
-            opacity: tween(step(0), modalEase.fade),
-          },
-        },
-        exit: {
-          opacity: 0,
-          transform: "translate3d(0px, 0px, 0) scale(0.98)",
-          transition: tween(modalTime.reveal, modalEase.fade),
-        },
-      },
-      transition: tween(step(1), modalEase.silk),
-    },
-    top: sheet("translate3d(0px, -100%, 0) scale(1)"),
-    right: sheet("translate3d(100%, 0px, 0) scale(1)"),
-    bottom: sheet("translate3d(0px, 100%, 0) scale(1)"),
-    left: sheet("translate3d(-100%, 0px, 0) scale(1)"),
+    center: still,
+    top: still,
+    right: still,
+    bottom: still,
+    left: still,
   },
 };
 

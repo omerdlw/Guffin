@@ -17,22 +17,16 @@ import { ActionButton } from "@/design/components/action-button";
 import { BOTTOM_COVER, SIDE_COVER } from "@/design/components/backdrop";
 import { MAIN_COLUMN_CLASS, VIEW_CLASS } from "@/design/foundations/layout";
 import { cn } from "@/design/ui";
-import { Room } from "@/motion/kit";
-import { marqueePatience } from "@/motion/marquee";
+import { Room } from "@/design/components/room";
+import { bezier } from "@/motion/curve";
+import { Marquee } from "@/motion/marquee";
 import { clamp } from "@/motion/math";
 import { Projection } from "@/motion/projection";
 import { useScrollDriver } from "@/motion/react";
 import { Intermission } from "@/motion/screen";
 import { SCROLLING } from "@/motion/scroll";
-import { CURVE, POINTS, step } from "@/motion/time";
-import { useWall } from "@/motion/wall";
-import {
-  DetailDeck,
-  DetailMarquee,
-  DetailPart,
-  DetailStageRoot,
-  useDetailAct,
-} from "./motion";
+import { useWall } from "@/motion/stage";
+import { DetailDeck, DetailPart, DetailStageRoot } from "./motion";
 
 interface StageWallSet {
   set: string | null;
@@ -40,11 +34,13 @@ interface StageWallSet {
 }
 
 const INTERMISSION_TIMING = {
-  after: step(11),
-  drift: step(9),
-  enter: step(4),
-  leave: step(2),
+  after: 99.5,
+  drift: 38,
+  enter: 3.427,
+  leave: 1.309,
 };
+
+const INTERMISSION_EASE = [0.5, 0.05, 0.1, 1] as const;
 
 const SCROLL_TOP_MARGIN = 24;
 
@@ -56,7 +52,9 @@ const BACKDROP_DEFOCUS_FROM = 24;
 
 const BACKDROP_DEFOCUS_TO = 560;
 
-const BACKDROP_CUT_RUNG = 2;
+const BACKDROP_CUT = 1.309;
+
+const DEFOCUS = bezier(0.65, 0, 0.35, 1);
 
 const BACKDROP_HALATION = 0.55;
 
@@ -67,7 +65,7 @@ const BACKDROP_FOCUS = [0.5, 0.2] as const;
 const CARD_IMAGE_PATH = "/t/p/w1280/";
 
 const defocusAt = (y: number) =>
-  CURVE.glide(
+  DEFOCUS(
     clamp(
       (y - BACKDROP_DEFOCUS_FROM) /
         (BACKDROP_DEFOCUS_TO - BACKDROP_DEFOCUS_FROM),
@@ -232,15 +230,14 @@ export function DetailIntermission({
   image: string | null;
   title: string;
 }) {
-  const act = useDetailAct();
   const away = (useWall()?.phase ?? "page") !== "page";
 
   return (
     <Intermission
       {...INTERMISSION_TIMING}
-      ease={POINTS.silk}
+      ease={INTERMISSION_EASE}
       image={image}
-      paused={act === "leaving" || act === "gone" || away}
+      paused={away}
       title={title}
     />
   );
@@ -257,7 +254,7 @@ export function BackdropProjection({
 }) {
   return (
     <Projection
-      cut={step(BACKDROP_CUT_RUNG)}
+      cut={BACKDROP_CUT}
       defocusAt={defocusAt}
       halation={BACKDROP_HALATION}
       onReady={onReady}
@@ -283,11 +280,7 @@ export function DetailBackdrop({
 
   return (
     <div className="relative">
-      <DetailPart
-        name="backdrop"
-        patience={title ? marqueePatience() : undefined}
-        ready={ready}
-      >
+      <DetailPart name="backdrop">
         <div className="relative">
           <BackdropProjection
             onReady={() => setReady(true)}
@@ -297,11 +290,10 @@ export function DetailBackdrop({
         </div>
       </DetailPart>
       {title ? (
-        <DetailMarquee
+        <Marquee
           className="font-zuume"
           edges={BACKDROP_EDGES}
           focus={BACKDROP_FOCUS}
-          part="marquee"
           quiet={ready}
           src={toCardImage(src)}
           text={title}

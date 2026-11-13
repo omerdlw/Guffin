@@ -16,7 +16,6 @@ export const TONES = {
     "ui-iris bg-transparent text-ink-body ring-1 ring-transparent ring-inset hover:text-ink focus-visible:text-ink",
 } as const;
 
-
 export const STATE = {
   disabled:
     "disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50",
@@ -43,7 +42,7 @@ export const TONE = {
   chosen: TONES.chosen,
   glass: PAGE_GLASS,
   label: "type-label font-semibold tracking-label uppercase",
-  link: "cine-fade type-label font-semibold tracking-label uppercase text-ink-muted hover:text-ink focus-visible:text-ink",
+  link: "type-label font-semibold tracking-label uppercase text-ink-muted hover:text-ink focus-visible:text-ink",
   rule: "bg-rule",
   rules: "divide-rule",
   surface: TONES.neutral,

@@ -21,16 +21,8 @@ import { pluralize } from "@/lib/format";
 import { mediaHref } from "@/lib/project";
 import type { MediaType } from "@/lib/tmdb/shared";
 import { layoutTop } from "@/motion/dom";
-import {
-  animate,
-  motion,
-  useMotionValue,
-  useReducedMotion,
-  useTransform,
-} from "@/motion/lib";
 import { clamp } from "@/motion/math";
 import { useEngine } from "@/motion/react";
-import { POINTS, step } from "@/motion/time";
 import type {
   ByMedium,
   Career as CareerData,
@@ -43,8 +35,6 @@ import { PersonMediumControl, usePersonMedium, usePersonView } from "./views";
 const CAREER_SLOT_CLASS = "relative min-w-[3px] max-w-7 flex-1";
 
 const CAREER_EDGE_SLOTS = 2;
-
-const CAREER_ROLL_RUNG = 0;
 
 const MAX_TIMELINE_TITLES = 3;
 
@@ -59,26 +49,6 @@ const filmCountLabel = (count: number, medium: MediaType = "movie") => {
   const noun = medium === "tv" ? "show" : "film";
   return count === 0 ? `No ${noun}s` : pluralize(count, noun);
 };
-
-function YearRoll({ year }: { year: number }) {
-  const reduced = useReducedMotion();
-  const shown = useMotionValue(year);
-  const text = useTransform(shown, (value) => `${Math.round(value)}`);
-
-  useEffect(() => {
-    if (reduced) {
-      shown.set(year);
-      return;
-    }
-    const controls = animate(shown, year, {
-      duration: step(CAREER_ROLL_RUNG),
-      ease: [...POINTS.expo],
-    });
-    return () => controls.stop();
-  }, [reduced, shown, year]);
-
-  return <motion.span>{text}</motion.span>;
-}
 
 function CareerChart({
   medium,
@@ -112,7 +82,7 @@ function CareerChart({
       <DetailPart className="flex min-h-14 items-end gap-6" name="readout">
         <div className="flex min-w-0 items-end gap-5">
           <span className="font-zuume type-display-sm leading-crop font-bold text-ink tabular-nums sm:type-display-md">
-            <YearRoll year={current.year} />
+            {current.year}
           </span>
           <span className="flex min-w-0 flex-col gap-1 pb-0.5">
             <span className={`${TONE.label} text-ink-muted`}>
@@ -161,7 +131,7 @@ function CareerChart({
                 >
                   <span
                     className={cn(
-                      "cine-fade relative block w-full rounded-t-mark group-focus-visible:bg-ink",
+                      "relative block w-full rounded-t-mark group-focus-visible:bg-ink",
                       item.year === peak
                         ? "bg-grade"
                         : item.year === active

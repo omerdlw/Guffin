@@ -16,7 +16,6 @@ import { CoreProvider } from "@omerdlw/base-framework/provider";
 import { ThemeProvider } from "@omerdlw/base-framework/theme";
 import { TooltipProvider, UiProvider } from "@omerdlw/base-framework/ui";
 import { Logo } from "@/design/components/logo";
-import { Passage } from "@/design/components/passage";
 import { themes } from "@/design/theme";
 import { ui } from "@/design/ui";
 import { DEFAULT_ACCOUNT_ICON } from "@/features/account/account";
@@ -35,7 +34,7 @@ import { Cursor } from "@/motion/cursor";
 import { isFilmPage } from "@/motion/dom";
 import { EngineProvider } from "@/motion/react";
 import { TintedFavicon } from "@/motion/screen";
-import { motion } from "@/motion/time";
+import { moduleMotion } from "@/design/theme/motion";
 
 const APP_REGISTRY_ENTRIES: readonly AppRegistryEntry[] = Object.freeze([
   {
@@ -105,7 +104,7 @@ export function Providers({ children }: { children: ReactNode }): JSX.Element {
         providers={[
           AuthProvider,
           AccountProvider,
-          [ThemeProvider, { motion, themes }],
+          [ThemeProvider, { motion: moduleMotion, themes }],
           [UiProvider, { ui }],
           [
             TooltipProvider,
@@ -128,7 +127,6 @@ export function Providers({ children }: { children: ReactNode }): JSX.Element {
         <BackdropPreloader />
         <EngineProvider drive>
           {children}
-          <Passage />
           <TintedFavicon />
         </EngineProvider>
         <Cursor />

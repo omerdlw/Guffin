@@ -7,7 +7,7 @@ import {
   type MovieImages,
   tmdbImageUrl,
 } from "@/lib/tmdb/shared";
-import { readable } from "@/motion/render";
+import { readable } from "@/motion/gl";
 
 export interface PersonEntry {
   id: number;

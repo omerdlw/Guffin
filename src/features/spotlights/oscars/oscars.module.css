@@ -1,13 +1,9 @@
 @layer components {
-  .tick {
-    transition: stroke var(--step-n2) var(--ease-phosphor);
-  }
   .ring:focus-visible {
     outline: none;
   }
   .lens {
     opacity: 0;
-    transition: opacity var(--step-n2) var(--ease-phosphor);
   }
   .lens[data-lit] {
     opacity: 1;
@@ -18,25 +14,9 @@
     stroke-width: 1;
     transform-box: fill-box;
     transform-origin: center;
-    transition: scale var(--step-n2) var(--ease-out-quint);
   }
   .held {
     scale: 0.86 1.08;
     fill: rgb(255 255 255 / 0.09);
-  }
-  @media (prefers-reduced-motion: no-preference) {
-    .ring:not([data-shown]) .tick {
-      opacity: 0;
-    }
-    .ring[data-shown] .tick {
-      animation: fade var(--step-1) var(--ease-phosphor) both;
-      animation-delay: calc(var(--i, 0) * 6ms);
-    }
-  }
-}
-
-@keyframes fade {
-  from {
-    opacity: 0;
   }
 }

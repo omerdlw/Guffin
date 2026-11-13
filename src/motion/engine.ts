@@ -1,4 +1,10 @@
-import type { Curve, TimeSpring } from "./time";
+export type Curve = (t: number) => number;
+
+export interface TimeSpring {
+  period: number;
+  damping: number;
+  mass: number;
+}
 
 interface Source<T> {
   get(): T;

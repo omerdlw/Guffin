@@ -13,13 +13,6 @@ import { pluralize } from "@/lib/format";
 import { accountHref, listHref, personHref, reviewHref } from "@/lib/project";
 import { tmdbImageSrcSet, tmdbImageUrl } from "@/lib/tmdb/shared";
 import {
-  animate,
-  AnimatePresence,
-  motion,
-  useReducedMotion,
-} from "@/motion/lib";
-import { POINTS, step, tween } from "@/motion/time";
-import {
   folded,
   type ListSearchHit,
   type ReviewSearchHit,
@@ -39,8 +32,6 @@ interface PersonResultRowProps {
 }
 
 const RESULT_THUMB_WIDTHS = ["w185"] as const;
-
-const STILL_TRANSITION = { duration: 0 };
 
 const HIGHLIGHT_HALO = 4;
 
@@ -70,28 +61,6 @@ function offsetIn(list: HTMLElement, option: HTMLElement) {
   };
 }
 
-const ROLL = tween(step(-1), POINTS.glide);
-
-export function Roll({ value }: { value: number | string }) {
-  const reduced = useReducedMotion();
-
-  return (
-    <span className="inline-flex">
-      <AnimatePresence initial={false} mode="popLayout">
-        <motion.span
-          animate={{ opacity: 1, y: 0 }}
-          exit={reduced ? { opacity: 0 } : { opacity: 0, y: -10 }}
-          initial={reduced ? { opacity: 0 } : { opacity: 0, y: 10 }}
-          key={value}
-          transition={ROLL}
-        >
-          {value}
-        </motion.span>
-      </AnimatePresence>
-    </span>
-  );
-}
-
 function ResultRow({
   href,
   label,
@@ -110,7 +79,7 @@ function ResultRow({
   return (
     <DockLink
       aria-label={label}
-      className="cine-fade group relative z-10 flex h-16 items-center gap-3 rounded-card p-2 pr-4 outline-none focus-visible:bg-fill-hover"
+      className="group relative z-10 flex h-16 items-center gap-3 rounded-card p-2 pr-4 outline-none focus-visible:bg-fill-hover"
       href={href}
       onNavigated={onNavigated}
     >
@@ -348,9 +317,6 @@ export function UserResultRow({
   );
 }
 
-const GLIDE = tween(step(-1.5), POINTS.expo);
-const FADE = tween(step(-2), POINTS.expo);
-
 export function ResultSheet({
   activeId,
   listRef,
@@ -359,8 +325,6 @@ export function ResultSheet({
   listRef: RefObject<HTMLElement | null>;
 }) {
   const sheet = useRef<HTMLSpanElement>(null);
-  const placed = useRef(false);
-  const reduced = useReducedMotion();
 
   useLayoutEffect(() => {
     const el = sheet.current;
@@ -369,46 +333,33 @@ export function ResultSheet({
 
     const option = activeId ? document.getElementById(activeId) : null;
     if (!option) {
-      if (placed.current) {
-        placed.current = false;
-        animate(el, { opacity: 0 }, reduced ? STILL_TRANSITION : FADE);
-      }
+      el.style.opacity = "0";
       return;
     }
 
-    const place = (unseen: boolean) => {
+    const place = () => {
       const tile = option.dataset.kind === "tile";
       const inset = tile ? HIGHLIGHT_HALO : 0;
       const { height, width, x, y } = offsetIn(list, option);
       el.dataset.kind = option.dataset.kind;
-      animate(
-        el,
-        {
-          height: height + inset * 2,
-          width: width + inset * 2,
-          x: x - inset,
-          y: y - inset,
-        },
-        unseen || reduced ? STILL_TRANSITION : GLIDE,
-      );
+      el.style.height = `${height + inset * 2}px`;
+      el.style.width = `${width + inset * 2}px`;
+      el.style.transform = `translate(${x - inset}px, ${y - inset}px)`;
     };
 
-    place(!placed.current);
-    if (!placed.current) {
-      placed.current = true;
-      animate(el, { opacity: 1 }, reduced ? STILL_TRANSITION : FADE);
-    }
+    place();
+    el.style.opacity = "1";
 
-    const observer = new ResizeObserver(() => place(false));
+    const observer = new ResizeObserver(place);
     observer.observe(list);
     observer.observe(option);
     return () => observer.disconnect();
-  }, [activeId, listRef, reduced]);
+  }, [activeId, listRef]);
 
   return (
     <span
       aria-hidden="true"
-      className="pointer-events-none absolute top-0 left-0 z-0 rounded-card bg-grade/15 opacity-0 ring-1 ring-grade/25 transition-colors duration-move ease-out-expo ring-inset data-[kind=tile]:ring-grade/50"
+      className="pointer-events-none absolute top-0 left-0 z-0 rounded-card bg-grade/15 opacity-0 ring-1 ring-grade/25 ring-inset data-[kind=tile]:ring-grade/50"
       ref={sheet}
     />
   );

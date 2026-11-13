@@ -15,14 +15,7 @@ import {
   type Awards,
   tmdbImageUrl,
 } from "@/lib/tmdb/shared";
-import {
-  AnimatePresence,
-  motion,
-  useReducedMotion,
-  type Variants,
-} from "@/motion/lib";
 import { Foil, type TiltLight } from "@/motion/tilt";
-import { POINTS, step } from "@/motion/time";
 import type { AwardsGrouping, AwardsLook } from "./detail";
 
 interface AwardsFilters {
@@ -74,27 +67,6 @@ const GROUPING_LABELS: Record<AwardsGrouping, string> = {
 };
 
 const MAX_RECIPIENTS = 4;
-
-const STILL_VARIANTS: Variants = { exit: {}, hidden: {}, visible: {} };
-
-const AWARD_LIST_VARIANTS: Variants = {
-  exit: {
-    opacity: 0,
-    transition: { duration: step(-2), ease: POINTS.expo },
-    y: -8,
-  },
-  hidden: {},
-  visible: { transition: { staggerChildren: step(-4) } },
-};
-
-const AWARD_GROUP_VARIANTS: Variants = {
-  hidden: { opacity: 0, y: 16 },
-  visible: {
-    opacity: 1,
-    transition: { duration: step(0), ease: POINTS.expo },
-    y: 0,
-  },
-};
 
 const ALL_ORGANIZATIONS = "all";
 
@@ -489,8 +461,6 @@ export function AwardsView({
   const { grouping, organizationId, winsOnly } = filters;
   const updateFilters = (patch: Partial<AwardsFilters>) =>
     setFilters((current) => ({ ...current, ...patch }));
-  const reduced = useReducedMotion();
-
   const items = useMemo(() => (awards ? flattenAwards(awards) : []), [awards]);
   const groups = useMemo(
     () =>
@@ -583,35 +553,25 @@ export function AwardsView({
         </div>
       </div>
 
-      <AnimatePresence initial={false} mode="wait">
-        <motion.div
-          animate="visible"
-          className="flex flex-col gap-10"
-          exit="exit"
-          initial="hidden"
-          key={`${grouping}:${organizationId}:${winsOnly}`}
-          variants={reduced ? STILL_VARIANTS : AWARD_LIST_VARIANTS}
-        >
-          {groups.length === 0 ? (
-            <AwardsNotice>Nothing matches these filters</AwardsNotice>
-          ) : (
-            groups.map((group) => (
-              <motion.div
-                key={group.key}
-                variants={reduced ? STILL_VARIANTS : AWARD_GROUP_VARIANTS}
-              >
-                <AwardGroupBlock
-                  group={group}
-                  grouping={grouping}
-                  look={look}
-                  showRecipients={showRecipients}
-                  showTitles={showTitles}
-                />
-              </motion.div>
-            ))
-          )}
-        </motion.div>
-      </AnimatePresence>
+      <div
+        className="flex flex-col gap-10"
+        key={`${grouping}:${organizationId}:${winsOnly}`}
+      >
+        {groups.length === 0 ? (
+          <AwardsNotice>Nothing matches these filters</AwardsNotice>
+        ) : (
+          groups.map((group) => (
+            <AwardGroupBlock
+              group={group}
+              grouping={grouping}
+              key={group.key}
+              look={look}
+              showRecipients={showRecipients}
+              showTitles={showTitles}
+            />
+          ))
+        )}
+      </div>
     </div>
   );
 }

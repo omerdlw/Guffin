@@ -11,231 +11,120 @@ import { RADIUS } from "@/design/foundations/geometry";
 import { BACKDROP, FLOAT, GLASS, TIP } from "@/design/foundations/layers";
 import { FILL, PRIMARY } from "@/design/foundations/tones";
 import { Z_INDEX } from "@/design/foundations/z-index";
-import { hazy, motion, SHARP, tween } from "@/motion/time";
-
-const { durations: dockTime, easings: dockEase, springs: dockSprings } = motion;
+import { INSTANT } from "./motion";
 
 const DARK = { opacity: 0 } as const;
 const LIT = { opacity: 1 } as const;
 
-const dockLeave = tween(dockTime.leave, dockEase.fade);
-const touchLeave = tween(dockTime.touch, dockEase.fade);
-const move = tween(dockTime.move, dockEase.pour);
-
-const lightSet = (
-  enter: ReturnType<typeof tween>,
-  exit: ReturnType<typeof tween> = dockLeave,
-) => ({
-  hidden: DARK,
-  visible: { ...LIT, transition: enter },
-  exit: { ...DARK, transition: exit },
-});
-
-const softSet = (
-  enter: ReturnType<typeof tween>,
-  exit: ReturnType<typeof tween> = dockLeave,
-) => ({
-  hidden: hazy(2),
-  visible: { ...SHARP, transition: enter },
-  exit: { ...hazy(2), transition: exit },
-});
-
-const resizeFor = (distancePx: number) => {
-  const run = dockTime.reveal * Math.sqrt(Math.max(distancePx, 0) / 240);
-  return tween(
-    Math.min(dockTime.move, Math.max(dockTime.light, run)),
-    dockEase.pour,
-  );
-};
-
 const atRest = (y: unknown) => gpuTransform(Number(y) || 0);
 
-const surfaceResize = (distancePx: number) => {
-  const resize = resizeFor(distancePx);
-  return { ...resize, height: resize, width: resize };
+const lightSet = {
+  hidden: DARK,
+  visible: { ...LIT, transition: INSTANT },
+  exit: { ...DARK, transition: INSTANT },
 };
-
-const surfaceEnter = tween(dockTime.reveal, dockEase.fade, dockTime.touch);
-const surfaceStep = tween(dockTime.reveal, dockEase.fade);
-const headerSwap = tween(dockTime.light, dockEase.fade, dockTime.step);
 
 const REST_PHASE: DockSurfacePhaseMotion = {
   deck: null,
   transform: null,
   scale: 1,
-  body: surfaceStep,
-  header: headerSwap,
+  body: INSTANT,
+  header: INSTANT,
   headerReturn: null,
 };
 
 const controlSlot = {
   hidden: { opacity: 0, width: 0, marginRight: -2 },
-  visible: {
-    opacity: 1,
-    width: "auto",
-    marginRight: 0,
-    transition: {
-      width: tween(dockTime.reveal, dockEase.pour),
-      marginRight: tween(dockTime.reveal, dockEase.pour),
-      opacity: tween(dockTime.light, dockEase.fade, dockTime.touch),
-    },
-  },
-  exit: {
-    opacity: 0,
-    width: 0,
-    marginRight: -2,
-    transition: {
-      opacity: touchLeave,
-      width: tween(dockTime.light, dockEase.glide, dockTime.touch),
-      marginRight: tween(dockTime.light, dockEase.glide, dockTime.touch),
-    },
-  },
+  visible: { opacity: 1, width: "auto", marginRight: 0, transition: INSTANT },
+  exit: { opacity: 0, width: 0, marginRight: -2, transition: INSTANT },
 };
 
 const dockMotion: DockMotion = {
   transitions: {
-    stack: move,
-    expand: move,
-    surfaceExit: tween(dockTime.leave, dockEase.fade),
-    layout: tween(0.45, [0.4, 0, 0.1, 1]),
-    card: move,
-    cardExpanded: move,
-    cardPeek: tween(dockTime.light, dockEase.pour),
-    fade: tween(dockTime.reveal, dockEase.fade),
-    text: tween(dockTime.light, dockEase.fade),
-    headerSwap,
-    actionDismiss: touchLeave,
-    icon: tween(dockTime.light, dockEase.fade),
-    badge: tween(dockTime.light, dockEase.pour),
-    hud: tween(dockTime.reveal, dockEase.fade),
-    press: dockSprings.press,
-    scrubberTooltip: tween(dockTime.leave, dockEase.fade),
-    scrubberFollow: dockSprings.follow,
-    mediaVolume: tween(dockTime.touch, dockEase.pour),
+    stack: INSTANT,
+    expand: INSTANT,
+    surfaceExit: INSTANT,
+    layout: INSTANT,
+    card: INSTANT,
+    cardExpanded: INSTANT,
+    cardPeek: INSTANT,
+    fade: INSTANT,
+    text: INSTANT,
+    headerSwap: INSTANT,
+    actionDismiss: INSTANT,
+    icon: INSTANT,
+    badge: INSTANT,
+    hud: INSTANT,
+    press: INSTANT,
+    scrubberTooltip: INSTANT,
+    scrubberFollow: INSTANT,
+    mediaVolume: INSTANT,
   },
   variants: {
-    fade: lightSet(tween(dockTime.light, dockEase.fade, dockTime.step)),
-    textCrossfade: softSet(tween(dockTime.reveal, dockEase.silk)),
+    fade: lightSet,
+    textCrossfade: lightSet,
     description: (opacity = 0.7) => ({
-      hidden: hazy(2),
-      visible: {
-        opacity,
-        filter: "none",
-        transition: tween(dockTime.reveal, dockEase.silk, dockTime.step),
-      },
-      exit: { ...hazy(2), transition: dockLeave },
+      hidden: DARK,
+      visible: { opacity, transition: INSTANT },
+      exit: { ...DARK, transition: INSTANT },
     }),
-    headerSwap: {
-      hidden: DARK,
-      visible: LIT,
-      exit: { ...DARK, transition: dockLeave },
-    },
-    headerRestore: lightSet(tween(dockTime.reveal, dockEase.fade)),
-    extensionShelf: lightSet(tween(dockTime.leave, dockEase.fade)),
-    actionDismiss: {
-      hidden: DARK,
-      visible: LIT,
-      exit: { ...DARK, transition: touchLeave },
-    },
-    commandBar: {
-      hidden: DARK,
-      visible: (index: unknown = 0) => ({
-        ...LIT,
-        transition: tween(
-          dockTime.light,
-          dockEase.fade,
-          Math.min(Number(index) || 0, 4) * dockTime.step,
-        ),
-      }),
-      exit: { ...DARK, transition: touchLeave },
-    },
-    icon: softSet(tween(dockTime.reveal, dockEase.silk)),
-    badge: {
-      hidden: { opacity: 0, transform: gpuTransform(0, 0.6) },
-      visible: {
-        opacity: 1,
-        transform: gpuTransform(0, 1),
-        transition: {
-          transform: tween(dockTime.light, dockEase.pour),
-          opacity: tween(dockTime.leave, dockEase.fade),
-        },
-      },
-      exit: {
-        opacity: 0,
-        transform: gpuTransform(0, 0.8),
-        transition: dockLeave,
-      },
-    },
-    hud: lightSet(tween(dockTime.reveal, dockEase.fade)),
-    scrubberTooltip: lightSet(tween(dockTime.leave, dockEase.fade), touchLeave),
-    breadcrumbs: lightSet(
-      tween(dockTime.reveal, dockEase.fade, dockTime.leave),
-    ),
-    backdrop: {
-      hidden: DARK,
-      visible: { ...LIT, transition: tween(dockTime.move, dockEase.fade) },
-      exit: { ...DARK, transition: tween(dockTime.reveal, dockEase.fade) },
-    },
+    headerSwap: lightSet,
+    headerRestore: lightSet,
+    extensionShelf: lightSet,
+    actionDismiss: lightSet,
+    commandBar: lightSet,
+    icon: lightSet,
+    badge: lightSet,
+    hud: lightSet,
+    scrubberTooltip: lightSet,
+    breadcrumbs: lightSet,
+    backdrop: lightSet,
     surfaceBody: { hidden: DARK, visible: LIT, exit: DARK },
     controlsContainer: {
       hidden: (y: unknown = 0) => ({ opacity: 0, transform: atRest(y) }),
       visible: (y: unknown = 0) => ({
         opacity: 1,
         transform: atRest(y),
-        transition: {
-          opacity: tween(dockTime.light, dockEase.fade, dockTime.touch),
-          transform: move,
-        },
+        transition: INSTANT,
       }),
       exit: (y: unknown = 0) => ({
         opacity: 0,
         transform: atRest(y),
-        transition: { opacity: touchLeave, transform: move },
+        transition: INSTANT,
       }),
     },
     controlsAction: controlSlot,
     controlsBack: controlSlot,
-    controlsClose: lightSet(tween(dockTime.light, dockEase.fade), touchLeave),
+    controlsClose: lightSet,
     press: {
       idle: { scale: 1 },
       hover: { scale: 1 },
       tap: { scale: 1 },
     },
-    mediaVolumeThumb: { idle: { scale: 1 }, dragging: { scale: 1.15 } },
-    cardContent: { hidden: hazy(3), visible: SHARP },
+    mediaVolumeThumb: { idle: { scale: 1 }, dragging: { scale: 1 } },
+    cardContent: { hidden: DARK, visible: LIT },
   },
   phases: {
     idle: REST_PHASE,
-    dismissAction: { ...REST_PHASE, transform: dockLeave, header: dockLeave },
-    expandBody: {
-      ...REST_PHASE,
-      deck: move,
-      transform: move,
-      body: surfaceEnter,
-    },
-    open: { ...REST_PHASE, deck: surfaceResize },
-    anticipation: { ...REST_PHASE, deck: surfaceResize, transform: dockLeave },
-    collapseBody: { ...REST_PHASE, deck: move, headerReturn: surfaceEnter },
-    restoreHeader: { ...REST_PHASE, deck: move },
+    dismissAction: REST_PHASE,
+    expandBody: { ...REST_PHASE, deck: INSTANT, transform: INSTANT },
+    open: { ...REST_PHASE, deck: () => INSTANT },
+    anticipation: { ...REST_PHASE, deck: () => INSTANT, transform: INSTANT },
+    collapseBody: { ...REST_PHASE, deck: INSTANT, headerReturn: INSTANT },
+    restoreHeader: { ...REST_PHASE, deck: INSTANT },
   },
   deck: {
     elevation: {
       rest: "none",
       elevated: "none",
     },
-    peek: (position) => {
-      const progress = Math.min(position / 3, 1);
-      return {
-        lift: position * (4 * (0.85 + progress * 0.35)),
-        scale: 1 + 0.008 * (1 - progress * 0.25),
-      };
-    },
+    peek: () => ({ lift: 0, scale: 1 }),
     exit: ({ y, scale }) => ({
       opacity: 0,
       transform: gpuTransform(y, scale ?? 1),
-      transition: tween(dockTime.reveal, dockEase.fade),
+      transition: INSTANT,
     }),
-    tapScale: 0.98,
+    tapScale: 1,
     stacking: {
       collapsed: {
         offsetY: -10,
@@ -256,22 +145,22 @@ const dockMotion: DockMotion = {
   drag: {
     elastic: { top: 0.05, bottom: 0.5 },
     range: [0, 180],
-    opacity: [1, 0.75],
-    scale: [1, 0.96],
+    opacity: [1, 1],
+    scale: [1, 1],
     dismiss: { offset: 65, velocity: 400 },
   },
   skeleton: "",
   timings: {
-    dismissAction: dockTime.touch,
-    anticipation: dockTime.touch,
-    expandBody: dockTime.move,
-    collapseBody: dockTime.move,
+    dismissAction: 0,
+    anticipation: 0,
+    expandBody: 0,
+    collapseBody: 0,
     restoreHeader: 0,
-    expandStagger: dockTime.step,
-    expandStaggerCap: dockTime.leave,
-    peekStagger: dockTime.step / 2,
-    peekStaggerCap: dockTime.touch,
-    staggerExponent: 0.82,
+    expandStagger: 0,
+    expandStaggerCap: 0,
+    peekStagger: 0,
+    peekStaggerCap: 0,
+    staggerExponent: 1,
   },
 };
 
@@ -359,7 +248,7 @@ export const dockThemeConfig = defineTheme(dockTheme, {
     surfaceHost: `@container relative w-full overflow-hidden ${INNER}`,
     surfaceHostInner: "w-full",
     surfaceShell: `@container relative flex flex-col overflow-hidden ${INNER}`,
-    surfaceBody: `tempo-quick @container w-full overflow-hidden ${INNER}`,
+    surfaceBody: ` @container w-full overflow-hidden ${INNER}`,
 
     controls:
       "pointer-events-none absolute inset-x-0 bottom-[calc(100%+12px)] select-none flex items-center justify-center gap-1",

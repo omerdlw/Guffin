@@ -39,7 +39,7 @@ export function SeenPanel({
   return (
     <div
       className={cn(
-        "fixed top-[clamp(1.25rem,4.5svh,2.5rem)] right-4 z-10 flex flex-col items-end gap-3 transition-opacity duration-settle ease-out-quint sm:right-8",
+        "fixed top-[clamp(1.25rem,4.5svh,2.5rem)] right-4 z-10 flex flex-col items-end gap-3 sm:right-8",
         opened ? "opacity-100" : "pointer-events-none opacity-0",
       )}
     >
@@ -56,7 +56,7 @@ export function SeenPanel({
         className="relative block h-px w-36 bg-fill-active"
       >
         <span
-          className="absolute inset-y-0 left-0 bg-ink-body transition-[width] duration-settle ease-out-quint"
+          className="absolute inset-y-0 left-0 bg-ink-body"
           style={{ width: `${(count / total) * 100}%` }}
         />
       </span>
@@ -90,7 +90,7 @@ export function Facts({
   return (
     <div
       className={cn(
-        "pointer-events-none fixed inset-x-4 bottom-[calc(var(--dock-h,6rem)+4.75rem)] z-10 flex flex-col items-center gap-2 text-center transition-opacity duration-settle ease-out-quint sm:inset-x-8",
+        "pointer-events-none fixed inset-x-4 bottom-[calc(var(--dock-h,6rem)+4.75rem)] z-10 flex flex-col items-center gap-2 text-center sm:inset-x-8",
         opened ? "opacity-100" : "opacity-0",
       )}
     >
@@ -144,7 +144,7 @@ export function Rail({
   return (
     <div
       className={cn(
-        "fixed inset-x-0 bottom-[calc(var(--dock-h,6rem)+1.25rem)] z-10 px-4 transition-opacity duration-settle ease-out-quint sm:px-8",
+        "fixed inset-x-0 bottom-[calc(var(--dock-h,6rem)+1.25rem)] z-10 px-4 sm:px-8",
         opened ? "opacity-100" : "pointer-events-none opacity-0",
       )}
     >
@@ -179,7 +179,7 @@ export function Rail({
               >
                 <span
                   className={cn(
-                    "block w-px rounded-full transition-[height,background-color] duration-light ease-out-cream",
+                    "block w-px rounded-full",
                     index === selected
                       ? "h-full bg-ink"
                       : watched.has(entry.id)

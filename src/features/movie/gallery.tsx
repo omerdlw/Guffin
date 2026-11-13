@@ -12,7 +12,6 @@ import {
 import { RADIUS } from "@/design/foundations/geometry";
 import { CAROUSEL_ITEM, CAROUSEL_WIDE_ITEM } from "@/design/foundations/layout";
 import { TONE } from "@/design/foundations/tones";
-import { cn } from "@/design/ui";
 import { artworkAttributes } from "@/features/artwork/store";
 import { WALL_SIZES, type WallSet } from "@/features/detail/detail";
 import { GalleryWall, WallButton } from "@/features/detail/gallery";
@@ -26,7 +25,6 @@ import {
   tmdbImageSrcSet,
   tmdbImageUrl,
 } from "@/lib/tmdb/shared";
-import gallery from "./gallery.module.css";
 import { VideoModal } from "./video-modal";
 
 type GalleryTab = "backdrops" | "posters";
@@ -312,12 +310,7 @@ export function MovieVideos({
               }}
               overlay={
                 <>
-                  <div
-                    className={cn(
-                      gallery.play,
-                      "center pointer-events-none absolute inset-0 text-ink",
-                    )}
-                  >
+                  <div className="center pointer-events-none absolute inset-0 text-ink">
                     <Icon icon="solar:play-circle-bold" size={48} />
                   </div>
                   <div className="on-photo pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-page/80 to-transparent p-3 text-left">

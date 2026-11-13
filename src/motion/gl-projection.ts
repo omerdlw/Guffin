@@ -9,7 +9,7 @@ import {
   readable,
   sampleClamped,
   uniforms,
-} from "./render";
+} from "./gl";
 
 interface Speck {
   life: number;

@@ -1,23 +1,11 @@
 import { defineUi } from "@omerdlw/base-framework/recipes";
-import { POINTS, SPRING, step } from "@/motion/time";
+import { INSTANT } from "./theme/motion";
 import { PARTS } from "./recipes";
-
-const STAGGER_LIMIT = 5;
 
 export const ui = defineUi({
   parts: PARTS,
   merge: {
     theme: {
-      ease: [
-        "out-expo",
-        "out-quart",
-        "out-quint",
-        "in-out-cubic",
-        "in-cubic",
-        "out-cream",
-        "phosphor",
-        "fade",
-      ],
       leading: ["crop"],
       radius: [
         "mark",
@@ -65,49 +53,20 @@ export const ui = defineUi({
         "display-xl",
         "display-2xl",
       ].map((name) => `type-${name}`),
-      duration: [
-        "flick",
-        "touch",
-        "leave",
-        "light",
-        "reveal",
-        "move",
-        "settle",
-        "linger",
-        "ripple",
-      ].map((name) => `duration-${name}`),
     },
   },
   motion: {
-    follow: SPRING.follow,
+    follow: INSTANT,
     menu: {
-      initial: (rise: number) => ({ opacity: 0, scale: 0.96, y: rise * -8 }),
-      animate: {
-        opacity: 1,
-        scale: 1,
-        y: 0,
-        transition: { duration: step(0), ease: POINTS.expo },
-      },
-      exit: (rise: number) => ({
-        opacity: 0,
-        scale: 0.97,
-        y: rise * -6,
-        transition: { duration: step(-2), ease: POINTS.glide },
-      }),
+      initial: { opacity: 0 },
+      animate: { opacity: 1, transition: INSTANT },
+      exit: { opacity: 0, transition: INSTANT },
     },
     option: {
-      initial: { opacity: 0, x: -8 },
-      animate: (index: number) => ({
-        opacity: 1,
-        x: 0,
-        transition: {
-          duration: step(-1),
-          ease: POINTS.expo,
-          delay: step(-5) * (1 + Math.min(index, STAGGER_LIMIT)),
-        },
-      }),
+      initial: { opacity: 0 },
+      animate: { opacity: 1, transition: INSTANT },
     },
-    glide: { duration: step(2), ease: POINTS.dolly },
+    glide: { duration: 0, ease: [0, 0, 1, 1] },
   },
   icons: {
     check: "material-symbols:check-rounded",

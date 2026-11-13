@@ -1,30 +1,18 @@
 "use client";
 
-import { type ReactNode, useMemo, useRef, useState } from "react";
+import { type ReactNode, useMemo, useState } from "react";
 import { Button } from "@omerdlw/base-framework/ui";
 import { cn } from "@/design/ui";
-import { motion, useReducedMotion } from "@/motion/lib";
-import { bindScore } from "@/motion/react";
-import { defineScore } from "@/motion/score";
-import { POINTS, step, tween } from "@/motion/time";
+import { defineStage } from "@/motion/stage";
 import { Icon } from "./icon";
 import { Input } from "./input";
 
-const SURFACE = defineScore({
-  tempo: -3,
-  cast: {
-    item: "paper",
-    row: "paper",
-    note: "glass",
-  },
-  opening: [{ rest: 0 }, ["item", "note"]],
-  sections: {
-    items: [["item", "note"]],
-    rows: [["row", "note"]],
-  },
+const SURFACE = defineStage({
+  parts: ["item", "row", "note"],
+  sections: ["items", "rows"],
 });
 
-const bound = bindScore(SURFACE);
+const bound = SURFACE;
 
 const SurfaceRoot = bound.SurfaceRoot;
 export const SurfacePart = bound.Part;
@@ -58,34 +46,10 @@ export function SurfaceAnchor() {
   );
 }
 
-const UNFOLD = tween(step(-0.5), POINTS.fade);
-
-export function Unfold({ children }: { children: ReactNode }) {
-  const reduced = useReducedMotion();
-  const box = useRef<HTMLDivElement>(null);
-
-  return (
-    <motion.div
-      animate={{ height: "auto" }}
-      initial={{ height: 0 }}
-      onAnimationComplete={() => {
-        if (box.current) box.current.style.overflow = "visible";
-      }}
-      ref={box}
-      style={{ overflow: "clip" }}
-      transition={reduced ? { duration: 0 } : UNFOLD}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
 export function DockAction({ children }: { children: ReactNode }) {
   return (
     <SurfaceStage>
-      <Unfold>
-        <SurfacePart name="item">{children}</SurfacePart>
-      </Unfold>
+      <SurfacePart name="item">{children}</SurfacePart>
     </SurfaceStage>
   );
 }

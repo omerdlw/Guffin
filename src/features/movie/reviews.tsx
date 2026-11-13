@@ -16,7 +16,6 @@ import {
   DetailPart,
   DetailSection,
   DetailSwap,
-  useDetailAct,
 } from "@/features/detail/motion";
 import { useMediaType } from "@/features/media/media-type";
 import {
@@ -553,15 +552,14 @@ export function MovieReviews({
   }, [left, loadingMore, stats, username]);
 
   const driver = useScrollDriver();
-  const act = useDetailAct();
   const landed = useRef(false);
   useEffect(() => {
-    if (!username || !page || act === "waiting" || landed.current) return;
+    if (!username || !page || landed.current) return;
     landed.current = true;
     const bottom = document.documentElement.scrollHeight - window.innerHeight;
     if (driver.active) driver.to(bottom);
     else window.scrollTo({ behavior: "smooth", top: bottom });
-  }, [act, driver, page, username]);
+  }, [driver, page, username]);
   useEffect(() => () => setReviewsPager(null), []);
 
   return (

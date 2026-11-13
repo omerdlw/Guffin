@@ -15,7 +15,6 @@ import {
   useTransform,
 } from "motion/react";
 import { cn } from "@/design/ui";
-import { MATTER, POINTS, response, springForce, step } from "./time";
 
 export interface TiltLight {
   glow: MotionValue<number>;
@@ -27,10 +26,14 @@ const TILT_LEAN = 9;
 
 const TILT_GLARE_RADIUS = 560;
 
-const SPRING = springForce({
-  ...response(MATTER.paper, -1),
-  period: step(1),
-});
+const SPRING = {
+  type: "spring",
+  stiffness: 60.32,
+  damping: 13.36,
+  mass: 1,
+} as const;
+
+const GLOW_EASE = [0.36, 0.08, 0.08, 1] as const;
 
 export function Tilt({
   children,
@@ -73,12 +76,12 @@ export function Tilt({
   };
   const onEnter = (event: ReactPointerEvent<HTMLDivElement>) => {
     measure(event.currentTarget);
-    animate(glow, 1, { duration: step(1), ease: [...POINTS.expo] });
+    animate(glow, 1, { duration: 0.809, ease: GLOW_EASE });
   };
   const onLeave = () => {
     x.set(0);
     y.set(0);
-    animate(glow, 0, { duration: step(2), ease: [...POINTS.expo] });
+    animate(glow, 0, { duration: 1.309, ease: GLOW_EASE });
   };
 
   return (
@@ -154,7 +157,12 @@ export function Foil({
   );
 }
 
-const MAGNET_SPRING = springForce(response(MATTER.ink, 0));
+const MAGNET_SPRING = {
+  type: "spring",
+  stiffness: 97.59,
+  damping: 13.98,
+  mass: 0.618,
+} as const;
 
 export function Magnet({
   children,

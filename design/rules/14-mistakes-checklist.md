@@ -18,13 +18,8 @@
 | `h-9` / `h-11` on a control                                       | A rung of the ladder: `h-control-chrome`, `h-control-lg`    |
 | A copied input style                                              | `<Input>`                                                   |
 | `focus-visible:outline-*` on a component                          | Nothing: the outline is global                              |
-| `duration-300`, `ease-in-out`                                     | `duration-reveal`, `ease-out-cream`                         |
-| `transition={{ duration: 0.4, ease: "easeOut" }}`                 | `{ duration: step(1), ease: [...POINTS.expo] }`             |
-| A hand-tuned `{ stiffness: 52, damping: 17 }`                     | `springForce(response(MATTER.paper, n))`                    |
-| `delay: 0.1 + i * 0.04`                                           | `step(-3) + i * step(-5)`, or a part with `index`           |
-| A page that says how long or how far                              | A score: matter, depth, order                               |
 | `opacity` or `transform` classes on a part                        | A wrapper element that owns the class                       |
-| Your own `requestAnimationFrame` loop or smooth-scroll lib        | The engine's clock (`useScene`) and `drive`                 |
+| Your own `requestAnimationFrame` loop or smooth-scroll lib        | `mountScene` (`src/motion/scene.ts`) and `drive`            |
 | `router.push` to leave a page                                     | `useDockActions().navigate`, which waits for the stage      |
 | `text-ink-faint` on a date                                        | `text-ink-muted`                                            |
 | A hover background on a row in a list                             | `HighlightGroup` / `useHighlight`                           |
@@ -45,9 +40,7 @@ Before finishing UI work:
 - [ ] Nested radii come from `nested()` or `rounded-inset`.
 - [ ] Classes are merged with `@/design/foundations/cn`.
 - [ ] Controls are design-system components with props, not class strings.
-- [ ] A new page has a score; its parts are matters, not seconds.
-- [ ] No duration, delay, easing or spring is typed by hand; all come from
-      `step`, `POINTS` or `springForce(response(…))`.
+- [ ] Components only name roles; any motion is written in the page's `motion.tsx`.
 - [ ] The page's `main` carries `ui-scene`; a surface uses `SurfaceStage`.
 - [ ] Reduced motion was tried: the page still reads.
 - [ ] With a select (or any floating list) open, the page does not scroll.
@@ -66,8 +59,6 @@ grep -rnE '\b(text|bg|ring|border)-(gray|zinc|slate|neutral|stone|red|orange|amb
 grep -rnE '\btext-(xs|sm|lg|xl|[2-9]xl|\[[0-9])' src/features src/design src/motion src/app
 # Tailwind radii, tracking and weights
 grep -rnE '\brounded(-[trbl]{1,2})?-(xs|sm|md|lg|xl|2xl|3xl|4xl)\b|tracking-(tighter|tight|normal|wide|wider|widest)|font-(thin|extralight|light|normal|extrabold|black)\b' src
-# raw durations and easings in classes
-grep -rnE '\b(duration|delay)-[0-9\[]|ease-(in-out|in|out|linear)([^-a-z]|$)' src --include='*.ts' --include='*.tsx'
 # raw white and black (roles only)
 grep -rnE '\b(bg|text|ring|border|from|to|via)-(white|black)\b' src --include='*.ts' --include='*.tsx'
 # the old underline form
@@ -78,12 +69,6 @@ grep -rnE 'SmoothScroll|data-lenis|from "lenis' src --include='*.ts' --include='
 grep -rnE 'from "(motion(/react)?|framer-motion)"' src --include='*.ts' --include='*.tsx' | grep -v '^src/motion/'
 # arbitrary transition and animation classes
 grep -rnE '\[(transition|animation)[:-]' src --include='*.ts' --include='*.tsx'
-# a time typed by hand in a transition or animation property
-grep -rnE '(transition|animation)(Duration|Delay|TimingFunction)?\s*:\s*[^,;]*[0-9.]+m?s\b' src --include='*.ts' --include='*.tsx' | grep -v 'step(' | grep -v '^src/motion/screen.tsx'
-# a number of seconds or a named easing in a motion transition
-grep -rnE '\b(duration|delay|staggerChildren|delayChildren)\s*:\s*([1-9]|0\.)|ease:\s*("|\[[0-9])' src --include='*.ts' --include='*.tsx' | grep -v '^src/motion/screen.tsx'
-# a curve typed by hand (the idle screen's CRT is the exception, 7)
-grep -rn 'cubic-bezier(' src | grep -vE '^src/motion/(screen\.tsx|utils\.ts)|^src/design/styles/(tokens|themes)\.css'
 # an animation loop of your own (layout followers and retries are the exceptions)
 grep -rn 'requestAnimationFrame' src --include='*.ts' --include='*.tsx' | grep -vE '^src/motion/|theme/command\.tsx|settings/shared\.tsx|spotlights/shell\.tsx'
 ```

@@ -13,7 +13,7 @@ import { RADIUS } from "@/design/foundations/geometry";
 import { TONE } from "@/design/foundations/tones";
 import { cn } from "@/design/ui";
 import { artworkAttributes } from "@/features/artwork/store";
-import { useWall } from "@/motion/wall";
+import { useWall } from "@/motion/stage";
 import type { ImageModalData, WallPicture, WallSet } from "./detail";
 import { ImageModal } from "./image-modal";
 import { Heading } from "./layout";

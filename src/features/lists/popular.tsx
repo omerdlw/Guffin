@@ -6,8 +6,7 @@ import { TONE } from "@/design/foundations/tones";
 import { PosterStack } from "@/features/profile/blocks";
 import { pluralize } from "@/lib/format";
 import { accountHref, listHref } from "@/lib/project";
-import { Header } from "@/motion/kit";
-import { StagePart, StageSection } from "@/motion/react";
+import { Header, Part, Section } from "@/motion/stage";
 import type { PopularList } from "./list";
 
 const COMPACT_COUNT_FORMAT = new Intl.NumberFormat("en", {
@@ -24,7 +23,7 @@ function PopularListItem({
 }): JSX.Element {
   const href = listHref(list.owner.username, list.slug);
   return (
-    <StagePart
+    <Part
       as="li"
       className="flex flex-col gap-4 py-6 first:pt-0 last:pb-0 sm:flex-row sm:items-start sm:gap-6"
       index={index}
@@ -76,7 +75,7 @@ function PopularListItem({
           </p>
         ) : null}
       </div>
-    </StagePart>
+    </Part>
   );
 }
 
@@ -89,7 +88,7 @@ export async function MoviePopularLists({
   if (resolved.length === 0) return null;
 
   return (
-    <StageSection className="flex w-full flex-col" cue="lists">
+    <Section className="flex w-full flex-col" cue="lists">
       <Header
         icon={<Icon icon="solar:widget-bold" size={18} />}
         nameClassName={`min-w-0 ${TONE.label} text-ink-body`}
@@ -101,6 +100,6 @@ export async function MoviePopularLists({
           <PopularListItem index={index} key={list.id} list={list} />
         ))}
       </ul>
-    </StageSection>
+    </Section>
   );
 }

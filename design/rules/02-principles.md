@@ -19,8 +19,5 @@
 - **One answer to a touch.** Every control reacts in the same two beats: light
   arriving fast, decaying slowly. Consistency is the polish.
 - **One scale.** 5% opacity steps, a 4px corner grid, a golden-ratio time scale.
-- **Slow, soft, in focus.** Nothing is hurried and nothing cuts in. A part comes
-  out of the soft (blur, scale, opacity together) and takes its edge last, so
-  the eye follows every movement from its first frame to its last.
-- **The same every time.** A page opens with the same sequence, at the same
-  times, in the same rhythm, on every visit (section 6.3).
+- **Each page its own rhythm.** Motion is written per page, not inherited from
+  a shared tempo (section 6).

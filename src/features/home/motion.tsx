@@ -2,59 +2,52 @@
 
 import { createContext, type ReactNode, use, useMemo, useState } from "react";
 import { cn } from "@/design/ui";
-import { Room } from "@/motion/kit";
-import { bindScore } from "@/motion/react";
-import { defineScore } from "@/motion/score";
-import { PAGE_TEMPO } from "@/motion/time";
+import { Room } from "@/design/components/room";
+import { defineStage } from "@/motion/stage";
 import { ambientImage } from "./feed";
 
-const HOME = defineScore({
-  margin: "0px 0px -13% 0px",
-  ordered: true,
-  tight: true,
-  tempo: PAGE_TEMPO,
-  cast: {
-    backdrop: { matter: "plate", depth: 1 },
-    eyebrow: "light",
-    headline: { matter: "light", enter: "crisp", leave: "dim" },
-    copy: { matter: "ink", enter: "read", leave: "fade" },
-    actions: "glass",
-    credit: "light",
-    header: { matter: "ink", enter: "still" },
-    live: "light",
-    poster: { matter: "paper", enter: "lift", cadence: "even" },
-    verb: { matter: "paper", enter: "crisp", leave: "dim", cadence: "even" },
-    slide: { matter: "paper", enter: "door" },
-    cover: { matter: "paper", enter: "crisp" },
-    quote: { matter: "ink", enter: "crisp", cadence: "even" },
-    lead: { matter: "ink", enter: "read", cadence: "even" },
-    byline: { matter: "ink", enter: "crisp" },
-    review: "paper",
-    card: { matter: "paper", enter: "surface", cadence: "even" },
-    rank: { matter: "paper", enter: "crisp", leave: "dim", cadence: "even" },
-    list: { matter: "paper", enter: "surface", cadence: "even" },
-    member: { matter: "paper", enter: "surface", cadence: "even" },
-    rule: { matter: "light", enter: "wipe" },
-    close: { matter: "ink", enter: "crisp", leave: "dim" },
-  },
-  opening: [{ release: true }, "backdrop"],
-  sections: {
-    opening: [["eyebrow", "headline"], "copy", ["actions", "credit"]],
-    logged: ["header", ["live", "poster"]],
-    craft: ["header", "verb"],
-    row: ["header", "slide"],
-    shelf: ["header"],
-    slides: ["slide"],
-    reviews: ["header", ["cover", "quote"], "lead", "byline", "review"],
-    popular: ["header", "card"],
-    canon: ["header", "rank"],
-    lists: ["header", "list"],
-    members: ["header", "member"],
-    join: ["rule", "close"],
-  },
+const HOME = defineStage({
+  parts: [
+    "backdrop",
+    "eyebrow",
+    "headline",
+    "copy",
+    "actions",
+    "credit",
+    "header",
+    "live",
+    "poster",
+    "verb",
+    "slide",
+    "cover",
+    "quote",
+    "lead",
+    "byline",
+    "review",
+    "card",
+    "rank",
+    "list",
+    "member",
+    "rule",
+    "close",
+  ],
+  sections: [
+    "opening",
+    "logged",
+    "craft",
+    "row",
+    "shelf",
+    "slides",
+    "reviews",
+    "popular",
+    "canon",
+    "lists",
+    "members",
+    "join",
+  ],
 });
 
-const bound = bindScore(HOME);
+const bound = HOME;
 
 const HomeStageRoot = bound.StageRoot;
 export const HomePart = bound.Part;

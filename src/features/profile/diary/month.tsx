@@ -489,7 +489,7 @@ function Day({
       aria-label={`${weekday} ${number}`}
       className={cn(
         DIARY_DAY_COLUMNS,
-        "cine-fade -mx-3 rounded-card px-3 py-fib-3",
+        "-mx-3 rounded-card px-3 py-fib-3",
         flashing && "bg-fill-hover",
       )}
       id={dayId(day.date)}

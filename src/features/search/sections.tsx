@@ -23,7 +23,6 @@ import {
   ListResultRow,
   PersonResultRow,
   ReviewResultRow,
-  Roll,
   UserResultRow,
 } from "./results";
 
@@ -218,9 +217,7 @@ export function Section({
           name="row"
         >
           <span className={TONE.label}>{label}</span>
-          <span className="type-label font-semibold tabular-nums">
-            <Roll value={total} />
-          </span>
+          <span className="type-label font-semibold tabular-nums">{total}</span>
         </SearchPart>
       </div>
       {list}

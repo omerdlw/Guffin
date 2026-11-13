@@ -19,8 +19,6 @@ import { Icon } from "@/design/components/icon";
 import { SHELL } from "@/design/foundations/layers";
 import { Z_INDEX } from "@/design/foundations/z-index";
 import { cn } from "@/design/ui";
-import { AnimatePresence, motion, useReducedMotion } from "@/motion/lib";
-import { POINTS, step, tween } from "@/motion/time";
 import {
   setThemeChoice,
   THEME_CHOICES,
@@ -41,8 +39,6 @@ const THEME_CHOICE_COPY: Record<ThemeChoice, { icon: string; title: string }> =
 
 const GAP = 12;
 const EDGE = 12;
-
-const RISE = tween(step(-1), POINTS.expo);
 
 type Anchor = { bottom: number; right: number };
 
@@ -88,16 +84,12 @@ function useFollow(target: Element | null): Anchor | null {
   return anchor;
 }
 
-const SETTLE_MS = Math.round(step(-1) * 1000);
-
 function Segments({
   onClose,
   place,
-  reduced,
 }: {
   onClose: () => void;
   place: CSSProperties | undefined;
-  reduced: boolean;
 }) {
   const current = useThemeChoice();
   const { box, ref } = useSlidingPill<HTMLDivElement>(
@@ -106,19 +98,15 @@ function Segments({
   );
 
   return (
-    <motion.div
-      animate={{ opacity: 1, scale: 1, y: 0 }}
+    <div
       aria-label="Theme"
       className={cn(
-        "ui-motion absolute flex origin-bottom-right items-stretch gap-0.5 rounded-full p-1",
+        "absolute flex items-stretch gap-0.5 rounded-full p-1",
         SHELL,
       )}
-      exit={{ opacity: 0, scale: 0.96, y: reduced ? 0 : 6 }}
-      initial={{ opacity: 0, scale: 0.96, y: reduced ? 0 : 6 }}
       ref={ref}
       role="menu"
       style={place}
-      transition={RISE}
     >
       {box ? (
         <SlidingPill box={box} className="inset-y-1 rounded-full bg-grade/15" />
@@ -139,7 +127,7 @@ function Segments({
             key={choice}
             onClick={() => {
               setThemeChoice(choice);
-              window.setTimeout(onClose, reduced ? 0 : SETTLE_MS);
+              onClose();
             }}
             role="menuitemradio"
             title={title}
@@ -148,7 +136,7 @@ function Segments({
           </Button>
         );
       })}
-    </motion.div>
+    </div>
   );
 }
 
@@ -159,7 +147,6 @@ function ThemePopover({
   onClose: () => void;
   target: Element | null;
 }) {
-  const reduced = useReducedMotion();
   const anchor = useFollow(target);
 
   useEffect(() => {
@@ -180,7 +167,7 @@ function ThemePopover({
     : undefined;
 
   return createPortal(
-    <AnimatePresence>
+    <>
       {target && anchor ? (
         <div
           className="fixed inset-0"
@@ -192,14 +179,10 @@ function ThemePopover({
             className="absolute inset-0"
             onPointerDown={onClose}
           />
-          <Segments
-            onClose={onClose}
-            place={place}
-            reduced={Boolean(reduced)}
-          />
+          <Segments onClose={onClose} place={place} />
         </div>
       ) : null}
-    </AnimatePresence>,
+    </>,
     document.body,
   );
 }

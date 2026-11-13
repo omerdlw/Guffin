@@ -35,10 +35,6 @@
       scale(var(--s));
     filter: blur(1.5px) brightness(0.45) saturate(0.8);
     outline: none;
-    animation: fan-in var(--step-3, 420ms) var(--ease-out-cream, ease-out) both;
-    transition:
-      transform var(--step-3, 420ms) var(--ease-out-cream, ease-out),
-      filter var(--step-3, 420ms) var(--ease-out-cream, ease-out);
   }
 
   .poster[data-slot="l1"],
@@ -89,19 +85,5 @@
     --y: -6%;
     --s: 1.08;
     filter: none;
-  }
-
-  @keyframes fan-in {
-    from {
-      opacity: 0;
-      transform: rotate(0deg) scale(0.92);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .poster {
-      animation: none;
-      transition: filter var(--step-3, 420ms) ease;
-    }
   }
 }

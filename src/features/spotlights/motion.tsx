@@ -2,22 +2,15 @@
 
 import type { ReactNode } from "react";
 import { MotionConfig } from "@/motion/lib";
-import { Room } from "@/motion/kit";
-import { bindScore } from "@/motion/react";
-import { defineScore } from "@/motion/score";
+import { Room } from "@/design/components/room";
+import { defineStage } from "@/motion/stage";
 
-const DIRECTORS = defineScore({
-  cast: {
-    portrait: "plate",
-    poster: { matter: "paper", enter: "lift", cadence: "trail" },
-  },
-  opening: ["portrait"],
-  sections: {
-    director: ["portrait", "poster"],
-  },
+const DIRECTORS = defineStage({
+  parts: ["portrait", "poster"],
+  sections: ["director"],
 });
 
-const bound = bindScore(DIRECTORS);
+const bound = DIRECTORS;
 
 const DirectorsStageRoot = bound.StageRoot;
 export const DirectorsPart = bound.Part;

@@ -1,26 +1,15 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { bindScore } from "@/motion/react";
-import { defineScore } from "@/motion/score";
-import { Unfold } from "@/design/components/surface";
+import { defineStage } from "@/motion/stage";
 import { cn } from "@/design/ui";
 
-const SEARCH = defineScore({
-  tempo: -3,
-  cast: {
-    item: "paper",
-    row: "paper",
-    tile: { matter: "paper", enter: "surface", cadence: "even" },
-    note: "glass",
-  },
-  opening: [{ rest: 0 }, ["item", "note"]],
-  sections: {
-    rows: [["row", "tile", "note"]],
-  },
+const SEARCH = defineStage({
+  parts: ["item", "row", "tile", "note"],
+  sections: ["rows"],
 });
 
-const bound = bindScore(SEARCH);
+const bound = SEARCH;
 
 const SearchRoot = bound.SurfaceRoot;
 export const SearchPart = bound.Part;
@@ -35,11 +24,9 @@ export function SearchStage({
 }) {
   return (
     <SearchRoot>
-      <Unfold>
-        <div className={cn("ui-scene w-full", className)} data-cinematic="">
-          {children}
-        </div>
-      </Unfold>
+      <div className={cn("ui-scene w-full", className)} data-cinematic="">
+        {children}
+      </div>
     </SearchRoot>
   );
 }

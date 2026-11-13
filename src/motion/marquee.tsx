@@ -9,12 +9,10 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { Z_INDEX } from "@/design/foundations/z-index";
+import { bezier, linear } from "./curve";
 import { Value } from "./engine";
 import { clamp, PHI, within } from "./math";
-import { passageOf } from "./passage";
-import { useAnyStage, useEngine, usePartOf, useScrollDriver } from "./react";
-import { PATIENCE } from "./stage";
-import { CURVE, elapsed, step } from "./time";
+import { useEngine, useScrollDriver } from "./react";
 
 interface MarqueeFrame {
   left: number;
@@ -53,7 +51,6 @@ interface MarqueeCard {
 }
 
 export interface MarqueeProps {
-  part: string;
   text: string;
   src: string;
   focus?: readonly [number, number];
@@ -63,9 +60,23 @@ export interface MarqueeProps {
   className?: string;
 }
 
-const MARQUEE_DEVELOP_RUNG = 2;
+const MARQUEE_DEVELOP = 1.029;
 
-const MARQUEE_REST_RUNG = 1;
+const MARQUEE_REST = 0.636;
+
+const MARQUEE_DRIFT_TIME = 4.36;
+
+const MARQUEE_DIVE_TIME = 2.694;
+
+const MARQUEE_FOLLOW = 0.809;
+
+const MARQUEE_PATIENCE = 2.118;
+
+const SILK = bezier(0.5, 0.05, 0.1, 1);
+
+const GLIDE = bezier(0.65, 0, 0.35, 1);
+
+const FADE = bezier(0.45, 0, 0.15, 1);
 
 const MARQUEE_DIVE = [0.03, 0.76] as const;
 
@@ -138,9 +149,6 @@ const MARQUEE_OUTPUT: CSSProperties = {
   userSelect: "none",
   WebkitUserSelect: "none",
 };
-
-const marqueeHold = (tempo = 0) =>
-  step(MARQUEE_DEVELOP_RUNG + tempo) + step(MARQUEE_REST_RUNG + tempo);
 
 function balance(widths: number[], gap: number, count: number) {
   const n = widths.length;
@@ -216,8 +224,6 @@ function coverOf(
     down.addColorStop(at / 100, `rgb(0 0 0 / ${cover / 100})`);
   return { across, down };
 }
-
-export const marqueePatience = (tempo = 0) => PATIENCE + marqueeHold(tempo);
 
 function setName(
   text: string,
@@ -298,7 +304,6 @@ const readLight = () => {
 };
 
 export function Marquee({
-  part,
   text,
   src,
   focus = [0.5, 0.2],
@@ -307,7 +312,6 @@ export function Marquee({
   quiet = true,
   className,
 }: MarqueeProps) {
-  const stage = useAnyStage();
   const engine = useEngine();
   const driver = useScrollDriver();
   const host = useRef<HTMLElement | null>(null);
@@ -316,12 +320,13 @@ export function Marquee({
   const [held, hold] = useState(false);
   const [gone, setGone] = useState(false);
 
-  const live = useRef({ enter: 0, leave: 0, gone: false });
+  const live = useRef({ gone: false });
   const els = useRef<{
     glow?: HTMLElement;
     canvas?: HTMLCanvasElement;
   }>({});
   const [values] = useState(() => ({
+    enter: new Value(engine.clock),
     lit: new Value(engine.clock),
     drift: new Value(engine.clock),
     rest: new Value(engine.clock),
@@ -336,32 +341,18 @@ export function Marquee({
     edges$.current = edges;
   });
 
-  const props = usePartOf(stage, part, {
-    css: false,
-    patience: marqueePatience(stage.tempo),
-    ready: held,
-    render: (_look, state) => {
-      live.current.enter = state.enter;
-      live.current.leave = state.leave;
-      draw$.current();
-    },
-  });
-  const attach = props.ref;
-  const ref = useCallback(
-    (el: HTMLElement | null) => {
-      host.current = el;
-      return attach(el);
-    },
-    [attach],
-  );
+  const ref = useCallback((el: HTMLElement | null) => {
+    host.current = el;
+  }, []);
 
   useEffect(() => {
     if (engine.reduced.get()) skip(true);
   }, [engine]);
 
   useEffect(() => {
-    if (!skipped) passageOf(engine).keep();
-  }, [engine, skipped]);
+    if (!held || skipped) return;
+    void values.enter.to(1, { tween: MARQUEE_DIVE_TIME, curve: linear });
+  }, [held, skipped, values]);
 
   useEffect(() => {
     if (skipped || gone) return;
@@ -449,7 +440,7 @@ export function Marquee({
     });
     const patience = setTimeout(() => {
       if (alive && !ready) skip(true);
-    }, PATIENCE * 1000);
+    }, MARQUEE_PATIENCE * 1000);
     const unwatch = engine.viewport.subscribe(measure);
     return () => {
       alive = false;
@@ -468,20 +459,16 @@ export function Marquee({
     const events = ["wheel", "keydown", "pointerdown", "touchstart"] as const;
     for (const type of events) addEventListener(type, quick, { passive: true });
 
-    const tempo = stage.tempo;
-    void values.drift.to(1, {
-      tween: step(5 + tempo),
-      curve: CURVE.linear,
-    });
+    void values.drift.to(1, { tween: MARQUEE_DRIFT_TIME, curve: linear });
     void (async () => {
       const developed = await values.lit.to(1, {
-        tween: step(MARQUEE_DEVELOP_RUNG + tempo),
-        curve: CURVE.silk,
+        tween: MARQUEE_DEVELOP,
+        curve: SILK,
       });
       if (!developed || !alive) return;
       const rested = await values.rest.to(1, {
-        tween: step(MARQUEE_REST_RUNG + tempo),
-        curve: CURVE.linear,
+        tween: MARQUEE_REST,
+        curve: linear,
       });
       if (rested && alive) hold(true);
     })();
@@ -489,7 +476,7 @@ export function Marquee({
       alive = false;
       for (const type of events) removeEventListener(type, quick);
     };
-  }, [skipped, card, quiet, held, stage, values]);
+  }, [skipped, card, quiet, held, values]);
 
   useEffect(() => {
     if (skipped || (card && quiet)) return;
@@ -503,7 +490,7 @@ export function Marquee({
 
   useEffect(() => {
     if (!card || gone) return;
-    const spring = { period: step(1), damping: 1, mass: 1 };
+    const spring = { period: MARQUEE_FOLLOW, damping: 1, mass: 1 };
     const follow = () => {
       const hand = engine.pointer.get();
       void values.x.to(hand.active ? hand.x : 0, { spring });
@@ -538,14 +525,14 @@ export function Marquee({
         cover = coverOf(context, set.frame, edges$.current);
       }
 
-      const { enter, leave } = live.current;
-      const u = enter <= 0 ? 0 : enter >= 1 ? 1 : elapsed(CURVE.pour, enter);
+      const u = values.enter.current;
+      const enter = u;
       const developed = values.lit.current;
-      const dive = CURVE.glide(within(u, MARQUEE_DIVE));
-      const open = CURVE.silk(within(u, MARQUEE_SPREAD));
-      const away = CURVE.fade(within(u, MARQUEE_FADE));
+      const dive = GLIDE(within(u, MARQUEE_DIVE));
+      const open = SILK(within(u, MARQUEE_SPREAD));
+      const away = FADE(within(u, MARQUEE_FADE));
       const glare = Math.sin(Math.PI * within(u, MARQUEE_GLARE));
-      const edge = CURVE.silk(within(u, MARQUEE_EDGES));
+      const edge = SILK(within(u, MARQUEE_EDGES));
 
       const reach = clamp(
         (MARQUEE_DIVE_REACH * set.height) / set.size,
@@ -566,13 +553,12 @@ export function Marquee({
       const slip = 1 - dive;
       const { frame, picture } = set;
 
-      const present = (1 - away) * (1 - leave);
+      const present = 1 - away;
       const alpha = developed * present;
       glow.style.opacity = (
         0.9 *
         developed *
-        (1 - CURVE.silk(within(u, [0, 0.5]))) *
-        (1 - leave)
+        (1 - SILK(within(u, [0, 0.5])))
       ).toFixed(3);
       glow.style.transform = `scale(${(1 + dive * 1.6).toFixed(3)})`;
       if (alpha < MARQUEE_UNSEEN) {
@@ -699,9 +685,13 @@ export function Marquee({
       queued = true;
       engine.clock.once("render", draw);
     };
-    const stops = [values.lit, values.drift, values.x, values.y].map((value) =>
-      value.subscribe(() => draw$.current()),
-    );
+    const stops = [
+      values.enter,
+      values.lit,
+      values.drift,
+      values.x,
+      values.y,
+    ].map((value) => value.subscribe(() => draw$.current()));
     draw$.current();
     return () => {
       for (const stop of stops) stop();
@@ -722,13 +712,7 @@ export function Marquee({
 
   return (
     <>
-      <div
-        {...props}
-        aria-hidden="true"
-        className={className}
-        hidden
-        ref={ref}
-      />
+      <div aria-hidden="true" className={className} hidden ref={ref} />
       {shown
         ? createPortal(
             <div aria-hidden="true" style={MARQUEE_OUTPUT}>

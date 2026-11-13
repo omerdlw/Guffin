@@ -18,7 +18,6 @@ import {
 import { report, toUserMessage } from "@omerdlw/base-framework/utils";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/design/components/icon";
-import { Unfold } from "@/design/components/surface";
 import { Tooltip } from "@/design/components/tooltip";
 import { nested, RADIUS } from "@/design/foundations/geometry";
 import { TONE } from "@/design/foundations/tones";
@@ -335,7 +334,7 @@ function EpisodeRow({
           >
             <Image
               alt=""
-              className="cine-zoom size-full object-cover"
+              className="size-full object-cover"
               fallback={
                 <div className="center size-full text-ink-faint">
                   <Icon icon="solar:tv-bold" size={18} />
@@ -442,21 +441,17 @@ function EpisodeRow({
           </div>
         </div>
         {rating ? (
-          <Unfold>
-            <div className="relative z-10 flex items-center justify-end gap-3 pr-1 pb-1">
-              <span className={`${TONE.label} text-ink-muted`}>
-                Your rating
-              </span>
-              <RatingSelector
-                disabled={busy}
-                onChange={(next) => {
-                  setRating(false);
-                  rate(episode, next);
-                }}
-                value={mine}
-              />
-            </div>
-          </Unfold>
+          <div className="relative z-10 flex items-center justify-end gap-3 pr-1 pb-1">
+            <span className={`${TONE.label} text-ink-muted`}>Your rating</span>
+            <RatingSelector
+              disabled={busy}
+              onChange={(next) => {
+                setRating(false);
+                rate(episode, next);
+              }}
+              value={mine}
+            />
+          </div>
         ) : null}
       </article>
     </DetailPart>
