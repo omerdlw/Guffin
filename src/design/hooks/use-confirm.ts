@@ -4,8 +4,8 @@ import { useCallback, useTransition } from "react";
 import {
   DOCK_HUD_PRIORITY,
   useDockActions,
-} from "@omerdlw/base-framework/modules/dock";
-import { useToast } from "@omerdlw/base-framework/modules/notification";
+} from "@omerdlw/base-framework/dock";
+import { useToast } from "@omerdlw/base-framework/notification";
 import { report, toUserMessage } from "@omerdlw/base-framework/utils";
 import { ConfirmHud, type ConfirmOptions } from "../components/confirm";
 

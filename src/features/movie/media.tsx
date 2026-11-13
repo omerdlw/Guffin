@@ -1,6 +1,6 @@
 "use client";
 
-import { useModal } from "@omerdlw/base-framework/modules/modal";
+import { useModal } from "@omerdlw/base-framework/modal";
 import { AnimatePresence, motion } from "@/motion/lib";
 import { ArtworkPrint, useArtworkPath } from "@/features/artwork/artwork";
 import { ImageModal } from "@/features/detail/gallery";

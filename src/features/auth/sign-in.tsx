@@ -13,8 +13,8 @@ import {
   DOCK_EVENTS,
   type SurfaceEntry,
   useDockActions,
-} from "@omerdlw/base-framework/modules/dock";
-import { useToast } from "@omerdlw/base-framework/modules/notification";
+} from "@omerdlw/base-framework/dock";
+import { useToast } from "@omerdlw/base-framework/notification";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Link } from "@/design/components/link";
 import { Button } from "@/design/components/button";

@@ -2,7 +2,7 @@
 
 import { type JSX, useEffect, useState } from "react";
 import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
-import { useDockActions } from "@omerdlw/base-framework/modules/dock";
+import { useDockActions } from "@omerdlw/base-framework/dock";
 import { report } from "@omerdlw/base-framework/utils";
 import { useRouter } from "next/navigation";
 import { Heading } from "@/features/detail/layout";

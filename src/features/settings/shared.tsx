@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useToast } from "@omerdlw/base-framework/modules/notification";
+import { useToast } from "@omerdlw/base-framework/notification";
 import type { PasskeyListItem, UserIdentity } from "@supabase/supabase-js";
 import { getUserIdentities, listPasskeys } from "@/features/auth/client";
 import { useAuth } from "@/features/auth/provider";

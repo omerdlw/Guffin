@@ -8,7 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { useDockActionClass } from "@omerdlw/base-framework/modules/dock";
+import { useDockActionClass } from "@omerdlw/base-framework/dock";
 import { useRouter } from "next/navigation";
 import { deleteDiaryEntryAction } from "@/features/account/actions";
 import { RatingStars, Star } from "@/features/reviews/rating";

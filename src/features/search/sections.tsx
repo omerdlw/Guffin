@@ -1,7 +1,7 @@
 "use client";
 
 import { type ReactNode } from "react";
-import { useDockActionClass } from "@omerdlw/base-framework/modules/dock";
+import { useDockActionClass } from "@omerdlw/base-framework/dock";
 import {
   MoviePosterLink,
   MoviePosterPlaceholder,

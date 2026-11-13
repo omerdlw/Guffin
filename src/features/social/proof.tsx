@@ -4,7 +4,7 @@ import { type JSX, useEffect, useMemo, useState } from "react";
 import {
   type SurfaceEntry,
   useDockActions,
-} from "@omerdlw/base-framework/modules/dock";
+} from "@omerdlw/base-framework/dock";
 import { report } from "@omerdlw/base-framework/utils";
 import { useAuth } from "@/features/auth/provider";
 import { RatingStars } from "@/features/reviews/rating";

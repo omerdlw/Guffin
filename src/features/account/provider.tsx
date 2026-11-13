@@ -19,7 +19,7 @@ import {
   useDockContextActions,
   useDockRegistration,
   useDockSelector,
-} from "@omerdlw/base-framework/modules/dock";
+} from "@omerdlw/base-framework/dock";
 import { getCurrentPath, report } from "@omerdlw/base-framework/utils";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/features/auth/provider";

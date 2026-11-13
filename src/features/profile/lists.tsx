@@ -5,7 +5,7 @@ import { type JSX, useMemo } from "react";
 import {
   useDockActionClass,
   useDockActions,
-} from "@omerdlw/base-framework/modules/dock";
+} from "@omerdlw/base-framework/dock";
 import { useRouter } from "next/navigation";
 import { formatShortDate } from "@/features/account/utils";
 import { ListCommentAction, ListLikeButton } from "@/features/lists/buttons";

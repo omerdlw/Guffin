@@ -11,7 +11,7 @@ import {
   useState,
 } from "react";
 import { globalEvents } from "@omerdlw/base-framework/events";
-import { DOCK_EVENTS } from "@omerdlw/base-framework/modules/dock";
+import { DOCK_EVENTS } from "@omerdlw/base-framework/dock";
 import { useAccount } from "@/features/account/provider";
 import {
   clearLastKnownAccount,

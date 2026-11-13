@@ -1,7 +1,7 @@
 "use client";
 
 import { type ReactNode, useRef, useState } from "react";
-import { Tooltip as UiTooltip } from "@omerdlw/base-framework/design";
+import { Tooltip as UiTooltip } from "@omerdlw/base-framework/ui";
 import { TOOLTIP } from "./classes";
 
 const SLATE = /^(.*\S)\s+\((\d{4})\)(?:,\s*(.+))?$/;

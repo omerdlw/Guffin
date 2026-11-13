@@ -1,7 +1,7 @@
 "use client";
 
 import { type JSX, type ReactNode, useEffect, useMemo, useState } from "react";
-import type { SurfaceEntry } from "@omerdlw/base-framework/modules/dock";
+import type { SurfaceEntry } from "@omerdlw/base-framework/dock";
 import { report } from "@omerdlw/base-framework/utils";
 import { tmdbImageUrl } from "@/lib/tmdb/shared";
 import { ExternalLink } from "@/design/components/link";

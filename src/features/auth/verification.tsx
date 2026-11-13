@@ -6,8 +6,8 @@ import {
   DockSurfaceHeaderButton,
   type SurfaceEntry,
   useDockActions,
-} from "@omerdlw/base-framework/modules/dock";
-import { useToast } from "@omerdlw/base-framework/modules/notification";
+} from "@omerdlw/base-framework/dock";
+import { useToast } from "@omerdlw/base-framework/notification";
 import { createAccountSetupSurfaceEntry } from "@/features/account/setup";
 import { Input } from "@/design/components/input";
 import { Loader } from "@/design/components/loader";

@@ -15,8 +15,8 @@ import {
   DockSurfaceExtension,
   type SurfaceEntry,
   useDockActionClass,
-} from "@omerdlw/base-framework/modules/dock";
-import { useToast } from "@omerdlw/base-framework/modules/notification";
+} from "@omerdlw/base-framework/dock";
+import { useToast } from "@omerdlw/base-framework/notification";
 import { ACTION_TONE } from "@/design/foundations/tones";
 import { toUserMessage } from "@omerdlw/base-framework/utils";
 import { useAuth } from "@/features/auth/provider";

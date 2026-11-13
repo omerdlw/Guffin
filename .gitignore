@@ -49,3 +49,9 @@ yarn-error.log*
 # code index tools
 graphify-out/
 .codebase-memory/
+.mcp.json
+.agentsroom/handoff-transcript-*.txt
+.agentsroom/handoff-summary-*.md
+.agentsroom/fork-context-*.txt
+.agentsroom/transfer-context-*.txt
+.agentsroom/handoff-context-*.txt

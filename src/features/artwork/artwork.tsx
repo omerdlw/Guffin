@@ -4,8 +4,8 @@ import { Suspense, useMemo, useSyncExternalStore } from "react";
 import {
   type ContextMenuContextValue,
   useContextMenu,
-} from "@omerdlw/base-framework/modules/context-menu";
-import { useNavigationIntent } from "@omerdlw/base-framework/modules/navigation";
+} from "@omerdlw/base-framework/context-menu";
+import { useNavigationIntent } from "@omerdlw/base-framework/navigation";
 import { report } from "@omerdlw/base-framework/utils";
 import { AwardFoil } from "@/features/detail/awards";
 import { type Awards, isTmdbImagePath, tmdbImageUrl } from "@/lib/tmdb/shared";

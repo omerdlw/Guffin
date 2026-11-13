@@ -66,13 +66,13 @@ const eslintConfig = defineConfig([
           selector:
             "Literal[value=/(^|\\s)-?z-(\\[[^\\]]*\\]|[3-9]\\d|\\d{3,})(\\s|$)/]",
           message:
-            "Use Z_INDEX from @omerdlw/base-framework/tokens for layers (z-0/10/20 are fine for local stacking).",
+            "Use Z_INDEX from @/design/foundations/z-index for layers (z-0/10/20 are fine for local stacking).",
         },
         {
           selector:
             "TemplateElement[value.raw=/(^|\\s)-?z-(\\[[^\\]]*\\]|[3-9]\\d|\\d{3,})(\\s|$)/]",
           message:
-            "Use Z_INDEX from @omerdlw/base-framework/tokens for layers (z-0/10/20 are fine for local stacking).",
+            "Use Z_INDEX from @/design/foundations/z-index for layers (z-0/10/20 are fine for local stacking).",
         },
         {
           selector:
@@ -89,7 +89,7 @@ const eslintConfig = defineConfig([
         {
           selector: "Property[key.name='zIndex'][value.type='Literal']",
           message:
-            "Use Z_INDEX from @omerdlw/base-framework/tokens instead of a literal zIndex.",
+            "Use Z_INDEX from @/design/foundations/z-index instead of a literal zIndex.",
         },
       ],
     },

@@ -13,7 +13,7 @@ import {
   useDockActionClass,
   useDockActions,
   useDockRegistration,
-} from "@omerdlw/base-framework/modules/dock";
+} from "@omerdlw/base-framework/dock";
 import { MotionConfig } from "@/motion/lib";
 import { Room } from "@/motion/kit";
 import { bindScore } from "@/motion/react";

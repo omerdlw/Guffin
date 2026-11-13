@@ -5,7 +5,7 @@ import {
   useDockActionClass,
   useDockActions,
   useDockRegistration,
-} from "@omerdlw/base-framework/modules/dock";
+} from "@omerdlw/base-framework/dock";
 import { useAuth } from "@/features/auth/provider";
 import { useOpenSignIn } from "@/features/auth/sign-in";
 import { DetailBackdrop } from "@/features/detail/stage";

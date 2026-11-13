@@ -1,7 +1,7 @@
 "use client";
 
 import { type JSX, useRef } from "react";
-import { useDockActionClass } from "@omerdlw/base-framework/modules/dock";
+import { useDockActionClass } from "@omerdlw/base-framework/dock";
 import { mediaHref } from "@/lib/project";
 import { tmdbImageUrl } from "@/lib/tmdb/shared";
 import { Link, TextButton } from "@/design/components/link";

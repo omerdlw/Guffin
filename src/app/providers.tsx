@@ -2,20 +2,20 @@
 
 import { createElement, type JSX, type ReactNode } from "react";
 import { type AppRegistryEntry, Compose } from "@omerdlw/base-framework/kernel";
-import { ambientModule } from "@omerdlw/base-framework/modules/ambient";
-import { contextMenuModule } from "@omerdlw/base-framework/modules/context-menu";
-import { controlsModule } from "@omerdlw/base-framework/modules/controls";
-import { dockModule } from "@omerdlw/base-framework/modules/dock";
-import { modalModule } from "@omerdlw/base-framework/modules/modal";
+import { ambientModule } from "@omerdlw/base-framework/ambient";
+import { contextMenuModule } from "@omerdlw/base-framework/context-menu";
+import { controlsModule } from "@omerdlw/base-framework/controls";
+import { dockModule } from "@omerdlw/base-framework/dock";
+import { modalModule } from "@omerdlw/base-framework/modal";
 import {
   configureNavigation,
   navigationModule,
-} from "@omerdlw/base-framework/modules/navigation";
-import { notificationModule } from "@omerdlw/base-framework/modules/notification";
+} from "@omerdlw/base-framework/navigation";
+import { notificationModule } from "@omerdlw/base-framework/notification";
 import { ThemeSync } from "@/lib/theme";
 import { CoreProvider } from "@omerdlw/base-framework/provider";
 import { ThemeProvider } from "@omerdlw/base-framework/theme";
-import { TooltipProvider, UiProvider } from "@omerdlw/base-framework/design";
+import { TooltipProvider, UiProvider } from "@omerdlw/base-framework/ui";
 import { DEFAULT_ACCOUNT_ICON } from "@/features/account/constants";
 import {
   AccountGuard,

@@ -1,4 +1,4 @@
-import type { PartProps } from "@omerdlw/base-framework/design/recipes";
+import type { PartProps } from "@omerdlw/base-framework/recipes";
 import { ui } from "../../ui";
 
 export const buttonVariants = ui.parts.button.root;

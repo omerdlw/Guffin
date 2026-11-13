@@ -3,7 +3,7 @@
 import {
   type SurfaceEntry,
   useDockActions,
-} from "@omerdlw/base-framework/modules/dock";
+} from "@omerdlw/base-framework/dock";
 import { Button } from "@/design/components/button";
 import {
   HighlightGroup,

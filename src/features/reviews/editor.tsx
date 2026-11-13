@@ -5,8 +5,8 @@ import { globalEvents } from "@omerdlw/base-framework/events";
 import {
   type SurfaceEntry,
   useDockActions,
-} from "@omerdlw/base-framework/modules/dock";
-import { useToast } from "@omerdlw/base-framework/modules/notification";
+} from "@omerdlw/base-framework/dock";
+import { useToast } from "@omerdlw/base-framework/notification";
 import { report, toUserMessage } from "@omerdlw/base-framework/utils";
 import { Button } from "@/design/components/button";
 import { Icon } from "@/design/components/icon";

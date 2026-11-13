@@ -4,8 +4,8 @@ import { type JSX, type KeyboardEvent, memo, useEffect, useState } from "react";
 import {
   type SurfaceEntry,
   useDockActions,
-} from "@omerdlw/base-framework/modules/dock";
-import { useToast } from "@omerdlw/base-framework/modules/notification";
+} from "@omerdlw/base-framework/dock";
+import { useToast } from "@omerdlw/base-framework/notification";
 import { report, toUserMessage } from "@omerdlw/base-framework/utils";
 import { Reorder, useDragControls } from "@/motion/lib";
 import { useRouter } from "next/navigation";

@@ -1,7 +1,7 @@
 import {
   type NavigationTrip,
   pathOf,
-} from "@omerdlw/base-framework/modules/navigation";
+} from "@omerdlw/base-framework/navigation";
 import { Z_INDEX } from "@/design/foundations/z-index";
 import type { TargetAndTransition } from "motion/react";
 import type { CSSProperties } from "react";

@@ -2,7 +2,7 @@ import type { MediaType } from "@/features/catalog/types";
 import {
   type NavigationTrip,
   pathOf,
-} from "@omerdlw/base-framework/modules/navigation";
+} from "@omerdlw/base-framework/navigation";
 import { readParam, type SearchParams } from "@/lib/http";
 import { tmdbImageSrcSet, tmdbImageUrl } from "@/lib/tmdb/shared";
 import {

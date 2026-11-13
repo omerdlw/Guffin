@@ -1,10 +1,10 @@
 "use client";
 
-import { DockSurfaceExtension } from "@omerdlw/base-framework/modules/dock";
+import { DockSurfaceExtension } from "@omerdlw/base-framework/dock";
 import {
   SegmentedControl,
   type SegmentedControlProps,
-} from "@omerdlw/base-framework/design";
+} from "@omerdlw/base-framework/ui";
 
 export function SurfaceSegmentedControl<K extends string>({
   align = "center",

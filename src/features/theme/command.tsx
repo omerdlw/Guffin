@@ -8,7 +8,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { useDockContextActions } from "@omerdlw/base-framework/modules/dock";
+import { useDockContextActions } from "@omerdlw/base-framework/dock";
 import { Z_INDEX } from "@/design/foundations/z-index";
 import { AnimatePresence, motion, useReducedMotion } from "@/motion/lib";
 import { createPortal } from "react-dom";

@@ -1,4 +1,4 @@
-import { defineUi } from "@omerdlw/base-framework/design/recipes";
+import { defineUi } from "@omerdlw/base-framework/recipes";
 import { POINTS } from "@/motion/constants";
 import { SPRING } from "@/motion/time";
 import { step } from "@/motion/utils";
@@ -121,7 +121,7 @@ export const ui = defineUi({
   },
 });
 
-declare module "@omerdlw/base-framework/design/recipes" {
+declare module "@omerdlw/base-framework/recipes" {
   interface UiRegister {
     ui: typeof ui;
   }

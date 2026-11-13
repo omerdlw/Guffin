@@ -9,7 +9,7 @@ import {
   useState,
 } from "react";
 import { globalEvents } from "@omerdlw/base-framework/events";
-import { useToast } from "@omerdlw/base-framework/modules/notification";
+import { useToast } from "@omerdlw/base-framework/notification";
 import { toUserMessage, UserError } from "@omerdlw/base-framework/utils";
 import { followUserAction, unfollowUserAction } from "./actions";
 import {

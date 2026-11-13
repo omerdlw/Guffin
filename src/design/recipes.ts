@@ -1,4 +1,4 @@
-import { defineRecipe } from "@omerdlw/base-framework/design/recipes";
+import { defineRecipe } from "@omerdlw/base-framework/recipes";
 import { LAYER, STATE, TONES } from "./foundations/tones";
 
 const buttonRoot = defineRecipe({
@@ -187,7 +187,10 @@ const segmentedChosen = defineRecipe({ base: "bg-accent/15" });
 const segmentedIcon = defineRecipe({
   base: "center",
   variants: {
-    size: { sm: "size-3 text-[length:12px]", md: "size-3.5 text-[length:14px]" },
+    size: {
+      sm: "size-3 text-[length:12px]",
+      md: "size-3.5 text-[length:14px]",
+    },
   },
   defaultVariants: { size: "sm" },
 });
@@ -237,6 +240,7 @@ const selectChevron = defineRecipe({
 
 const selectMenu = defineRecipe({
   base: [
+    // eslint-disable-next-line no-restricted-syntax -- Tailwind needs a literal class; mirrors Z_INDEX.SELECT
     "ui-motion absolute top-full left-0 z-[150] mt-1.5 max-h-[min(16rem,var(--select-available-height,16rem))] w-full overflow-y-auto overscroll-contain",
     LAYER.shell,
   ],
@@ -325,6 +329,7 @@ const carouselIcon = defineRecipe({
 
 const tooltipContent = defineRecipe({
   base: [
+    // eslint-disable-next-line no-restricted-syntax -- Tailwind needs a literal class; mirrors Z_INDEX.TOOLTIP
     "ui-tooltip relative z-[200] max-w-[min(16rem,calc(100vw-1.5rem))] rounded-card px-3 pt-1.5 pb-[7px] type-meta font-medium text-balance select-none",
     LAYER.tip,
   ],

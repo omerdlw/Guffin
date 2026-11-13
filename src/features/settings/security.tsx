@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useDockActions } from "@omerdlw/base-framework/modules/dock";
-import { useToast } from "@omerdlw/base-framework/modules/notification";
+import { useDockActions } from "@omerdlw/base-framework/dock";
+import { useToast } from "@omerdlw/base-framework/notification";
 import { useRouter } from "next/navigation";
 import { useAccount } from "@/features/account/provider";
 import { requestEmailAuth } from "@/features/auth/client";

@@ -12,7 +12,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { useOptionalDockState } from "@omerdlw/base-framework/modules/dock";
+import { useOptionalDockState } from "@omerdlw/base-framework/dock";
 import { POINTS, SCROLLING } from "@/motion/constants";
 import { Room } from "@/motion/kit";
 import { marqueePatience } from "@/motion/marquee";

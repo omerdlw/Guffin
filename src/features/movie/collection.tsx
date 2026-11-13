@@ -8,8 +8,8 @@ import {
   useState,
 } from "react";
 import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
-import { useDockActions } from "@omerdlw/base-framework/modules/dock";
-import { useToast } from "@omerdlw/base-framework/modules/notification";
+import { useDockActions } from "@omerdlw/base-framework/dock";
+import { useToast } from "@omerdlw/base-framework/notification";
 import { report, toUserMessage } from "@omerdlw/base-framework/utils";
 import {
   getMovieLibraryAction,

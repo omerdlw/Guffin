@@ -8,7 +8,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { useToast } from "@omerdlw/base-framework/modules/notification";
+import { useToast } from "@omerdlw/base-framework/notification";
 import { report, toUserMessage } from "@omerdlw/base-framework/utils";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/features/auth/provider";

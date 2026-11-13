@@ -10,7 +10,7 @@ import {
   useState,
 } from "react";
 import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
-import type { SurfaceEntry } from "@omerdlw/base-framework/modules/dock";
+import type { SurfaceEntry } from "@omerdlw/base-framework/dock";
 import { useAuth } from "@/features/auth/provider";
 import { accountHref } from "@/lib/project";
 import { Link } from "@/design/components/link";

@@ -2,9 +2,9 @@
 
 import { type JSX, type ReactNode, useEffect, useRef, useState } from "react";
 import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
-import { useAmbientTheme } from "@omerdlw/base-framework/modules/ambient";
-import { useDockActions } from "@omerdlw/base-framework/modules/dock";
-import { useNavigationPayload } from "@omerdlw/base-framework/modules/navigation";
+import { useAmbientTheme } from "@omerdlw/base-framework/ambient";
+import { useDockActions } from "@omerdlw/base-framework/dock";
+import { useNavigationPayload } from "@omerdlw/base-framework/navigation";
 import { usePathname } from "next/navigation";
 import { SOCIAL_EVENTS } from "@/features/account/constants";
 import { createAccountBioSurfaceEntry } from "@/features/account/setup";

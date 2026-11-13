@@ -1,24 +1,24 @@
 import { errorTheme } from "@omerdlw/base-framework/error";
-import { ambientTheme } from "@omerdlw/base-framework/modules/ambient";
+import { ambientTheme } from "@omerdlw/base-framework/ambient";
 import {
   type ContextMenuMotion,
   contextMenuTheme,
-} from "@omerdlw/base-framework/modules/context-menu";
-import { controlsTheme } from "@omerdlw/base-framework/modules/controls";
+} from "@omerdlw/base-framework/context-menu";
+import { controlsTheme } from "@omerdlw/base-framework/controls";
 import {
   type DockMotion,
   type DockSurfacePhaseMotion,
   dockTheme,
-} from "@omerdlw/base-framework/modules/dock";
+} from "@omerdlw/base-framework/dock";
 import {
   type ModalMotion,
   type ModalPositionMotion,
   modalTheme,
-} from "@omerdlw/base-framework/modules/modal";
+} from "@omerdlw/base-framework/modal";
 import {
   type NotificationMotion,
   notificationTheme,
-} from "@omerdlw/base-framework/modules/notification";
+} from "@omerdlw/base-framework/notification";
 import { defineTheme } from "@omerdlw/base-framework/theme";
 import { gpuTransform } from "@omerdlw/base-framework/utils";
 import { Z_INDEX } from "@/design/foundations/z-index";

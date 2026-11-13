@@ -2,7 +2,7 @@
 
 import { type JSX, useState, useTransition } from "react";
 import { globalEvents } from "@omerdlw/base-framework/events";
-import { useToast } from "@omerdlw/base-framework/modules/notification";
+import { useToast } from "@omerdlw/base-framework/notification";
 import { report, toUserMessage } from "@omerdlw/base-framework/utils";
 import { useRouter } from "next/navigation";
 import { useOpenSignIn } from "@/features/auth/sign-in";

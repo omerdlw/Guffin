@@ -16,7 +16,7 @@ import {
   useDockContextActions,
   useDockRegistration,
   useDockSelector,
-} from "@omerdlw/base-framework/modules/dock";
+} from "@omerdlw/base-framework/dock";
 import { ACTION_TONE } from "@/design/foundations/tones";
 import { AnimatePresence, motion, useReducedMotion } from "@/motion/lib";
 import { usePathname } from "next/navigation";

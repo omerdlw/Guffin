@@ -1,7 +1,7 @@
 "use client";
 
 import { type ReactNode, useActionState, useEffect, useState } from "react";
-import { useToast } from "@omerdlw/base-framework/modules/notification";
+import { useToast } from "@omerdlw/base-framework/notification";
 import { useRouter } from "next/navigation";
 import { updateAccountAction } from "@/features/account/actions";
 import { useAccount } from "@/features/account/provider";

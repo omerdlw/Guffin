@@ -5,13 +5,13 @@ import { usePage } from "@omerdlw/base-framework/kernel";
 import {
   type AmbientPalette,
   useAmbientTheme,
-} from "@omerdlw/base-framework/modules/ambient";
-import { useDockActions } from "@omerdlw/base-framework/modules/dock";
+} from "@omerdlw/base-framework/ambient";
+import { useDockActions } from "@omerdlw/base-framework/dock";
 import {
   useArrival,
   useDeparture,
   useNavigationPayload,
-} from "@omerdlw/base-framework/modules/navigation";
+} from "@omerdlw/base-framework/navigation";
 import {
   useArtworkContextMenu,
   useArtworkPath,

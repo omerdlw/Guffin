@@ -8,8 +8,8 @@ import {
   useEffect,
   useState,
 } from "react";
-import type { SurfaceEntry } from "@omerdlw/base-framework/modules/dock";
-import { useToast } from "@omerdlw/base-framework/modules/notification";
+import type { SurfaceEntry } from "@omerdlw/base-framework/dock";
+import { useToast } from "@omerdlw/base-framework/notification";
 import { report, toUserMessage } from "@omerdlw/base-framework/utils";
 import { pluralize } from "@/lib/format";
 import { tmdbImageUrl } from "@/lib/tmdb/shared";

@@ -6,7 +6,7 @@ import {
   useDockActionClass,
   useDockActions,
   useDockTheme,
-} from "@omerdlw/base-framework/modules/dock";
+} from "@omerdlw/base-framework/dock";
 import { report } from "@omerdlw/base-framework/utils";
 import { useAuth } from "@/features/auth/provider";
 import type { MediaType } from "@/features/media/types";

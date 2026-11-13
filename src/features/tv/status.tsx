@@ -6,8 +6,8 @@ import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
 import {
   type SurfaceEntry,
   useDockActions,
-} from "@omerdlw/base-framework/modules/dock";
-import { useToast } from "@omerdlw/base-framework/modules/notification";
+} from "@omerdlw/base-framework/dock";
+import { useToast } from "@omerdlw/base-framework/notification";
 import { report, toUserMessage } from "@omerdlw/base-framework/utils";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/features/auth/provider";

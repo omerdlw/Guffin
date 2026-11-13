@@ -4,7 +4,7 @@ import { type ReactNode, useCallback, useRef, useState } from "react";
 import {
   Carousel as UiCarousel,
   type CarouselGlide,
-} from "@omerdlw/base-framework/design";
+} from "@omerdlw/base-framework/ui";
 import { Value } from "@/motion/engine";
 import { StagePart, useEngine } from "@/motion/react";
 import { CURVE } from "@/motion/time";

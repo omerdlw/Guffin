@@ -1,7 +1,7 @@
 "use client";
 
 import type { MouseEvent } from "react";
-import { useDockActions } from "@omerdlw/base-framework/modules/dock";
+import { useDockActions } from "@omerdlw/base-framework/dock";
 
 export function useDockLinkClick(href: string, onNavigated?: () => void) {
   const { navigate } = useDockActions();

@@ -1,5 +1,5 @@
 import type { MediaType } from "@/features/catalog/types";
-import type { AmbientPalette } from "@omerdlw/base-framework/modules/ambient";
+import type { AmbientPalette } from "@omerdlw/base-framework/ambient";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
   ComponentProps,

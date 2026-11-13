@@ -14,7 +14,7 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { useOptionalNavigation } from "@omerdlw/base-framework/modules/navigation";
+import { useOptionalNavigation } from "@omerdlw/base-framework/navigation";
 import { carrierOf } from "./carry";
 import { gradeOf, sampledTint, tempoScale, tokenSheet } from "./color";
 import {

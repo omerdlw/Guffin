@@ -2,7 +2,7 @@
 
 import { type JSX, useState, useTransition } from "react";
 import { globalEvents } from "@omerdlw/base-framework/events";
-import { useToast } from "@omerdlw/base-framework/modules/notification";
+import { useToast } from "@omerdlw/base-framework/notification";
 import {
   followUserAction,
   unfollowUserAction,

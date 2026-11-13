@@ -9,7 +9,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { useDockActions } from "@omerdlw/base-framework/modules/dock";
+import { useDockActions } from "@omerdlw/base-framework/dock";
 import { useReducedMotion } from "@/motion/lib";
 import { CANON_HREF, mediaHref } from "@/lib/project";
 import { tmdbImageUrl } from "@/lib/tmdb/shared";

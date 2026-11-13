@@ -4,7 +4,7 @@ import type { JSX } from "react";
 import {
   useDockActionClass,
   useDockActions,
-} from "@omerdlw/base-framework/modules/dock";
+} from "@omerdlw/base-framework/dock";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/features/auth/provider";
 import { useOpenSignIn } from "@/features/auth/sign-in";

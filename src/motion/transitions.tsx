@@ -11,8 +11,8 @@ import {
   type AmbientPalette,
   paletteVarMap,
   useAmbientTheme,
-} from "@omerdlw/base-framework/modules/ambient";
-import { useArrival } from "@omerdlw/base-framework/modules/navigation";
+} from "@omerdlw/base-framework/ambient";
+import { useArrival } from "@omerdlw/base-framework/navigation";
 import { passageOf } from "./passage";
 import { useEngine } from "./react";
 

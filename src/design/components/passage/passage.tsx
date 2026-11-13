@@ -2,7 +2,7 @@
 
 import { type JSX, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
-import { useOptionalNavigation } from "@omerdlw/base-framework/modules/navigation";
+import { useOptionalNavigation } from "@omerdlw/base-framework/navigation";
 import { PASSAGE_GLOW, PASSAGE_LAYER } from "@/motion/constants";
 import { useEngine } from "@/motion/react";
 import { passageOf } from "@/motion/passage";

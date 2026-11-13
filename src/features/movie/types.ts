@@ -1,5 +1,5 @@
 import type { MediaType } from "@/features/catalog/types";
-import type { ModalContainerProps } from "@omerdlw/base-framework/modules/modal";
+import type { ModalContainerProps } from "@omerdlw/base-framework/modal";
 import type { ReactNode } from "react";
 import type { MutationResult } from "@/features/auth/types";
 import type { PopularList } from "@/features/lists/types";

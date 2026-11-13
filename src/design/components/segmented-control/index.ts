@@ -3,7 +3,7 @@ export {
   type SegmentedControlProps,
   type SegmentedControlVariants,
   type SegmentedItem,
-} from "@omerdlw/base-framework/design";
+} from "@omerdlw/base-framework/ui";
 export { SurfaceSegmentedControl } from "./segmented-control";
 export {
   segmentedControlVariants,

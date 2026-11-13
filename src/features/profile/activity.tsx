@@ -1,7 +1,7 @@
 "use client";
 
 import { type JSX, type ReactNode, useMemo } from "react";
-import { useDockActionClass } from "@omerdlw/base-framework/modules/dock";
+import { useDockActionClass } from "@omerdlw/base-framework/dock";
 import { formatCompactAge } from "@/features/account/utils";
 import { RatingStars } from "@/features/reviews/rating";
 import { accountHref, listHref, mediaHref } from "@/lib/project";

@@ -10,7 +10,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { useDockActionClass } from "@omerdlw/base-framework/modules/dock";
+import { useDockActionClass } from "@omerdlw/base-framework/dock";
 import { DIRECTORS_HREF, movieHref, personHref } from "@/lib/project";
 import { tmdbImageSrcSet, tmdbImageUrl } from "@/lib/tmdb/shared";
 import { Button } from "@/design/components/button";

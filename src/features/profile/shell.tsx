@@ -23,8 +23,8 @@ import { REGISTRY_SOURCES, usePage } from "@omerdlw/base-framework/kernel";
 import {
   useDockActions,
   useDockContextActions,
-} from "@omerdlw/base-framework/modules/dock";
-import { useToast } from "@omerdlw/base-framework/modules/notification";
+} from "@omerdlw/base-framework/dock";
+import { useToast } from "@omerdlw/base-framework/notification";
 import {
   report,
   toUserMessage,

@@ -1,8 +1,8 @@
 "use client";
 
 import { type ChangeEvent, useActionState, useEffect, useState } from "react";
-import type { SurfaceEntry } from "@omerdlw/base-framework/modules/dock";
-import { useToast } from "@omerdlw/base-framework/modules/notification";
+import type { SurfaceEntry } from "@omerdlw/base-framework/dock";
+import { useToast } from "@omerdlw/base-framework/notification";
 import { AUTH_INPUT_CLASS } from "@/features/auth/constants";
 import { useAuth } from "@/features/auth/provider";
 import { accountHref } from "@/lib/project";

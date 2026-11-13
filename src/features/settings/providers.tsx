@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useToast } from "@omerdlw/base-framework/modules/notification";
+import { useToast } from "@omerdlw/base-framework/notification";
 import type { UserIdentity } from "@supabase/supabase-js";
 import { linkIdentity, unlinkIdentity } from "@/features/auth/client";
 import { OAUTH_PROVIDERS } from "@/features/auth/constants";

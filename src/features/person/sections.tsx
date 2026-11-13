@@ -1,8 +1,8 @@
 "use client";
 
 import { type JSX, useEffect, useMemo, useState } from "react";
-import type { SurfaceEntry } from "@omerdlw/base-framework/modules/dock";
-import { useModal } from "@omerdlw/base-framework/modules/modal";
+import type { SurfaceEntry } from "@omerdlw/base-framework/dock";
+import { useModal } from "@omerdlw/base-framework/modal";
 import { artworkAttributes } from "@/features/artwork/utils";
 import { WALL_SIZES } from "@/features/detail/constants";
 import { Heading } from "@/features/detail/layout";

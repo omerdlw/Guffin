@@ -1,5 +1,5 @@
-import type { AmbientPalette } from "@omerdlw/base-framework/modules/ambient";
-import type { NavigationTrip } from "@omerdlw/base-framework/modules/navigation";
+import type { AmbientPalette } from "@omerdlw/base-framework/ambient";
+import type { NavigationTrip } from "@omerdlw/base-framework/navigation";
 import type { MotionValue } from "motion/react";
 import type { CSSProperties, ElementType, ReactNode, RefObject } from "react";
 import type { MATTER, POINTS } from "./constants";
@@ -643,7 +643,7 @@ export interface BloomProps {
   className?: string;
 }
 
-declare module "@omerdlw/base-framework/modules/navigation" {
+declare module "@omerdlw/base-framework/navigation" {
   interface NavigationPayload {
     grade?: string | null;
     palette?: AmbientPalette | null;

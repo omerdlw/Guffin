@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { defineModal, useModal } from "@omerdlw/base-framework/modules/modal";
+import { defineModal, useModal } from "@omerdlw/base-framework/modal";
 import { artworkAttributes } from "@/features/artwork/utils";
 import { WALL_SIZES } from "@/features/detail/constants";
 import { GalleryWall, ImageModal, WallButton } from "@/features/detail/gallery";

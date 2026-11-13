@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { defineModal, useModal } from "@omerdlw/base-framework/modules/modal";
+import { defineModal, useModal } from "@omerdlw/base-framework/modal";
 import { artworkAttributes } from "@/features/artwork/utils";
 import { useWall } from "@/motion/wall";
 import { Button } from "@/design/components/button";

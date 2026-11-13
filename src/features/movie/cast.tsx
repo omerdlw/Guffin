@@ -6,7 +6,7 @@ import {
   ModalContainer,
   type ModalContainerHeaderConfig,
   useModal,
-} from "@omerdlw/base-framework/modules/modal";
+} from "@omerdlw/base-framework/modal";
 import { useArtworkPath } from "@/features/artwork/artwork";
 import { Heading } from "@/features/detail/layout";
 import {
