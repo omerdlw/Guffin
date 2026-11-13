@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { parseMovieId } from "@/features/movie/utils";
 import { MoviePageContent } from "@/features/movie/view";
-import { isMovieReviewSort } from "@/features/reviews/utils";
+import { isMovieReviewSort } from "@/features/reviews/review";
 import { readParam, type SearchParams } from "@/lib/http";
 import { project, shareMetadata } from "@/lib/project";
 import { getMovieDetails } from "@/lib/tmdb/server";

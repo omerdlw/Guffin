@@ -1,5 +1,5 @@
 import type { UserIdentity } from "@supabase/supabase-js";
-import type { OAuthProvider } from "@/features/auth/types";
+import type { OAuthProvider } from "@/features/auth/session";
 import {
   BROWSER_PATTERNS,
   DEVICE_ICONS,

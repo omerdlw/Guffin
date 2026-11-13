@@ -1,24 +1,24 @@
 "use client";
 
-import type { MediaType } from "@/features/catalog/types";
 import { type JSX, useMemo } from "react";
 import {
   useDockActionClass,
   useDockActions,
 } from "@omerdlw/base-framework/dock";
-import { useRouter } from "next/navigation";
-import { formatShortDate } from "@/features/account/utils";
-import { ListCommentAction, ListLikeButton } from "@/features/lists/buttons";
-import { createListFormSurfaceEntry } from "@/features/lists/form";
-import type { ListFormData } from "@/features/lists/types";
-import { ReviewActions, ReviewBody } from "@/features/reviews/controls";
-import { createReviewEditorSurfaceEntry } from "@/features/reviews/editor";
-import { pluralize } from "@/lib/format";
-import { accountHref, listHref } from "@/lib/project";
 import { Avatar, Button, type ButtonProps } from "@omerdlw/base-framework/ui";
+import { useRouter } from "next/navigation";
 import { Icon } from "@/design/components/icon";
 import { DockLink } from "@/design/components/link";
 import { DockAction } from "@/design/components/surface";
+import { formatShortDate } from "@/features/account/account";
+import type { MediaType } from "@/features/catalog/types";
+import { ListCommentAction, ListLikeButton } from "@/features/lists/buttons";
+import { listFormSurface } from "@/features/lists/form-surface";
+import type { ListFormData } from "@/features/lists/list";
+import { ReviewActions, ReviewBody } from "@/features/reviews/controls";
+import { reviewEditorSurface } from "@/features/reviews/editor-surface";
+import { pluralize } from "@/lib/format";
+import { accountHref, listHref } from "@/lib/project";
 import { PosterStack } from "./blocks";
 import { LIST_DATE_FORMAT } from "./constants";
 import { AccountPart } from "./motion";
@@ -40,7 +40,7 @@ function NewListAction({
       <Button
         className={actionClass({ className: "w-full" })}
         onClick={() =>
-          void openSurface(createListFormSurfaceEntry({ mediaType, username }))
+          void openSurface(listFormSurface({ data: { mediaType, username } }))
         }
         type="button"
       >
@@ -97,7 +97,7 @@ function EditListButton({
       shape={shape}
       size={drawn ? "sm" : undefined}
       onClick={() =>
-        void openSurface(createListFormSurfaceEntry({ list, username }))
+        void openSurface(listFormSurface({ data: { list, username } }))
       }
       type="button"
     >
@@ -247,12 +247,14 @@ export function ListComments({
                     likesCount={comment.likesCount}
                     onEdit={() =>
                       void openSurface(
-                        createReviewEditorSurfaceEntry({
-                          kind: "list",
-                          listId,
-                          onSaved: () => router.refresh(),
-                          review: { content: comment.content },
-                          title: listTitle,
+                        reviewEditorSurface({
+                          data: {
+                            kind: "list",
+                            listId,
+                            onSaved: () => router.refresh(),
+                            review: { content: comment.content },
+                            title: listTitle,
+                          },
                         }),
                       )
                     }

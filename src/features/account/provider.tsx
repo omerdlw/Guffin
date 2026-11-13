@@ -10,52 +10,87 @@ import {
   useRef,
   useState,
 } from "react";
-import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
-import { globalEvents } from "@omerdlw/base-framework/events";
-import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
-import { REGISTRY_SOURCES } from "@omerdlw/base-framework/kernel";
 import {
   useDockActions,
   useDockContextActions,
   useDockRegistration,
   useDockSelector,
 } from "@omerdlw/base-framework/dock";
+import { globalEvents } from "@omerdlw/base-framework/events";
+import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
+import { REGISTRY_SOURCES } from "@omerdlw/base-framework/kernel";
 import { getCurrentPath, report } from "@omerdlw/base-framework/utils";
+import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/features/auth/provider";
-import { createSignInSurfaceEntry } from "@/features/auth/sign-in";
+import { signInSurface } from "@/features/auth/sign-in-surface";
+import { followsSurface } from "@/features/social/follows-surface";
 import { isSupabaseConfigured } from "@/lib/env";
 import { accountHref } from "@/lib/project";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
+import type { Database } from "@/lib/supabase/database.types";
+import {
+  type CurrentAccount,
+  DEFAULT_ACCOUNT_ICON,
+  NOTIFICATIONS_ICON,
+  NOTIFICATIONS_TITLE,
+  SOCIAL_EVENTS,
+} from "./account";
 import {
   fetchCurrentAccount,
   fetchInboxCount,
   fetchUnreadCount,
 } from "./client";
 import {
-  ACCOUNT_ENTRY_PATH,
-  DEFAULT_ACCOUNT_ICON,
-  INBOX_TYPES,
-  INITIAL_ACCOUNT_STATE,
-  NOTIFICATIONS_ACTION_KEY,
-  NOTIFICATIONS_ACTION_ORDER,
-  NOTIFICATIONS_ICON,
-  NOTIFICATIONS_TITLE,
-  REALTIME_DEBOUNCE_MS,
-  SIGN_OUT_ACTION_KEY,
-  SIGN_OUT_ACTION_ORDER,
-  SIGN_OUT_REDIRECT_DELAY_MS,
-  SOCIAL_EVENTS,
-} from "./constants";
-import {
   AccountInboxAction,
   AccountNotificationsSurface,
-  createAccountNotificationsSurfaceEntry,
-} from "./notifications";
-import { createAccountSetupSurfaceEntry } from "./setup";
-import { createAccountSocialSurfaceEntry } from "./social";
-import type { AccountContextValue, AccountState, TableRow } from "./types";
-import { changedRow, succeeded } from "./utils";
+  accountNotificationsSurface,
+} from "./notifications-surface";
+import { accountSetupSurface } from "./setup-surface";
+
+interface AccountState {
+  account: CurrentAccount | null;
+  error: unknown;
+  isLoading: boolean;
+}
+
+interface AccountContextValue extends AccountState {
+  refresh: () => Promise<void>;
+}
+
+type TableRow<T extends keyof Database["public"]["Tables"]> =
+  Database["public"]["Tables"][T]["Row"];
+
+const INITIAL_ACCOUNT_STATE: AccountState = Object.freeze({
+  account: null,
+  error: null,
+  isLoading: false,
+});
+
+const NOTIFICATIONS_ACTION_KEY = "social.notifications";
+
+const NOTIFICATIONS_ACTION_ORDER = -10;
+
+const SIGN_OUT_ACTION_KEY = "auth.sign-out";
+
+const SIGN_OUT_ACTION_ORDER = 30;
+
+const ACCOUNT_ENTRY_PATH = "/account";
+
+const SIGN_OUT_REDIRECT_DELAY_MS = 450;
+
+const REALTIME_DEBOUNCE_MS = 80;
+
+const INBOX_TYPES = new Set(["FOLLOW_REQUEST", "FOLLOW_ACCEPTED"]);
+
+const succeeded = (result: unknown) =>
+  (result as { success?: boolean } | undefined)?.success === true;
+
+function changedRow<T extends Record<string, unknown>>(
+  payload: RealtimePostgresChangesPayload<T>,
+): Partial<T> {
+  return payload.eventType === "DELETE" ? payload.old : payload.new;
+}
 
 const AccountContext = createContext<AccountContextValue | null>(null);
 
@@ -137,7 +172,7 @@ function useSignInPrompt({
       if (cancelled || prompted.current === pathname) return;
       prompted.current = pathname;
       void openSurface(
-        createSignInSurfaceEntry({ next: getCurrentPath() }),
+        signInSurface({ data: { next: getCurrentPath() } }),
       ).then((result) => {
         if (cancelled) return;
         if (
@@ -187,12 +222,14 @@ function AccountDockRegistration(): null {
   const openInbox = useCallback(() => {
     if (!account) return;
     void openSurface(
-      createAccountSocialSurfaceEntry({
-        canManageRequests: true,
-        displayName: account.displayName,
-        tab: "inbox",
-        userId: account.id,
-        username: account.username,
+      followsSurface({
+        data: {
+          canManageRequests: true,
+          displayName: account.displayName,
+          tab: "inbox",
+          userId: account.id,
+          username: account.username,
+        },
       }),
     );
   }, [account, openSurface]);
@@ -243,7 +280,7 @@ function AccountSetupPrompt(): null {
     url.searchParams.delete("setup");
     url.searchParams.delete("next");
     window.history.replaceState(null, "", url.toString());
-    queueMicrotask(() => void openSurface(createAccountSetupSurfaceEntry()));
+    queueMicrotask(() => void openSurface(accountSetupSurface()));
   }, [auth.isAuthenticated, auth.isReady, openSurface]);
 
   return null;
@@ -277,7 +314,7 @@ function AccountDockActions(): null {
         closeSurface();
         return;
       }
-      void openSurface(createAccountNotificationsSurfaceEntry());
+      void openSurface(accountNotificationsSurface());
     },
     [closeSurface, notificationsOpen, openSurface],
   );

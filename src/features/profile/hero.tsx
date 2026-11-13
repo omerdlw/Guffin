@@ -1,41 +1,41 @@
 "use client";
 
 import { type JSX, type ReactNode, useEffect, useRef, useState } from "react";
-import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
 import { useAmbientTheme } from "@omerdlw/base-framework/ambient";
 import { useDockActions } from "@omerdlw/base-framework/dock";
+import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
 import { useNavigationPayload } from "@omerdlw/base-framework/navigation";
+import { Image } from "@omerdlw/base-framework/ui";
 import { usePathname } from "next/navigation";
-import { SOCIAL_EVENTS } from "@/features/account/constants";
-import { createAccountBioSurfaceEntry } from "@/features/account/setup";
-import { createAccountSocialSurfaceEntry } from "@/features/account/social";
+import { Icon } from "@/design/components/icon";
+import { TextButton } from "@/design/components/link";
+import { OVERLAP } from "@/design/foundations/layout";
+import { cn } from "@/design/ui";
 import {
   applyAvatarFallback,
   getInitial,
   getUserAvatarFallbackUrl,
   getUserAvatarUrl,
-} from "@/features/account/utils";
+  SOCIAL_EVENTS,
+} from "@/features/account/account";
+import { accountBioSurface } from "@/features/account/bio-surface";
 import { BackdropProjection } from "@/features/detail/stage";
+import { followsSurface } from "@/features/social/follows-surface";
 import { accountHref } from "@/lib/project";
 import { Room } from "@/motion/kit";
-import { TextButton } from "@/design/components/link";
-import { Icon } from "@/design/components/icon";
-import { Image } from "@omerdlw/base-framework/ui";
-import { cn } from "@/design/ui";
-import { OVERLAP } from "@/design/foundations/layout";
 import { ProfileStatButton, ProfileStatRow } from "./blocks";
 import {
   AVATAR_CLASSES,
   BIO_CLAMP_CLASS,
   PROFILE_CONTAINER_CLASS,
 } from "./constants";
+import { PlanGuides } from "./guides";
 import {
   AccountPart,
   AccountStageRoot,
   AccountText,
   useAccountPart,
 } from "./motion";
-import { PlanGuides } from "./guides";
 import { AccountView } from "./shell";
 import type {
   AccountBackdropHeroProps,
@@ -163,12 +163,14 @@ function AccountHero({
   const openSocial = (tab: "following" | "followers") => {
     if (!account?.id) return;
     openSurface(
-      createAccountSocialSurfaceEntry({
-        avatarUrl: getUserAvatarUrl(account),
-        displayName,
-        tab,
-        userId: account.id,
-        username: account.username,
+      followsSurface({
+        data: {
+          avatarUrl: getUserAvatarUrl(account),
+          displayName,
+          tab,
+          userId: account.id,
+          username: account.username,
+        },
       }),
     );
   };
@@ -367,7 +369,7 @@ export function AccountBio({
   }, [bio]);
 
   const open = () =>
-    openSurface(createAccountBioSurfaceEntry({ bio, displayName, username }));
+    openSurface(accountBioSurface({ bio, displayName, username }));
 
   return (
     <div className="relative type-control leading-5">

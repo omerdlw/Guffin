@@ -1,25 +1,27 @@
 "use client";
 
 import { type JSX, useCallback, useEffect, useState } from "react";
-import { globalEvents } from "@omerdlw/base-framework/events";
-import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
 import {
   type SurfaceEntry,
   useDockActions,
 } from "@omerdlw/base-framework/dock";
+import { globalEvents } from "@omerdlw/base-framework/events";
+import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
 import { useToast } from "@omerdlw/base-framework/notification";
-import { report, toUserMessage } from "@omerdlw/base-framework/utils";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/features/auth/provider";
-import { useOpenSignIn } from "@/features/auth/sign-in";
-import { DetailAction } from "@/features/detail/stage";
 import {
   Button,
   CheckboxIndicator,
   HighlightGroup,
   useHighlight,
 } from "@omerdlw/base-framework/ui";
+import { report, toUserMessage } from "@omerdlw/base-framework/utils";
+import { useRouter } from "next/navigation";
 import { Icon } from "@/design/components/icon";
+import {
+  SurfacePart,
+  SurfaceStage,
+  SurfaceSwap,
+} from "@/design/components/surface";
 import {
   rowVariants,
   SURFACE_META,
@@ -28,12 +30,10 @@ import {
   SURFACE_TILE_INNER,
   SURFACE_TITLE,
 } from "@/design/components/surface-classes";
-import {
-  SurfacePart,
-  SurfaceStage,
-  SurfaceSwap,
-} from "@/design/components/surface";
 import { cn } from "@/design/ui";
+import { useAuth } from "@/features/auth/provider";
+import { useOpenSignIn } from "@/features/auth/sign-in-surface";
+import { DetailAction } from "@/features/detail/stage";
 import { getShowTrackingAction, setShowStatusAction } from "./actions";
 import {
   SHOW_EVENTS,

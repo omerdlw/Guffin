@@ -1,23 +1,22 @@
 "use client";
 
 import { type JSX, useCallback, useEffect, useState } from "react";
-import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
 import {
   useDockActionClass,
   useDockActions,
   useDockTheme,
 } from "@omerdlw/base-framework/dock";
-import { report } from "@omerdlw/base-framework/utils";
-import { useAuth } from "@/features/auth/provider";
-import type { MediaType } from "@/features/media/types";
+import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
 import { Button } from "@omerdlw/base-framework/ui";
+import { report } from "@omerdlw/base-framework/utils";
 import { Icon } from "@/design/components/icon";
 import { DockAction } from "@/design/components/surface";
+import { useAuth } from "@/features/auth/provider";
+import type { MediaType } from "@/features/catalog/types";
 import { getOwnMovieReviewAction } from "./actions";
-import { REVIEW_EVENTS } from "./constants";
-import { createReviewEditorSurfaceEntry } from "./editor";
+import { reviewEditorSurface } from "./editor-surface";
 import type { ReviewsPager } from "./pager";
-import type { ReviewInput } from "./types";
+import { REVIEW_EVENTS, type ReviewInput } from "./review";
 
 export function MovieAction({
   extra = null,
@@ -77,13 +76,15 @@ export function MovieAction({
 
   const openEditor = useCallback(() => {
     void openSurface(
-      createReviewEditorSurfaceEntry({
-        kind: "movie",
-        mediaType,
-        movieId,
-        onSaved: (saved) => key && setOwn({ key, review: saved }),
-        review,
-        title,
+      reviewEditorSurface({
+        data: {
+          kind: "movie",
+          mediaType,
+          movieId,
+          onSaved: (saved) => key && setOwn({ key, review: saved }),
+          review,
+          title,
+        },
       }),
     );
   }, [key, mediaType, movieId, openSurface, review, title]);

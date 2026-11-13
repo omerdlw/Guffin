@@ -1,7 +1,26 @@
+import { UserError } from "@omerdlw/base-framework/utils";
 import type { UserIdentity } from "@supabase/supabase-js";
 import { requestJson } from "@/lib/http";
-import type { AuthClient, OAuthProvider, SignOutScope } from "./types";
-import { normalizeEmail, unwrap } from "./utils";
+import type { AuthClient, OAuthProvider, SignOutScope } from "./session";
+
+function normalizeEmail(value: unknown): string {
+  const email = String(value || "")
+    .trim()
+    .toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw new UserError("Enter a valid email address");
+  }
+  return email;
+}
+
+function unwrap<T>(
+  result: { data: T | null; error: unknown },
+  fallbackMessage: string,
+): T {
+  if (result.error) throw result.error;
+  if (!result.data) throw new UserError(fallbackMessage);
+  return result.data;
+}
 
 export async function requestEmailAuth(
   client: AuthClient,

@@ -2,6 +2,18 @@ import "server-only";
 
 import { type JSX, Suspense } from "react";
 import { notFound } from "next/navigation";
+import { Carousel } from "@/design/components/carousel";
+import { Icon } from "@/design/components/icon";
+import { Tooltip } from "@/design/components/tooltip";
+import { RADIUS } from "@/design/foundations/geometry";
+import {
+  CAROUSEL_ITEM,
+  PROSE_CLASS,
+  RULE_GAP,
+} from "@/design/foundations/layout";
+import { TONE } from "@/design/foundations/tones";
+import { cn } from "@/design/ui";
+import { type Fact, hasAwards } from "@/features/detail/detail";
 import {
   DetailAwards,
   DetailLayout,
@@ -17,11 +29,10 @@ import {
   DetailSection,
   DetailText,
 } from "@/features/detail/motion";
-import type { Fact } from "@/features/detail/types";
-import { hasAwards } from "@/features/detail/utils";
+import { MediaReviewsHeader } from "@/features/detail/reviews-header";
 import { MoviePopularLists } from "@/features/lists/popular";
 import { getMoviePopularLists } from "@/features/lists/server";
-import type { MovieReviewSort } from "@/features/reviews/types";
+import type { MovieReviewSort } from "@/features/reviews/review";
 import { MovieSocialProof } from "@/features/social/proof";
 import { pluralize } from "@/lib/format";
 import { movieHref } from "@/lib/project";
@@ -37,17 +48,6 @@ import {
   type MovieImages,
   tmdbImageUrl,
 } from "@/lib/tmdb/shared";
-import { Carousel } from "@/design/components/carousel";
-import { Icon } from "@/design/components/icon";
-import { Tooltip } from "@/design/components/tooltip";
-import { cn } from "@/design/ui";
-import { RADIUS } from "@/design/foundations/geometry";
-import {
-  CAROUSEL_ITEM,
-  PROSE_CLASS,
-  RULE_GAP,
-} from "@/design/foundations/layout";
-import { TONE } from "@/design/foundations/tones";
 import { MoviePeople } from "./cast";
 import { MovieCollectionActions } from "./collection";
 import {
@@ -65,9 +65,7 @@ import {
   MoviePoster,
   MovieProjection,
 } from "./media";
-import { MovieViewProvider, MovieViews, ReelProvider } from "./views";
 import { MovieReviewDigest, MovieReviews } from "./reviews";
-import { MediaReviewsHeader } from "./reviews-header";
 import { getFilmStats, getPeopleKnownFor } from "./server";
 import {
   AwardsAction,
@@ -96,6 +94,7 @@ import {
   toFactName,
   toPersonEntries,
 } from "./utils";
+import { MovieViewProvider, MovieViews, ReelProvider } from "./views";
 
 function MovieAwards({ awards }: { awards: AwardsRequest }): JSX.Element {
   return (

@@ -5,37 +5,256 @@ import { Button, Image, SegmentedControl } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
 import { DockLink } from "@/design/components/link";
 import { Select } from "@/design/components/select";
+import { TONE } from "@/design/foundations/tones";
 import { cn } from "@/design/ui";
 import { PosterThumb } from "@/features/artwork/artwork";
+import { pluralize } from "@/lib/format";
 import { movieHref, personHref } from "@/lib/project";
-import { type Awards, tmdbImageUrl } from "@/lib/tmdb/shared";
-import { AnimatePresence, motion, useReducedMotion } from "@/motion/lib";
+import {
+  type AwardRecipient,
+  type Awards,
+  tmdbImageUrl,
+} from "@/lib/tmdb/shared";
+import {
+  AnimatePresence,
+  motion,
+  useReducedMotion,
+  type Variants,
+} from "@/motion/lib";
 import { Foil, type TiltLight } from "@/motion/tilt";
-import {
-  ALL_ORGANIZATIONS,
-  AWARD_GROUP_VARIANTS,
-  AWARD_LIST_VARIANTS,
-  GROUPING_LABELS,
-  LABEL_CLASS,
-  MAX_RECIPIENTS,
-  STILL_VARIANTS,
-} from "./constants";
-import type {
-  AwardGroup,
-  AwardItem,
-  AwardsFilters,
-  AwardsGrouping,
-  AwardsLook,
-} from "./types";
-import {
-  buildAwardStats,
-  countAwardTitles,
-  filterAwards,
-  flattenAwards,
-  groupAwards,
-  summarizeAwardGroup,
-  wonAcademyAward,
-} from "./utils";
+import { POINTS, step } from "@/motion/time";
+import type { AwardsGrouping, AwardsLook } from "./detail";
+
+interface AwardsFilters {
+  grouping: AwardsGrouping;
+  organizationId: string;
+  winsOnly: boolean;
+}
+
+interface AwardStat {
+  label: string;
+  strong?: boolean;
+  value: number;
+}
+
+interface AwardItem {
+  category: string;
+  ceremony: string;
+  key: string;
+  mediaType: "movie" | "tv" | null;
+  organizationId: string;
+  organizationLogoPath: string | null;
+  organizationTitle: string;
+  posterPath: string | null;
+  project: string | null;
+  projectId: number | null;
+  recipients: AwardRecipient[];
+  won: boolean;
+  year: string | null;
+}
+
+interface AwardGroup {
+  items: AwardItem[];
+  key: string;
+  logoPath: string | null;
+  nominations: number;
+  poster: {
+    id: number | null;
+    mediaType: "movie" | "tv" | null;
+    path: string | null;
+  } | null;
+  title: string;
+  wins: number;
+}
+
+const GROUPING_LABELS: Record<AwardsGrouping, string> = {
+  organizations: "By organization",
+  projects: "By project",
+  timeline: "Timeline",
+};
+
+const MAX_RECIPIENTS = 4;
+
+const STILL_VARIANTS: Variants = { exit: {}, hidden: {}, visible: {} };
+
+const AWARD_LIST_VARIANTS: Variants = {
+  exit: {
+    opacity: 0,
+    transition: { duration: step(-2), ease: POINTS.expo },
+    y: -8,
+  },
+  hidden: {},
+  visible: { transition: { staggerChildren: step(-4) } },
+};
+
+const AWARD_GROUP_VARIANTS: Variants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: {
+    opacity: 1,
+    transition: { duration: step(0), ease: POINTS.expo },
+    y: 0,
+  },
+};
+
+const ALL_ORGANIZATIONS = "all";
+
+const LABEL_CLASS = TONE.label;
+
+function flattenAwards(awards: Awards): AwardItem[] {
+  return awards.organizations.flatMap((organization) =>
+    organization.awards.map((award, index) => ({
+      category: award.category,
+      ceremony: award.ceremony,
+      key: `${organization.id}-${index}`,
+      mediaType: award.mediaType,
+      organizationId: organization.id,
+      organizationLogoPath: organization.logoPath,
+      organizationTitle: organization.title,
+      posterPath: award.posterPath,
+      project: award.project,
+      projectId: award.projectId,
+      recipients: award.recipients,
+      won: award.won,
+      year: award.year,
+    })),
+  );
+}
+
+function filterAwards(
+  items: readonly AwardItem[],
+  {
+    organizationId,
+    winsOnly,
+  }: { organizationId: string | null; winsOnly: boolean },
+): AwardItem[] {
+  return items.filter(
+    (item) =>
+      (!winsOnly || item.won) &&
+      (!organizationId || item.organizationId === organizationId),
+  );
+}
+
+const byYearDesc = (a: AwardItem, b: AwardItem) =>
+  (b.year ?? "").localeCompare(a.year ?? "") ||
+  Number(b.won) - Number(a.won) ||
+  a.category.localeCompare(b.category);
+
+function groupAwardItems(
+  key: string,
+  title: string,
+  items: AwardItem[],
+  extra: Pick<AwardGroup, "logoPath" | "poster">,
+): AwardGroup {
+  return {
+    ...extra,
+    items: [...items].sort(byYearDesc),
+    key,
+    nominations: items.filter((item) => !item.won).length,
+    title,
+    wins: items.filter((item) => item.won).length,
+  };
+}
+
+function groupAwards(
+  items: readonly AwardItem[],
+  grouping: AwardsGrouping,
+): AwardGroup[] {
+  const buckets = new Map<string, AwardItem[]>();
+  const keyOf = (item: AwardItem): string => {
+    if (grouping === "organizations") return item.organizationId;
+    if (grouping === "timeline") return item.year ?? "";
+    return item.projectId ? `${item.mediaType}-${item.projectId}` : "honors";
+  };
+  for (const item of items) {
+    const key = keyOf(item);
+    buckets.set(key, [...(buckets.get(key) ?? []), item]);
+  }
+
+  const groups = [...buckets.entries()].map(([key, bucket]) => {
+    const first = bucket[0];
+    if (grouping === "organizations") {
+      return groupAwardItems(key, first.organizationTitle, bucket, {
+        logoPath: first.organizationLogoPath,
+        poster: null,
+      });
+    }
+    if (grouping === "timeline") {
+      return groupAwardItems(key, first.year ?? "Undated", bucket, {
+        logoPath: null,
+        poster: null,
+      });
+    }
+    const titled = bucket.find((item) => item.project) ?? first;
+    return groupAwardItems(
+      key,
+      titled.project ?? "Career and honorary",
+      bucket,
+      {
+        logoPath: null,
+        poster: {
+          id: first.projectId,
+          mediaType: first.mediaType,
+          path: bucket.find((item) => item.posterPath)?.posterPath ?? null,
+        },
+      },
+    );
+  });
+
+  return groups.sort((a, b) => {
+    if (grouping === "timeline") {
+      return (b.items[0].year ?? "").localeCompare(a.items[0].year ?? "");
+    }
+    return b.wins - a.wins || b.items.length - a.items.length;
+  });
+}
+
+function wonAcademyAward(awards: Awards): boolean {
+  return awards.organizations.some(
+    (organization) =>
+      /academy award|oscar/i.test(organization.title) &&
+      organization.awards.some((award) => award.won),
+  );
+}
+
+function summarizeAwardGroup({ nominations, wins }: AwardGroup): string {
+  return [
+    wins > 0 ? pluralize(wins, "win", "wins") : null,
+    nominations > 0
+      ? pluralize(nominations, "nomination", "nominations")
+      : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
+
+function countAwardTitles(items: readonly AwardItem[]): number {
+  return new Set(
+    items.map((item) => item.projectId ?? item.project).filter(Boolean),
+  ).size;
+}
+
+function buildAwardStats(
+  awards: Awards,
+  titleCount: number | null,
+): AwardStat[] {
+  const organizations = awards.organizations.length;
+  return [
+    {
+      label: awards.wins === 1 ? "Win" : "Wins",
+      strong: true,
+      value: awards.wins,
+    },
+    {
+      label: awards.nominations === 1 ? "Nomination" : "Nominations",
+      value: awards.nominations,
+    },
+    ...(titleCount ? [{ label: "Titles", value: titleCount }] : []),
+    {
+      label: organizations === 1 ? "Organization" : "Organizations",
+      value: organizations,
+    },
+  ];
+}
 
 function InlineLink({ children, href }: { children: ReactNode; href: string }) {
   return (

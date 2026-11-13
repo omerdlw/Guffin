@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
-import type { FactName } from "@/features/detail/types";
+import { headlineClass } from "@/design/foundations/layout";
+import type { FactName } from "@/features/detail/detail";
 import { pluralize } from "@/lib/format";
 import { personHref } from "@/lib/project";
 import {
@@ -10,7 +11,6 @@ import {
   tmdbImageUrl,
 } from "@/lib/tmdb/shared";
 import { readable } from "@/motion/render";
-import { headlineClass } from "@/design/foundations/layout";
 import {
   CREW_JOB_PRIORITY,
   DOCK_DIRECTOR_LIMIT,

@@ -6,17 +6,10 @@ import {
   useDockActions,
   useDockRegistration,
 } from "@omerdlw/base-framework/dock";
-import { useAuth } from "@/features/auth/provider";
-import { useOpenSignIn } from "@/features/auth/sign-in";
-import { DetailBackdrop } from "@/features/detail/stage";
-import { MoviePosterLink } from "@/features/movie/stage";
-import { accountHref, CANON_HREF, movieHref } from "@/lib/project";
-import { tmdbImageUrl } from "@/lib/tmdb/shared";
 import { Button } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
 import { DockLink } from "@/design/components/link";
 import { DockAction } from "@/design/components/surface";
-import { cn } from "@/design/ui";
 import { RADIUS } from "@/design/foundations/geometry";
 import {
   HEADLINE_BOX,
@@ -24,6 +17,13 @@ import {
   PROSE_CLASS,
 } from "@/design/foundations/layout";
 import { TONE } from "@/design/foundations/tones";
+import { cn } from "@/design/ui";
+import { useAuth } from "@/features/auth/provider";
+import { useOpenSignIn } from "@/features/auth/sign-in-surface";
+import { DetailBackdrop } from "@/features/detail/stage";
+import { MoviePosterLink } from "@/features/movie/stage";
+import { accountHref, CANON_HREF, movieHref } from "@/lib/project";
+import { tmdbImageUrl } from "@/lib/tmdb/shared";
 import { FALLBACK_ICON, HERO_LIFT, TEXT_LINK_CLASS } from "./constants";
 import { HomePart, HomeSection, HomeText, useHomeLead } from "./motion";
 import type { Feature } from "./types";

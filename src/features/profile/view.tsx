@@ -1,10 +1,11 @@
 import type { JSX, ReactNode } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { formatShortDate } from "@/features/account/utils";
-import { MEDIA_TYPE_COPY } from "@/features/media/constants";
+import { Icon } from "@/design/components/icon";
+import { DockLink } from "@/design/components/link";
+import { formatShortDate } from "@/features/account/account";
 import { resolveVitrin } from "@/features/media/server";
-import { mediaNoun } from "@/features/media/utils";
+import { MEDIA_TYPE_COPY, mediaNoun } from "@/features/media/vitrin";
 import { FollowedBy } from "@/features/social/proof";
 import { SHOW_STATUS_ICONS, SHOW_STATUS_LABELS } from "@/features/tv/constants";
 import { ShowProgressGrid } from "@/features/tv/progress";
@@ -12,8 +13,12 @@ import { TV_ENABLED } from "@/lib/env";
 import { pluralize } from "@/lib/format";
 import { accountHref, project, shareMetadata } from "@/lib/project";
 import { tmdbImageUrl } from "@/lib/tmdb/shared";
-import { Icon } from "@/design/components/icon";
-import { DockLink } from "@/design/components/link";
+import {
+  getAccountAmbientPalette,
+  getAccountHeader,
+  getAccountPageContext,
+  getUnlockedAccountContext,
+} from "./access";
 import { ActivityChrome, ActivityRhythm, ActivityTimeline } from "./activity";
 import { EmptyState, PosterGrid, ProfileStats, Section } from "./blocks";
 import {
@@ -32,17 +37,12 @@ import {
   VIEW_MONTH_FORMAT,
 } from "./constants";
 import { Pagination } from "./controls";
-import { FilterBar } from "./filter-bar";
 import { DiaryChrome, DiaryMonthView } from "./diary";
+import { FilterBar } from "./filter-bar";
 import { ListChrome, ListComments, ListRows, ListsChrome } from "./lists";
 import { AccountPart, AccountSection } from "./motion";
-import {
-  getAccountAmbientPalette,
-  getAccountHeader,
-  getAccountPageContext,
-  getUnlockedAccountContext,
-} from "./access";
 import { getDiaryMonth, getTrackedShows } from "./progress";
+import { ReviewList } from "./reviews";
 import {
   getActivityPage,
   getActivitySummary,
@@ -51,7 +51,6 @@ import {
   getMediaPage,
   getReviewsPage,
 } from "./server";
-import { ReviewList } from "./reviews";
 import { AccountPage, AccountShell } from "./shell";
 import type { AccountViewProps, ListPageData, MediaKind } from "./types";
 import {

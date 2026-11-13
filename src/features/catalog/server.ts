@@ -6,9 +6,7 @@ import { CATALOG_STALE_MS } from "./constants";
 import type { MediaItem, MediaType } from "./types";
 import { toCatalogRow, toMediaItem } from "./utils";
 
-async function upsertCatalogEntry(
-  media: MediaDetails,
-): Promise<MediaItem> {
+async function upsertCatalogEntry(media: MediaDetails): Promise<MediaItem> {
   const item = toMediaItem(media.details, media.mediaType);
   try {
     const { error } = await createAdminSupabaseClient()

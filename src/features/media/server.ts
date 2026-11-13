@@ -1,10 +1,17 @@
 import "server-only";
+
 import { cookies } from "next/headers";
+import type { MediaType } from "@/features/catalog/types";
 import { TV_ENABLED, VITRIN_COOKIE_NAME } from "@/lib/env";
-import type { MediaType } from "./types";
-import { readVitrinParam } from "./utils";
+import { readParam } from "@/lib/http";
+import { VITRIN_PARAM } from "./vitrin";
 
 type SearchParams = Record<string, string | string[] | undefined>;
+
+function readVitrinParam(params: SearchParams | undefined): MediaType | null {
+  const value = readParam(params, VITRIN_PARAM);
+  return value === "tv" ? "tv" : value === "movie" ? "movie" : null;
+}
 
 export async function resolveVitrin(
   params: SearchParams | undefined,

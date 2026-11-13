@@ -5,15 +5,20 @@ import {
   useDockActionClass,
   useDockActions,
 } from "@omerdlw/base-framework/dock";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/features/auth/provider";
-import { useOpenSignIn } from "@/features/auth/sign-in";
-import { useLikeToggle } from "@/features/reviews/controls";
-import { createReviewEditorSurfaceEntry } from "@/features/reviews/editor";
 import { Button } from "@omerdlw/base-framework/ui";
+import { useRouter } from "next/navigation";
 import { Icon } from "@/design/components/icon";
+import { useAuth } from "@/features/auth/provider";
+import { useOpenSignIn } from "@/features/auth/sign-in-surface";
+import { useLikeToggle } from "@/features/reviews/controls";
+import { reviewEditorSurface } from "@/features/reviews/editor-surface";
 import { setListLikeAction } from "./actions";
-import type { ListCommentTarget } from "./types";
+
+interface ListCommentTarget {
+  content: string | null;
+  listId: string;
+  title: string;
+}
 
 export function ListCommentAction({
   target,
@@ -35,12 +40,14 @@ export function ListCommentAction({
       return;
     }
     void openSurface(
-      createReviewEditorSurfaceEntry({
-        kind: "list",
-        listId: target.listId,
-        onSaved: () => router.refresh(),
-        review: editing ? { content: target.content ?? "" } : null,
-        title: target.title,
+      reviewEditorSurface({
+        data: {
+          kind: "list",
+          listId: target.listId,
+          onSaved: () => router.refresh(),
+          review: editing ? { content: target.content ?? "" } : null,
+          title: target.title,
+        },
       }),
     );
   };

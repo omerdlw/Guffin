@@ -2,7 +2,13 @@
 
 import { type JSX, type ReactNode, useMemo } from "react";
 import { useDockActionClass } from "@omerdlw/base-framework/dock";
-import { formatCompactAge } from "@/features/account/utils";
+import { Icon } from "@/design/components/icon";
+import { DockLink } from "@/design/components/link";
+import { MediaCard } from "@/design/components/media-card";
+import { DockAction } from "@/design/components/surface";
+import { RADIUS } from "@/design/foundations/geometry";
+import { cn } from "@/design/ui";
+import { formatCompactAge } from "@/features/account/account";
 import { RatingStars } from "@/features/reviews/rating";
 import {
   accountHref,
@@ -11,12 +17,6 @@ import {
   movieReviewsHref,
   reviewHref,
 } from "@/lib/project";
-import { Icon } from "@/design/components/icon";
-import { DockLink } from "@/design/components/link";
-import { MediaCard } from "@/design/components/media-card";
-import { DockAction } from "@/design/components/surface";
-import { cn } from "@/design/ui";
-import { RADIUS } from "@/design/foundations/geometry";
 import { ActivityCalendar } from "./calendar";
 import {
   ACTIVITY_ICONS,

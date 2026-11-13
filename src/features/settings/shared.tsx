@@ -3,10 +3,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useToast } from "@omerdlw/base-framework/notification";
 import type { PasskeyListItem, UserIdentity } from "@supabase/supabase-js";
-import { getUserIdentities, listPasskeys } from "@/features/auth/client";
-import { useAuth } from "@/features/auth/provider";
-import { getAuthErrorMessage } from "@/features/auth/utils";
-import { requestJson } from "@/lib/http";
 import { Icon } from "@/design/components/icon";
 import {
   SURFACE_PANEL,
@@ -15,6 +11,10 @@ import {
   tileVariants,
 } from "@/design/components/surface-classes";
 import { cn } from "@/design/ui";
+import { getUserIdentities, listPasskeys } from "@/features/auth/client";
+import { getAuthErrorMessage } from "@/features/auth/errors";
+import { useAuth } from "@/features/auth/provider";
+import { requestJson } from "@/lib/http";
 import { MARK_TONE_CLASS } from "./constants";
 import type { AuthSession, MarkTone } from "./types";
 

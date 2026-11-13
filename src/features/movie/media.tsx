@@ -5,11 +5,11 @@ import { Button } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
 import { TONE } from "@/design/foundations/tones";
 import { ArtworkPrint, useArtworkPath } from "@/features/artwork/artwork";
-import { ImageModal } from "@/features/detail/gallery";
+import type { ImageModalData } from "@/features/detail/detail";
+import { ImageModal } from "@/features/detail/image-modal";
 import { DetailCount } from "@/features/detail/motion";
 import { DetailBackdrop, DetailIntermission } from "@/features/detail/stage";
-import type { ImageModalData } from "@/features/detail/types";
-import { useMediaType } from "@/features/media/context";
+import { useMediaType } from "@/features/media/media-type";
 import {
   type Awards,
   type MovieDetails,

@@ -1,14 +1,14 @@
 "use client";
 
 import { type JSX, useState } from "react";
-import { formatShortDate } from "@/features/account/utils";
+import { DockLink, TextButton } from "@/design/components/link";
+import { MediaCard } from "@/design/components/media-card";
+import { RADIUS } from "@/design/foundations/geometry";
+import { cn } from "@/design/ui";
+import { formatShortDate } from "@/features/account/account";
 import { ReviewActions } from "@/features/reviews/controls";
 import { RatingStars } from "@/features/reviews/rating";
 import { reviewHref } from "@/lib/project";
-import { DockLink, TextButton } from "@/design/components/link";
-import { MediaCard } from "@/design/components/media-card";
-import { cn } from "@/design/ui";
-import { RADIUS } from "@/design/foundations/geometry";
 import { AccountPart } from "./motion";
 import type { ActivityReview } from "./types";
 import { posterImage } from "./utils";

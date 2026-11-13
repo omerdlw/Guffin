@@ -10,20 +10,56 @@ import {
   useRef,
   useState,
 } from "react";
-import { globalEvents } from "@omerdlw/base-framework/events";
 import { DOCK_EVENTS } from "@omerdlw/base-framework/dock";
-import { useAccount } from "@/features/account/provider";
+import { globalEvents } from "@omerdlw/base-framework/events";
+import type { Session, User } from "@supabase/supabase-js";
 import {
   clearLastKnownAccount,
   saveLastKnownAccount,
   signedInStatus,
-} from "@/features/account/utils";
+} from "@/features/account/account";
+import { useAccount } from "@/features/account/provider";
 import { isSupabaseConfigured } from "@/lib/env";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 import { signOut as signOutClient } from "./client";
-import { INITIAL_AUTH_STATE, STATUS_DURATION_MS } from "./constants";
-import type { AuthContextValue, AuthState, SignOutScope } from "./types";
-import { authStateFrom } from "./utils";
+import type { AuthClient, SignOutScope } from "./session";
+
+interface AuthState {
+  error: unknown;
+  isAuthenticated: boolean;
+  isConfigured: boolean;
+  isReady: boolean;
+  session: Session | null;
+  user: User | null;
+}
+
+interface AuthContextValue extends AuthState {
+  client: AuthClient | null;
+  refresh: () => Promise<AuthState | null>;
+  signOut: (scope?: SignOutScope) => Promise<void>;
+}
+
+const INITIAL_AUTH_STATE: AuthState = Object.freeze({
+  error: null,
+  isAuthenticated: false,
+  isConfigured: false,
+  isReady: false,
+  session: null,
+  user: null,
+});
+
+const STATUS_DURATION_MS = 3000;
+
+function authStateFrom(session: Session | null): AuthState {
+  return {
+    error: null,
+    isAuthenticated: Boolean(session?.user),
+    isConfigured: true,
+    isReady: true,
+    session,
+    user: session?.user ?? null,
+  };
+}
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 

@@ -1,15 +1,16 @@
-import type { MediaType } from "@/features/catalog/types";
 import {
   type NavigationTrip,
   pathOf,
 } from "@omerdlw/base-framework/navigation";
+import type { MediaType } from "@/features/catalog/types";
+import type { ListFormData } from "@/features/lists/list";
 import { readParam, type SearchParams } from "@/lib/http";
 import { tmdbImageSrcSet, tmdbImageUrl } from "@/lib/tmdb/shared";
 import {
   ACTIVITY_GROUPS,
+  ACTIVITY_SORTS,
   CALENDAR_MONTH_FORMAT,
   DAY_MS,
-  ACTIVITY_SORTS,
   DEFAULT_DISPLAY_NAME,
   DIARY_DAY_FORMAT,
   FILTER_DECADES,
@@ -22,14 +23,13 @@ import {
   REVIEW_KINDS,
   REVIEW_SORTS,
 } from "./constants";
-import type { ListFormData } from "@/features/lists/types";
 import type {
   AccountData,
   ActivityDays,
   ActivityFilters,
-  CalendarDay,
   ActivityItem,
   ActivityRow,
+  CalendarDay,
   Filterable,
   FilterOption,
   ListCardData,

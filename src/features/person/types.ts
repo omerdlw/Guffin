@@ -1,11 +1,11 @@
-import type { MediaType } from "@/features/media/types";
+import type { MediaCardAspect } from "@/design/components/media-card";
+import type { MediaType } from "@/features/catalog/types";
 import type {
   PersonCastCredit,
   PersonCrewCredit,
   PersonTvCastCredit,
   PersonTvCrewCredit,
 } from "@/lib/tmdb/shared";
-import type { MediaCardAspect } from "@/design/components/media-card";
 
 export interface FilmographyCredit {
   episodes?: number;

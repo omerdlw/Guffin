@@ -1,24 +1,24 @@
 "use client";
 
-import { type JSX, useEffect, useMemo, useState } from "react";
 import {
-  type SurfaceEntry,
-  useDockActions,
-} from "@omerdlw/base-framework/dock";
-import { report } from "@omerdlw/base-framework/utils";
-import { useAuth } from "@/features/auth/provider";
-import { RatingStars } from "@/features/reviews/rating";
-import { accountHref, reviewHref } from "@/lib/project";
-import { StagePart } from "@/motion/react";
+  type CSSProperties,
+  type JSX,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import { useDockActions } from "@omerdlw/base-framework/dock";
 import {
   Avatar,
   Button,
   HighlightGroup,
   useHighlight,
 } from "@omerdlw/base-framework/ui";
-import { Link } from "@/design/components/link";
+import { report } from "@omerdlw/base-framework/utils";
 import { Icon } from "@/design/components/icon";
+import { Link } from "@/design/components/link";
 import { SurfaceSegmentedControl } from "@/design/components/segmented-control";
+import { SurfaceAnchor } from "@/design/components/surface";
 import {
   SURFACE_META,
   SURFACE_SCROLL,
@@ -29,20 +29,113 @@ import {
   SURFACE_TITLE,
   tileVariants,
 } from "@/design/components/surface-classes";
-import { SurfaceAnchor } from "@/design/components/surface";
+import { defineSurface } from "@/design/surface-definition";
 import { cn } from "@/design/ui";
-import { useMediaType } from "@/features/media/context";
+import { useAuth } from "@/features/auth/provider";
+import { useMediaType } from "@/features/media/media-type";
+import { RatingStars } from "@/features/reviews/rating";
+import { pluralize } from "@/lib/format";
+import { accountHref, reviewHref } from "@/lib/project";
+import { StagePart } from "@/motion/react";
 import { getMovieSocialProofAction } from "./actions";
-import { AVATAR_OVERLAP } from "./constants";
 import type {
   Friend,
+  MovieSocialProof,
   MovieSocialProof as Proof,
   MutualFollowers,
-  ProofTab,
   SocialPerson,
-  SocialProofSurfaceData,
-} from "./types";
-import { cutout, describeProof, formatNames, matchesTab } from "./utils";
+} from "./social";
+
+type ProofTab = "all" | "watched" | "liked" | "watchlist" | "reviews";
+
+interface SocialProofSurfaceData {
+  movieId: number;
+  proof: MovieSocialProof;
+  title: string;
+}
+
+const AVATAR_OVERLAP = 0.3;
+
+const AVATAR_CUTOUT_GAP = 2;
+
+const othersLabel = (count: number) =>
+  `${count} ${count === 1 ? "other" : "others"}`;
+
+function formatNames(
+  names: readonly string[],
+  shown = 2,
+  total = names.length,
+): string {
+  const hidden = total - Math.min(names.length, shown);
+  if (hidden > 0) {
+    return `${names.slice(0, shown).join(", ")} and ${othersLabel(hidden)}`;
+  }
+  return names.length <= 1
+    ? (names[0] ?? "")
+    : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+}
+
+function matchesTab(friend: Friend, tab: ProofTab): boolean {
+  switch (tab) {
+    case "watched":
+      return friend.watched;
+    case "liked":
+      return friend.liked;
+    case "watchlist":
+      return friend.watchlisted;
+    case "reviews":
+      return friend.reviewed;
+    default:
+      return true;
+  }
+}
+
+function describeProof(proof: MovieSocialProof): {
+  details: string;
+  headline: string;
+} {
+  const { counts, friends } = proof;
+  const namesOf = (pick: (friend: Friend) => boolean) =>
+    friends.filter(pick).map((friend) => friend.displayName);
+
+  let headline: string;
+  let lead: "liked" | "watched" | "watchlist";
+  if (counts.watched > 0) {
+    headline = `${formatNames(namesOf((friend) => friend.watched))} watched this`;
+    lead = "watched";
+  } else if (counts.watchlist > 0) {
+    const names = namesOf((friend) => friend.watchlisted);
+    headline = `${formatNames(names)} ${names.length === 1 ? "wants" : "want"} to watch this`;
+    lead = "watchlist";
+  } else {
+    headline = `${formatNames(namesOf((friend) => friend.liked))} liked this`;
+    lead = "liked";
+  }
+
+  const details: string[] = [];
+  if (lead !== "liked" && counts.liked > 0) {
+    details.push(`${counts.liked} liked`);
+  }
+  if (counts.reviews > 0) {
+    details.push(pluralize(counts.reviews, "review"));
+  }
+  if (lead !== "watchlist" && counts.watchlist > 0) {
+    details.push(`${counts.watchlist} to watch`);
+  }
+  if (proof.averageRating !== null) {
+    details.push(`★ ${proof.averageRating.toFixed(1)} average`);
+  }
+
+  return { details: details.join(" · "), headline };
+}
+
+function cutout(size: number, round: boolean): CSSProperties {
+  const overlap = Math.round(size * AVATAR_OVERLAP);
+  const mask = round
+    ? `radial-gradient(circle at ${overlap - size / 2}px 50%, transparent ${size / 2 + AVATAR_CUTOUT_GAP}px, #000 ${size / 2 + AVATAR_CUTOUT_GAP + 0.5}px)`
+    : `linear-gradient(to right, transparent ${overlap + AVATAR_CUTOUT_GAP}px, #000 ${overlap + AVATAR_CUTOUT_GAP}px)`;
+  return { WebkitMaskImage: mask, maskImage: mask };
+}
 
 export function AvatarStack({
   max = 4,
@@ -96,17 +189,12 @@ export function FollowedBy({
   );
 }
 
-function createSocialProofSurfaceEntry(
-  data: SocialProofSurfaceData,
-): SurfaceEntry {
-  return {
-    component: SocialProofSurface,
-    description: data.title,
-    icon: "solar:users-group-rounded-bold",
-    props: { data },
-    title: "People you follow",
-  };
-}
+const socialProofSurface = defineSurface<{ data: SocialProofSurfaceData }>({
+  component: SocialProofSurface,
+  description: ({ data }) => data.title,
+  icon: "solar:users-group-rounded-bold",
+  title: "People you follow",
+});
 
 function Signal({
   active,
@@ -325,7 +413,7 @@ export function MovieSocialProof({
               className="cine-card cine-fade group relative flex h-14 w-full cursor-pointer items-center overflow-hidden rounded-full bg-fill px-3.5 text-left ring-1 ring-edge ring-inset hover:bg-fill-hover focus-visible:bg-fill-hover hover:ring-edge-hover focus-visible:ring-edge-focus"
               onClick={() =>
                 void openSurface(
-                  createSocialProofSurfaceEntry({ movieId, proof, title }),
+                  socialProofSurface({ data: { movieId, proof, title } }),
                 )
               }
               type="button"

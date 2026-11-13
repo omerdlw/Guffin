@@ -2,17 +2,12 @@
 
 import { useMemo, useState } from "react";
 import { useToast } from "@omerdlw/base-framework/notification";
-import type { UserIdentity } from "@supabase/supabase-js";
-import { linkIdentity, unlinkIdentity } from "@/features/auth/client";
-import { OAUTH_PROVIDERS } from "@/features/auth/constants";
-import { useAuth } from "@/features/auth/provider";
-import type { OAuthProvider } from "@/features/auth/types";
-import { getAuthCallbackUrl, getAuthErrorMessage } from "@/features/auth/utils";
 import {
   Button,
   HighlightGroup,
   useHighlight,
 } from "@omerdlw/base-framework/ui";
+import type { UserIdentity } from "@supabase/supabase-js";
 import { Icon } from "@/design/components/icon";
 import {
   rowVariants,
@@ -23,6 +18,14 @@ import {
   tileVariants,
 } from "@/design/components/surface-classes";
 import { cn } from "@/design/ui";
+import { linkIdentity, unlinkIdentity } from "@/features/auth/client";
+import { getAuthErrorMessage } from "@/features/auth/errors";
+import { useAuth } from "@/features/auth/provider";
+import {
+  getAuthCallbackUrl,
+  OAUTH_PROVIDERS,
+  type OAuthProvider,
+} from "@/features/auth/session";
 import { PROVIDER_LABELS } from "./constants";
 import { providerOf } from "./utils";
 

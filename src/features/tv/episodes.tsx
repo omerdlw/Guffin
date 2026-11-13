@@ -9,10 +9,22 @@ import {
   useState,
 } from "react";
 import { useToast } from "@omerdlw/base-framework/notification";
+import {
+  Button,
+  HighlightGroup,
+  Image,
+  useHighlight,
+} from "@omerdlw/base-framework/ui";
 import { report, toUserMessage } from "@omerdlw/base-framework/utils";
 import { useRouter } from "next/navigation";
+import { Icon } from "@/design/components/icon";
+import { Unfold } from "@/design/components/surface";
+import { Tooltip } from "@/design/components/tooltip";
+import { nested, RADIUS } from "@/design/foundations/geometry";
+import { TONE } from "@/design/foundations/tones";
+import { cn } from "@/design/ui";
 import { useAuth } from "@/features/auth/provider";
-import { useOpenSignIn } from "@/features/auth/sign-in";
+import { useOpenSignIn } from "@/features/auth/sign-in-surface";
 import { Heading } from "@/features/detail/layout";
 import {
   DetailExpose,
@@ -23,18 +35,6 @@ import { DetailAction } from "@/features/detail/stage";
 import { COLLECTION_ICONS } from "@/features/movie/constants";
 import { RatingSelector, RatingStars } from "@/features/reviews/rating";
 import { tmdbImageSrcSet, tmdbImageUrl } from "@/lib/tmdb/shared";
-import {
-  Button,
-  HighlightGroup,
-  Image,
-  useHighlight,
-} from "@omerdlw/base-framework/ui";
-import { Icon } from "@/design/components/icon";
-import { Unfold } from "@/design/components/surface";
-import { Tooltip } from "@/design/components/tooltip";
-import { cn } from "@/design/ui";
-import { nested, RADIUS } from "@/design/foundations/geometry";
-import { TONE } from "@/design/foundations/tones";
 import {
   rateEpisodeAction,
   setEpisodesWatchedAction,

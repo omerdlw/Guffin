@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  type CSSProperties,
   type FormEvent,
   type JSX,
   memo,
@@ -8,11 +9,7 @@ import {
   useEffect,
   useState,
 } from "react";
-import type { SurfaceEntry } from "@omerdlw/base-framework/dock";
 import { useToast } from "@omerdlw/base-framework/notification";
-import { report, toUserMessage } from "@omerdlw/base-framework/utils";
-import { pluralize } from "@/lib/format";
-import { tmdbImageUrl } from "@/lib/tmdb/shared";
 import {
   Button,
   CheckboxIndicator,
@@ -20,10 +17,15 @@ import {
   Image,
   useHighlight,
 } from "@omerdlw/base-framework/ui";
+import { report, toUserMessage } from "@omerdlw/base-framework/utils";
 import { Icon } from "@/design/components/icon";
 import { Input } from "@/design/components/input";
-import { cn, ui } from "@/design/ui";
 import { SKELETON } from "@/design/components/skeleton";
+import {
+  SurfacePart,
+  SurfaceStage,
+  SurfaceSwap,
+} from "@/design/components/surface";
 import {
   rowVariants,
   SURFACE_META,
@@ -35,42 +37,57 @@ import {
   SURFACE_TITLE,
   tileVariants,
 } from "@/design/components/surface-classes";
-import {
-  SurfacePart,
-  SurfaceStage,
-  SurfaceSwap,
-} from "@/design/components/surface";
+import { defineSurface } from "@/design/surface-definition";
+import { cn, ui } from "@/design/ui";
+import type { MediaType } from "@/features/catalog/types";
+import { pluralize } from "@/lib/format";
+import { tmdbImageUrl } from "@/lib/tmdb/shared";
 import {
   createMovieListAction,
   getMovieListsAction,
   setMovieListMembershipAction,
 } from "./actions";
-import {
-  LIST_TITLE_MAX,
-  PREVIEW_STACK,
-  PREVIEW_STACK_WIDTH,
-} from "./constants";
-import type {
-  ListPickerData,
-  ListPickerLibrary,
-  MovieListSummary,
-} from "./types";
-import { previewPosters, stackCard } from "./utils";
+import { LIST_TITLE_MAX, type MovieListSummary, previewPosters } from "./list";
 
-export function createListPickerSurfaceEntry(
-  data: ListPickerData,
-): SurfaceEntry {
+interface ListPickerLibrary {
+  lists: MovieListSummary[];
+  memberships: ReadonlySet<string>;
+  status: "error" | "loading" | "ready";
+}
+
+interface ListPickerData {
+  mediaType?: MediaType;
+  movieId: number;
+}
+
+const PREVIEW_STACK = 3;
+
+const PREVIEW_PEEK = 6;
+
+const PREVIEW_STEP = 8;
+
+const PREVIEW_STACK_WIDTH = 40 + PREVIEW_PEEK * (PREVIEW_STACK - 1);
+
+function stackCard(index: number): CSSProperties {
+  const height = 60 - index * PREVIEW_STEP;
   return {
-    component: ListPickerSurface,
-    description:
-      data.mediaType === "tv"
-        ? "Choose the lists this show belongs to"
-        : "Choose the lists this movie belongs to",
-    icon: "solar:folder-open-bold",
-    props: { data },
-    title: "Your Lists",
+    height: `${height}px`,
+    left: `${index * PREVIEW_PEEK}px`,
+    top: `${(60 - height) / 2}px`,
+    width: "40px",
+    zIndex: PREVIEW_STACK - index,
   };
 }
+
+export const listPickerSurface = defineSurface<{ data: ListPickerData }>({
+  component: ListPickerSurface,
+  description: ({ data }) =>
+    data.mediaType === "tv"
+      ? "Choose the lists this show belongs to"
+      : "Choose the lists this movie belongs to",
+  icon: "solar:folder-open-bold",
+  title: "Your Lists",
+});
 
 function PreviewCard({
   index,

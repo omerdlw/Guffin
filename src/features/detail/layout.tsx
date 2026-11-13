@@ -1,5 +1,4 @@
 import type { JSX, ReactNode } from "react";
-import type { Awards } from "@/lib/tmdb/shared";
 import { Icon } from "@/design/components/icon";
 import { FactLink } from "@/design/components/link";
 import { Tooltip } from "@/design/components/tooltip";
@@ -14,8 +13,16 @@ import {
   SIDEBAR_CLASS,
 } from "@/design/foundations/layout";
 import { TONE } from "@/design/foundations/tones";
+import type { Awards } from "@/lib/tmdb/shared";
 import { AwardsView } from "./awards";
-import { SIDEBAR_FACTS_CLASS, STAGE_LOOK } from "./constants";
+import {
+  type AwardsGrouping,
+  type AwardsLook,
+  type Fact,
+  type FactName,
+  hasAwards,
+  SIDEBAR_FACTS_CLASS,
+} from "./detail";
 import {
   DetailExpose,
   DetailHeader,
@@ -24,8 +31,13 @@ import {
   DetailWallStage,
 } from "./motion";
 import { StickyAside } from "./stage";
-import type { AwardsGrouping, Fact, FactName } from "./types";
-import { hasAwards } from "./utils";
+
+const STAGE_LOOK: AwardsLook = {
+  button: "rounded-full",
+  logo: "rounded-thumb",
+  poster: "rounded-thumb",
+  shape: "pill",
+};
 
 function FactRow({
   children,

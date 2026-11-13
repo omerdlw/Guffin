@@ -1,5 +1,4 @@
 import type { JSX } from "react";
-import { SIDEBAR_FACTS_CLASS } from "@/features/detail/constants";
 import { BackdropHeroSkeleton } from "@/design/components/backdrop";
 import {
   CarouselSkeleton,
@@ -9,7 +8,6 @@ import {
   SkeletonLines,
   TabsSkeleton,
 } from "@/design/components/skeleton";
-import { cn } from "@/design/ui";
 import {
   ASIDE_CLASS,
   CAROUSEL_ITEM,
@@ -28,6 +26,8 @@ import {
   RULE_GAP,
   SIDEBAR_CLASS,
 } from "@/design/foundations/layout";
+import { cn } from "@/design/ui";
+import { SIDEBAR_FACTS_CLASS } from "@/features/detail/detail";
 import {
   AFTER_TAGLINE,
   SKELETON_FACT_WIDTHS,

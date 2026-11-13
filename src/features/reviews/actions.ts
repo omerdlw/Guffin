@@ -1,33 +1,43 @@
 "use server";
-
 import "server-only";
+
 import { report, toUserMessage } from "@omerdlw/base-framework/utils";
 import { rememberWatchedPayload } from "@/features/account/server";
+import {
+  fail,
+  type MutationResult as ReviewResult,
+  ok,
+} from "@/features/auth/mutation";
 import { getOptionalUser, mutate } from "@/features/auth/server";
-import type { MutationResult as ReviewResult } from "@/features/auth/types";
-import { fail, ok } from "@/features/auth/utils";
-import { isUuid } from "@/lib/http";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { isTmdbId } from "@/lib/tmdb/transport";
 import { ensureCatalogEntry } from "@/features/catalog/server";
 import type { MediaType } from "@/features/catalog/types";
 import { isMediaType } from "@/features/catalog/utils";
+import { isUuid } from "@/lib/http";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getMediaDetails, mediaSnapshot } from "@/lib/tmdb/server";
-import { REVIEWS_PAGE_SIZE } from "./constants";
-import { getMovieReviews, getReviewStats } from "./server";
-import type {
-  MovieReview,
-  MovieReviewFilter,
-  MovieReviewSort,
-  ReviewInput,
-  ReviewStats,
-} from "./types";
+import { isTmdbId } from "@/lib/tmdb/transport";
 import {
-  normalizeReviewInput,
   getReviewValidationError,
   isMovieReviewFilter,
   isMovieReviewSort,
-} from "./utils";
+  type MovieReview,
+  type MovieReviewFilter,
+  type MovieReviewSort,
+  type ReviewInput,
+  REVIEWS_PAGE_SIZE,
+  type ReviewStats,
+} from "./review";
+import { getMovieReviews, getReviewStats } from "./server";
+
+function normalizeReviewInput(input: ReviewInput): ReviewInput {
+  const content =
+    typeof input?.content === "string" ? input.content.trim() : "";
+  return {
+    content,
+    isSpoiler: Boolean(input?.isSpoiler) && content.length > 0,
+    rating: typeof input?.rating === "number" ? input.rating : null,
+  };
+}
 
 function mutateReview<T extends object = object>(
   name: string,

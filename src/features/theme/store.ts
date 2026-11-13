@@ -5,7 +5,7 @@ import { useLayoutEffect, useSyncExternalStore } from "react";
 export type ThemeChoice = "system" | "light" | "dark";
 export type Theme = "light" | "dark";
 
-import { THEME_KEY } from "./theme-script";
+import { THEME_KEY } from "./script";
 
 export const THEME_CHOICES: readonly ThemeChoice[] = [
   "system",

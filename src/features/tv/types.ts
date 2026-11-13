@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { MovieReviewSort } from "@/features/reviews/types";
+import type { MovieReviewSort } from "@/features/reviews/review";
 import type { Database } from "@/lib/supabase/database.types";
 import type {
   Episode,

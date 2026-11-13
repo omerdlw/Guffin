@@ -1,15 +1,19 @@
 import type { JSX } from "react";
+import { Avatar } from "@omerdlw/base-framework/ui";
+import { Icon } from "@/design/components/icon";
+import { DockLink } from "@/design/components/link";
+import { TONE } from "@/design/foundations/tones";
 import { PosterStack } from "@/features/profile/blocks";
 import { pluralize } from "@/lib/format";
 import { accountHref, listHref } from "@/lib/project";
 import { Header } from "@/motion/kit";
 import { StagePart, StageSection } from "@/motion/react";
-import { Avatar } from "@omerdlw/base-framework/ui";
-import { Icon } from "@/design/components/icon";
-import { DockLink } from "@/design/components/link";
-import { TONE } from "@/design/foundations/tones";
-import { COMPACT_COUNT_FORMAT } from "./constants";
-import type { PopularList } from "./types";
+import type { PopularList } from "./list";
+
+const COMPACT_COUNT_FORMAT = new Intl.NumberFormat("en", {
+  maximumFractionDigits: 1,
+  notation: "compact",
+});
 
 function PopularListItem({
   index,

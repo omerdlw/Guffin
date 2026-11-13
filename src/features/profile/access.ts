@@ -1,4 +1,5 @@
 import "server-only";
+
 import { cache } from "react";
 import {
   AmbientDecoderMissingError,
@@ -11,7 +12,7 @@ import { notFound } from "next/navigation";
 import { after } from "next/server";
 import { getPublicAccount } from "@/features/account/server";
 import { getOptionalUser } from "@/features/auth/server";
-import { toPerson } from "@/features/social/utils";
+import { toPerson } from "@/features/social/social";
 import { isPublicHttps, pinnedFetch } from "@/lib/security";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import {

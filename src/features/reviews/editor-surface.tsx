@@ -1,42 +1,67 @@
 "use client";
 
 import { type FormEvent, type JSX, useState } from "react";
+import { useDockActions } from "@omerdlw/base-framework/dock";
 import { globalEvents } from "@omerdlw/base-framework/events";
-import {
-  type SurfaceEntry,
-  useDockActions,
-} from "@omerdlw/base-framework/dock";
 import { useToast } from "@omerdlw/base-framework/notification";
-import { report, toUserMessage } from "@omerdlw/base-framework/utils";
 import { Button, Textarea } from "@omerdlw/base-framework/ui";
+import { report, toUserMessage } from "@omerdlw/base-framework/utils";
 import { Icon } from "@/design/components/icon";
-import { ui } from "@/design/ui";
-import { SURFACE_STACK } from "@/design/components/surface-classes";
 import { SurfacePart, SurfaceStage } from "@/design/components/surface";
+import { SURFACE_STACK } from "@/design/components/surface-classes";
+import { defineSurface } from "@/design/surface-definition";
+import { ui } from "@/design/ui";
+import type { MediaType } from "@/features/catalog/types";
 import { saveListCommentAction, saveMovieReviewAction } from "./actions";
+import { RatingSelector } from "./rating";
 import {
-  REVIEW_EDITOR_SURFACE_WIDTH,
+  getReviewValidationError,
   REVIEW_EVENTS,
   REVIEW_MAX_LENGTH,
-} from "./constants";
-import { RatingSelector } from "./rating";
-import type { ReviewEditorData, ReviewInput } from "./types";
-import { editorSubmitLabel, getReviewValidationError } from "./utils";
+  type ReviewInput,
+} from "./review";
 
-export function createReviewEditorSurfaceEntry(
-  data: ReviewEditorData,
-): SurfaceEntry {
-  const editing = data.review !== null;
-  const noun = data.kind === "list" ? "Comment" : "Review";
-  return {
-    component: ReviewEditorSurface,
-    description: data.title,
-    icon: "solar:pen-new-square-bold",
-    props: { data },
-    title: `${editing ? "Edit" : "Add"} ${noun}`,
-    width: REVIEW_EDITOR_SURFACE_WIDTH,
-  };
+type ReviewEditorData =
+  | {
+      kind: "movie";
+      mediaType?: MediaType;
+      movieId: number;
+      review: ReviewInput | null;
+      onSaved?: (review: ReviewInput) => void;
+      title: string;
+    }
+  | {
+      kind: "list";
+      listId: string;
+      review: Pick<ReviewInput, "content"> | null;
+      onSaved?: () => void;
+      title: string;
+    };
+
+const REVIEW_EDITOR_SURFACE_WIDTH = 560;
+
+function editorSubmitLabel({
+  editing,
+  isList,
+  ratingOnly,
+}: {
+  editing: boolean;
+  isList: boolean;
+  ratingOnly: boolean;
+}): string {
+  if (isList) return editing ? "Update Comment" : "Publish Comment";
+  if (editing) return ratingOnly ? "Update Rating" : "Update Review";
+  return ratingOnly ? "Save Rating" : "Publish Review";
 }
+
+export const reviewEditorSurface = defineSurface<{ data: ReviewEditorData }>({
+  component: ReviewEditorSurface,
+  description: ({ data }) => data.title,
+  icon: "solar:pen-new-square-bold",
+  title: ({ data }) =>
+    `${data.review !== null ? "Edit" : "Add"} ${data.kind === "list" ? "Comment" : "Review"}`,
+  width: REVIEW_EDITOR_SURFACE_WIDTH,
+});
 
 function ReviewEditorSurface({
   data,

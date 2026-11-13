@@ -1,4 +1,5 @@
 import "server-only";
+
 import {
   report,
   toUserMessage,
@@ -14,13 +15,42 @@ import {
   createAdminSupabaseClient,
   createServerSupabaseClient,
 } from "@/lib/supabase/server";
-import {
-  MAX_AUTH_AGE_SECONDS,
-  NOT_A_SEED_ACCOUNT,
-  SEED_EMAIL_DOMAIN,
-} from "./constants";
-import type { AuthUser, MutationResult } from "./types";
-import { fail, latestAuthenticationAt, toAuthUser } from "./utils";
+import { fail, type MutationResult } from "./mutation";
+import { SEED_EMAIL_DOMAIN } from "./session";
+
+interface AuthUser {
+  aal: string;
+  claims: Record<string, unknown>;
+  email: string | null;
+  id: string;
+  sessionId: string | null;
+}
+
+const MAX_AUTH_AGE_SECONDS = 600;
+
+const NOT_A_SEED_ACCOUNT = "This is not a test account";
+
+function toAuthUser(
+  claims: Record<string, unknown> | null | undefined,
+): AuthUser | null {
+  if (typeof claims?.sub !== "string") return null;
+  return {
+    aal: typeof claims.aal === "string" ? claims.aal : "aal1",
+    claims,
+    email: typeof claims.email === "string" ? claims.email : null,
+    id: claims.sub,
+    sessionId: typeof claims.session_id === "string" ? claims.session_id : null,
+  };
+}
+
+function latestAuthenticationAt(user: AuthUser): number {
+  const methods = user.claims.amr;
+  if (!Array.isArray(methods)) return 0;
+  return methods.reduce<number>((latest, method) => {
+    const at = Number((method as { timestamp?: unknown })?.timestamp) || 0;
+    return Math.max(latest, at);
+  }, 0);
+}
 
 export async function getOptionalUser(): Promise<AuthUser | null> {
   const supabase = await createServerSupabaseClient();

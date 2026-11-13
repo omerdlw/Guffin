@@ -11,13 +11,13 @@ import { DockLink, TextButton } from "@/design/components/link";
 import { TONE } from "@/design/foundations/tones";
 import { cn } from "@/design/ui";
 import { PosterThumb } from "@/features/artwork/artwork";
+import type { MediaType } from "@/features/catalog/types";
 import { Heading } from "@/features/detail/layout";
 import {
   DetailPart,
   DetailSection,
   DetailSwap,
 } from "@/features/detail/motion";
-import type { MediaType } from "@/features/media/types";
 import { mediaHref } from "@/lib/project";
 import { layoutTop } from "@/motion/dom";
 import {

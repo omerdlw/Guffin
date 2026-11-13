@@ -2,13 +2,25 @@
 
 import { useEffect, useState } from "react";
 import { defineModal, useModal } from "@omerdlw/base-framework/modal";
+import { SegmentedControl } from "@omerdlw/base-framework/ui";
+import { Carousel } from "@/design/components/carousel";
+import { Icon } from "@/design/components/icon";
+import { MediaCard } from "@/design/components/media-card";
+import { RADIUS } from "@/design/foundations/geometry";
+import { CAROUSEL_WIDE_ITEM } from "@/design/foundations/layout";
+import { TONE } from "@/design/foundations/tones";
+import { cn } from "@/design/ui";
 import { artworkAttributes } from "@/features/artwork/utils";
-import { WALL_SIZES } from "@/features/detail/constants";
-import { GalleryWall, ImageModal, WallButton } from "@/features/detail/gallery";
+import {
+  type ImageModalData,
+  WALL_SIZES,
+  type WallSet,
+} from "@/features/detail/detail";
+import { GalleryWall, WallButton } from "@/features/detail/gallery";
+import { ImageModal } from "@/features/detail/image-modal";
 import { Heading } from "@/features/detail/layout";
 import { DetailSection, DetailSwap } from "@/features/detail/motion";
 import { useLead } from "@/features/detail/stage";
-import type { ImageModalData, WallSet } from "@/features/detail/types";
 import {
   type MovieImage,
   type MovieVideo,
@@ -16,22 +28,14 @@ import {
 } from "@/lib/tmdb/shared";
 import { useShowing } from "@/motion/kit";
 import { Tube } from "@/motion/screen";
-import { Carousel } from "@/design/components/carousel";
-import { Icon } from "@/design/components/icon";
-import { MediaCard } from "@/design/components/media-card";
-import { SegmentedControl } from "@omerdlw/base-framework/ui";
-import { cn } from "@/design/ui";
-import { RADIUS } from "@/design/foundations/geometry";
-import { CAROUSEL_WIDE_ITEM } from "@/design/foundations/layout";
-import { TONE } from "@/design/foundations/tones";
 import {
   GALLERY_REACH_STEP,
   GALLERY_TAB_ORDER,
   GALLERY_TABS,
 } from "./constants";
+import gallery from "./gallery.module.css";
 import type { CastModalProps, GalleryTab, VideoModalData } from "./types";
 import { galleryOriginal, pluralizeVideoType, thumbnailFor } from "./utils";
-import gallery from "./gallery.module.css";
 
 function VideoModalView({ data }: CastModalProps<VideoModalData>) {
   useShowing();

@@ -3,23 +3,6 @@
 import { type JSX, useEffect, useMemo, useState } from "react";
 import type { SurfaceEntry } from "@omerdlw/base-framework/dock";
 import { useModal } from "@omerdlw/base-framework/modal";
-import { artworkAttributes } from "@/features/artwork/utils";
-import { WALL_SIZES } from "@/features/detail/constants";
-import { Heading } from "@/features/detail/layout";
-import {
-  DetailPart,
-  DetailSection,
-  DetailSwap,
-} from "@/features/detail/motion";
-import { GalleryWall, ImageModal, WallButton } from "@/features/detail/gallery";
-import { useLead } from "@/features/detail/stage";
-import type { ImageModalData, WallSet } from "@/features/detail/types";
-import { MoviePosterLink } from "@/features/movie/stage";
-import {
-  type PersonImage,
-  tmdbImageSrcSet,
-  tmdbImageUrl,
-} from "@/lib/tmdb/shared";
 import { Button, SegmentedControl } from "@omerdlw/base-framework/ui";
 import { Carousel } from "@/design/components/carousel";
 import { MediaCard } from "@/design/components/media-card";
@@ -28,6 +11,27 @@ import { SurfacePart, SurfaceStage } from "@/design/components/surface";
 import { SurfaceProse } from "@/design/components/surface-prose";
 import { RADIUS } from "@/design/foundations/geometry";
 import { TONE } from "@/design/foundations/tones";
+import { artworkAttributes } from "@/features/artwork/utils";
+import {
+  type ImageModalData,
+  WALL_SIZES,
+  type WallSet,
+} from "@/features/detail/detail";
+import { GalleryWall, WallButton } from "@/features/detail/gallery";
+import { ImageModal } from "@/features/detail/image-modal";
+import { Heading } from "@/features/detail/layout";
+import {
+  DetailPart,
+  DetailSection,
+  DetailSwap,
+} from "@/features/detail/motion";
+import { useLead } from "@/features/detail/stage";
+import { MoviePosterLink } from "@/features/movie/stage";
+import {
+  type PersonImage,
+  tmdbImageSrcSet,
+  tmdbImageUrl,
+} from "@/lib/tmdb/shared";
 import {
   BIO_SURFACE_WIDTH,
   FILMOGRAPHY_GRID_CLASS,

@@ -1,23 +1,24 @@
 "use client";
 
 import { type JSX, type ReactNode, useMemo, useState } from "react";
-import { usePage } from "@omerdlw/base-framework/kernel";
 import {
   type AmbientPalette,
   useAmbientTheme,
 } from "@omerdlw/base-framework/ambient";
 import { useDockActions } from "@omerdlw/base-framework/dock";
+import { usePage } from "@omerdlw/base-framework/kernel";
 import {
   useArrival,
   useDeparture,
   useNavigationPayload,
 } from "@omerdlw/base-framework/navigation";
+import { MediaCard } from "@/design/components/media-card";
 import {
   useArtworkContextMenu,
   useArtworkPath,
 } from "@/features/artwork/artwork";
 import { DetailAction as Action, DetailStage } from "@/features/detail/stage";
-import { useMediaType } from "@/features/media/context";
+import { useMediaType } from "@/features/media/media-type";
 import { MovieAction } from "@/features/reviews/movie-action";
 import { describeReviewStats, useReviewsPager } from "@/features/reviews/pager";
 import { mediaHref } from "@/lib/project";
@@ -26,15 +27,14 @@ import {
   tmdbImageSrcSet,
   tmdbImageUrl,
 } from "@/lib/tmdb/shared";
-import { MediaCard } from "@/design/components/media-card";
 import {
   COLLECTION_ICONS,
   MOVIE_FALLBACK_ICON,
   POSTER_LINK_WIDTHS,
 } from "./constants";
-import { useMovieView, useReel } from "./views";
 import type { MoviePosterLinkProps } from "./types";
 import { describeMovie, movieSwatch } from "./utils";
+import { useMovieView, useReel } from "./views";
 import { createWatchProvidersSurfaceEntry } from "./watch-providers";
 
 export function MovieStage({

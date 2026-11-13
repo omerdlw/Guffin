@@ -1,41 +1,33 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { defineModal, useModal } from "@omerdlw/base-framework/modal";
-import { artworkAttributes } from "@/features/artwork/utils";
-import { useWall } from "@/motion/wall";
-import { Button, Image, SegmentedControl } from "@omerdlw/base-framework/ui";
+import { useModal } from "@omerdlw/base-framework/modal";
+import { Button, SegmentedControl } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
-import { MediaCard } from "@/design/components/media-card";
+import {
+  MediaCard,
+  type MediaCardAspect,
+} from "@/design/components/media-card";
 import { Tooltip } from "@/design/components/tooltip";
-import { cn } from "@/design/ui";
 import { RADIUS } from "@/design/foundations/geometry";
 import { TONE } from "@/design/foundations/tones";
-import { MEDIA_GRID_CLASS, WALL_REACH_STEP } from "./constants";
+import { cn } from "@/design/ui";
+import { artworkAttributes } from "@/features/artwork/utils";
+import { useWall } from "@/motion/wall";
+import type { ImageModalData, WallPicture, WallSet } from "./detail";
+import { ImageModal } from "./image-modal";
 import { Heading } from "./layout";
 import { DetailPart, DetailSection, DetailSwap } from "./motion";
 import { useLead, useWallSet } from "./stage";
-import type { ImageModalData, ModalProps, WallPicture, WallSet } from "./types";
 
-function ImageModalView({ data }: ModalProps<ImageModalData>) {
-  return (
-    <Image
-      alt={data.alt}
-      className="max-h-[85vh] max-w-[92vw]"
-      fit="contain"
-      layout="intrinsic"
-      priority
-      src={data.src}
-      wrapperClassName="rounded-sheet ring-1 ring-edge-hover"
-    />
-  );
-}
+const WALL_REACH_STEP = 30;
 
-export const ImageModal = defineModal({
-  chrome: "bare",
-  component: ImageModalView,
-  position: "center",
-});
+const MEDIA_GRID_CLASS: Record<MediaCardAspect, string> = {
+  free: "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4",
+  poster: "grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 2xl:grid-cols-8",
+  square: "grid-cols-3 sm:grid-cols-4 lg:grid-cols-6",
+  video: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4",
+};
 
 export function WallButton({ set }: { set: string }) {
   const wall = useWall();

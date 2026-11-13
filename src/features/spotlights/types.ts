@@ -1,4 +1,4 @@
-import type { MediaType } from "@/features/media/types";
+import type { MediaType } from "@/features/catalog/types";
 import type { MovieSearchPage } from "@/lib/tmdb/shared";
 
 interface SpotlightFilm {

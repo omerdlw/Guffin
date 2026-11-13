@@ -1,13 +1,50 @@
 import "server-only";
+
 import { report } from "@omerdlw/base-framework/utils";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import {
-  POPULAR_LISTS_SHOWN,
-  POPULAR_PREVIEW_POSTERS,
-  PREVIEW_BATCH,
-} from "./constants";
-import type { ListsClient, PopularList, PopularListRow } from "./types";
-import { toPopularList } from "./utils";
+import type { ListsClient, PopularList } from "./list";
+
+interface PopularListRow {
+  description: string | null;
+  id: string;
+  items_count: number;
+  likes_count: number;
+  owner: {
+    avatar_url: string | null;
+    display_name: string | null;
+    username: string | null;
+  } | null;
+  reviews_count: number;
+  slug: string;
+  title: string;
+}
+
+const PREVIEW_BATCH = 50;
+
+const POPULAR_LISTS_SHOWN = 3;
+
+const POPULAR_PREVIEW_POSTERS = 5;
+
+function toPopularList(
+  row: PopularListRow,
+  previews: (string | null)[],
+): PopularList {
+  return {
+    description: row.description ?? "",
+    id: row.id,
+    itemsCount: row.items_count,
+    likesCount: row.likes_count,
+    owner: {
+      avatarUrl: row.owner?.avatar_url ?? null,
+      displayName: row.owner?.display_name || row.owner?.username || "",
+      username: row.owner?.username ?? "",
+    },
+    previews,
+    reviewsCount: row.reviews_count,
+    slug: row.slug,
+    title: row.title,
+  };
+}
 
 export async function readListPreviews(
   client: ListsClient,

@@ -19,7 +19,7 @@ import { Logo } from "@/design/components/logo";
 import { Passage } from "@/design/components/passage";
 import { themes } from "@/design/theme";
 import { ui } from "@/design/ui";
-import { DEFAULT_ACCOUNT_ICON } from "@/features/account/constants";
+import { DEFAULT_ACCOUNT_ICON } from "@/features/account/account";
 import {
   AccountGuard,
   AccountProvider,
@@ -28,9 +28,9 @@ import {
 import { BackdropPreloader } from "@/features/artwork/artwork";
 import { AuthListener, AuthProvider } from "@/features/auth/provider";
 import { SearchDockCommand } from "@/features/search/action";
-import { ThemeDockCommand } from "@/features/theme/command";
+import { ThemeSync } from "@/features/theme/store";
+import { ThemeDockCommand } from "@/features/theme/theme-command";
 import { project } from "@/lib/project";
-import { ThemeSync } from "@/lib/theme";
 import { Cursor } from "@/motion/cursor";
 import { isFilmPage } from "@/motion/dom";
 import { EngineProvider } from "@/motion/react";

@@ -10,25 +10,22 @@ import {
   useRef,
   useState,
 } from "react";
-import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
 import {
   DockSurfaceExtension,
-  type SurfaceEntry,
   useDockActionClass,
 } from "@omerdlw/base-framework/dock";
+import { globalEvents } from "@omerdlw/base-framework/events";
+import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
 import { useToast } from "@omerdlw/base-framework/notification";
-import { ACTION_TONE } from "@/design/foundations/tones";
-import { toUserMessage } from "@omerdlw/base-framework/utils";
-import { useAuth } from "@/features/auth/provider";
-import { accountHref } from "@/lib/project";
-import { Link } from "@/design/components/link";
 import {
   Button,
   HighlightGroup,
   SegmentedControl,
   useHighlight,
 } from "@omerdlw/base-framework/ui";
+import { toUserMessage } from "@omerdlw/base-framework/utils";
 import { Icon } from "@/design/components/icon";
+import { Link } from "@/design/components/link";
 import { SKELETON } from "@/design/components/skeleton";
 import {
   DockAction,
@@ -44,7 +41,18 @@ import {
   SURFACE_TITLE,
   tileVariants,
 } from "@/design/components/surface-classes";
+import { ACTION_TONE } from "@/design/foundations/tones";
+import { defineSurface } from "@/design/surface-definition";
 import { cn } from "@/design/ui";
+import { useAuth } from "@/features/auth/provider";
+import { accountHref } from "@/lib/project";
+import {
+  type NotificationItem,
+  NOTIFICATIONS_ICON,
+  NOTIFICATIONS_TITLE,
+  parseDate,
+  SOCIAL_EVENTS,
+} from "./account";
 import {
   deleteAllNotifications,
   deleteNotification,
@@ -52,26 +60,85 @@ import {
   markAllAsRead,
   markAsRead,
 } from "./client";
-import {
-  NOTIFICATION_ICONS,
-  NOTIFICATIONS_ICON,
-  NOTIFICATIONS_TITLE,
-  SOCIAL_EVENTS,
-} from "./constants";
 import { AccountAvatarImage, AvatarTile, StatusTile } from "./tiles";
-import type {
-  NotificationFeed,
-  NotificationFilter,
-  NotificationItem,
-  NotificationRowAction,
-  OptimisticChange,
-} from "./types";
-import {
-  announceNotificationChange,
-  formatNotificationAge,
-  notificationHeadline,
-  notificationSummary,
-} from "./utils";
+
+type NotificationFilter = "all" | "unread";
+
+type NotificationRowAction = (
+  id: string,
+  event: MouseEvent<HTMLButtonElement>,
+) => void;
+
+interface NotificationFeed {
+  items: NotificationItem[];
+  status: "failed" | "loading" | "ready";
+}
+
+interface OptimisticChange {
+  apply: () => void;
+  failure: string;
+  request: () => Promise<void>;
+  revert: () => void;
+}
+
+const NOTIFICATION_ICONS: Record<string, string> = {
+  FOLLOW_ACCEPTED: "solar:user-check-bold",
+  FOLLOW_REQUEST: "solar:user-plus-bold",
+  MENTION: "solar:mention-circle-bold",
+  NEW_FOLLOWER: "solar:user-plus-bold",
+  SYSTEM_ANNOUNCEMENT: "solar:info-circle-bold",
+};
+
+const NOTIFICATION_DATE_FORMAT = new Intl.DateTimeFormat("en-US", {
+  day: "numeric",
+  month: "short",
+});
+
+function formatNotificationAge(value: string): string {
+  const date = parseDate(value);
+  if (!date) return "";
+  const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (seconds < 60) return "Just now";
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+  if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
+  return NOTIFICATION_DATE_FORMAT.format(date);
+}
+
+function notificationHeadline({
+  actor,
+  payload,
+  type,
+}: NotificationItem): string {
+  if (actor) return actor.display_name || actor.username || "Anonymous User";
+  if (type === "SYSTEM_ANNOUNCEMENT") {
+    return payload?.title || "System Announcement";
+  }
+  return payload?.title || "Notification";
+}
+
+function notificationSummary({ payload, type }: NotificationItem): string {
+  const subject = payload?.subjectTitle || payload?.targetTitle;
+  switch (type) {
+    case "FOLLOW_REQUEST":
+      return "Requested to follow you";
+    case "FOLLOW_ACCEPTED":
+      return "Accepted your follow request";
+    case "NEW_FOLLOWER":
+      return "Started following you";
+    case "MENTION":
+      return subject ? `Mentioned you in ${subject}` : "Mentioned you";
+    case "SYSTEM_ANNOUNCEMENT":
+      return payload?.message || "System announcement";
+    default: {
+      const message = payload?.message || "Interacted with you";
+      return subject ? `${message} in ${subject}` : message;
+    }
+  }
+}
+
+const announceNotificationChange = () =>
+  globalEvents.emit(SOCIAL_EVENTS.NOTIFICATION_CHANGE);
 
 function NotificationSkeleton() {
   return (
@@ -492,14 +559,12 @@ export function AccountNotificationsSurface({ close }: { close?: () => void }) {
   );
 }
 
-export function createAccountNotificationsSurfaceEntry(): SurfaceEntry {
-  return {
-    component: AccountNotificationsSurface,
-    description: "Recent activity and alerts",
-    icon: NOTIFICATIONS_ICON,
-    title: NOTIFICATIONS_TITLE,
-  };
-}
+export const accountNotificationsSurface = defineSurface({
+  component: AccountNotificationsSurface,
+  description: "Recent activity and alerts",
+  icon: NOTIFICATIONS_ICON,
+  title: NOTIFICATIONS_TITLE,
+});
 
 export function AccountInboxAction({
   count,

@@ -9,32 +9,32 @@ import {
   useState,
 } from "react";
 import {
-  usePathname,
-  useRouter,
-  useSearchParams,
-  useSelectedLayoutSegment,
-} from "next/navigation";
-import {
-  setFavoriteAction,
-  setMovieLibraryAction,
-} from "@/features/account/actions";
-import { setMovieListMembershipAction } from "@/features/lists/actions";
-import { accountHref } from "@/lib/project";
-import {
   Button,
   HighlightGroup,
   SlidingPill,
   useHighlight,
   useSlidingPill,
 } from "@omerdlw/base-framework/ui";
+import {
+  usePathname,
+  useRouter,
+  useSearchParams,
+  useSelectedLayoutSegment,
+} from "next/navigation";
+import { useConfirmedAction } from "@/design/components/confirm";
 import { Icon } from "@/design/components/icon";
 import { DockLink } from "@/design/components/link";
 import { cn } from "@/design/ui";
-import { useConfirmedAction } from "@/design/components/confirm";
-import { MEDIA_TYPE_COPY } from "@/features/media/constants";
+import {
+  setFavoriteAction,
+  setMovieLibraryAction,
+} from "@/features/account/actions";
+import type { MediaType } from "@/features/catalog/types";
+import { setMovieListMembershipAction } from "@/features/lists/actions";
 import { MediaTypeSwitch, useVitrin } from "@/features/media/media-type";
-import { withVitrin } from "@/features/media/utils";
+import { MEDIA_TYPE_COPY, withVitrin } from "@/features/media/vitrin";
 import { TV_ENABLED } from "@/lib/env";
+import { accountHref } from "@/lib/project";
 import {
   LIBRARY_KIND_BY_SOURCE,
   PAGE_CURRENT_CLASS,
@@ -44,7 +44,6 @@ import {
   TILE_ACTION_LABELS,
   TV_SECTION_TABS,
 } from "./constants";
-import type { MediaType } from "@/features/media/types";
 import type { SectionKey, TileSource } from "./types";
 import { pageWindow } from "./utils";
 

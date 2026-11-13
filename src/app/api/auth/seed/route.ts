@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { signInSeedAccount } from "@/features/auth/server";
-import { isSeedLoginEnabled } from "@/features/auth/utils";
+import { isSeedLoginEnabled } from "@/features/auth/session";
 import {
   apiErrorResponse,
   assertSameOrigin,

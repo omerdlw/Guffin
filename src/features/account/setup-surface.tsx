@@ -1,17 +1,19 @@
 "use client";
 
 import { type ChangeEvent, useActionState, useEffect, useState } from "react";
-import type { SurfaceEntry } from "@omerdlw/base-framework/dock";
 import { useToast } from "@omerdlw/base-framework/notification";
-import { AUTH_INPUT_CLASS } from "@/features/auth/constants";
-import { useAuth } from "@/features/auth/provider";
-import { accountHref } from "@/lib/project";
 import { Button } from "@omerdlw/base-framework/ui";
 import { Input } from "@/design/components/input";
-import { SurfaceProse } from "@/design/components/surface-prose";
+import { defineSurface } from "@/design/surface-definition";
+import { useAuth } from "@/features/auth/provider";
+import { AUTH_INPUT_CLASS } from "@/features/auth/sign-in-surface";
+import { accountHref } from "@/lib/project";
 import { updateAccountAction } from "./actions";
-import { FALLBACK_BIO_TEXT, SETUP_DEFAULT_TITLE } from "./constants";
-import type { AccountBioData, SetupResult } from "./types";
+
+type SetupResult =
+  | { success: true; username: string }
+  | { error: string; success: false }
+  | null;
 
 function AccountSetupSurface({
   close,
@@ -96,23 +98,7 @@ function AccountSetupSurface({
   );
 }
 
-export function createAccountSetupSurfaceEntry(): SurfaceEntry {
-  return { component: AccountSetupSurface, title: "Set up account" };
-}
-
-function AccountBioSurface({ bio }: { bio?: string | null }) {
-  return <SurfaceProse text={bio || FALLBACK_BIO_TEXT} />;
-}
-
-export function createAccountBioSurfaceEntry({
-  bio,
-  displayName,
-  username,
-}: AccountBioData): SurfaceEntry {
-  const name = displayName?.trim() || username || SETUP_DEFAULT_TITLE;
-  return {
-    component: AccountBioSurface,
-    props: { bio },
-    title: `${name} Bio`,
-  };
-}
+export const accountSetupSurface = defineSurface({
+  component: AccountSetupSurface,
+  title: "Set up account",
+});

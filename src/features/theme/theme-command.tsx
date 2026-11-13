@@ -19,14 +19,25 @@ import { Icon } from "@/design/components/icon";
 import { SHELL } from "@/design/foundations/layers";
 import { Z_INDEX } from "@/design/foundations/z-index";
 import { cn } from "@/design/ui";
-import { setThemeChoice, THEME_CHOICES, useThemeChoice } from "@/lib/theme";
 import { AnimatePresence, motion, useReducedMotion } from "@/motion/lib";
 import { POINTS, step, tween } from "@/motion/time";
 import {
-  THEME_ACTION_KEY,
-  THEME_ACTION_ORDER,
-  THEME_CHOICE_COPY,
-} from "./constants";
+  setThemeChoice,
+  THEME_CHOICES,
+  type ThemeChoice,
+  useThemeChoice,
+} from "./store";
+
+const THEME_ACTION_KEY = "theme.open";
+
+const THEME_ACTION_ORDER = -30;
+
+const THEME_CHOICE_COPY: Record<ThemeChoice, { icon: string; title: string }> =
+  {
+    system: { icon: "solar:monitor-bold", title: "System" },
+    light: { icon: "solar:sun-2-bold", title: "Light" },
+    dark: { icon: "solar:moon-bold", title: "Dark" },
+  };
 
 const GAP = 12;
 const EDGE = 12;

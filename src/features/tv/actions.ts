@@ -1,10 +1,10 @@
 "use server";
-
 import "server-only";
+
 import { revalidatePath } from "next/cache";
+import { fail, ok } from "@/features/auth/mutation";
 import { mutate } from "@/features/auth/server";
 import { ensureCatalogEntry } from "@/features/catalog/server";
-import { fail, ok } from "@/features/auth/utils";
 import { tvHref } from "@/lib/project";
 import { getSeasonDetails } from "@/lib/tmdb/server";
 import { isTmdbId } from "@/lib/tmdb/transport";

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { Icon } from "@/design/components/icon";
 import { Image } from "@omerdlw/base-framework/ui";
+import { Icon } from "@/design/components/icon";
 import {
   SURFACE_META,
   SURFACE_TEXT,
@@ -8,12 +8,12 @@ import {
   SURFACE_TITLE,
   tileVariants,
 } from "@/design/components/surface-classes";
-import type { AvatarSource } from "./types";
 import {
   applyAvatarFallback,
+  type AvatarSource,
   getUserAvatarFallbackUrl,
   getUserAvatarUrl,
-} from "./utils";
+} from "./account";
 
 export function AvatarTile({ children }: { children: ReactNode }) {
   return (

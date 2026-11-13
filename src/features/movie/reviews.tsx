@@ -1,11 +1,15 @@
 "use client";
 
 import { type JSX, useEffect, useRef, useState } from "react";
-import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
 import { useDockActions } from "@omerdlw/base-framework/dock";
+import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
+import { Avatar } from "@omerdlw/base-framework/ui";
 import { report } from "@omerdlw/base-framework/utils";
 import { useRouter } from "next/navigation";
-import { useScrollDriver } from "@/motion/react";
+import { Icon } from "@/design/components/icon";
+import { DockLink } from "@/design/components/link";
+import { Select } from "@/design/components/select";
+import { TONE } from "@/design/foundations/tones";
 import { Heading } from "@/features/detail/layout";
 import {
   DetailPart,
@@ -13,32 +17,27 @@ import {
   DetailSwap,
   useDetailAct,
 } from "@/features/detail/motion";
+import { useMediaType } from "@/features/media/media-type";
 import {
   getMovieReviewsPageAction,
   getViewerMovieReviewAction,
 } from "@/features/reviews/actions";
-import {
-  MOVIE_REVIEW_FILTERS,
-  REVIEW_EVENTS,
-  REVIEWS_PAGE_SIZE,
-} from "@/features/reviews/constants";
 import { ReviewActions, ReviewBody } from "@/features/reviews/controls";
+import { reviewEditorSurface } from "@/features/reviews/editor-surface";
 import { setReviewsPager } from "@/features/reviews/pager";
-import { useMediaType } from "@/features/media/context";
-import { createReviewEditorSurfaceEntry } from "@/features/reviews/editor";
 import { RatingStars, Star } from "@/features/reviews/rating";
-import type { MovieReview, MovieReviewSort } from "@/features/reviews/types";
 import {
   isMovieReviewFilter,
   isMovieReviewSort,
   isRated,
-} from "@/features/reviews/utils";
+  MOVIE_REVIEW_FILTERS,
+  type MovieReview,
+  type MovieReviewSort,
+  REVIEW_EVENTS,
+  REVIEWS_PAGE_SIZE,
+} from "@/features/reviews/review";
 import { accountHref, movieReviewsHref } from "@/lib/project";
-import { Avatar } from "@omerdlw/base-framework/ui";
-import { Icon } from "@/design/components/icon";
-import { DockLink } from "@/design/components/link";
-import { Select } from "@/design/components/select";
-import { TONE } from "@/design/foundations/tones";
+import { useScrollDriver } from "@/motion/react";
 import {
   DIGEST_LIGHTS,
   DIGEST_SHOWN,
@@ -174,17 +173,19 @@ function ReviewCard({
                 likesCount={review.likesCount}
                 onEdit={() =>
                   void openSurface(
-                    createReviewEditorSurfaceEntry({
-                      kind: "movie",
-                      mediaType,
-                      movieId,
-                      onSaved: () => router.refresh(),
-                      review: {
-                        content: review.content,
-                        isSpoiler: review.isSpoiler,
-                        rating: review.rating,
+                    reviewEditorSurface({
+                      data: {
+                        kind: "movie",
+                        mediaType,
+                        movieId,
+                        onSaved: () => router.refresh(),
+                        review: {
+                          content: review.content,
+                          isSpoiler: review.isSpoiler,
+                          rating: review.rating,
+                        },
+                        title,
                       },
-                      title,
                     }),
                   )
                 }

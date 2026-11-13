@@ -1,4 +1,4 @@
-import type { MutationResult } from "@/features/auth/types";
+import type { MutationResult } from "@/features/auth/mutation";
 import type { SETTINGS_SECTIONS } from "./constants";
 
 export type SaveResult = MutationResult<{ username: string }> | null;

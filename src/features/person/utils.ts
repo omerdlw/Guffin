@@ -1,3 +1,5 @@
+import { headlineClass } from "@/design/foundations/layout";
+import type { MediaType } from "@/features/catalog/types";
 import { pluralize } from "@/lib/format";
 import type {
   PersonCastCredit,
@@ -6,7 +8,6 @@ import type {
   PersonExternalIds,
   PersonImage,
 } from "@/lib/tmdb/shared";
-import { headlineClass } from "@/design/foundations/layout";
 import {
   DEPARTMENT_JOBS,
   DEPARTMENT_ROLES,
@@ -17,7 +18,6 @@ import {
   PERSON_DATE_FORMAT,
   SOCIAL_SOURCES,
 } from "./constants";
-import type { MediaType } from "@/features/media/types";
 import type {
   CareerFilm,
   CreditLike,

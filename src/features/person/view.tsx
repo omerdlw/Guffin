@@ -1,4 +1,5 @@
 import { type JSX, Suspense } from "react";
+import type { Fact } from "@/features/detail/detail";
 import {
   DetailAwards,
   DetailLayout,
@@ -6,7 +7,6 @@ import {
   namesFact,
   textFact,
 } from "@/features/detail/layout";
-import type { Fact } from "@/features/detail/types";
 import { mediaHref } from "@/lib/project";
 import {
   type Awards,
@@ -41,7 +41,6 @@ import {
   PersonGalleryWall,
 } from "./sections";
 import type { ByMedium, Career } from "./types";
-import { PersonViewActions, PersonViews } from "./views";
 import {
   calculateAge,
   departmentRole,
@@ -49,6 +48,7 @@ import {
   formatDate,
   getSocialLinks,
 } from "./utils";
+import { PersonViewActions, PersonViews } from "./views";
 
 function chartable(careers: ByMedium<Career | null>): ByMedium<Career | null> {
   const enough = (career: Career | null) =>

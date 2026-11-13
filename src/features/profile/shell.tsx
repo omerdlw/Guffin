@@ -31,18 +31,18 @@ import {
 } from "@omerdlw/base-framework/utils";
 import { usePathname } from "next/navigation";
 import {
-  followUserAction,
-  unfollowUserAction,
-} from "@/features/account/actions";
-import { getFollowState } from "@/features/account/client";
-import {
   DEFAULT_ACCOUNT_ICON,
   SOCIAL_EVENTS,
-} from "@/features/account/constants";
+} from "@/features/account/account";
 import { useAccount } from "@/features/account/provider";
 import { useAuth } from "@/features/auth/provider";
-import { useOpenSignIn } from "@/features/auth/sign-in";
+import { useOpenSignIn } from "@/features/auth/sign-in-surface";
 import { createAccountSettingsSurfaceEntry } from "@/features/settings/surface";
+import {
+  followUserAction,
+  unfollowUserAction,
+} from "@/features/social/actions";
+import { getFollowState } from "@/features/social/client";
 import { accountHref } from "@/lib/project";
 import { Value } from "@/motion/engine";
 import { ScopeProvider, useEngine, useScope } from "@/motion/react";

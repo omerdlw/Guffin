@@ -2,30 +2,30 @@
 
 import { type JSX, type ReactNode, useEffect, useMemo, useState } from "react";
 import type { SurfaceEntry } from "@omerdlw/base-framework/dock";
-import { report } from "@omerdlw/base-framework/utils";
-import { tmdbImageUrl } from "@/lib/tmdb/shared";
-import { ExternalLink } from "@/design/components/link";
 import {
   HighlightGroup,
   Loader,
   useHighlight,
 } from "@omerdlw/base-framework/ui";
+import { report } from "@omerdlw/base-framework/utils";
 import { Icon } from "@/design/components/icon";
+import { ExternalLink } from "@/design/components/link";
 import { MediaCard } from "@/design/components/media-card";
 import { SurfaceSegmentedControl } from "@/design/components/segmented-control";
 import { Select } from "@/design/components/select";
+import {
+  SurfacePart,
+  SurfaceStage,
+  SurfaceSwap,
+} from "@/design/components/surface";
 import {
   SURFACE_SCROLL,
   SURFACE_STACK,
   SURFACE_TEXT,
   SURFACE_TITLE,
 } from "@/design/components/surface-classes";
-import {
-  SurfacePart,
-  SurfaceStage,
-  SurfaceSwap,
-} from "@/design/components/surface";
-import type { MediaType } from "@/features/media/types";
+import type { MediaType } from "@/features/catalog/types";
+import { tmdbImageUrl } from "@/lib/tmdb/shared";
 import { getWatchProvidersAction } from "./actions";
 import { PROVIDER_CATEGORIES, PROVIDER_TILE_CLASS } from "./constants";
 import type {

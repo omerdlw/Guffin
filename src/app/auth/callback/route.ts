@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { sanitizeNextPath } from "@/features/auth/utils";
+import { sanitizeNextPath } from "@/features/auth/session";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {

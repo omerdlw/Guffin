@@ -1,5 +1,5 @@
+import type { MediaType } from "@/features/catalog/types";
 import { filterEligible } from "@/features/catalog/utils";
-import type { MediaType } from "@/features/media/types";
 import { TV_ENABLED } from "@/lib/env";
 import { pluralize } from "@/lib/format";
 import {

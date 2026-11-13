@@ -1,6 +1,6 @@
-import type { OAuthProvider } from "@/features/auth/types";
-import type { MarkTone, SettingsKey } from "./types";
 import { ui } from "@/design/ui";
+import type { OAuthProvider } from "@/features/auth/session";
+import type { MarkTone, SettingsKey } from "./types";
 
 export const USERNAME_PATTERN = /^[a-zA-Z0-9_-]{3,30}$/;
 

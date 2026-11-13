@@ -1,6 +1,6 @@
 "use server";
-
 import "server-only";
+
 import {
   err,
   ok as okResult,
@@ -11,20 +11,21 @@ import {
   toUserMessage,
   UserError,
 } from "@omerdlw/base-framework/utils";
-import { revalidatePath } from "next/cache";
+import {
+  fail,
+  type MutationResult as ActionResult,
+  type MutationResult,
+  ok,
+} from "@/features/auth/mutation";
 import { getOptionalUser, mutate, requireUser } from "@/features/auth/server";
-import type { MutationResult as ActionResult } from "@/features/auth/types";
-import { fail, ok } from "@/features/auth/utils";
-import { FAVORITES_MAX } from "@/features/profile/constants";
-import { isUuid } from "@/lib/http";
-import { accountHref } from "@/lib/project";
-import { checkRateLimit } from "@/lib/security";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { isTmdbId } from "@/lib/tmdb/transport";
 import { ensureCatalogEntry } from "@/features/catalog/server";
 import type { MediaType } from "@/features/catalog/types";
 import { isMediaType } from "@/features/catalog/utils";
+import { FAVORITES_MAX } from "@/features/profile/constants";
 import { setShowCompleted } from "@/features/tv/server";
+import { isUuid } from "@/lib/http";
+import { checkRateLimit } from "@/lib/security";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import {
   getMediaDetails,
   getMovieDetails,
@@ -32,35 +33,74 @@ import {
   movieSnapshot,
 } from "@/lib/tmdb/server";
 import type { MovieDetails, ShowDetails } from "@/lib/tmdb/shared";
+import { isTmdbId } from "@/lib/tmdb/transport";
 import {
-  COUNT_HEAD_OPTIONS,
-  DIARY_INSERT_ERRORS,
+  type AccountPatchInput,
+  type CurrentAccount,
   EMPTY_MOVIE_LIBRARY,
-  LIBRARY_MARKS_MAX,
-  LIBRARY_TABLES,
-  LIBRARY_UPSERT_OPTIONS,
   MOVIE_LIBRARY_KINDS,
-} from "./constants";
-import { rememberWatchedPayload, updateAccount } from "./server";
-import type {
-  AccountClient,
-  AccountPatchInput,
-  CurrentAccount,
-  DiaryLogResult,
-  FollowStatus,
-  LibraryMarksResult,
-  MovieLibraryKind,
-  MovieLibraryResult,
-  MovieLibraryState,
-} from "./types";
-import { isDiaryDate, isMovieLibraryKind } from "./utils";
+  type MovieLibraryKind,
+  type MovieLibraryState,
+} from "./account";
+import {
+  rememberWatchedPayload,
+  revalidateAccount,
+  updateAccount,
+} from "./server";
 
-function revalidateAccount(username?: string | null): void {
-  if (username) revalidatePath(accountHref(username));
-  revalidatePath("/account");
+type MovieLibraryResult = MutationResult<{ state: MovieLibraryState }>;
+
+type DiaryLogResult = MutationResult;
+
+type AccountClient = Awaited<ReturnType<typeof createServerSupabaseClient>>;
+
+type LibraryMarksResult = MutationResult<{
+  watched: number[];
+  watchlist: number[];
+}>;
+
+const LIBRARY_TABLES = {
+  liked: "account_likes",
+  watched: "account_watched",
+  watchlist: "account_watchlist",
+} as const;
+
+const ISO_DAY_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+const LIBRARY_UPSERT_OPTIONS = {
+  onConflict: "account_id,media_type,tmdb_id",
+  ignoreDuplicates: true,
+};
+
+const COUNT_HEAD_OPTIONS = { count: "exact", head: true } as const;
+
+const LIBRARY_MARKS_MAX = 100;
+
+const DIARY_INSERT_ERRORS: Record<string, string> = {
+  DIARY_DATE_BEFORE_LATEST_ENTRY: "This movie is already logged on a later day",
+  DIARY_DATE_IN_FUTURE: "You cannot log a movie in the future",
+};
+
+function isMovieLibraryKind(value: unknown): value is MovieLibraryKind {
+  return (MOVIE_LIBRARY_KINDS as readonly unknown[]).includes(value);
 }
 
-async function runAccountAction<T>(
+function isDiaryDate(value: unknown): value is string {
+  if (typeof value !== "string") return false;
+  const match = ISO_DAY_PATTERN.exec(value);
+  if (!match) return false;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return (
+    date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month - 1 &&
+    date.getUTCDate() === day
+  );
+}
+
+export async function runAccountAction<T>(
   { code, fallback, name }: { code: string; fallback: string; name: string },
   work: () => Promise<Result<T>>,
 ): Promise<Result<T>> {
@@ -72,75 +112,12 @@ async function runAccountAction<T>(
   }
 }
 
-async function requireFollowTarget(followingId: string) {
+export async function requireFollowTarget(followingId: string) {
   const user = await requireUser();
   if (!followingId || followingId === user.id) {
     throw new UserError("Invalid follow target");
   }
   return user;
-}
-
-export async function followUserAction(
-  followingId: string,
-  targetUsername?: string,
-): Promise<Result<FollowStatus>> {
-  return runAccountAction(
-    {
-      code: "FOLLOW_FAILED",
-      fallback: "Couldn't follow this account. Please try again",
-      name: "AccountAction follow",
-    },
-    async () => {
-      const user = await requireFollowTarget(followingId);
-      const client = await createServerSupabaseClient();
-      const { data: targets, error: targetError } = await client.rpc(
-        "get_account_follow_target",
-        { p_user_id: followingId },
-      );
-      if (targetError) throw targetError;
-      if (!targets?.[0]) throw new UserError("Account not found");
-
-      const status: FollowStatus = targets[0].is_private
-        ? "pending"
-        : "accepted";
-      const { error } = await client
-        .from("account_follows")
-        .upsert(
-          { follower_id: user.id, following_id: followingId, status },
-          { onConflict: "follower_id,following_id" },
-        );
-      if (error) throw error;
-
-      revalidateAccount(targetUsername);
-      return okResult(status);
-    },
-  );
-}
-
-export async function unfollowUserAction(
-  followingId: string,
-  targetUsername?: string,
-): Promise<Result<null>> {
-  return runAccountAction(
-    {
-      code: "UNFOLLOW_FAILED",
-      fallback: "Couldn't unfollow this account. Please try again",
-      name: "AccountAction unfollow",
-    },
-    async () => {
-      const user = await requireFollowTarget(followingId);
-      const client = await createServerSupabaseClient();
-      const { error } = await client
-        .from("account_follows")
-        .delete()
-        .eq("follower_id", user.id)
-        .eq("following_id", followingId);
-      if (error) throw error;
-
-      revalidateAccount(targetUsername);
-      return okResult(null);
-    },
-  );
 }
 
 export async function updateAccountAction(

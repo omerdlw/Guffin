@@ -1,13 +1,25 @@
 "use client";
 
-import { type JSX, useTransition } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { VITRIN_COOKIE_NAME } from "@/lib/env";
+import {
+  createContext,
+  type JSX,
+  type ReactNode,
+  use,
+  useTransition,
+} from "react";
 import { SlidingPill, useSlidingPill } from "@omerdlw/base-framework/ui";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/design/ui";
-import { VITRIN_COOKIE_MAX_AGE, VITRIN_ITEMS } from "./constants";
-import type { MediaType } from "./types";
-import { withVitrin } from "./utils";
+import type { MediaType } from "@/features/catalog/types";
+import { VITRIN_COOKIE_NAME } from "@/lib/env";
+import { withVitrin } from "./vitrin";
+
+const VITRIN_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
+
+const VITRIN_ITEMS = [
+  { key: "movie", label: "Films" },
+  { key: "tv", label: "Shows" },
+] as const satisfies readonly { key: MediaType; label: string }[];
 
 export function useVitrin(remembered: MediaType): {
   asked: MediaType | null;
@@ -85,4 +97,20 @@ export function MediaTypeSwitch({
       })}
     </div>
   );
+}
+
+const MediaTypeContext = createContext<MediaType>("movie");
+
+export function MediaTypeProvider({
+  children,
+  mediaType,
+}: {
+  children: ReactNode;
+  mediaType: MediaType;
+}): JSX.Element {
+  return <MediaTypeContext value={mediaType}>{children}</MediaTypeContext>;
+}
+
+export function useMediaType(): MediaType {
+  return use(MediaTypeContext);
 }

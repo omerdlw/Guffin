@@ -1,12 +1,14 @@
-import { MOVIE_REVIEW_SORTS } from "@/features/reviews/constants";
-import type { MovieReviewSort } from "@/features/reviews/types";
 import type { MediaCardAspect } from "@/design/components/media-card";
 import {
   SURFACE_TILE_END,
   tileVariants,
 } from "@/design/components/surface-classes";
-import { cn } from "@/design/ui";
 import { CAROUSEL_ITEM, CAROUSEL_WIDE_ITEM } from "@/design/foundations/layout";
+import { cn } from "@/design/ui";
+import {
+  MOVIE_REVIEW_SORTS,
+  type MovieReviewSort,
+} from "@/features/reviews/review";
 import type { GalleryTab, ProviderCategory } from "./types";
 
 export const MOVIE_FEATURED_PEOPLE = 8;

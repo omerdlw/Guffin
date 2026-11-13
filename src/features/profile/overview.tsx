@@ -1,15 +1,14 @@
 import type { JSX } from "react";
+import { Icon } from "@/design/components/icon";
+import { DockLink } from "@/design/components/link";
 import type { MediaType } from "@/features/catalog/types";
 import { resolveVitrin } from "@/features/media/server";
-import { withVitrin } from "@/features/media/utils";
+import { withVitrin } from "@/features/media/vitrin";
 import { ShowProgressGrid } from "@/features/tv/progress";
 import type { SearchParams } from "@/lib/http";
 import { accountHref } from "@/lib/project";
-import { Icon } from "@/design/components/icon";
-import { DockLink } from "@/design/components/link";
+import { getUnlockedAccountContext } from "./access";
 import { ActivityFeed } from "./activity";
-import { ActivityCalendar } from "./calendar";
-import { ReviewList } from "./reviews";
 import {
   CountLink,
   DiaryDigest,
@@ -21,6 +20,7 @@ import {
   Section,
   ViewAll,
 } from "./blocks";
+import { ActivityCalendar } from "./calendar";
 import {
   FAVORITES_MAX,
   OVERVIEW_ACTIVITY,
@@ -36,8 +36,8 @@ import {
 import { AccountBio } from "./hero";
 import { ListTeaser } from "./lists";
 import { AccountPart } from "./motion";
-import { getUnlockedAccountContext } from "./access";
 import { getWatchingShows } from "./progress";
+import { ReviewList } from "./reviews";
 import { getAccountOverview } from "./server";
 import { AccountPage } from "./shell";
 import type {

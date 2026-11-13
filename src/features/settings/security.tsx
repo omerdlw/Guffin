@@ -3,14 +3,8 @@
 import { useState } from "react";
 import { useDockActions } from "@omerdlw/base-framework/dock";
 import { useToast } from "@omerdlw/base-framework/notification";
-import { useRouter } from "next/navigation";
-import { useAccount } from "@/features/account/provider";
-import { requestEmailAuth } from "@/features/auth/client";
-import { useAuth } from "@/features/auth/provider";
-import { getAuthCallbackUrl, getAuthErrorMessage } from "@/features/auth/utils";
-import { createVerificationSurfaceEntry } from "@/features/auth/verification";
-import { requestJson } from "@/lib/http";
 import { Button } from "@omerdlw/base-framework/ui";
+import { useRouter } from "next/navigation";
 import { Icon } from "@/design/components/icon";
 import { Input } from "@/design/components/input";
 import {
@@ -20,6 +14,13 @@ import {
   SURFACE_TITLE,
   tileVariants,
 } from "@/design/components/surface-classes";
+import { useAccount } from "@/features/account/provider";
+import { requestEmailAuth } from "@/features/auth/client";
+import { getAuthErrorMessage } from "@/features/auth/errors";
+import { useAuth } from "@/features/auth/provider";
+import { getAuthCallbackUrl } from "@/features/auth/session";
+import { verificationSurface } from "@/features/auth/verification-surface";
+import { requestJson } from "@/lib/http";
 import { DELETE_CONFIRMATION, INPUT_CLASS } from "./constants";
 import { Mark } from "./shared";
 
@@ -103,8 +104,8 @@ export function DeletePanel() {
         emailRedirectTo: getAuthCallbackUrl("/account"),
       });
       void openSurface(
-        createVerificationSurfaceEntry(
-          { email, onVerified: deleteAccount },
+        verificationSurface(
+          { data: { email, onVerified: deleteAccount } },
           { title: "Verify to delete" },
         ),
       );

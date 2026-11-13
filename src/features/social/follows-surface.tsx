@@ -10,55 +10,96 @@ import {
   useState,
 } from "react";
 import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
-import type { SurfaceEntry } from "@omerdlw/base-framework/dock";
-import { useAuth } from "@/features/auth/provider";
-import { accountHref } from "@/lib/project";
-import { Link } from "@/design/components/link";
 import {
   Button,
   HighlightGroup,
   useHighlight,
 } from "@omerdlw/base-framework/ui";
+import { USER_MESSAGES } from "@omerdlw/base-framework/utils";
+import { useConfirm } from "@/design/components/confirm";
+import { Link } from "@/design/components/link";
 import { SurfaceSegmentedControl } from "@/design/components/segmented-control";
 import { SKELETON } from "@/design/components/skeleton";
+import {
+  SurfaceAnchor,
+  SurfaceSearch,
+  useSurfaceSearch,
+} from "@/design/components/surface";
 import {
   SURFACE_META,
   SURFACE_SCROLL,
   SURFACE_TEXT,
   SURFACE_TILE_INNER,
   SURFACE_TITLE,
+  tileVariants,
 } from "@/design/components/surface-classes";
-import {
-  SurfaceAnchor,
-  SurfaceSearch,
-  useSurfaceSearch,
-} from "@/design/components/surface";
+import { defineSurface } from "@/design/surface-definition";
 import { cn } from "@/design/ui";
-import { useConfirm } from "@/design/components/confirm";
-import { fetchFollowPage } from "./client";
+import { SOCIAL_EVENTS } from "@/features/account/account";
 import {
-  SOCIAL_BUTTON,
-  SOCIAL_EVENTS,
-  SOCIAL_ROW,
-  SOCIAL_TAB_LABELS,
-} from "./constants";
-import { AccountAvatarImage, AvatarTile, StatusTile } from "./tiles";
-import type {
-  AccountSocialData,
-  FollowUser,
-  SocialAction,
-  SocialCollection,
-  SocialPageLoader,
-  SocialTab,
-  UserActionProps,
-} from "./types";
-import { socialErrorMessage } from "./utils";
+  AccountAvatarImage,
+  AvatarTile,
+  StatusTile,
+} from "@/features/account/tiles";
+import { useAuth } from "@/features/auth/provider";
+import { accountHref } from "@/lib/project";
+import { fetchFollowPage } from "./client";
 import {
   loadRequests,
   useCollection,
   useFollowStatuses,
   useSocialActions,
 } from "./hooks";
+import type {
+  FollowUser,
+  SocialAction,
+  SocialCollection,
+  SocialPageLoader,
+} from "./social";
+
+type SocialTab = "followers" | "following" | "inbox";
+
+interface UserActionProps {
+  followStatus: string | null;
+  onAction: (action: SocialAction, id: string) => void;
+  ownProfile: boolean;
+  pending: SocialAction | null;
+  showFollow: boolean;
+  tab: SocialTab;
+  userId: string;
+}
+
+interface AccountSocialData {
+  avatarUrl?: string;
+  canManageRequests?: boolean;
+  displayName: string;
+  tab: SocialTab;
+  userId: string;
+  username?: string;
+}
+
+const SOCIAL_TAB_LABELS: Record<SocialTab, string> = {
+  followers: "Followers",
+  following: "Following",
+  inbox: "Follow Requests",
+};
+
+const SOCIAL_BUTTON = "min-w-[5.5rem]";
+
+const SOCIAL_ROW = tileVariants({ className: "w-full pr-2" });
+
+function socialErrorMessage(error: unknown, tab: SocialTab): string {
+  const status = (error as { status?: number } | null)?.status;
+  if (status === 403) {
+    return tab === "inbox"
+      ? "You can't view these follow requests"
+      : "This account is private";
+  }
+  if (status === 401) return USER_MESSAGES.unauthorized;
+  return tab === "inbox"
+    ? "Couldn't load your follow requests"
+    : `Couldn't load ${tab}`;
+}
 
 function LoadingRow() {
   return (
@@ -476,14 +517,9 @@ function AccountSocialSurface({
   );
 }
 
-export function createAccountSocialSurfaceEntry(
-  data: AccountSocialData,
-): SurfaceEntry {
-  return {
-    component: AccountSocialSurface,
-    description: SOCIAL_TAB_LABELS[data.tab],
-    icon: data.avatarUrl ?? "solar:users-group-rounded-bold",
-    props: { data },
-    title: data.displayName.trim() || data.username || "Social",
-  };
-}
+export const followsSurface = defineSurface<{ data: AccountSocialData }>({
+  component: AccountSocialSurface,
+  description: ({ data }) => SOCIAL_TAB_LABELS[data.tab],
+  icon: ({ data }) => data.avatarUrl ?? "solar:users-group-rounded-bold",
+  title: ({ data }) => data.displayName.trim() || data.username || "Social",
+});

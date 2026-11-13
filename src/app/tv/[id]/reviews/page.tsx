@@ -1,9 +1,9 @@
 import type { JSX } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { isMovieReviewSort } from "@/features/reviews/utils";
-import { ShowPageContent } from "@/features/tv/view";
+import { isMovieReviewSort } from "@/features/reviews/review";
 import { parseShowId } from "@/features/tv/utils";
+import { ShowPageContent } from "@/features/tv/view";
 import { TV_ENABLED } from "@/lib/env";
 import { readParam, type SearchParams } from "@/lib/http";
 import { project, shareMetadata } from "@/lib/project";

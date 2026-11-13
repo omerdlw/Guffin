@@ -7,29 +7,27 @@ import {
   useEffect,
   useState,
 } from "react";
-import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
 import { useDockActions } from "@omerdlw/base-framework/dock";
+import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
 import { useToast } from "@omerdlw/base-framework/notification";
 import { report, toUserMessage } from "@omerdlw/base-framework/utils";
+import {
+  applyMovieLibraryChange,
+  EMPTY_MOVIE_LIBRARY,
+  localDiaryDate,
+  type MovieLibraryKind,
+  type MovieLibraryState,
+} from "@/features/account/account";
 import {
   getMovieLibraryAction,
   logMovieToDiaryAction,
   setMovieLibraryAction,
 } from "@/features/account/actions";
-import { EMPTY_MOVIE_LIBRARY } from "@/features/account/constants";
-import type {
-  MovieLibraryKind,
-  MovieLibraryState,
-} from "@/features/account/types";
-import {
-  applyMovieLibraryChange,
-  localDiaryDate,
-} from "@/features/account/utils";
 import { useAuth } from "@/features/auth/provider";
-import { useOpenSignIn } from "@/features/auth/sign-in";
+import { useOpenSignIn } from "@/features/auth/sign-in-surface";
+import type { MediaType } from "@/features/catalog/types";
 import { DetailAction as Action } from "@/features/detail/stage";
-import { createListPickerSurfaceEntry } from "@/features/lists/picker";
-import type { MediaType } from "@/features/media/types";
+import { listPickerSurface } from "@/features/lists/picker-surface";
 import { SHOW_EVENTS } from "@/features/tv/constants";
 import { announceShowChange } from "@/features/tv/status";
 import { COLLECTION_ICONS } from "./constants";
@@ -179,7 +177,7 @@ export function MovieCollectionActions({
   const openLists = () => {
     if (!auth.isReady) return;
     if (key) {
-      void openSurface(createListPickerSurfaceEntry({ mediaType, movieId }));
+      void openSurface(listPickerSurface({ data: { mediaType, movieId } }));
     } else openSignIn();
   };
 

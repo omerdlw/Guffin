@@ -1,10 +1,10 @@
 import type { JSX } from "react";
-import { DetailBloom } from "@/features/detail/motion";
 import { DockLink } from "@/design/components/link";
 import { marqueeClass } from "@/design/foundations/layout";
-import { MoviePoster } from "./media";
-import type { MovieArtwork } from "./types";
-import { TITLE_LIMITS } from "./utils";
+import { MoviePoster } from "@/features/movie/media";
+import type { MovieArtwork } from "@/features/movie/types";
+import { TITLE_LIMITS } from "@/features/movie/utils";
+import { DetailBloom } from "./motion";
 
 export function MediaReviewsHeader({
   href,

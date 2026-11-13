@@ -4,13 +4,15 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useToast } from "@omerdlw/base-framework/notification";
 import { report, toUserMessage } from "@omerdlw/base-framework/utils";
 import {
+  applyMovieLibraryChange,
+  type MovieLibraryKind,
+} from "@/features/account/account";
+import {
   getLibraryMarksAction,
   setMovieLibraryAction,
 } from "@/features/account/actions";
-import type { MovieLibraryKind } from "@/features/account/types";
-import { applyMovieLibraryChange } from "@/features/account/utils";
 import { useAuth } from "@/features/auth/provider";
-import { useOpenSignIn } from "@/features/auth/sign-in";
+import { useOpenSignIn } from "@/features/auth/sign-in-surface";
 import { EMPTY_FILM_IDS } from "./constants";
 import type { CanonFilm, Marks } from "./types";
 

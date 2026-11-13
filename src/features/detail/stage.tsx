@@ -19,22 +19,13 @@ import { MAIN_COLUMN_CLASS, VIEW_CLASS } from "@/design/foundations/layout";
 import { cn } from "@/design/ui";
 import { Room } from "@/motion/kit";
 import { marqueePatience } from "@/motion/marquee";
+import { clamp } from "@/motion/math";
 import { Projection } from "@/motion/projection";
 import { useScrollDriver } from "@/motion/react";
 import { Intermission } from "@/motion/screen";
 import { SCROLLING } from "@/motion/scroll";
-import { POINTS, step } from "@/motion/time";
+import { CURVE, POINTS, step } from "@/motion/time";
 import { useWall } from "@/motion/wall";
-import {
-  BACKDROP_CUT_RUNG,
-  BACKDROP_FOCUS,
-  BACKDROP_HALATION,
-  BACKDROP_POSITION,
-  DETAIL_ACTION_SECONDARY_SIZE,
-  DETAIL_ACTION_SIZE,
-  INTERMISSION_TIMING,
-  SCROLL_TOP_MARGIN,
-} from "./constants";
 import {
   DetailDeck,
   DetailMarquee,
@@ -42,8 +33,51 @@ import {
   DetailStageRoot,
   useDetailAct,
 } from "./motion";
-import type { StageWallSet } from "./types";
-import { defocusAt, toCardImage } from "./utils";
+
+interface StageWallSet {
+  set: string | null;
+  choose: (set: string) => void;
+}
+
+const INTERMISSION_TIMING = {
+  after: step(11),
+  drift: step(9),
+  enter: step(4),
+  leave: step(2),
+};
+
+const SCROLL_TOP_MARGIN = 24;
+
+const DETAIL_ACTION_SIZE = "h-12 px-4 py-0 disabled:cursor-wait";
+
+const DETAIL_ACTION_SECONDARY_SIZE = "h-11 gap-2 px-3";
+
+const BACKDROP_DEFOCUS_FROM = 24;
+
+const BACKDROP_DEFOCUS_TO = 560;
+
+const BACKDROP_CUT_RUNG = 2;
+
+const BACKDROP_HALATION = 0.55;
+
+const BACKDROP_POSITION = "center 20%";
+
+const BACKDROP_FOCUS = [0.5, 0.2] as const;
+
+const CARD_IMAGE_PATH = "/t/p/w1280/";
+
+const defocusAt = (y: number) =>
+  CURVE.glide(
+    clamp(
+      (y - BACKDROP_DEFOCUS_FROM) /
+        (BACKDROP_DEFOCUS_TO - BACKDROP_DEFOCUS_FROM),
+      0,
+      1,
+    ),
+  );
+
+const toCardImage = (src: string) =>
+  src.replace(/\/t\/p\/original\//, CARD_IMAGE_PATH);
 
 const BACKDROP_EDGES = { bottom: BOTTOM_COVER, side: SIDE_COVER };
 

@@ -2,9 +2,22 @@ import "server-only";
 
 import type { JSX } from "react";
 import { notFound } from "next/navigation";
+import { Carousel } from "@/design/components/carousel";
+import { Icon } from "@/design/components/icon";
+import { DockLink } from "@/design/components/link";
+import { Tooltip } from "@/design/components/tooltip";
+import { RADIUS } from "@/design/foundations/geometry";
+import {
+  CAROUSEL_ITEM,
+  PROSE_CLASS,
+  RULE_GAP,
+} from "@/design/foundations/layout";
+import { TONE } from "@/design/foundations/tones";
+import { cn } from "@/design/ui";
 import { ArtworkPrint } from "@/features/artwork/artwork";
 import { ensureCatalogEntry } from "@/features/catalog/server";
 import { isAiring } from "@/features/catalog/utils";
+import type { Fact } from "@/features/detail/detail";
 import {
   DetailLayout,
   DetailReviewsLayout,
@@ -19,13 +32,13 @@ import {
   DetailSection,
   DetailText,
 } from "@/features/detail/motion";
+import { MediaReviewsHeader } from "@/features/detail/reviews-header";
 import {
   DetailBackdrop,
   DetailIntermission,
   DetailViews,
 } from "@/features/detail/stage";
-import type { Fact } from "@/features/detail/types";
-import { MediaTypeProvider } from "@/features/media/context";
+import { MediaTypeProvider } from "@/features/media/media-type";
 import { MoviePeople } from "@/features/movie/cast";
 import { MovieCollectionActions } from "@/features/movie/collection";
 import { AFTER_TAGLINE, TAGLINE_CLASS } from "@/features/movie/constants";
@@ -40,7 +53,6 @@ import {
   MovieProjection,
 } from "@/features/movie/media";
 import { MovieReviewDigest, MovieReviews } from "@/features/movie/reviews";
-import { MediaReviewsHeader } from "@/features/movie/reviews-header";
 import { getFilmStats, getPeopleKnownFor } from "@/features/movie/server";
 import { MoviePosterLink, MovieStage } from "@/features/movie/stage";
 import {
@@ -63,18 +75,6 @@ import {
   getShowDetails,
 } from "@/lib/tmdb/server";
 import { tmdbImageUrl } from "@/lib/tmdb/shared";
-import { Carousel } from "@/design/components/carousel";
-import { DockLink } from "@/design/components/link";
-import { Icon } from "@/design/components/icon";
-import { Tooltip } from "@/design/components/tooltip";
-import { cn } from "@/design/ui";
-import { RADIUS } from "@/design/foundations/geometry";
-import {
-  CAROUSEL_ITEM,
-  PROSE_CLASS,
-  RULE_GAP,
-} from "@/design/foundations/layout";
-import { TONE } from "@/design/foundations/tones";
 import { MAX_VISIBLE_CREATORS, MAX_VISIBLE_NETWORKS } from "./constants";
 import {
   EpisodeList,

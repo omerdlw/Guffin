@@ -1,14 +1,8 @@
 "use client";
 
 import { type FormEvent, type JSX, useState } from "react";
-import {
-  type SurfaceEntry,
-  useDockActions,
-} from "@omerdlw/base-framework/dock";
+import { useDockActions } from "@omerdlw/base-framework/dock";
 import { useToast } from "@omerdlw/base-framework/notification";
-import { report, toUserMessage } from "@omerdlw/base-framework/utils";
-import { useRouter } from "next/navigation";
-import { accountHref, listHref } from "@/lib/project";
 import {
   Button,
   HighlightGroup,
@@ -17,36 +11,46 @@ import {
   useHighlight,
   useHighlightReset,
 } from "@omerdlw/base-framework/ui";
+import { report, toUserMessage } from "@omerdlw/base-framework/utils";
+import { useRouter } from "next/navigation";
+import { useConfirm } from "@/design/components/confirm";
 import { Icon } from "@/design/components/icon";
 import { Input } from "@/design/components/input";
-import { cn, ui } from "@/design/ui";
+import { SurfacePart, SurfaceStage } from "@/design/components/surface";
 import {
   SURFACE_META,
   SURFACE_STACK,
   SURFACE_TEXT,
+  SURFACE_TILE_END,
   SURFACE_TILE_INNER,
   SURFACE_TITLE,
+  tileVariants,
 } from "@/design/components/surface-classes";
-import { SurfacePart, SurfaceStage } from "@/design/components/surface";
+import { defineSurface } from "@/design/surface-definition";
+import { cn, ui } from "@/design/ui";
+import { accountHref, listHref } from "@/lib/project";
 import { deleteListAction, saveListAction } from "./actions";
 import {
   LIST_DESCRIPTION_MAX,
-  LIST_TILE_CLASS,
   LIST_TITLE_MAX,
-} from "./constants";
-import { useConfirm } from "@/design/components/confirm";
-import { createListOrderSurfaceEntry } from "./order";
-import type { ListDraft, ListFormData } from "./types";
+  type ListDraft,
+  type ListFormData,
+} from "./list";
+import { listOrderSurface } from "./order-surface";
 
-export function createListFormSurfaceEntry(data: ListFormData): SurfaceEntry {
-  return {
-    component: ListFormSurface,
-    description: data.list ? "Change this list" : "Name it and make it yours",
-    icon: data.list ? "solar:pen-bold" : "solar:add-circle-bold",
-    props: { data },
-    title: data.list ? "Edit List" : "New List",
-  };
-}
+const LIST_TILE_CLASS = cn(
+  tileVariants(),
+  SURFACE_TILE_END,
+  "group relative isolate select-none",
+);
+
+export const listFormSurface = defineSurface<{ data: ListFormData }>({
+  component: ListFormSurface,
+  description: ({ data }) =>
+    data.list ? "Change this list" : "Name it and make it yours",
+  icon: ({ data }) => (data.list ? "solar:pen-bold" : "solar:add-circle-bold"),
+  title: ({ data }) => (data.list ? "Edit List" : "New List"),
+});
 
 function TileMark({ icon }: { icon: string }): JSX.Element {
   return (
@@ -227,7 +231,10 @@ function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
             <SurfacePart name="item">
               <Input
                 aria-label="List name"
-                className={cn(ui.parts.input.field(), "h-10 w-full px-4 type-body")}
+                className={cn(
+                  ui.parts.input.field(),
+                  "h-10 w-full px-4 type-body",
+                )}
                 disabled={disabled}
                 maxLength={LIST_TITLE_MAX}
                 onChange={(event) => updateDraft({ title: event.target.value })}
@@ -281,9 +288,11 @@ function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
                   disabled={disabled}
                   onOpen={() =>
                     void openSurface?.(
-                      createListOrderSurfaceEntry({
-                        listId: list.id,
-                        title: list.title,
+                      listOrderSurface({
+                        data: {
+                          listId: list.id,
+                          title: list.title,
+                        },
                       }),
                     )
                   }

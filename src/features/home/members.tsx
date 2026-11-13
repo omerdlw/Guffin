@@ -3,16 +3,16 @@
 import { type JSX, useState, useTransition } from "react";
 import { globalEvents } from "@omerdlw/base-framework/events";
 import { useToast } from "@omerdlw/base-framework/notification";
+import { Avatar, Button } from "@omerdlw/base-framework/ui";
+import { DockLink } from "@/design/components/link";
+import { SOCIAL_EVENTS } from "@/features/account/account";
+import { useAuth } from "@/features/auth/provider";
+import { useOpenSignIn } from "@/features/auth/sign-in-surface";
 import {
   followUserAction,
   unfollowUserAction,
-} from "@/features/account/actions";
-import { SOCIAL_EVENTS } from "@/features/account/constants";
-import { useAuth } from "@/features/auth/provider";
-import { useOpenSignIn } from "@/features/auth/sign-in";
+} from "@/features/social/actions";
 import { accountHref } from "@/lib/project";
-import { Avatar, Button } from "@omerdlw/base-framework/ui";
-import { DockLink } from "@/design/components/link";
 import { TEXT_LINK_CLASS } from "./constants";
 import { Heading, HomePart, HomeSection } from "./motion";
 import type { HomeMember, MemberFollowState } from "./types";

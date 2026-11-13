@@ -1,15 +1,8 @@
 "use client";
 
 import { type JSX, type KeyboardEvent, memo, useEffect, useState } from "react";
-import {
-  type SurfaceEntry,
-  useDockActions,
-} from "@omerdlw/base-framework/dock";
+import { useDockActions } from "@omerdlw/base-framework/dock";
 import { useToast } from "@omerdlw/base-framework/notification";
-import { report, toUserMessage } from "@omerdlw/base-framework/utils";
-import { Reorder, useDragControls } from "@/motion/lib";
-import { useRouter } from "next/navigation";
-import { tmdbImageUrl } from "@/lib/tmdb/shared";
 import {
   Button,
   HighlightGroup,
@@ -17,7 +10,10 @@ import {
   Loader,
   useHighlight,
 } from "@omerdlw/base-framework/ui";
+import { report, toUserMessage } from "@omerdlw/base-framework/utils";
+import { useRouter } from "next/navigation";
 import { Icon } from "@/design/components/icon";
+import { SurfacePart, SurfaceStage } from "@/design/components/surface";
 import {
   SURFACE_META,
   SURFACE_PANEL,
@@ -29,21 +25,56 @@ import {
   SURFACE_TITLE,
   tileVariants,
 } from "@/design/components/surface-classes";
-import { SurfacePart, SurfaceStage } from "@/design/components/surface";
+import { defineSurface } from "@/design/surface-definition";
 import { cn } from "@/design/ui";
+import { tmdbImageUrl } from "@/lib/tmdb/shared";
+import { Reorder, useDragControls } from "@/motion/lib";
 import { getListOrderAction, reorderListAction } from "./actions";
-import type { ListOrderData, ListOrderItem, ListOrderState } from "./types";
-import { moveItem, orderKeyTarget } from "./utils";
+import type { ListOrderItem } from "./list";
 
-export function createListOrderSurfaceEntry(data: ListOrderData): SurfaceEntry {
-  return {
-    component: ListOrderSurface,
-    description: data.title,
-    icon: "solar:sort-vertical-bold",
-    props: { data },
-    title: "Film Order",
-  };
+interface ListOrderState {
+  order: ListOrderItem[];
+  saved: ListOrderItem[] | null;
+  status: "failed" | "loading" | "ready";
 }
+
+interface ListOrderData {
+  listId: string;
+  title: string;
+}
+
+function moveItem<T>(items: readonly T[], from: number, to: number): T[] {
+  const next = [...items];
+  const [item] = next.splice(from, 1);
+  next.splice(to, 0, item);
+  return next;
+}
+
+function orderKeyTarget(
+  key: string,
+  index: number,
+  total: number,
+): number | null {
+  switch (key) {
+    case "ArrowUp":
+      return index - 1;
+    case "ArrowDown":
+      return index + 1;
+    case "Home":
+      return 0;
+    case "End":
+      return total - 1;
+    default:
+      return null;
+  }
+}
+
+export const listOrderSurface = defineSurface<{ data: ListOrderData }>({
+  component: ListOrderSurface,
+  description: ({ data }) => data.title,
+  icon: "solar:sort-vertical-bold",
+  title: "Film Order",
+});
 
 const OrderRow = memo(function OrderRow({
   index,

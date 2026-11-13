@@ -11,6 +11,7 @@ import {
 import { globalEvents } from "@omerdlw/base-framework/events";
 import { useToast } from "@omerdlw/base-framework/notification";
 import { toUserMessage, UserError } from "@omerdlw/base-framework/utils";
+import { SOCIAL_EVENTS } from "@/features/account/account";
 import { followUserAction, unfollowUserAction } from "./actions";
 import {
   acceptFollowRequest,
@@ -18,16 +19,50 @@ import {
   rejectFollowRequest,
   removeFollower,
 } from "./client";
-import { SOCIAL_EVENTS } from "./constants";
 import type {
   FollowUser,
   SocialAction,
-  SocialActionPlan,
   SocialCollection,
-  SocialCollectionController,
   SocialPageLoader,
-} from "./types";
-import { snapshotState, withoutUser } from "./utils";
+} from "./social";
+
+interface SocialCollectionController {
+  loadMore: () => void;
+  reload: () => void;
+  setState: Dispatch<SetStateAction<SocialCollection>>;
+  state: SocialCollection;
+}
+
+interface SocialActionPlan {
+  apply: () => () => void;
+  failure: string;
+  request: () => Promise<void>;
+}
+
+function withoutUser(
+  collection: SocialCollection,
+  id: string,
+): SocialCollection {
+  return {
+    ...collection,
+    list: collection.list.filter((user) => user.id !== id),
+    total: collection.total === null ? null : Math.max(0, collection.total - 1),
+  };
+}
+
+function snapshotState<T>(
+  setter: Dispatch<SetStateAction<T>>,
+  change: (value: T) => T,
+) {
+  let previous: T | undefined;
+  setter((value) => {
+    previous = value;
+    return change(value);
+  });
+  return () => {
+    if (previous !== undefined) setter(previous as T);
+  };
+}
 
 export const loadRequests: SocialPageLoader = async () => ({
   items: await fetchFollowRequests(),

@@ -1,14 +1,14 @@
-import type { MediaType } from "@/features/catalog/types";
-import type { AmbientPalette } from "@omerdlw/base-framework/ambient";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
   ComponentProps,
   Dispatch,
   ReactNode,
   SetStateAction,
 } from "react";
-import type { PublicAccount } from "@/features/account/types";
-import type { MutualFollowers } from "@/features/social/types";
+import type { AmbientPalette } from "@omerdlw/base-framework/ambient";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { PublicAccount } from "@/features/account/account";
+import type { MediaType } from "@/features/catalog/types";
+import type { MutualFollowers } from "@/features/social/social";
 import type { SearchParams } from "@/lib/http";
 import type { Database } from "@/lib/supabase/database.types";
 import type { createServerSupabaseClient } from "@/lib/supabase/server";

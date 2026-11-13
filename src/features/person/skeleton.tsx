@@ -1,5 +1,4 @@
 import type { JSX } from "react";
-import { SIDEBAR_FACTS_CLASS } from "@/features/detail/constants";
 import { BackdropHeroSkeleton } from "@/design/components/backdrop";
 import {
   CarouselSkeleton,
@@ -25,6 +24,7 @@ import {
   SIDEBAR_CLASS,
 } from "@/design/foundations/layout";
 import { TONE } from "@/design/foundations/tones";
+import { SIDEBAR_FACTS_CLASS } from "@/features/detail/detail";
 import {
   FILMOGRAPHY_GRID_CLASS,
   PERSON_FILMOGRAPHY_PREVIEW,

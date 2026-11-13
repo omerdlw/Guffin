@@ -1,54 +1,86 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  type RefObject,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   DockSurfaceAction,
   DockSurfaceHeaderButton,
-  type SurfaceEntry,
   useDockActions,
 } from "@omerdlw/base-framework/dock";
 import { useToast } from "@omerdlw/base-framework/notification";
-import { createAccountSetupSurfaceEntry } from "@/features/account/setup";
-import { Input } from "@/design/components/input";
 import { Loader } from "@omerdlw/base-framework/ui";
+import { Input } from "@/design/components/input";
 import { SurfaceAnchor } from "@/design/components/surface";
+import { defineSurface } from "@/design/surface-definition";
 import { cn } from "@/design/ui";
+import { accountSetupSurface } from "@/features/account/setup-surface";
 import { hasAccountUsername, requestEmailAuth, verifyEmailOtp } from "./client";
-import {
-  ERROR_RESET_DELAY_MS,
-  INITIAL_OTP_STATE,
-  OTP_BOX_STYLES,
-  OTP_LENGTH,
-  RESEND_COOLDOWN_SECONDS,
-} from "./constants";
+import { getAuthErrorMessage } from "./errors";
 import { SupabaseSetupNotice } from "./notice";
 import { useAuth } from "./provider";
-import type {
-  OtpBoxesProps,
-  OtpState,
-  VerificationBusy,
-  VerificationData,
-  VerificationSurfaceProps,
-} from "./types";
-import {
-  getAuthCallbackUrl,
-  getAuthErrorMessage,
-  normalizeOtpValue,
-  sanitizeNextPath,
-} from "./utils";
-import styles from "./verification.module.css";
+import { getAuthCallbackUrl, sanitizeNextPath } from "./session";
+import styles from "./verification-surface.module.css";
 
-export function createVerificationSurfaceEntry(
-  data: VerificationData,
-  config: Partial<SurfaceEntry> = {},
-): SurfaceEntry {
-  return {
-    component: VerificationSurface,
-    props: { data },
-    title: "Verify email",
-    ...config,
-  };
+interface VerificationData {
+  email: string;
+  next?: string | null;
+  onVerified?: () => Promise<void> | void;
 }
+
+interface OtpState {
+  code: string;
+  focused: boolean;
+  invalid: boolean;
+}
+
+type VerificationBusy = "resending" | "submitting" | null;
+
+interface OtpBoxesProps extends OtpState {
+  disabled?: boolean;
+  inputRef: RefObject<HTMLInputElement | null>;
+  onCodeChange: (value?: string) => void;
+  onFocusChange: (focused: boolean) => void;
+}
+
+interface VerificationSurfaceProps {
+  close?: (result?: { success?: boolean }) => void;
+  data: VerificationData;
+}
+
+const OTP_LENGTH = 6;
+
+const RESEND_COOLDOWN_SECONDS = 60;
+
+const ERROR_RESET_DELAY_MS = 700;
+
+const OTP_BOX_STYLES = {
+  BASE: "center h-11 @[280px]:h-14 rounded-card type-base @[280px]:type-title font-semibold text-ink-body ring-1 ring-inset ring-edge hover:text-ink focus-visible:text-ink",
+  ERROR:
+    "bg-fill-hover text-ink ring-edge-focus hover:bg-fill-active focus-visible:bg-fill-active",
+  ACTIVE:
+    "bg-fill text-ink ring-edge-hover hover:bg-fill-hover focus-visible:bg-fill-hover",
+  SUCCESS: "bg-fill-active text-ink ring-edge-focus",
+};
+
+const INITIAL_OTP_STATE: OtpState = {
+  code: "",
+  focused: false,
+  invalid: false,
+};
+
+function normalizeOtpValue(value?: string): string {
+  return (value ?? "").replace(/\D/g, "").slice(0, OTP_LENGTH);
+}
+
+export const verificationSurface = defineSurface<{ data: VerificationData }>({
+  component: VerificationSurface,
+  title: "Verify email",
+});
 
 function useResendCooldown(cooldownSeconds: number) {
   const startCooldown = () => Date.now() + cooldownSeconds * 1000;
@@ -229,7 +261,7 @@ function VerificationSurface({ close, data }: VerificationSurfaceProps) {
         close?.({ success: true });
         window.location.replace(postAuthRedirect);
       } else {
-        openSurface(createAccountSetupSurfaceEntry());
+        openSurface(accountSetupSurface());
       }
     } catch (error) {
       rejectCode(error);

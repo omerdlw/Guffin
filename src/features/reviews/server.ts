@@ -1,14 +1,44 @@
 import "server-only";
+
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { MediaType } from "@/features/catalog/types";
-import { REVIEW_COLUMNS, REVIEW_ORDER } from "./constants";
+import type { Database } from "@/lib/supabase/database.types";
 import type {
   MovieReview,
   MovieReviewFilter,
   MovieReviewSort,
-  ReviewRow,
-  ReviewsClient,
   ReviewStats,
-} from "./types";
+} from "./review";
+
+type ReviewsClient = SupabaseClient<Database>;
+
+interface ReviewRow {
+  author: {
+    avatar_url: string | null;
+    display_name: string | null;
+    id: string;
+    username: string;
+  } | null;
+  content: string;
+  created_at: string;
+  id: string;
+  is_spoiler: boolean;
+  likes_count: number;
+  rating: number | null;
+  updated_at: string;
+}
+
+const REVIEW_COLUMNS =
+  "id, content, rating, is_spoiler, likes_count, created_at, updated_at, author:accounts!reviews_account_id_fkey!inner(id, username, display_name, avatar_url)";
+
+const REVIEW_ORDER: Record<MovieReviewSort, [string, boolean]> = {
+  likes_asc: ["likes_count", true],
+  likes_desc: ["likes_count", false],
+  newest: ["updated_at", false],
+  oldest: ["updated_at", true],
+  rating_asc: ["rating", true],
+  rating_desc: ["rating", false],
+};
 
 function toMovieReview(
   row: ReviewRow,

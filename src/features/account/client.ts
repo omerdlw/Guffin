@@ -1,24 +1,19 @@
 import { requestJson } from "@/lib/http";
 import {
+  type CurrentAccount,
   FOLLOWS_URL,
-  NOTIFICATIONS_URL,
-  SILENT_READ,
+  type NotificationItem,
   SILENT_UNAUTHORIZED,
-} from "./constants";
-import type {
-  CurrentAccount,
-  FollowCursor,
-  FollowPage,
-  FollowUser,
-  NotificationItem,
-} from "./types";
+} from "./account";
+
+const NOTIFICATIONS_URL = "/api/notifications";
 
 function shareInFlight<T>(load: () => Promise<T>): () => Promise<T> {
   let inFlight: Promise<T> | null = null;
   return () => (inFlight ??= load().finally(() => (inFlight = null)));
 }
 
-function sendJson(
+export function sendJson(
   url: string,
   method: "DELETE" | "PATCH",
   body: object,
@@ -26,7 +21,7 @@ function sendJson(
   return requestJson(url, { body: JSON.stringify(body), method });
 }
 
-async function respondToFollow(
+export async function respondToFollow(
   action: "accept" | "reject",
   requesterId: string,
 ): Promise<void> {
@@ -42,27 +37,6 @@ export async function fetchCurrentAccount(): Promise<CurrentAccount | null> {
   return response.account;
 }
 
-export async function getFollowState(
-  followingId: string,
-): Promise<string | null> {
-  const response = await requestJson<{ status?: string | null }>(
-    `${FOLLOWS_URL}?followingId=${encodeURIComponent(followingId)}`,
-    SILENT_UNAUTHORIZED,
-  );
-  return response.status || null;
-}
-
-export async function removeFollower(followerId: string): Promise<void> {
-  if (!followerId) throw new Error("Follower ID is required");
-  await sendJson(FOLLOWS_URL, "DELETE", { followerId });
-}
-
-export const acceptFollowRequest = (requesterId: string) =>
-  respondToFollow("accept", requesterId);
-
-export const rejectFollowRequest = (requesterId: string) =>
-  respondToFollow("reject", requesterId);
-
 export const fetchInboxCount = shareInFlight(async () => {
   const response = await requestJson<{ count?: number }>(
     `${FOLLOWS_URL}?resource=inbox-count`,
@@ -70,33 +44,6 @@ export const fetchInboxCount = shareInFlight(async () => {
   ).catch(() => ({ count: 0 }));
   return Number(response.count) || 0;
 });
-
-export async function fetchFollowRequests(): Promise<FollowUser[]> {
-  const response = await requestJson<{ data: FollowUser[] }>(
-    `${FOLLOWS_URL}?resource=requests`,
-    SILENT_READ,
-  );
-  return response.data;
-}
-
-export async function fetchFollowPage(
-  resource: "followers" | "following",
-  userId?: string | null,
-  cursor?: FollowCursor | null,
-): Promise<FollowPage> {
-  const query = new URLSearchParams({ resource });
-  if (userId) query.set("userId", userId);
-  if (cursor) {
-    query.set("before", cursor.before);
-    query.set("beforeId", cursor.beforeId);
-  }
-  const response = await requestJson<{
-    data: FollowUser[];
-    next: FollowCursor | null;
-    total: number | null;
-  }>(`${FOLLOWS_URL}?${query}`, SILENT_READ);
-  return { items: response.data, next: response.next, total: response.total };
-}
 
 export async function fetchNotifications(
   limit = 50,

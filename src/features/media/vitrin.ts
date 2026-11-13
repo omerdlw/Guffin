@@ -1,15 +1,28 @@
-import { readParam } from "@/lib/http";
-import { MEDIA_TYPE_COPY, VITRIN_PARAM } from "./constants";
-import type { MediaType } from "./types";
+import type { MediaType } from "@/features/catalog/types";
 
-type SearchParams = Record<string, string | string[] | undefined>;
-
-export function readVitrinParam(
-  params: SearchParams | undefined,
-): MediaType | null {
-  const value = readParam(params, VITRIN_PARAM);
-  return value === "tv" ? "tv" : value === "movie" ? "movie" : null;
+interface MediaTypeCopy {
+  icon: string;
+  label: string;
+  plural: string;
+  singular: string;
 }
+
+export const VITRIN_PARAM = "v";
+
+export const MEDIA_TYPE_COPY: Record<MediaType, MediaTypeCopy> = {
+  movie: {
+    icon: "solar:clapperboard-play-bold",
+    label: "Films",
+    plural: "films",
+    singular: "film",
+  },
+  tv: {
+    icon: "solar:tv-bold",
+    label: "Shows",
+    plural: "shows",
+    singular: "show",
+  },
+};
 
 export function withVitrin(href: string, mediaType: MediaType): string {
   const url = new URL(href, "https://guffin.invalid");

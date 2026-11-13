@@ -10,9 +10,9 @@ import {
   useMemo,
   useState,
 } from "react";
-import { DetailAction, DetailViews } from "@/features/detail/stage";
-import type { MediaType } from "@/features/media/types";
 import { SegmentedControl } from "@omerdlw/base-framework/ui";
+import type { MediaType } from "@/features/catalog/types";
+import { DetailAction, DetailViews } from "@/features/detail/stage";
 import type { Awards } from "@/lib/tmdb/shared";
 import { VIEW_ACTIONS } from "./constants";
 import type { AwardTotals, PersonViewKey, PersonViewState } from "./types";

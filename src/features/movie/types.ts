@@ -1,14 +1,14 @@
-import type { MediaType } from "@/features/catalog/types";
-import type { ModalContainerProps } from "@omerdlw/base-framework/modal";
 import type { ReactNode } from "react";
-import type { MutationResult } from "@/features/auth/types";
-import type { PopularList } from "@/features/lists/types";
+import type { ModalContainerProps } from "@omerdlw/base-framework/modal";
+import type { MutationResult } from "@/features/auth/mutation";
+import type { MediaType } from "@/features/catalog/types";
+import type { PopularList } from "@/features/lists/list";
+import type { KnownTitle } from "@/features/person/credits";
 import type {
   MovieReview,
   MovieReviewFilter,
   MovieReviewSort,
-} from "@/features/reviews/types";
-import type { KnownTitle } from "@/features/person/credits";
+} from "@/features/reviews/review";
 import type { Awards, MovieDetails } from "@/lib/tmdb/shared";
 
 export interface PersonEntry {

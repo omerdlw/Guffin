@@ -1,36 +1,97 @@
 "use server";
-
 import "server-only";
+
 import { report, toUserMessage } from "@omerdlw/base-framework/utils";
+import {
+  fail,
+  type MutationResult as ActionResult,
+  type MutationResult,
+  ok,
+} from "@/features/auth/mutation";
 import { mutate, requireUser } from "@/features/auth/server";
-import type { MutationResult as ActionResult } from "@/features/auth/types";
-import { fail, ok } from "@/features/auth/utils";
+import type { MediaType } from "@/features/catalog/types";
+import { isMediaType } from "@/features/catalog/utils";
 import { isUuid } from "@/lib/http";
 import { checkRateLimit } from "@/lib/security";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { isTmdbId } from "@/lib/tmdb/transport";
-import type { MediaType } from "@/features/catalog/types";
-import { isMediaType } from "@/features/catalog/utils";
 import { getMediaDetails, mediaSnapshot } from "@/lib/tmdb/server";
 import type { MovieDetails, ShowDetails } from "@/lib/tmdb/shared";
+import { isTmdbId } from "@/lib/tmdb/transport";
 import {
-  LIST_COLUMNS,
-  LIST_ITEMS_MAX,
-  LIST_RATE_LIMIT_PER_MINUTE,
+  LIST_DESCRIPTION_MAX,
   LIST_TITLE_MAX,
-  MAX_LISTS,
-  PREVIEW_POSTERS,
-} from "./constants";
-import type {
-  ListInput,
-  ListOrderItem,
-  ListRecord,
-  ListsClient,
-  MovieListChangeResult,
-  MovieListsResult,
-} from "./types";
+  type ListDraft,
+  type ListOrderItem,
+  type ListsClient,
+  type MovieListSummary,
+} from "./list";
 import { readListPreviews } from "./server";
-import { listErrorMessage, sanitizeListInput, toListSummary } from "./utils";
+
+type MovieListsResult = MutationResult<{
+  lists: MovieListSummary[];
+  memberships: string[];
+}>;
+
+type MovieListChangeResult = MutationResult<{
+  inList: boolean;
+  list: MovieListSummary;
+}>;
+
+type ListInput = ListDraft;
+
+interface ListRecord {
+  description: string | null;
+  id: string;
+  is_private: boolean;
+  items_count: number;
+  poster_path: string | null;
+  title: string;
+}
+
+const LIST_COLUMNS =
+  "id, title, description, is_private, items_count, poster_path";
+
+const MAX_LISTS = 200;
+
+const PREVIEW_POSTERS = 4;
+
+const LIST_RATE_LIMIT_PER_MINUTE = 60;
+
+const LIST_ITEMS_MAX = 2000;
+
+const toListSummary = (
+  row: ListRecord,
+  previewPosters?: (string | null)[],
+): MovieListSummary => ({
+  description: row.description,
+  id: row.id,
+  isPrivate: row.is_private,
+  itemsCount: row.items_count,
+  posterPath: row.poster_path,
+  previewPosters: previewPosters ?? (row.poster_path ? [row.poster_path] : []),
+  title: row.title,
+});
+
+function listErrorMessage(error: unknown, fallback: string) {
+  if ((error as { code?: string } | null)?.code === "54000") {
+    return "That list is full";
+  }
+  return toUserMessage(error, { fallback });
+}
+
+function sanitizeListInput(input: ListInput): ListInput | null {
+  const title = typeof input?.title === "string" ? input.title.trim() : "";
+  const description =
+    typeof input?.description === "string" ? input.description.trim() : "";
+  if (!title || title.length > LIST_TITLE_MAX) return null;
+  if (description.length > LIST_DESCRIPTION_MAX) return null;
+  return {
+    description,
+    isPrivate: Boolean(input.isPrivate),
+    isRanked: Boolean(input.isRanked),
+    title,
+  };
+}
 
 async function isWithinRateLimit(userId: string) {
   const limit = await checkRateLimit(
