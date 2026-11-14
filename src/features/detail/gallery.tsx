@@ -18,7 +18,7 @@ import type { ImageModalData, WallPicture, WallSet } from "./detail";
 import { ImageModal } from "./image-modal";
 import { Heading } from "./layout";
 import { DetailPart, DetailSection, DetailSwap } from "./motion";
-import { useLead, useWallSet } from "./stage";
+import { useWallSet } from "./stage";
 
 const WALL_REACH_STEP = 30;
 
@@ -85,7 +85,6 @@ export function GalleryWall({
   title: string;
 }) {
   const wall = useWall();
-  const lead = useLead();
   const { set } = useWallSet();
   const [openImage] = useModal(ImageModal);
   const [chosenKey, setChosenKey] = useState(set ?? sets[0]?.key);
@@ -93,8 +92,6 @@ export function GalleryWall({
   const { reach, resetReach, sentinel } = useWallReach(
     shown?.pictures.length ?? 0,
   );
-
-  useEffect(() => () => lead(null), [lead]);
 
   if (!shown) return null;
 
@@ -149,19 +146,7 @@ export function GalleryWall({
           cue="tiles"
           id={shown.key}
         >
-          <div
-            className="contents"
-            onPointerLeave={() => lead(null)}
-            onPointerOver={(event) => {
-              if (event.pointerType !== "mouse") return;
-              const card = (event.target as Element).closest("[data-still]");
-              const index = Number(card?.getAttribute("data-still"));
-              const picture = Number.isInteger(index)
-                ? shown.pictures[index]
-                : undefined;
-              lead(picture?.lead ?? null);
-            }}
-          >
+          <div className="contents">
             {shown.pictures.slice(0, reach).map((picture, index) => (
               <div
                 className="overflow-hidden"
@@ -172,7 +157,6 @@ export function GalleryWall({
                   <MediaCard
                     {...artworkAttributes(shown.slot, picture.path)}
                     aspect={shown.aspect}
-                    data-still={String(index)}
                     image={{
                       crossOrigin: picture.crossOrigin,
                       sizes: picture.sizes,

@@ -194,6 +194,7 @@ export function MovieCollectionActions({
             disabled={disabled}
             hoverLabel={state.liked ? "Unlike" : undefined}
             icon={COLLECTION_ICONS.like}
+            index={0}
             label={state.liked ? "Liked" : "Like"}
             onClick={() => void toggle("liked")}
           />
@@ -202,6 +203,7 @@ export function MovieCollectionActions({
             disabled={disabled}
             hoverLabel={show ? "Not finished" : "Unwatch"}
             icon={COLLECTION_ICONS.watched}
+            index={1}
             label={show ? "Finished" : "Watched"}
             onClick={() => void toggle("watched")}
           />
@@ -212,6 +214,7 @@ export function MovieCollectionActions({
             active={false}
             disabled={disabled}
             icon={COLLECTION_ICONS.watched}
+            index={0}
             label={show ? "Mark finished" : "Mark watched"}
             onClick={() => void toggle("watched")}
           />
@@ -220,6 +223,7 @@ export function MovieCollectionActions({
             disabled={disabled}
             hoverLabel={state.watchlist ? "Remove" : undefined}
             icon={COLLECTION_ICONS.watchlist}
+            index={1}
             label={state.watchlist ? "In Watchlist" : "Watchlist"}
             onClick={() => void toggle("watchlist")}
           />
@@ -231,6 +235,7 @@ export function MovieCollectionActions({
           disabled={!auth.isReady}
           grow
           icon={COLLECTION_ICONS.list}
+          index={2}
           label="Add to list"
           onClick={openLists}
           secondary
@@ -242,6 +247,7 @@ export function MovieCollectionActions({
             disabled={disabled}
             grow
             icon={COLLECTION_ICONS.diary}
+            index={3}
             label="Log to diary"
             loading={logging}
             onClick={() => void logToDiary()}

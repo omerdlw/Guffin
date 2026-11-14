@@ -23,10 +23,12 @@ export function announceShowChange(change: ShowChange): void {
 }
 
 export function ShowStatusAction({
+  index,
   secondary = false,
   showId,
   title,
 }: {
+  index?: number;
   secondary?: boolean;
   showId: number;
   title: string;
@@ -46,6 +48,7 @@ export function ShowStatusAction({
         off: SHOW_TRACK_ICON,
         on: status ? SHOW_STATUS_ICONS[status] : SHOW_TRACK_ICON,
       }}
+      index={index}
       label={secondary ? "Your status" : label}
       onClick={() => {
         if (!key) openSignIn();

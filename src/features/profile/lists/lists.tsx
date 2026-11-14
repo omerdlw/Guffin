@@ -32,6 +32,7 @@ import type { MediaType } from "@/lib/tmdb/shared";
 const LIST_DATE_FORMAT = new Intl.DateTimeFormat("en-US", {
   day: "numeric",
   month: "short",
+  timeZone: "UTC",
   year: "numeric",
 });
 

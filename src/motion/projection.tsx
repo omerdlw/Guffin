@@ -55,7 +55,9 @@ const loadProjection = () =>
 
 export function useScrollY(): MotionValue<number> {
   const engine = useEngine();
-  const [value] = useState(() => motionValue(engine.scroll.get()));
+  // Starts at 0, as on the server; the effect reads the real scroll after
+  // hydration (a reload mid-page would otherwise mismatch derived styles).
+  const [value] = useState(() => motionValue(0));
   useEffect(() => {
     value.set(engine.scroll.get());
     return engine.scroll.subscribe((y) => value.set(y));

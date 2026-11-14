@@ -237,6 +237,7 @@ export function AwardsAction(): JSX.Element {
       disabled={false}
       hoverLabel={open ? "Back" : undefined}
       icon={COLLECTION_ICONS.awards}
+      index={4}
       label="Awards"
       onClick={() => toggle("awards")}
       secondary

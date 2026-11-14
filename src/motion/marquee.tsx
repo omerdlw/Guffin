@@ -58,6 +58,9 @@ export interface MarqueeProps {
   target?: string;
   quiet?: boolean;
   className?: string;
+  // Called once when the name starts to leave (its dive begins to fade), or
+  // at once when it will not play: the page behind it may begin.
+  onLift?: () => void;
 }
 
 const MARQUEE_DEVELOP = 1.029;
@@ -311,6 +314,7 @@ export function Marquee({
   target = "[data-cursor-stage]",
   quiet = true,
   className,
+  onLift,
 }: MarqueeProps) {
   const engine = useEngine();
   const driver = useScrollDriver();
@@ -349,10 +353,28 @@ export function Marquee({
     if (engine.reduced.get()) skip(true);
   }, [engine]);
 
+  const lift$ = useRef(onLift);
+  const lifted = useRef(false);
+  useEffect(() => {
+    lift$.current = onLift;
+  });
+  const lift = useCallback(() => {
+    if (lifted.current) return;
+    lifted.current = true;
+    lift$.current?.();
+  }, []);
+
+  useEffect(() => {
+    if (skipped || gone) lift();
+  }, [skipped, gone, lift]);
+
   useEffect(() => {
     if (!held || skipped) return;
     void values.enter.to(1, { tween: MARQUEE_DIVE_TIME, curve: linear });
-  }, [held, skipped, values]);
+    // The dive is linear in time, so its fade starts at a known moment.
+    const at = setTimeout(lift, MARQUEE_FADE[0] * MARQUEE_DIVE_TIME * 1000);
+    return () => clearTimeout(at);
+  }, [held, skipped, values, lift]);
 
   useEffect(() => {
     if (skipped || gone) return;

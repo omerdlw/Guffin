@@ -128,11 +128,11 @@ export function MediaCard({
   if (href) {
     card = (
       <DockLink
-        {...rest}
         aria-label={label}
         className={classes}
         data-cursor="card"
         data-cursor-label={tooltip}
+        {...rest}
         data-kind="media"
         href={href}
         onNavigated={onNavigated}
@@ -144,11 +144,11 @@ export function MediaCard({
   } else if (onClick) {
     card = (
       <button
-        {...rest}
         aria-label={label}
         className={cn(classes, "cursor-pointer text-left")}
         data-cursor="card"
         data-cursor-label={tooltip}
+        {...rest}
         data-kind="media"
         onClick={onClick}
         style={style}

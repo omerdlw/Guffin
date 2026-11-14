@@ -65,6 +65,7 @@ interface ReviewsPage {
 const REVIEW_DATE_FORMAT = new Intl.DateTimeFormat("en-US", {
   day: "numeric",
   month: "short",
+  timeZone: "UTC",
   year: "numeric",
 });
 

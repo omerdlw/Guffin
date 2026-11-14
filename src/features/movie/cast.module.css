@@ -1,89 +1,141 @@
 @layer components {
-  /* Fan geometry in % of the stage width W. Portrait P = 38.5%W at 3:4;
-     inner posters are 82% of its height, outer 70%, all bottom-aligned
-     and pivoting from their bottom edge so they tuck behind it. */
-  .stage {
+  /* The cast card is a folder, drawn to the reference's proportions (a
+     288px-wide back panel, 100 × 160 leaves, a front panel over their lower
+     part): a back panel holding a fanned deck of five leaves (the portrait
+     in the middle, known-for posters either side) and a near-opaque frosted
+     flap that hides the leaves' lower half. Geometry is in cqw of the card's
+     width (288px = 100cqw). Everything here is the folder at rest; how it
+     opens is the page's choreography (folder / deck / leaf / flap slots of
+     the `person` part). */
+  .card {
     position: relative;
-    isolation: isolate;
-    aspect-ratio: 39 / 20;
-  }
-
-  .portrait {
-    position: absolute;
-    inset-block: 0;
-    left: 30.75%;
-    z-index: 5;
-    width: 38.5%;
-    box-shadow: 0 18px 36px -18px rgb(0 0 0 / 0.75);
-  }
-
-  .poster {
-    --r: 0deg;
-    --y: 0%;
-    --s: 1;
-    --spread: 0%;
-    position: absolute;
-    bottom: 4%;
-    z-index: 2;
-    display: block;
-    aspect-ratio: 2 / 3;
-    overflow: hidden;
-    background: var(--color-fill, rgb(255 255 255 / 0.06));
-    box-shadow: 0 10px 24px -14px rgb(0 0 0 / 0.8);
-    transform-origin: 50% 100%;
-    transform: translate(var(--spread), var(--y)) rotate(var(--r))
-      scale(var(--s));
-    filter: blur(1.5px) brightness(0.45) saturate(0.8);
-    outline: none;
-  }
-
-  .poster[data-slot="l1"],
-  .poster[data-slot="r1"] {
-    z-index: 3;
-    width: 28.1%;
-  }
-  .poster[data-slot="l1"] {
-    left: 16.15%;
-    --r: -5deg;
-  }
-  .poster[data-slot="r1"] {
-    left: 55.75%;
-    --r: 5deg;
-  }
-
-  .poster[data-slot="l2"],
-  .poster[data-slot="r2"] {
-    width: 23.9%;
-  }
-  .poster[data-slot="l2"] {
-    left: 2.25%;
-    --r: -10deg;
-  }
-  .poster[data-slot="r2"] {
-    left: 73.85%;
-    --r: 10deg;
+    container-type: inline-size;
+    perspective: 1200px;
   }
 
   @media (hover: hover) {
-    .card:hover .poster[data-slot^="l"] {
-      --spread: -4%;
-    }
-    .card:hover .poster[data-slot^="r"] {
-      --spread: 4%;
-    }
-
-    .poster:hover {
-      z-index: 4;
-      --y: -6%;
-      --s: 1.08;
-      filter: none;
+    .card:hover {
+      z-index: 50;
     }
   }
 
-  .poster:focus-visible {
-    z-index: 4;
-    --y: -6%;
-    --s: 1.08;
-    filter: none;
+  .card:has(:focus-visible) {
+    z-index: 50;
+  }
+
+  .folder {
+    position: relative;
+    z-index: 0;
+    height: 64cqw;
+    border: 1px solid var(--color-edge);
+    border-radius: 1rem;
+    background: color-mix(in oklab, var(--color-grade) 6%, var(--color-plate));
+    transform-style: preserve-3d;
+  }
+
+  .deck {
+    position: absolute;
+    inset: 0;
+  }
+
+  /* A leaf's place in the fan. The page's choreography reads these to open
+     the fan further: --fan-x spread, --fan-y rise, --fan-r angle, --fan-s
+     size, --fan-lit how bright it comes up. The middle leaf stands 8px
+     proud of the panel's top edge, as in the reference. */
+  .leaf {
+    --fan-x: 0cqw;
+    --fan-y: 0px;
+    --fan-r: 0deg;
+    --fan-s: 1;
+    --fan-lit: 1;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    display: block;
+    width: 34.7cqw;
+    aspect-ratio: 5 / 8;
+    overflow: hidden;
+    border-radius: 0.5rem;
+    background: var(--color-fill);
+    translate: calc(-50% + var(--fan-x)) var(--fan-y);
+    rotate: var(--fan-r);
+    scale: var(--fan-s);
+    filter: contrast(1.08);
+    outline: none;
+  }
+
+  .leaf > * {
+    width: 100%;
+    height: 100%;
+  }
+
+  .leaf[data-at="0"] {
+    z-index: 10;
+    --fan-y: -8px;
+    --fan-s: 1.05;
+    /* Spelled out so it eases into the opened look instead of jumping. */
+    filter: blur(0px) brightness(1) saturate(1) contrast(1.08);
+  }
+
+  .leaf[data-at="1"] {
+    z-index: 9;
+    --fan-s: 0.95;
+    --fan-lit: 0.75;
+    filter: blur(0.5px) brightness(0.55) saturate(0.8) contrast(1.08);
+  }
+
+  .leaf[data-at="2"] {
+    z-index: 8;
+    --fan-y: 8px;
+    --fan-s: 0.88;
+    --fan-lit: 0.5;
+    filter: blur(1.5px) brightness(0.3) saturate(0.6) contrast(1.08);
+  }
+
+  .leaf[data-side="l"][data-at="1"] {
+    --fan-x: -13.9cqw;
+    --fan-r: -5deg;
+  }
+  .leaf[data-side="r"][data-at="1"] {
+    --fan-x: 13.9cqw;
+    --fan-r: 5deg;
+  }
+  .leaf[data-side="l"][data-at="2"] {
+    --fan-x: -27.8cqw;
+    --fan-r: -10deg;
+  }
+  .leaf[data-side="r"][data-at="2"] {
+    --fan-x: 27.8cqw;
+    --fan-r: 10deg;
+  }
+
+  /* Opening, the middle leaf moves first and the fan follows outwards. */
+  @media (hover: hover) {
+    .card:hover .leaf[data-at="1"] {
+      transition-delay: 55ms;
+    }
+    .card:hover .leaf[data-at="2"] {
+      transition-delay: 89ms;
+    }
+  }
+
+  /* The front panel: the reference's title block (its footer row is left
+     out, and the folder is shorter by as much), text set at its top. */
+  .flap {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 0.125rem;
+    overflow: hidden;
+    padding: 1rem 1rem 1.25rem;
+    border: 1px solid var(--color-edge);
+    border-radius: 1rem;
+    background: var(--color-plate);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
   }
 }

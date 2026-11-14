@@ -18,11 +18,19 @@ type Offset = number | string;
 export interface Look {
   x?: Offset;
   y?: Offset;
-  scale?: number | readonly [number, number];
-  rotate?: number;
+  // Numbers are px / deg / factors; strings are CSS expressions, e.g.
+  // `calc(var(--fan-r) * 1.3)`.
+  scale?: number | string | readonly [number, number];
+  rotate?: number | string;
+  // Rotation about the horizontal axis, for a panel that tips toward or away
+  // from the reader. Shares the `rotate` property with `rotate`; tilt wins.
+  tilt?: number | string;
   opacity?: number;
   blur?: number;
-  bright?: number;
+  bright?: number | string;
+  // A mask, as a `clip-path` (e.g. `inset(100% 0 0 0)`: shut from the top,
+  // so it opens upwards). Entrances open it to `inset(0)`.
+  clip?: string;
 }
 
 export interface Beat extends Look {
@@ -131,6 +139,14 @@ export const SLOTS = {
   pill: "[data-pill]",
   tab: '[role="tab"]',
   rule: '[data-slot="rule"]',
+  // A heading's actions (its tabs, a progress readout).
+  actions: '[data-slot="actions"]',
+  // A folder: its back panel, the deck of leaves inside it (held upright
+  // while the panel tips), each leaf, and the front flap.
+  folder: '[data-slot="folder"]',
+  deck: '[data-slot="deck"]',
+  leaf: '[data-slot="leaf"]',
+  flap: '[data-slot="flap"]',
 } as const;
 
 export type Kind = keyof typeof KINDS;
@@ -148,6 +164,7 @@ const curve = (c: Curve = STANDARD) => `cubic-bezier(${c.join(", ")})`;
 const offset = (v: Offset | undefined) =>
   v === undefined ? "0" : typeof v === "number" ? `${v}px` : v;
 const seconds = (s: number) => `${Math.round(s * 1000)}ms`;
+const degrees = (v: number | string) => (typeof v === "number" ? `${v}deg` : v);
 
 function declare(look: Look, reduced: boolean): string[] {
   const out: string[] = [];
@@ -157,9 +174,11 @@ function declare(look: Look, reduced: boolean): string[] {
     out.push(`translate: ${offset(look.x)} ${offset(look.y)}`);
   if (look.scale !== undefined)
     out.push(
-      `scale: ${typeof look.scale === "number" ? look.scale : look.scale.join(" ")}`,
+      `scale: ${typeof look.scale === "object" ? look.scale.join(" ") : look.scale}`,
     );
-  if (look.rotate !== undefined) out.push(`rotate: ${look.rotate}deg`);
+  if (look.tilt !== undefined) out.push(`rotate: x ${degrees(look.tilt)}`);
+  else if (look.rotate !== undefined)
+    out.push(`rotate: ${degrees(look.rotate)}`);
   const filter = [
     look.blur !== undefined ? `blur(${look.blur}px)` : "",
     look.bright !== undefined ? `brightness(${look.bright})` : "",
@@ -167,6 +186,7 @@ function declare(look: Look, reduced: boolean): string[] {
     .filter(Boolean)
     .join(" ");
   if (filter) out.push(`filter: ${filter}`);
+  if (look.clip !== undefined) out.push(`clip-path: ${look.clip}`);
   return out;
 }
 
@@ -191,16 +211,20 @@ interface Place {
 
 const below = (outer: string, inner: string) => inner.slice(outer.length + 1);
 
+// Every gate waits for the opening (`data-play`): a part already in view
+// under a curtain plays once the curtain lifts, not behind it.
 function gate(place: Place, enter: Enter): string {
   const { root, host, target } = place;
-  if (enter.on === "load") return `${root}[data-play] ${below(root, target)}`;
+  const played = `${root}[data-play]`;
+  const inside = (selector: string) => `${played} ${below(root, selector)}`;
+  if (enter.on === "load") return inside(target);
   if (enter.on === "ready")
-    return `${root} [data-ready] ${below(root, target)}`;
+    return `${played} [data-ready] ${below(root, target)}`;
   if (enter.along === "section")
-    return `${root} [data-section][data-seen] ${below(root, target)}`;
+    return `${played} [data-section][data-seen] ${below(root, target)}`;
   return host === target
-    ? `${target}[data-seen]`
-    : `${host}[data-seen] ${below(host, target)}`;
+    ? `${inside(target)}[data-seen]`
+    : `${inside(host)}[data-seen] ${below(host, target)}`;
 }
 
 interface Track {
@@ -227,8 +251,10 @@ function enterTrack(
   if (enter.stagger) parts.push(`${at} * ${seconds(enter.stagger)}`);
   if (line) parts.push(`var(--i, 0) * ${seconds(line)}`);
   const delay = parts.length > 1 ? `calc(${parts.join(" + ")})` : parts[0];
+  // A mask has no neutral value to ease towards: open it explicitly.
+  const open = enter.from.clip !== undefined && !reduced;
   return {
-    keyframes: `@keyframes ${name}{from{${from.join(";")}}}`,
+    keyframes: `@keyframes ${name}{from{${from.join(";")}}${open ? "to{clip-path: inset(0 0 0 0)}" : ""}}`,
     shorthand: `${name} ${seconds(duration)} ${curve(enter.ease)} ${delay} backwards`,
     gate: gate(place, enter),
   };

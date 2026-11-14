@@ -67,6 +67,7 @@ const DEFAULT_DISPLAY_NAME = "Account";
 
 const JOIN_DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
   month: "short",
+  timeZone: "UTC",
   year: "numeric",
 });
 
@@ -156,10 +157,18 @@ function useSocialFollowSync(
 }
 
 function AccountBackdropHero({ image }: AccountBackdropHeroProps) {
+  // The cover's entrance waits for its picture; one that never reports still
+  // enters after a moment.
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    const late = setTimeout(() => setReady(true), 2500);
+    return () => clearTimeout(late);
+  }, []);
+
   return (
-    <div className="relative">
+    <div className="relative" data-ready={ready ? "" : undefined}>
       <AccountPart name="backdrop">
-        <BackdropProjection src={image ?? ""} />
+        <BackdropProjection onReady={() => setReady(true)} src={image ?? ""} />
       </AccountPart>
     </div>
   );

@@ -7,7 +7,6 @@ export type AwardsGrouping = "organizations" | "projects" | "timeline";
 export interface WallPicture {
   crossOrigin?: "anonymous";
   full: string | null;
-  lead: string | null;
   path: string;
   sizes?: string;
   src: string | null;

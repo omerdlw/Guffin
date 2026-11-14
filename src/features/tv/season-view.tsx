@@ -117,6 +117,7 @@ function SeasonHeader({
           {runtime > 0 ? (
             <Stat
               icon="solar:clock-circle-bold"
+              index={1}
               tip="Running time of the whole season"
               value={formatRuntime(runtime)}
             />
@@ -124,6 +125,7 @@ function SeasonHeader({
           {season.voteAverage > 0 ? (
             <Stat
               icon="solar:star-bold"
+              index={2}
               tip="TMDB rating of the season"
               tone="text-rated"
               value={season.voteAverage.toFixed(1)}
@@ -132,7 +134,7 @@ function SeasonHeader({
           <SeasonWatchedStat />
         </div>
       </div>
-      <DetailPart className={TAGLINE_CLASS} name="tagline">
+      <DetailPart className={TAGLINE_CLASS} name="kicker">
         <DockLink
           className="text-ink-lead underline decoration-transparent underline-offset-2 hover:decoration-current focus-visible:decoration-current"
           href={tvHref(show.id)}
@@ -251,7 +253,11 @@ export async function SeasonPageContent({
                     />
                     <div className="grid grid-cols-2 gap-3">
                       <SeasonWatchAction />
-                      <ShowStatusAction showId={show.id} title={show.title} />
+                      <ShowStatusAction
+                        index={1}
+                        showId={show.id}
+                        title={show.title}
+                      />
                     </div>
                   </DetailSidebar>
                 }

@@ -355,91 +355,114 @@ function SocialProofSurface({
   );
 }
 
+const PROOF_PILL =
+  "cine-card group relative flex h-14 w-full items-center overflow-hidden rounded-full bg-fill px-3.5 text-left ring-1 ring-edge ring-inset";
+
+// Friends' activity on a film, the last of the sidebar's actions: it joins
+// the action group's entrance at its `index`, showing a loader in place while
+// the activity loads, and gives way when no friend has logged the film.
 export function MovieSocialProof({
+  index,
   movieId,
-  part = "proof",
+  part = "action",
   title,
 }: {
+  index?: number;
   movieId: number;
   part?: string;
   title: string;
-}): JSX.Element {
+}): JSX.Element | null {
   const mediaType = useMediaType();
   const auth = useAuth();
   const { openSurface } = useDockActions();
   const userId = auth.isAuthenticated ? (auth.user?.id ?? null) : null;
   const key = userId ? `${userId}:${mediaType}:${movieId}` : null;
 
-  const [loaded, setLoaded] = useState<{ key: string; proof: Proof } | null>(
-    null,
-  );
+  const [loaded, setLoaded] = useState<{
+    key: string;
+    proof: Proof | null;
+  } | null>(null);
 
   useEffect(() => {
     if (!key) return;
     let cancelled = false;
+    const settle = (proof: Proof | null) => {
+      if (!cancelled) setLoaded({ key, proof });
+    };
 
     getMovieSocialProofAction(movieId, mediaType)
       .then((result) => {
-        if (cancelled) return;
-        if (!result.success)
-          return report("MovieSocialProof load", result.error);
-        if (result.proof) setLoaded({ key, proof: result.proof });
+        if (!result.success) {
+          report("MovieSocialProof load", result.error);
+          return settle(null);
+        }
+        settle(result.proof ?? null);
       })
-      .catch((error) => report("MovieSocialProof load", error));
+      .catch((error) => {
+        report("MovieSocialProof load", error);
+        settle(null);
+      });
 
     return () => {
       cancelled = true;
     };
   }, [key, mediaType, movieId]);
 
-  const proof = loaded?.key === key ? loaded.proof : null;
-  const open = Boolean(proof && proof.friends.length > 0);
-  const summary = proof && open ? describeProof(proof) : null;
+  if (!key) return null;
+  const settled = loaded?.key === key;
+  const proof = settled ? loaded.proof : null;
+  const summary =
+    proof && proof.friends.length > 0 ? describeProof(proof) : null;
+  if (settled && !summary) return null;
 
   return (
-    <div
-      className={cn(
-        "grid",
-        open
-          ? "mt-0 grid-rows-[1fr] opacity-100"
-          : "-mt-3 grid-rows-[0fr] opacity-0",
-      )}
-      inert={!open}
-    >
-      <div className="min-h-0 overflow-hidden">
-        {proof && summary ? (
-          <Part name={part}>
-            <Button
-              className="cine-card group relative flex h-14 w-full cursor-pointer items-center overflow-hidden rounded-full bg-fill px-3.5 text-left ring-1 ring-edge ring-inset hover:bg-fill-hover focus-visible:bg-fill-hover hover:ring-edge-hover focus-visible:ring-edge-focus"
-              onClick={() =>
-                void openSurface(
-                  socialProofSurface({ data: { movieId, proof, title } }),
-                )
-              }
-              type="button"
-            >
-              <span className="flex min-w-0 flex-1 items-center gap-3">
-                <AvatarStack people={proof.friends} round />
-                <span className="flex min-w-0 flex-1 flex-col">
-                  <span className="truncate type-meta font-semibold text-ink">
-                    {summary.headline}
-                  </span>
-                  {summary.details ? (
-                    <span className="truncate type-label text-ink-body">
-                      {summary.details}
-                    </span>
-                  ) : null}
-                </span>
-                <Icon
-                  className="shrink-0 text-ink-muted group-hover:text-ink group-focus-visible:text-ink group-has-focus-visible:text-ink"
-                  icon="solar:alt-arrow-right-linear"
-                  size={16}
-                />
+    <Part index={index} name={part}>
+      {proof && summary ? (
+        <Button
+          className={cn(
+            PROOF_PILL,
+            "cursor-pointer hover:bg-fill-hover focus-visible:bg-fill-hover hover:ring-edge-hover focus-visible:ring-edge-focus",
+          )}
+          onClick={() =>
+            void openSurface(
+              socialProofSurface({ data: { movieId, proof, title } }),
+            )
+          }
+          type="button"
+        >
+          <span className="flex min-w-0 flex-1 items-center gap-3">
+            <AvatarStack people={proof.friends} round />
+            <span className="flex min-w-0 flex-1 flex-col">
+              <span className="truncate type-meta font-semibold text-ink">
+                {summary.headline}
               </span>
-            </Button>
-          </Part>
-        ) : null}
-      </div>
-    </div>
+              {summary.details ? (
+                <span className="truncate type-label text-ink-body">
+                  {summary.details}
+                </span>
+              ) : null}
+            </span>
+            <Icon
+              className="shrink-0 text-ink-muted group-hover:text-ink group-focus-visible:text-ink group-has-focus-visible:text-ink"
+              icon="solar:alt-arrow-right-linear"
+              size={16}
+            />
+          </span>
+        </Button>
+      ) : (
+        <div aria-busy="true" className={PROOF_PILL} role="status">
+          <span className="flex min-w-0 flex-1 items-center gap-3">
+            <Icon
+              className="shrink-0 text-ink-muted"
+              icon="svg-spinners:90-ring-with-bg"
+              size={16}
+            />
+            <span className="truncate type-meta text-ink-muted">
+              Loading friends’ activity…
+            </span>
+          </span>
+        </div>
+      )}
+    </Part>
   );
 }

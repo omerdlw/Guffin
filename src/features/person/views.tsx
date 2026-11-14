@@ -137,8 +137,9 @@ export function PersonViewActions(): JSX.Element | null {
 
   return (
     <div className="flex gap-3">
-      {shown.map(({ icon, key, label }) => (
+      {shown.map(({ icon, key, label }, index) => (
         <DetailAction
+          index={index}
           active={view === key}
           grow
           hoverLabel={view === key ? "Back" : undefined}

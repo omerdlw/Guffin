@@ -113,17 +113,16 @@ function FactNames({
         <Tooltip
           position="top"
           text={hidden.map((name) => name.text).join(", ")}
+          triggerClassName="ml-1.5 inline-block cursor-help"
         >
-          <span className="ml-1.5 inline-block cursor-help">
-            <DetailPart
-              as="span"
-              className="inline-block type-meta font-bold text-ink-body"
-              index={index}
-              name="value"
-            >
-              +{hidden.length}
-            </DetailPart>
-          </span>
+          <DetailPart
+            as="span"
+            className="inline-block type-meta font-bold text-ink-body"
+            index={index}
+            name="value"
+          >
+            +{hidden.length}
+          </DetailPart>
         </Tooltip>
       ) : null}
     </>

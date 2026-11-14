@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useModal } from "@omerdlw/base-framework/modal";
 import { SegmentedControl } from "@omerdlw/base-framework/ui";
 import { Carousel } from "@/design/components/carousel";
@@ -18,7 +18,6 @@ import { GalleryWall, WallButton } from "@/features/detail/gallery";
 import { ImageModal } from "@/features/detail/image-modal";
 import { Heading } from "@/features/detail/layout";
 import { DetailSection, DetailSwap } from "@/features/detail/motion";
-import { useLead } from "@/features/detail/stage";
 import {
   type MovieImage,
   type MovieVideo,
@@ -111,8 +110,6 @@ export function MovieGallery({
   title: string;
 }) {
   const [openImage] = useModal(ImageModal);
-  const lead = useLead();
-  useEffect(() => () => lead(null), [lead]);
   const sets: Record<GalleryTab, MovieImage[]> = { backdrops, posters };
   const available = GALLERY_TAB_ORDER.filter((key) => sets[key].length > 0);
   const [shelf, setShelf] = useState<{ reach: number; tab: GalleryTab }>({
@@ -166,16 +163,7 @@ export function MovieGallery({
         title="Gallery"
       />
       <DetailSwap cue="slides" id={key} now={now}>
-        <div
-          onPointerLeave={() => lead(null)}
-          onPointerOver={(event) => {
-            if (event.pointerType !== "mouse") return;
-            const card = (event.target as Element).closest("[data-still]");
-            const still = card?.getAttribute("data-still");
-            const slot = key === "backdrops" ? "backdrop" : "poster";
-            lead(still ? tmdbImageUrl(slot, still, "w300") : null);
-          }}
-        >
+        <div>
           <Carousel
             arrowClassName={TONE.arrows}
             itemClassName={
@@ -196,7 +184,6 @@ export function MovieGallery({
                     image.filePath,
                   )}
                   aspect={view.aspect}
-                  data-still={image.filePath}
                   image={{
                     crossOrigin: shown.crossOrigin,
                     sizes: view.sizes,
@@ -241,7 +228,6 @@ export function MovieGalleryWall({
           return {
             crossOrigin: shown.crossOrigin,
             full: galleryOriginal(key, image.filePath),
-            lead: tmdbImageUrl(slot, image.filePath, "w300"),
             path: image.filePath,
             sizes: key === "backdrops" ? WALL_SIZES.video : WALL_SIZES.poster,
             src: shown.src,

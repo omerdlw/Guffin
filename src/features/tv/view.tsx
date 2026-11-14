@@ -198,17 +198,19 @@ export function formatRuntime(minutes: number): string {
 
 export function Stat({
   icon,
+  index,
   tip,
   tone = "text-ink-muted",
   value,
 }: {
   icon: string;
+  index?: number;
   tip: string;
   tone?: string;
   value: string;
 }): JSX.Element {
   return (
-    <DetailPart name="stat">
+    <DetailPart index={index} name="stat">
       <Tooltip
         position="top"
         text={tip}
@@ -540,12 +542,17 @@ export async function ShowPageContent({
                   <MoviePoster movie={show} />
                   <MovieCollectionActions mediaType="tv" movieId={show.id}>
                     <ShowStatusAction
+                      index={3}
                       secondary
                       showId={show.id}
                       title={show.title}
                     />
                   </MovieCollectionActions>
-                  <MovieSocialProof movieId={show.id} title={show.title} />
+                  <MovieSocialProof
+                    index={4}
+                    movieId={show.id}
+                    title={show.title}
+                  />
                 </DetailSidebar>
               }
               wall={

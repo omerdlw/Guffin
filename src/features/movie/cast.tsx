@@ -45,9 +45,15 @@ function compactCells(count: number, hasMore: boolean): CSSProperties {
   } as CSSProperties;
 }
 
-const FAN_SLOTS = ["l1", "r1", "l2", "r2"] as const;
+// The fan's leaves beside the portrait, innermost first.
+const FAN = [
+  { side: "l", at: 1 },
+  { side: "r", at: 1 },
+  { side: "l", at: 2 },
+  { side: "r", at: 2 },
+] as const;
 
-function KnownForFan({
+function KnownForLeaves({
   knownFor,
   personId,
   tab,
@@ -57,14 +63,16 @@ function KnownForFan({
   tab: PeopleTab;
 }) {
   const titles = use(knownFor)[tab][personId] ?? [];
-  return titles.slice(0, FAN_SLOTS.length).map((title, index) => (
+  return titles.slice(0, FAN.length).map((title, index) => (
     <DockLink
       aria-label={title.title}
-      className={cast.poster}
-      data-slot={FAN_SLOTS[index]}
+      className={cast.leaf}
+      data-at={FAN[index]!.at}
+      data-cursor="idle"
+      data-side={FAN[index]!.side}
+      data-slot="leaf"
       href={mediaHref(title.mediaType, title.id)}
       key={`${title.mediaType}-${title.id}`}
-      style={{ borderRadius: RADIUS.tile }}
     >
       <Image
         alt=""
@@ -97,34 +105,44 @@ function CastCard({
   const href = personHref(person.id);
 
   return (
-    <div className={cn(cast.card, "flex min-w-0 flex-col gap-3")}>
-      <div className={cast.stage}>
-        {knownFor ? (
-          <Suspense fallback={null}>
-            <KnownForFan knownFor={knownFor} personId={person.id} tab={tab} />
-          </Suspense>
-        ) : null}
-        <MediaCard
-          aspect="free"
-          className={cast.portrait}
-          fallbackIcon="solar:user-bold"
-          fallbackIconSize={24}
-          frameClassName="h-full w-full"
-          href={href}
-          image={{ sizes: "(min-width: 640px) 160px, 44vw", src }}
-          label={`${person.name}, ${person.subtitle}`}
-          radius={RADIUS.panel}
-        />
+    <div className={cast.card}>
+      <div className={cast.folder} data-slot="folder">
+        <div className={cast.deck} data-slot="deck">
+          {knownFor ? (
+            <Suspense fallback={null}>
+              <KnownForLeaves
+                knownFor={knownFor}
+                personId={person.id}
+                tab={tab}
+              />
+            </Suspense>
+          ) : null}
+          <div className={cast.leaf} data-at="0" data-slot="leaf">
+            <MediaCard
+              aspect="free"
+              data-cursor="idle"
+              fallbackIcon="solar:user-bold"
+              fallbackIconSize={24}
+              frameClassName="h-full w-full"
+              href={href}
+              image={{ sizes: "(min-width: 640px) 140px, 36vw", src }}
+              label={`${person.name}, ${person.subtitle}`}
+              radius="0.5rem"
+            />
+          </div>
+        </div>
       </div>
       <DockLink
         aria-hidden="true"
-        className="flex min-w-0 flex-col items-center px-2 text-center"
+        className={cast.flap}
+        data-cursor="card"
+        data-slot="flap"
         href={href}
         tabIndex={-1}
       >
         <DetailExpose
           as="div"
-          className="max-w-full truncate type-control font-semibold text-ink-lead"
+          className="max-w-full truncate type-base font-semibold text-ink-lead"
           index={index}
           part="credit"
           text={person.name}
@@ -132,7 +150,7 @@ function CastCard({
         />
         <DetailExpose
           as="div"
-          className="max-w-full truncate type-meta font-medium text-ink-muted"
+          className="max-w-full truncate type-meta font-medium tracking-tagline text-ink-muted uppercase"
           index={index}
           part="credit"
           text={person.subtitle}

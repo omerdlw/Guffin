@@ -6,7 +6,6 @@ import {
   type JSX,
   type ReactNode,
   use,
-  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -24,7 +23,6 @@ import { clamp } from "@/motion/math";
 import { Projection } from "@/motion/projection";
 import { useScrollDriver } from "@/motion/react";
 import { Intermission } from "@/motion/screen";
-import { SCROLLING } from "@/motion/scroll";
 import { useWall } from "@/motion/stage";
 import { DetailDeck, DetailPart, DetailStageRoot } from "./motion";
 
@@ -79,10 +77,6 @@ const toCardImage = (src: string) =>
 
 const BACKDROP_EDGES = { bottom: BOTTOM_COVER, side: SIDE_COVER };
 
-const LeadContext = createContext<(src: string | null) => void>(() => {});
-
-export const useLead = () => use(LeadContext);
-
 const WallSetContext = createContext<StageWallSet>({
   set: null,
   choose: () => {},
@@ -97,38 +91,13 @@ export function DetailStage({
   children: ReactNode;
   picture: string | null;
 }) {
-  const [lead, setShownLead] = useState<string | null>(null);
   const [set, choose] = useState<string | null>(null);
   const wall = useMemo(() => ({ choose, set }), [set]);
 
-  const pending = useRef<string | null | undefined>(undefined);
-  const setLead = useCallback((src: string | null) => {
-    if (document.documentElement.hasAttribute(SCROLLING)) {
-      pending.current = src;
-      return;
-    }
-    pending.current = undefined;
-    setShownLead(src);
-  }, []);
-
-  useEffect(() => {
-    const root = document.documentElement;
-    const settle = new MutationObserver(() => {
-      if (root.hasAttribute(SCROLLING) || pending.current === undefined) return;
-      const src = pending.current;
-      pending.current = undefined;
-      setShownLead(src);
-    });
-    settle.observe(root, { attributeFilter: [SCROLLING], attributes: true });
-    return () => settle.disconnect();
-  }, []);
-
   return (
-    <DetailStageRoot grade={lead ?? picture}>
+    <DetailStageRoot grade={picture}>
       <Room grain={false} />
-      <LeadContext value={setLead}>
-        <WallSetContext value={wall}>{children}</WallSetContext>
-      </LeadContext>
+      <WallSetContext value={wall}>{children}</WallSetContext>
     </DetailStageRoot>
   );
 }
@@ -194,6 +163,7 @@ function actionLabel(
 
 export function DetailAction({
   grow = false,
+  index,
   label,
   secondary = false,
   shortLabel,
@@ -203,12 +173,18 @@ export function DetailAction({
   "ariaLabel" | "className" | "iconSize" | "label"
 > & {
   grow?: boolean;
+  // Its place in the action group, so the group surfaces one at a time.
+  index?: number;
   label: string;
   secondary?: boolean;
   shortLabel?: string;
 }): JSX.Element {
   return (
-    <DetailPart className={cn("min-w-0", grow && "flex-1")} name="action">
+    <DetailPart
+      className={cn("min-w-0", grow && "flex-1")}
+      index={index}
+      name="action"
+    >
       <ActionButton
         {...props}
         ariaLabel={secondary && shortLabel ? label : undefined}
@@ -277,6 +253,9 @@ export function DetailBackdrop({
   title?: string;
 }) {
   const [ready, setReady] = useState(false);
+  // The name plays first, as a curtain: the page's opening waits for it to
+  // start leaving (the stage holds `data-play` while a curtain is down).
+  const [lifted, lift] = useState(!title);
 
   // The picture's entrance waits for it to load; a picture that never reports
   // still enters after a moment.
@@ -286,7 +265,11 @@ export function DetailBackdrop({
   }, []);
 
   return (
-    <div className="relative" data-ready={ready ? "" : undefined}>
+    <div
+      className="relative"
+      data-curtain={lifted ? undefined : ""}
+      data-ready={ready ? "" : undefined}
+    >
       <DetailPart name="backdrop">
         <div className="relative">
           <BackdropProjection
@@ -301,6 +284,7 @@ export function DetailBackdrop({
           className="font-zuume"
           edges={BACKDROP_EDGES}
           focus={BACKDROP_FOCUS}
+          onLift={() => lift(true)}
           quiet={ready}
           src={toCardImage(src)}
           text={title}

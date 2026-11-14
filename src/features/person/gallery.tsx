@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useModal } from "@omerdlw/base-framework/modal";
 import { SegmentedControl } from "@omerdlw/base-framework/ui";
 import { Carousel } from "@/design/components/carousel";
@@ -21,7 +21,6 @@ import { GalleryWall, WallButton } from "@/features/detail/gallery";
 import { ImageModal } from "@/features/detail/image-modal";
 import { Heading } from "@/features/detail/layout";
 import { DetailSection, DetailSwap } from "@/features/detail/motion";
-import { useLead } from "@/features/detail/stage";
 import {
   type PersonImage,
   tmdbImageSrcSet,
@@ -79,8 +78,6 @@ export function PersonGallery({
   portraits: PersonImage[];
 }) {
   const [openImage] = useModal(ImageModal);
-  const lead = useLead();
-  useEffect(() => () => lead(null), [lead]);
   const tabs = buildGalleryShelves(backdrops, portraits);
   const [tab, setTab] = useState<GalleryTab>(tabs[0]?.[0] ?? "portraits");
   if (tabs.length === 0) return null;
@@ -112,21 +109,7 @@ export function PersonGallery({
         title="Gallery"
       />
       <DetailSwap cue="slides" id={key}>
-        <div
-          onPointerLeave={() => lead(null)}
-          onPointerOver={(event) => {
-            if (event.pointerType !== "mouse") return;
-            const card = (event.target as Element).closest("[data-still]");
-            const still = card?.getAttribute("data-still");
-            lead(
-              still
-                ? portrait
-                  ? tmdbImageUrl("profile", still, "w185")
-                  : tmdbImageUrl("backdrop", still, "w300")
-                : null,
-            );
-          }}
-        >
+        <div>
           <Carousel
             arrowClassName={TONE.arrows}
             itemClassName={
@@ -144,7 +127,6 @@ export function PersonGallery({
                   key={path}
                   {...artworkAttributes(portrait ? "poster" : "backdrop", path)}
                   aspect={view.aspect}
-                  data-still={path}
                   image={{ sizes: view.sizes, src: full }}
                   label={`View ${view.noun} ${index + 1} of ${name}`}
                   radius={RADIUS.card}
@@ -188,7 +170,6 @@ export function PersonGalleryWall({
           portrait
             ? {
                 full: tmdbImageUrl("profile", path, "original"),
-                lead: tmdbImageUrl("profile", path, "w185"),
                 path,
                 sizes: WALL_SIZES.poster,
                 src: tmdbImageUrl("profile", path, "h632"),
@@ -196,7 +177,6 @@ export function PersonGalleryWall({
             : {
                 crossOrigin: "anonymous" as const,
                 full: tmdbImageUrl("backdrop", path, "original"),
-                lead: tmdbImageUrl("backdrop", path, "w300"),
                 path,
                 sizes: WALL_SIZES.video,
                 src: tmdbImageUrl("backdrop", path, "w780"),

@@ -38,6 +38,10 @@ interface StageRoles<P extends string, S extends string> {
   scroll?: ScrollFeel;
   // How a carousel pans when its arrows are pressed; without it, it jumps.
   glide?: Glide;
+  // Seconds the opening plays before anything already in view on arrival
+  // may enter, so the page reads from the top down: the opening first, the
+  // blocks under it after. Roles reached by scrolling later play at once.
+  opening?: number;
 }
 
 export interface Glide {
@@ -352,7 +356,11 @@ export function Header({
             )}
           </div>
         </div>
-        {actions ? <div className="min-w-0">{actions}</div> : null}
+        {actions ? (
+          <div className="min-w-0" data-slot="actions">
+            {actions}
+          </div>
+        ) : null}
       </div>
     </div>
   );
@@ -369,9 +377,16 @@ export function Bloom({
   as?: ElementType;
   className?: string;
 }) {
+  const moves = useContext(TextContext)[part];
+  if (!moves)
+    return (
+      <Tag className={className} data-part={part}>
+        {text}
+      </Tag>
+    );
   return (
-    <Tag className={className} data-part={part}>
-      {text}
+    <Tag aria-label={text} className={className} data-part={part}>
+      <span aria-hidden="true">{split(text, moves)}</span>
     </Tag>
   );
 }
@@ -379,17 +394,28 @@ export function Bloom({
 export function Expose({
   part,
   text,
+  index,
   as: Tag = "span",
   className,
   truncate = false,
 }: ExposeProps<string>) {
+  const moves = useContext(TextContext)[part];
+  const body = moves ? (
+    <span aria-hidden="true">{split(text, moves)}</span>
+  ) : (
+    text
+  );
   return (
     <Tag
+      aria-label={moves ? text : undefined}
       className={className}
       data-part={part}
-      style={{ display: Tag === "span" ? "inline-block" : undefined }}
+      style={{
+        ...order(index),
+        display: Tag === "span" ? "inline-block" : undefined,
+      }}
     >
-      {truncate ? <span className="block truncate">{text}</span> : text}
+      {truncate ? <span className="block truncate">{body}</span> : body}
     </Tag>
   );
 }
@@ -479,7 +505,12 @@ export function Deck<K extends string>({
   return (
     <div className={className}>
       {(Object.keys(views) as K[]).map((key) => (
-        <div className={viewClassName} hidden={key !== shown} key={key}>
+        <div
+          className={viewClassName}
+          data-section="view"
+          hidden={key !== shown}
+          key={key}
+        >
           {views[key]}
         </div>
       ))}
@@ -540,37 +571,159 @@ export function WallStage({ wall, children }: WallStageProps<string>) {
 // frames painted, then `data-play` releases it. Every part and section is
 // marked `data-seen` the first time it comes into view, which releases its
 // entrance; roles added later (a swapped shelf, more rows) are watched too.
+// Roles in view during the opening are held until it has played.
+// Touching a role hands it to its touch states at once: an entrance still
+// playing on something that answers the hand (its long tail can look done)
+// is finished, since while it runs it holds the very properties the hover
+// would ease, and the hover would snap instead.
 const ROLES = "[data-part], [data-section]";
+const KEYFRAME_META = new Set([
+  "offset",
+  "computedOffset",
+  "easing",
+  "composite",
+]);
+const CURTAIN_LIMIT_MS = 12000;
 
-function useCue(root: { current: HTMLElement | null }, on: boolean) {
+function useCue(
+  root: { current: HTMLElement | null },
+  on: boolean,
+  opening: number,
+) {
   useEffect(() => {
     const element = root.current;
     if (!on || !element) return;
 
-    let frame = requestAnimationFrame(() => {
-      frame = requestAnimationFrame(() =>
-        element.setAttribute("data-play", ""),
-      );
-    });
+    let open = opening <= 0;
+    let hold: ReturnType<typeof setTimeout> | undefined;
+    const held = new Set<Element>();
+    const mark = (node: Element) => {
+      if (open) node.setAttribute("data-seen", "");
+      else held.add(node);
+    };
+    const start = () => {
+      element.setAttribute("data-play", "");
+      if (open || hold) return;
+      hold = setTimeout(() => {
+        open = true;
+        held.forEach((node) => node.setAttribute("data-seen", ""));
+        held.clear();
+      }, opening * 1000);
+    };
 
+    // A curtain (a title card playing over the page) holds the opening
+    // until it lifts; a stuck one gives way after CURTAIN_LIMIT_MS.
+    let frame = 0;
+    const play = () => {
+      if (frame || element.querySelector("[data-curtain]")) return;
+      curtain.disconnect();
+      clearTimeout(limit);
+      frame = requestAnimationFrame(() => {
+        frame = requestAnimationFrame(start);
+      });
+    };
+    const curtain = new MutationObserver(play);
+    curtain.observe(element, {
+      attributeFilter: ["data-curtain"],
+      childList: true,
+      subtree: true,
+    });
+    const limit = setTimeout(() => {
+      curtain.disconnect();
+      start();
+    }, CURTAIN_LIMIT_MS);
+    play();
+
+    const release = (node: Element) => {
+      mark(node);
+      seen.unobserve(node);
+      near.unobserve(node);
+      showing.delete(node);
+    };
     const seen = new IntersectionObserver(
       (entries) => {
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
-          entry.target.setAttribute("data-seen", "");
-          seen.unobserve(entry.target);
-        }
+        for (const entry of entries)
+          if (entry.isIntersecting) release(entry.target);
       },
       { rootMargin: "0px 0px -16% 0px" },
     );
+    // A role in the page's last screen may never clear the line above: once
+    // the page can scroll no further, whatever is on screen is seen.
+    const showing = new Set<Element>();
+    const atEnd = () =>
+      window.scrollY + window.innerHeight >=
+      document.documentElement.scrollHeight - 2;
+    const settle = () => {
+      if (showing.size && atEnd()) [...showing].forEach(release);
+    };
+    const near = new IntersectionObserver((entries) => {
+      for (const entry of entries)
+        if (entry.isIntersecting) showing.add(entry.target);
+        else showing.delete(entry.target);
+      settle();
+    });
+    window.addEventListener("scroll", settle, { passive: true });
     const watch = (node: Element) => {
-      if (node.matches(ROLES) && !node.hasAttribute("data-seen"))
-        seen.observe(node);
-      node.querySelectorAll(ROLES).forEach((child) => {
-        if (!child.hasAttribute("data-seen")) seen.observe(child);
-      });
+      const observe = (target: Element) => {
+        if (target.hasAttribute("data-seen")) return;
+        seen.observe(target);
+        near.observe(target);
+      };
+      if (node.matches(ROLES)) observe(node);
+      node.querySelectorAll(ROLES).forEach(observe);
     };
     watch(element);
+
+    const touch = (event: Event) => {
+      if (!(event.target instanceof Element)) return;
+      let host: Element | null = null;
+      for (
+        let node = event.target.closest("[data-part]");
+        node && element.contains(node);
+        node = node.parentElement?.closest("[data-part]") ?? null
+      )
+        host = node;
+      if (!host) return;
+      for (const animation of host.getAnimations({ subtree: true })) {
+        if (
+          !(animation instanceof CSSAnimation) ||
+          animation.playState !== "running" ||
+          animation.timeline !== document.timeline ||
+          animation.animationName.endsWith(LEAVING)
+        )
+          continue;
+        const effect = animation.effect as KeyframeEffect | null;
+        const target = effect?.target;
+        if (!(target instanceof HTMLElement || target instanceof SVGElement))
+          continue;
+        const style = getComputedStyle(target);
+        const eases = style.transitionDuration
+          .split(",")
+          .some((duration) => parseFloat(duration) > 0);
+        if (!eases) continue;
+        // Hold where the entrance has got to, end it, and let go: the touch
+        // state then eases on from there.
+        const held = [
+          ...new Set(
+            effect!
+              .getKeyframes()
+              .flatMap((frame) => Object.keys(frame))
+              .filter((key) => !KEYFRAME_META.has(key))
+              .map((key) =>
+                key.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`),
+              ),
+          ),
+        ].map((property) => [property, style.getPropertyValue(property)]);
+        for (const [property, value] of held)
+          target.style.setProperty(property, value!);
+        animation.cancel();
+        void getComputedStyle(target).opacity;
+        for (const [property] of held) target.style.removeProperty(property!);
+      }
+    };
+    element.addEventListener("pointerover", touch);
+    element.addEventListener("focusin", touch);
+
     const added = new MutationObserver((records) => {
       for (const record of records)
         record.addedNodes.forEach((node) => {
@@ -581,17 +734,24 @@ function useCue(root: { current: HTMLElement | null }, on: boolean) {
 
     return () => {
       cancelAnimationFrame(frame);
+      curtain.disconnect();
+      clearTimeout(limit);
+      clearTimeout(hold);
       seen.disconnect();
+      near.disconnect();
+      window.removeEventListener("scroll", settle);
       added.disconnect();
+      element.removeEventListener("pointerover", touch);
+      element.removeEventListener("focusin", touch);
     };
-  }, [root, on]);
+  }, [root, on, opening]);
 }
 
 export function defineStage<
   const P extends string,
   const S extends string = never,
 >(roles: StageRoles<P, S>) {
-  const { scope, motion, scroll, glide = null } = roles;
+  const { scope, motion, scroll, glide = null, opening = 0 } = roles;
   const css = scope && motion ? compile(scope, motion) : "";
   const texts = Object.fromEntries(
     Object.entries(motion?.parts ?? {}).map(([key, moves]) => [
@@ -609,7 +769,7 @@ export function defineStage<
   }) {
     useGrade(grade);
     const root = useRef<HTMLDivElement>(null);
-    useCue(root, Boolean(scope && css));
+    useCue(root, Boolean(scope && css), opening);
     const driver = useScrollDriver();
     useEffect(() => (scroll ? driver.tune(scroll) : undefined), [driver]);
     if (!scope || !css)

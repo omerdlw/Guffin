@@ -1,6 +1,6 @@
 "use client";
 
-import { type JSX, type ReactNode, useMemo } from "react";
+import { type JSX, type ReactNode, useMemo, useSyncExternalStore } from "react";
 import { useDockActionClass } from "@omerdlw/base-framework/dock";
 import { Icon } from "@/design/components/icon";
 import { DockLink } from "@/design/components/link";
@@ -8,7 +8,7 @@ import { MediaCard } from "@/design/components/media-card";
 import { DockAction } from "@/design/components/surface";
 import { RADIUS } from "@/design/foundations/geometry";
 import { cn } from "@/design/ui";
-import { formatCompactAge } from "@/features/account/account";
+import { formatCompactAge, formatShortDate } from "@/features/account/account";
 import { AccountPart, AccountSection } from "@/features/profile/motion";
 import {
   type ActivityItem,
@@ -216,9 +216,35 @@ const FULL_DATE_FORMAT = new Intl.DateTimeFormat("en-US", {
   year: "numeric",
 });
 
-function dayLabel(key: string): string {
-  const now = Date.now();
-  const date = Date.parse(key);
+// Relative labels depend on the clock, which differs between the server render
+// and hydration. Hydration renders the absolute date (server snapshot null),
+// then the client switches to the live clock and refreshes it every minute.
+let clock: number | null = null;
+
+function subscribeClock(change: () => void) {
+  const tick = () => {
+    clock = Date.now();
+    change();
+  };
+  tick();
+  const id = window.setInterval(tick, 60_000);
+  return () => window.clearInterval(id);
+}
+
+const readClock = () => (clock ??= Date.now());
+
+const useNow = (): number | null =>
+  useSyncExternalStore(subscribeClock, readClock, () => null);
+
+function ActivityAge({ value }: { value: string }): string {
+  const now = useNow();
+  return now === null ? formatShortDate(value) : formatCompactAge(value, now);
+}
+
+function DayLabel({ day }: { day: string }): string {
+  const now = useNow();
+  const date = Date.parse(day);
+  if (now === null) return FULL_DATE_FORMAT.format(date);
   const ago = Math.round((now - (now % DAY_MS) - date) / DAY_MS);
   if (ago === 0) return "Today";
   if (ago === 1) return "Yesterday";
@@ -292,7 +318,7 @@ export function ActivityRow({
             •
           </span>
           <time className="tabular-nums" dateTime={item.createdAt}>
-            {formatCompactAge(item.createdAt)}
+            <ActivityAge value={item.createdAt} />
           </time>
         </p>
       </div>
@@ -314,7 +340,7 @@ export function ActivityTimeline({
         <AccountSection as="section" cue="rows" key={group.key}>
           <header className="pb-fib-2">
             <AccountPart as="h3" className={STAT_LABEL_CLASS} name="label">
-              {dayLabel(group.key)}
+              <DayLabel day={group.key} />
             </AccountPart>
           </header>
           <ul className="relative before:absolute before:inset-y-0 before:left-[calc(var(--spacing-fib-5)/2)] before:w-px before:bg-line">
@@ -412,7 +438,7 @@ export function ActivityFeed({
             className="type-meta whitespace-nowrap text-ink-muted tabular-nums"
             dateTime={item.createdAt}
           >
-            {formatCompactAge(item.createdAt)}
+            <ActivityAge value={item.createdAt} />
           </time>
         </AccountPart>
       ))}

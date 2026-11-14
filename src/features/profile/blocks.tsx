@@ -309,18 +309,17 @@ export function RatingsChart({
             >
               <Tooltip
                 text={`${starsLabel((index + 1) / 2)} · ${pluralize(count, "rating")}`}
+                triggerClassName="group/bar flex h-full w-full items-end"
               >
-                <span className="group/bar flex h-full w-full items-end">
-                  {count ? (
-                    <span
-                      className={cn(
-                        "w-full rounded-t-mark group-hover/bar:bg-ink-muted group-focus-visible/bar:bg-ink-muted group-has-focus-visible/bar:bg-ink-muted",
-                        count === peak ? "bg-ink-faint" : "bg-fill-active",
-                      )}
-                      style={{ height: `max(4px, ${(count / peak) * 100}%)` }}
-                    />
-                  ) : null}
-                </span>
+                {count ? (
+                  <span
+                    className={cn(
+                      "w-full rounded-t-mark group-hover/bar:bg-ink-muted group-focus-visible/bar:bg-ink-muted group-has-focus-visible/bar:bg-ink-muted",
+                      count === peak ? "bg-ink-faint" : "bg-fill-active",
+                    )}
+                    style={{ height: `max(4px, ${(count / peak) * 100}%)` }}
+                  />
+                ) : null}
               </Tooltip>
             </AccountPart>
           ))}
@@ -349,7 +348,7 @@ export function PeopleGrid({
     <ul className="grid grid-cols-6 gap-fib-2">
       {shown.map((person, index) => (
         <AccountPart as="li" index={index} key={person.username} name="face">
-          <Tooltip text={person.displayName}>
+          <Tooltip text={person.displayName} triggerClassName="block">
             <DockLink
               aria-label={person.displayName}
               className="block aspect-square overflow-hidden rounded-full ring-1 ring-edge-hover ui-fade hover:opacity-80 focus-visible:opacity-80"

@@ -365,7 +365,7 @@ function MovieSidebar({
           <MovieAwardsAction awards={awards} />
         </Suspense>
       </MovieCollectionActions>
-      <MovieSocialProof movieId={movie.id} title={movie.title} />
+      <MovieSocialProof index={5} movieId={movie.id} title={movie.title} />
     </DetailSidebar>
   );
 }
@@ -398,8 +398,8 @@ export function MovieStats({
 
   return (
     <div className="relative flex shrink-0 items-center gap-5">
-      {FILM_STAT_ROWS.map((row) => (
-        <DetailPart key={row.icon} name="stat">
+      {FILM_STAT_ROWS.map((row, index) => (
+        <DetailPart index={index} key={row.icon} name="stat">
           <Tooltip
             position="top"
             text={row.label(stats)}

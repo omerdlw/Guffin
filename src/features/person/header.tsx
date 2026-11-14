@@ -159,7 +159,7 @@ function BiographyExcerpt({
         text={excerpt}
       />
       {truncated ? (
-        <DetailPart index={Number.MAX_SAFE_INTEGER} name="overview">
+        <DetailPart name="more">
           <TextButton
             aria-label={`Read the full biography of ${name}`}
             onClick={openFull}

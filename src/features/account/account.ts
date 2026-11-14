@@ -150,13 +150,10 @@ export function formatShortDate(value?: string | null): string {
   return date ? ACCOUNT_DATE_FORMAT.format(date) : "";
 }
 
-export function formatCompactAge(value: string): string {
+export function formatCompactAge(value: string, now = Date.now()): string {
   const date = parseDate(value);
   if (!date) return "";
-  const minutes = Math.max(
-    0,
-    Math.floor((Date.now() - date.getTime()) / 60_000),
-  );
+  const minutes = Math.max(0, Math.floor((now - date.getTime()) / 60_000));
   if (minutes < 1) return "now";
   if (minutes < 60) return `${minutes}m`;
   const hours = Math.floor(minutes / 60);
