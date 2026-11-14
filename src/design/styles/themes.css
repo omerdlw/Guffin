@@ -31,10 +31,10 @@
     --chosen-edge-hover: rgb(var(--grade, var(--ink-rgb)) / 0.3);
     --chosen-ink: rgb(var(--grade, var(--ink-rgb)));
 
-    /* Light falls from above: a brighter top edge and a darker foot on
-       every lit surface (`lit`). Dark layers float on glass alone. */
+    /* Light falls from above: a brighter top edge on every lit
+       surface (`lit`). Dark layers float on glass alone. */
     --lit: rgb(var(--ink-rgb) / 0.08);
-    --unlit: rgb(0 0 0 / 0.16);
+    --unlit: transparent;
     --lift: 0 0 #0000;
 
     --glass: color-mix(in srgb, var(--ink) 4%, var(--page));
@@ -105,7 +105,7 @@
     --chosen-ink: var(--ink);
 
     --lit: rgb(255 255 255 / 0.85);
-    --unlit: rgb(var(--ink-rgb) / 0.05);
+    --unlit: transparent;
     /* Floating layers lift off paper on a shadow cut from the page's own
        hue: a tight contact edge and a long, soft fall. */
     --lift:
@@ -118,7 +118,7 @@
     --font-weight-medium: 520;
     --font-weight-semibold: 620;
 
-    --glass: color-mix(in oklab, #fff 78%, var(--page));
+    --glass: color-mix(in oklab, #fff 35%, var(--page));
     --veil: color-mix(in oklab, var(--page) 60%, transparent);
     --dim: rgb(var(--ink-rgb) / 0.2);
 

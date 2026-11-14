@@ -55,10 +55,10 @@ picture or a mark it is not a control and is free.
 Tailwind's shadows and arbitrary ones are switched off. Depth has exactly two
 cues, both utilities that sit beside a ring (`src/design/styles/utilities.css`):
 
-| Utility | What it draws                                                             | On                                                              |
-| ------- | ------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| `lit`   | Light from above: a brighter top edge, a darker foot (`--lit`, `--unlit`) | Every filled control, chosen state, glass, layer (in the tones) |
-| `lift`  | A layer's fall onto paper, tinted by the page; none in dark (`--lift`)    | Floating layers only: shell, float, tip, the front dock card    |
+| Utility | What it draws                                                                | On                                                                                |
+| ------- | ---------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `lit`   | Light from above: a brighter top edge (`--lit`; `--unlit` stays transparent) | Every filled control, chosen state, glass, layer (in the tones)                   |
+| `lift`  | A layer's fall onto paper, tinted by the page; none in dark (`--lift`)       | Layers over the page: shell, tip, the front dock card; never a control inside one |
 
 Cards, tiles, pictures and marks never lift. In dark, a layer is told from the
 page by its glass, its ring and its blur alone.

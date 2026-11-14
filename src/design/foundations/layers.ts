@@ -6,7 +6,7 @@ const layerVariants = variants("", {
       shell:
         "lit lift bg-glass ring-1 ring-edge-hover ring-inset backdrop-saturate-150",
       float:
-        "lit lift bg-glass ring-1 ring-edge-hover ring-inset backdrop-saturate-150",
+        "lit bg-glass ring-1 ring-edge-hover ring-inset backdrop-saturate-150",
       tip: "lit lift bg-glass text-ink-lead ring-1 ring-edge ring-inset backdrop-saturate-150",
       veil: "bg-veil",
       dim: "bg-dim",
