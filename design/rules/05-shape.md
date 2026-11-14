@@ -52,6 +52,13 @@ picture or a mark it is not a control and is free.
 
 ### 3.6 Depth
 
-There are no shadows. Tailwind's shadows and arbitrary ones are switched off,
-and no layer, control, picture or mark casts one. A layer is told from the page
-by its glass, its ring and its blur alone.
+Tailwind's shadows and arbitrary ones are switched off. Depth has exactly two
+cues, both utilities that sit beside a ring (`src/design/styles/utilities.css`):
+
+| Utility | What it draws                                                             | On                                                              |
+| ------- | ------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `lit`   | Light from above: a brighter top edge, a darker foot (`--lit`, `--unlit`) | Every filled control, chosen state, glass, layer (in the tones) |
+| `lift`  | A layer's fall onto paper, tinted by the page; none in dark (`--lift`)    | Floating layers only: shell, float, tip, the front dock card    |
+
+Cards, tiles, pictures and marks never lift. In dark, a layer is told from the
+page by its glass, its ring and its blur alone.

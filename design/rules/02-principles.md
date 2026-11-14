@@ -14,8 +14,10 @@
 - **The picture sets the colour.** On film and person pages the accent is the
   _grade_, a colour taken from the artwork. Without a picture it falls back to
   white. Nothing else introduces an accent.
-- **Light, not weight.** Surfaces are 5% fills and 1px rings. Layers are glass.
-  Hierarchy comes from ink steps and type, never from shadows or borders.
+- **Light, not weight.** Surfaces are fills and 1px rings, lit from above
+  (`lit`). Layers are glass; on paper they also lift on a shadow cut from the
+  page's own hue (`lift`). Hierarchy comes from ink steps and type, never
+  from heavy shadows or borders.
 - **One answer to a touch.** Every control reacts in the same two beats: light
   arriving fast, decaying slowly. Consistency is the polish.
 - **One scale.** 5% opacity steps, a 4px corner grid, a golden-ratio time scale.

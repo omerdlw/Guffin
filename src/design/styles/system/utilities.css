@@ -7,46 +7,61 @@
 @utility type-micro {
   font-size: var(--type-micro);
   line-height: var(--tw-leading, var(--type-micro--line-height));
+  letter-spacing: var(--tw-tracking, var(--type-micro--tracking));
+  font-variant-numeric: tabular-nums;
 }
 @utility type-label {
   font-size: var(--type-label);
   line-height: var(--tw-leading, var(--type-label--line-height));
+  letter-spacing: var(--tw-tracking, var(--type-label--tracking));
+  font-variant-numeric: tabular-nums;
 }
 @utility type-meta {
   font-size: var(--type-meta);
   line-height: var(--tw-leading, var(--type-meta--line-height));
+  letter-spacing: var(--tw-tracking, var(--type-meta--tracking));
+  font-variant-numeric: tabular-nums;
 }
 @utility type-control {
   font-size: var(--type-control);
   line-height: var(--tw-leading, var(--type-control--line-height));
+  letter-spacing: var(--tw-tracking, var(--type-control--tracking));
+  font-variant-numeric: tabular-nums;
 }
 @utility type-body {
   font-size: var(--type-body);
   line-height: var(--tw-leading, var(--type-body--line-height));
+  letter-spacing: var(--tw-tracking, var(--type-body--tracking));
 }
 @utility type-copy {
   font-size: var(--type-copy);
   line-height: var(--tw-leading, var(--type-copy--line-height));
+  letter-spacing: var(--tw-tracking, var(--type-copy--tracking));
 }
 @utility type-base {
   font-size: var(--type-base);
   line-height: var(--tw-leading, var(--type-base--line-height));
+  letter-spacing: var(--tw-tracking, var(--type-base--tracking));
 }
 @utility type-prose {
   font-size: var(--type-prose);
   line-height: var(--tw-leading, var(--type-prose--line-height));
+  letter-spacing: var(--tw-tracking, var(--type-prose--tracking));
   @media (width >= 40rem) {
     font-size: var(--type-prose-wide);
     line-height: var(--tw-leading, var(--type-prose-wide--line-height));
+    letter-spacing: var(--tw-tracking, var(--type-prose-wide--tracking));
   }
 }
 @utility type-title {
   font-size: var(--type-title);
   line-height: var(--tw-leading, var(--type-title--line-height));
+  letter-spacing: var(--tw-tracking, var(--type-title--tracking));
 }
 @utility type-heading {
   font-size: var(--type-heading);
   line-height: var(--tw-leading, var(--type-heading--line-height));
+  letter-spacing: var(--tw-tracking, var(--type-heading--tracking));
 }
 @utility type-display-xs {
   font-size: var(--type-display-xs);

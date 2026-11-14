@@ -14,6 +14,12 @@ Tailwind's palette is switched off: every colour is a role.
 | `text-ink-muted` | 50    | Labels, dates, counts, meta, label-sized text actions     |
 | `text-ink-faint` | 30    | Placeholder glyphs in empty frames, separators, numerals  |
 
+Ink is solid, never see-through: each step is the ink mixed into the page in
+OKLab (`color-mix(in oklab, var(--ink) N%, var(--page))`), and the ink itself
+takes a trace of the page's hue (`oklch(from var(--page) …)`). A label then
+reads the same over a fill, glass or a picture, and every step belongs to the
+scene. The values above are dark; light uses 90 / 76 / 58 / 34.
+
 `ink-lead` is never a hover state. `ink-faint` is never a date or a count.
 
 #### Surfaces

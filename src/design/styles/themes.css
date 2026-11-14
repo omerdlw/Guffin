@@ -6,11 +6,14 @@
     --ink-rgb: 252 252 251;
     --page: var(--ambient-shadow, #000);
 
-    --ink: rgb(var(--ink-rgb));
-    --ink-lead: rgb(var(--ink-rgb) / 0.9);
-    --ink-body: rgb(var(--ink-rgb) / 0.7);
-    --ink-muted: rgb(var(--ink-rgb) / 0.5);
-    --ink-faint: rgb(var(--ink-rgb) / 0.3);
+    /* Ink is solid, not see-through: each step is the ink mixed into the
+       page, so a label reads the same over a fill, a glass layer or a
+       picture, and every step carries a breath of the scene's own hue. */
+    --ink: oklch(from var(--page) 0.985 min(c, 0.008) h);
+    --ink-lead: color-mix(in oklab, var(--ink) 90%, var(--page));
+    --ink-body: color-mix(in oklab, var(--ink) 72%, var(--page));
+    --ink-muted: color-mix(in oklab, var(--ink) 54%, var(--page));
+    --ink-faint: color-mix(in oklab, var(--ink) 32%, var(--page));
 
     --fill: rgb(var(--ink-rgb) / 0.05);
     --fill-hover: rgb(var(--ink-rgb) / 0.1);
@@ -27,6 +30,12 @@
     --chosen-edge: rgb(var(--grade, var(--ink-rgb)) / 0.25);
     --chosen-edge-hover: rgb(var(--grade, var(--ink-rgb)) / 0.3);
     --chosen-ink: rgb(var(--grade, var(--ink-rgb)));
+
+    /* Light falls from above: a brighter top edge and a darker foot on
+       every lit surface (`lit`). Dark layers float on glass alone. */
+    --lit: rgb(var(--ink-rgb) / 0.08);
+    --unlit: rgb(0 0 0 / 0.16);
+    --lift: 0 0 #0000;
 
     --glass: color-mix(in srgb, var(--ink) 4%, var(--page));
     --veil: color-mix(in srgb, var(--page) 60%, transparent);
@@ -73,11 +82,11 @@
         clamp(0.012, calc(c * 0.7), 0.045) h
     );
 
-    --ink: rgb(var(--ink-rgb));
-    --ink-lead: rgb(var(--ink-rgb) / 0.9);
-    --ink-body: rgb(var(--ink-rgb) / 0.74);
-    --ink-muted: rgb(var(--ink-rgb) / 0.56);
-    --ink-faint: rgb(var(--ink-rgb) / 0.32);
+    --ink: oklch(from var(--page) 0.19 min(c, 0.02) h);
+    --ink-lead: color-mix(in oklab, var(--ink) 90%, var(--page));
+    --ink-body: color-mix(in oklab, var(--ink) 76%, var(--page));
+    --ink-muted: color-mix(in oklab, var(--ink) 58%, var(--page));
+    --ink-faint: color-mix(in oklab, var(--ink) 34%, var(--page));
 
     --fill: rgb(255 255 255 / 0.45);
     --fill-hover: rgb(255 255 255 / 0.7);
@@ -95,7 +104,21 @@
     --chosen-edge-hover: rgb(var(--ink-rgb) / 0.16);
     --chosen-ink: var(--ink);
 
-    --glass: color-mix(in oklab, #fff 8%, var(--page));
+    --lit: rgb(255 255 255 / 0.85);
+    --unlit: rgb(var(--ink-rgb) / 0.05);
+    /* Floating layers lift off paper on a shadow cut from the page's own
+       hue: a tight contact edge and a long, soft fall. */
+    --lift:
+      0 1px 2px -1px oklch(from var(--page) 0.3 calc(c * 2) h / 0.12),
+      0 18px 40px -14px oklch(from var(--page) 0.32 calc(c * 2.5) h / 0.22);
+
+    /* Dark ink on paper reads thinner than light ink on black: the light
+       theme sets every weight a step heavier so both themes read alike. */
+    --font-weight-normal: 420;
+    --font-weight-medium: 520;
+    --font-weight-semibold: 620;
+
+    --glass: color-mix(in oklab, #fff 78%, var(--page));
     --veil: color-mix(in oklab, var(--page) 60%, transparent);
     --dim: rgb(var(--ink-rgb) / 0.2);
 
@@ -129,5 +152,12 @@
 
   :root[data-theme="light"] .on-photo {
     --page: #0b0c0e;
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+  }
+
+  body {
+    font-weight: var(--font-weight-normal);
   }
 }

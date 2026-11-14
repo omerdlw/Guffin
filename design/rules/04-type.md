@@ -14,7 +14,7 @@ headline ladder and big figures.
 | `type-body`      | 14 / 20                     | The default UI text                          |
 | `type-copy`      | 15 / 24                     | Card titles and excerpts                     |
 | `type-base`      | 16 / 24                     | Larger titles                                |
-| `type-prose`     | 16 / 28 → 17 / 30 from `sm` | Long-form reading (`PROSE_TYPE`)             |
+| `type-prose`     | 16 / 26 → 17 / 28 from `sm` | Long-form reading (`PROSE_TYPE`)             |
 | `type-title`     | 18 / 28                     | Section, list and dialog titles              |
 | `type-heading`   | 24 / 32                     | Page headings and figures inside a layer     |
 | `type-display-*` | 36, 48, 60, 72, 96, 128 / 1 | The Zuume headline ladder, big figures       |
@@ -23,10 +23,19 @@ headline ladder and big figures.
   `leading-3` to `leading-9` (the 4px grid) for a paragraph. `leading-crop`
   (0.8) sets a Zuume figure on its caps. `tight`, `snug`, `relaxed` and
   arbitrary line heights are off.
-- **Tracking:** text sits at 0. Only three roles track: `tracking-label`
+- **Tracking is optical and lives in the step.** Each `type-*` carries its
+  own: small sizes open up (micro +0.02em, label +0.01, meta +0.008, control
+  +0.004), body sits at 0, larger sizes close in (base −0.004, title −0.008,
+  heading −0.014). The display ladder sits at 0. Never add tracking by hand
+  except the three roles: `tracking-label`
   (0.14em, small caps labels), `tracking-tagline` (0.12em, set larger) and
   `tracking-slate` (0.32em, the intermission card).
-- **Weight:** `font-medium`, `font-semibold`, `font-bold`; nothing else.
+- **Weight:** `font-medium`, `font-semibold`, `font-bold`; nothing else. Each
+  theme sets its own value (`--font-weight-*` in `themes.css`): dark ink on
+  paper reads thinner than light ink on black, so light runs 420 / 520 / 620
+  against dark's 400 / 500 / 600. Geist is variable, so these are exact.
+- **Figures:** `micro`, `label`, `meta` and `control` set `tabular-nums`, so
+  counts and times keep their width as they change.
 - **Labels:** `TONE.label` is `type-label`, semibold, `tracking-label`,
   uppercase. Every small caps label uses it. A label set at `type-micro` (a
   badge, the reticle) adds `tracking-label` itself. Centred ones pull back with

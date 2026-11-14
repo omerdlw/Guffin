@@ -180,7 +180,7 @@ export const dockThemeConfig = defineTheme(dockTheme, {
     backdrop: `fixed inset-0 cursor-pointer ${BACKDROP}`,
 
     card: [
-      `group @container absolute h-auto w-full overflow-hidden rounded-shell p-2.5 cursor-pointer bg-glass/70 ring-1 ring-edge-hover ring-inset data-[placement=top]:backdrop-blur-md data-[placement=top]:backdrop-saturate-150`,
+      `group @container absolute h-auto w-full overflow-hidden rounded-shell p-2.5 cursor-pointer lit data-[placement=top]:lift bg-glass/70 ring-1 ring-edge-hover ring-inset data-[placement=top]:backdrop-blur-md data-[placement=top]:backdrop-saturate-150`,
       "data-[blur=heavy]:[#dock-card-stack[data-controls-hidden=true]_&]:backdrop-blur-md data-[blur=heavy]:[#dock-card-stack[data-controls-hidden=true]_&]:backdrop-saturate-150",
       "data-[anchored=true]:cursor-default data-[shelf=true]:px-[6.5px] data-[shelf=true]:py-0",
       "data-[placement=top]:inset-0 data-[placement=top]:h-full data-[placement=bottom]:bottom-0 data-[placement=float]:top-0 data-[placement=float]:[#dock-card-stack[data-controls-hidden=false]_&]:h-full",
