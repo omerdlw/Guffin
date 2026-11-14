@@ -177,12 +177,12 @@ const segmentedSegment = defineRecipe({
 });
 
 const segmentedPill = defineRecipe({
-  base: "inset-y-0.5 bg-accent/15",
+  base: "inset-y-0.5 bg-chosen",
   variants: { shape: { pill: "rounded-full", card: "rounded-tile" } },
   defaultVariants: { shape: "pill" },
 });
 
-const segmentedChosen = defineRecipe({ base: "bg-accent/15" });
+const segmentedChosen = defineRecipe({ base: "bg-chosen" });
 
 const segmentedIcon = defineRecipe({
   base: "center",

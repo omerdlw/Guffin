@@ -4,7 +4,7 @@ export const TONES = {
   outline:
     "ui-iris bg-transparent text-ink-body ring-1 ring-edge-hover ring-inset hover:text-ink hover:ring-edge-focus focus-visible:text-ink focus-visible:ring-edge-focus",
   chosen:
-    "bg-accent/15 text-accent ring-1 ring-accent/25 ring-inset hover:bg-accent/20 hover:ring-accent/30 focus-visible:bg-accent/20 focus-visible:ring-accent/30",
+    "bg-chosen text-chosen-ink ring-1 ring-chosen-edge ring-inset hover:bg-chosen-hover hover:ring-chosen-edge-hover focus-visible:bg-chosen-hover focus-visible:ring-chosen-edge-hover",
   primary:
     "ui-sheen bg-primary text-on-primary ring-1 ring-primary ring-inset [--sheen-ink:var(--sheen-primary)] [--sheen:0.1] hover:bg-primary-hover focus-visible:bg-primary-hover",
   danger:

@@ -22,6 +22,12 @@
     --line: rgb(var(--ink-rgb) / 0.1);
     --plate: color-mix(in srgb, var(--ink) 5%, var(--page));
 
+    --chosen: rgb(var(--grade, var(--ink-rgb)) / 0.15);
+    --chosen-hover: rgb(var(--grade, var(--ink-rgb)) / 0.2);
+    --chosen-edge: rgb(var(--grade, var(--ink-rgb)) / 0.25);
+    --chosen-edge-hover: rgb(var(--grade, var(--ink-rgb)) / 0.3);
+    --chosen-ink: rgb(var(--grade, var(--ink-rgb)));
+
     --glass: color-mix(in srgb, var(--ink) 4%, var(--page));
     --veil: color-mix(in srgb, var(--page) 60%, transparent);
     --dim: color-mix(in srgb, var(--page) 30%, transparent);
@@ -73,15 +79,21 @@
     --ink-muted: rgb(var(--ink-rgb) / 0.56);
     --ink-faint: rgb(var(--ink-rgb) / 0.32);
 
-    --fill: rgb(var(--ink-rgb) / 0.04);
-    --fill-hover: rgb(var(--ink-rgb) / 0.07);
-    --fill-active: rgb(var(--ink-rgb) / 0.1);
+    --fill: rgb(255 255 255 / 0.45);
+    --fill-hover: rgb(255 255 255 / 0.7);
+    --fill-active: rgb(255 255 255 / 0.9);
     --edge: rgb(var(--ink-rgb) / 0.08);
     --edge-hover: rgb(var(--ink-rgb) / 0.12);
     --edge-focus: rgb(var(--ink-rgb) / 0.2);
     --rule: rgb(var(--ink-rgb) / 0.08);
     --line: rgb(var(--ink-rgb) / 0.12);
     --plate: color-mix(in oklab, #fff 70%, var(--page));
+
+    --chosen: #fff;
+    --chosen-hover: #fff;
+    --chosen-edge: rgb(var(--ink-rgb) / 0.12);
+    --chosen-edge-hover: rgb(var(--ink-rgb) / 0.16);
+    --chosen-ink: var(--ink);
 
     --glass: color-mix(in oklab, #fff 8%, var(--page));
     --veil: color-mix(in oklab, var(--page) 60%, transparent);

@@ -81,6 +81,12 @@
   --color-line: var(--line);
   --color-plate: var(--plate);
 
+  --color-chosen: var(--chosen);
+  --color-chosen-hover: var(--chosen-hover);
+  --color-chosen-edge: var(--chosen-edge);
+  --color-chosen-edge-hover: var(--chosen-edge-hover);
+  --color-chosen-ink: var(--chosen-ink);
+
   --color-glass: var(--glass);
   --color-veil: var(--veil);
   --color-dim: var(--dim);

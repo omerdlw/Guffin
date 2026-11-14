@@ -18,22 +18,22 @@ Tailwind's palette is switched off: every colour is a role.
 
 #### Surfaces
 
-| Token                             | Value       | Role                                             |
-| --------------------------------- | ----------- | ------------------------------------------------ |
-| `bg-fill` / `-hover` / `-active`  | 5 / 10 / 15 | A surface at rest, hovered, chosen               |
-| `ring-edge` / `-hover` / `-focus` | 5 / 10 / 15 | Its inset ring, in the same states               |
-| `bg-rule`, `divide-rule`          | 5           | Dividers between rows                            |
-| `bg-line`                         | 10          | Tracks, axes, a timeline spine                   |
-| `bg-plate`                        | 5, opaque   | `fill` made solid, for a frame laid over another |
+| Token                             | Value       | Role                                                           |
+| --------------------------------- | ----------- | -------------------------------------------------------------- |
+| `bg-fill` / `-hover` / `-active`  | 5 / 10 / 15 | A surface at rest, hovered, chosen (light: white 45 / 70 / 90) |
+| `ring-edge` / `-hover` / `-focus` | 5 / 10 / 15 | Its inset ring, in the same states                             |
+| `bg-rule`, `divide-rule`          | 5           | Dividers between rows                                          |
+| `bg-line`                         | 10          | Tracks, axes, a timeline spine                                 |
+| `bg-plate`                        | 5, opaque   | `fill` made solid, for a frame laid over another               |
 
 #### Grade: the colour taken from the picture
 
-| Use                         | Value                                        |
-| --------------------------- | -------------------------------------------- |
-| Chosen control              | `bg-grade/15 ring-grade/25`, hover `20 / 30` |
-| Header rule                 | `bg-grade/20` drawn, `bg-grade/40` hairline  |
-| Focus outline, section icon | 40, 85                                       |
-| Text selection              | 30                                           |
+| Use                         | Value                                                                                                                                                                                  |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Chosen control              | `TONE.chosen` (`bg-chosen ring-chosen-edge text-chosen-ink`): dark `grade/15 ring grade/25`, hover `20 / 30`; light a white sheet, ink text, `ink/12` ring (a segmented pill: no ring) |
+| Header rule                 | `bg-grade/20` drawn, `bg-grade/40` hairline                                                                                                                                            |
+| Focus outline, section icon | 40, 85                                                                                                                                                                                 |
+| Text selection              | 30                                                                                                                                                                                     |
 
 Without a grade (no picture behind), the focus outline is 20% white.
 
