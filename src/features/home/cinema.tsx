@@ -1,7 +1,7 @@
 "use client";
 
 import { type JSX, useState } from "react";
-import { SegmentedControl } from "@omerdlw/base-framework/ui";
+import { SegmentedControl } from "@/design/components/segmented-control";
 import { Carousel } from "@/design/components/carousel";
 import { RADIUS } from "@/design/foundations/geometry";
 import { TONE } from "@/design/foundations/tones";

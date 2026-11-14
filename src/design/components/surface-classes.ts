@@ -1,3 +1,4 @@
+import { WELL, WELL_HOVER } from "@/design/foundations/tones";
 import { type VariantProps, variants } from "@/design/foundations/variants";
 
 export const SURFACE_STACK = "flex w-full flex-col gap-2.5";
@@ -8,7 +9,7 @@ export const SURFACE_TEXT =
   "flex min-w-0 flex-1 flex-col justify-center text-left";
 export const SURFACE_TITLE = "truncate type-body font-semibold text-ink";
 export const SURFACE_META = "truncate type-meta text-ink-muted";
-export const SURFACE_PANEL = "rounded-card bg-fill";
+export const SURFACE_PANEL = `rounded-card ${WELL}`;
 export const SURFACE_SCROLL =
   "overflow-y-auto overscroll-contain rounded-card [clip-path:inset(0_round_var(--radius-card))] scrollbar-none";
 
@@ -22,7 +23,7 @@ export const rowVariants = variants(
   {
     variants: {
       intent: {
-        neutral: "bg-fill text-ink-body hover:text-ink focus-visible:text-ink",
+        neutral: `${WELL} text-ink-body hover:text-ink focus-visible:text-ink`,
         chosen:
           "bg-grade/15 text-grade ring-1 ring-grade/25 ring-inset hover:ring-grade/30 focus-visible:ring-grade/30",
       },
@@ -31,11 +32,11 @@ export const rowVariants = variants(
   },
 );
 
-export const tileVariants = variants([TILE, "bg-fill"], {
+export const tileVariants = variants([TILE, WELL], {
   variants: {
     interactive: {
       false: "",
-      true: "hover:bg-fill-hover focus-visible:bg-fill-hover",
+      true: WELL_HOVER,
     },
   },
   defaultVariants: { interactive: false },

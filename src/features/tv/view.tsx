@@ -451,6 +451,10 @@ export async function ShowPageContent({
     { id: show.id, mediaType: "tv" },
   );
   const backdrops = getGalleryImages(show.images);
+  // The opening's reel: text-free stills only, so no title fights the name.
+  const frames = backdrops
+    .filter((image) => !image.language)
+    .map((image) => image.filePath);
   const posters = getPosterImages(show.images);
   const { regular, seasons, watchedBySeason } = seasonShelf(show, tracking);
   const stills = await getSeasonStills(show.id, seasons, isAiring(show.status));
@@ -463,7 +467,11 @@ export async function ShowPageContent({
           <ReelProvider>
             <MovieStage movie={show}>
               <DetailReviewsLayout
-                backdrop={backdrop ? <MovieBackdropHero movie={show} /> : null}
+                backdrop={
+                  backdrop ? (
+                    <MovieBackdropHero frames={frames} movie={show} />
+                  ) : null
+                }
                 className="movie-page"
                 header={
                   <MediaReviewsHeader
@@ -498,7 +506,11 @@ export async function ShowPageContent({
           <MovieStage movie={show}>
             <DetailLayout
               after={<MovieReviewDigest movieId={show.id} title={show.title} />}
-              backdrop={backdrop ? <MovieBackdropHero movie={show} /> : null}
+              backdrop={
+                backdrop ? (
+                  <MovieBackdropHero frames={frames} movie={show} />
+                ) : null
+              }
               className="movie-page"
               header={<ShowHeader show={show} stats={stats} />}
               intermission={<MovieProjection movie={show} />}

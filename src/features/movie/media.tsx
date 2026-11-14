@@ -81,7 +81,14 @@ function Slate({ title }: { title: string }) {
   );
 }
 
-export function MovieBackdropHero({ movie }: { movie: MovieArtwork }) {
+export function MovieBackdropHero({
+  frames,
+  movie,
+}: {
+  // Gallery backdrops (TMDB paths) for the opening's reel.
+  frames?: readonly string[];
+  movie: MovieArtwork;
+}) {
   const kind = useMediaType();
   const path = useArtworkPath(kind, movie.id, "backdrop", movie.backdropPath);
   const { reel } = useReel();
@@ -90,7 +97,12 @@ export function MovieBackdropHero({ movie }: { movie: MovieArtwork }) {
   if (!image) return null;
 
   return (
-    <DetailBackdrop src={image} still={still} title={movie.title}>
+    <DetailBackdrop
+      frames={frames}
+      src={image}
+      still={still}
+      title={movie.title}
+    >
       <Slate title={movie.title} />
     </DetailBackdrop>
   );

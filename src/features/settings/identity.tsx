@@ -2,7 +2,8 @@
 
 import { type ReactNode, useActionState, useEffect, useState } from "react";
 import { useToast } from "@omerdlw/base-framework/notification";
-import { Button, Image, Switch, Textarea } from "@omerdlw/base-framework/ui";
+import { Button, Image, Textarea } from "@omerdlw/base-framework/ui";
+import { Switch } from "@/design/components/switch";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/design/components/icon";
 import { Input } from "@/design/components/input";

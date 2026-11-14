@@ -12,6 +12,7 @@ import { ExternalLink } from "@/design/components/link";
 import { MediaCard } from "@/design/components/media-card";
 import { SurfaceSegmentedControl } from "@/design/components/segmented-control";
 import { Select } from "@/design/components/select";
+import { WELL, WELL_HOVER } from "@/design/foundations/tones";
 import {
   SurfacePart,
   SurfaceStage,
@@ -317,8 +318,7 @@ function WatchProvidersSurface({
                 classNames={{
                   content: "static mt-0 max-h-52 rounded-card p-1.5",
                   option: "rounded-inset",
-                  trigger:
-                    "h-10 rounded-card px-4 py-0 ring-edge hover:ring-edge-hover focus-visible:ring-edge-focus",
+                  trigger: `h-10 rounded-card px-4 py-0 ring-transparent ${WELL} ${WELL_HOVER}`,
                 }}
                 onChange={setChosenRegion}
                 options={codes.map((code) => ({

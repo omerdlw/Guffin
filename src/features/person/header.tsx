@@ -251,14 +251,19 @@ export function PersonPortrait({
 
 export function PersonBackdropHero({
   fallback,
+  frames,
   person,
 }: {
   fallback: string | null;
+  // Backdrops of the person's best-known titles, for the opening's reel.
+  frames?: readonly string[];
   person: Pick<PersonDetails, "id" | "name">;
 }) {
   const path = useArtworkPath("person", person.id, "backdrop", fallback);
   const image = tmdbImageUrl("backdrop", path, "original");
-  return image ? <DetailBackdrop src={image} title={person.name} /> : null;
+  return image ? (
+    <DetailBackdrop frames={frames} src={image} title={person.name} />
+  ) : null;
 }
 
 export function PersonPageChrome({

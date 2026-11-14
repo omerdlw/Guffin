@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useModal } from "@omerdlw/base-framework/modal";
-import { SegmentedControl } from "@omerdlw/base-framework/ui";
+import { SegmentedControl } from "@/design/components/segmented-control";
 import { Carousel } from "@/design/components/carousel";
 import { Icon } from "@/design/components/icon";
 import {

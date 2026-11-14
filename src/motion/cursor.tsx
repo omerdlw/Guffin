@@ -16,7 +16,15 @@ interface CursorSpring {
 const spring = (x = 0): CursorSpring => ({ v: 0, x });
 
 type CursorMode =
-  "action" | "card" | "drag" | "frame" | "idle" | "none" | "text" | "wrap";
+  | "action"
+  | "card"
+  | "drag"
+  | "frame"
+  | "idle"
+  | "none"
+  | "point"
+  | "text"
+  | "wrap";
 
 interface CursorReading {
   corner?: number;
@@ -112,6 +120,18 @@ const CURSOR_SHAPES: Record<Exclude<CursorMode, "none">, CursorShape> = {
     r: 17,
     solid: 0,
     w: 34,
+  },
+  // Only the dot: over a control whose own thumb is the glass.
+  point: {
+    bracket: 0,
+    caption: 0,
+    dot: 1,
+    glass: 0,
+    h: 0,
+    label: 0,
+    r: 0,
+    solid: 0,
+    w: 0,
   },
   text: {
     bracket: 0,
@@ -223,11 +243,23 @@ function layerOf(from: Element): HTMLElement | null {
   return null;
 }
 
-const FOLLOW = tune(190, 0.9);
-const GRIP = tune(360, 0.96);
+// Travel never overshoots: an underdamped spring overshoots by a share of the
+// distance, so a pane landing on (or leaving) a wide row would lurch tens of
+// px. The wobble comes from the stretch alone, which is bounded in px.
+const FOLLOW = tune(210, 0.92);
+const GRIP = tune(340, 1);
 const HUNT = tune(130, 0.78);
 const FADE = tune(170, 1);
-const PRESS = tune(420, 0.62);
+const PRESS = tune(380, 0.38);
+/** The drop's stretch: loose, so it wobbles once it stops. */
+const JELLY = tune(170, 0.2);
+/** The drop is absorbed into a pane (and condenses out of one) quickly. */
+const ABSORB = tune(520, 1);
+/** How hard a pane wobbles when it lands on a control. */
+const LANDING_KICK = 1.4;
+/** The stretch at full strength fits a drop this size (px); larger shapes
+ * stretch the same few px, not the same share of their size. */
+const CURSOR_GIVE = 40;
 
 const inks = new WeakMap<HTMLElement, CursorInk>();
 let ruler: CanvasRenderingContext2D | null = null;
@@ -377,6 +409,9 @@ function read(x: number, y: number): CursorReading {
 function Reticle() {
   const root = useRef<HTMLDivElement>(null);
   const body = useRef<HTMLDivElement>(null);
+  const bead = useRef<HTMLSpanElement>(null);
+  const sheet = useRef<HTMLSpanElement>(null);
+  const caret = useRef<HTMLSpanElement>(null);
   const dot = useRef<HTMLDivElement>(null);
   const words = useRef<HTMLSpanElement>(null);
   const brackets = useRef<HTMLSpanElement>(null);
@@ -393,7 +428,11 @@ function Reticle() {
     const caption = slate.current;
     const name = slateName.current;
     const year = slateYear.current;
+    const drop = bead.current;
+    const pane = sheet.current;
+    const bar = caret.current;
     if (!host || !lens || !pin || !text || !corners) return;
+    if (!drop || !pane || !bar) return;
     if (!caption || !name || !year) return;
 
     const html = document.documentElement;
@@ -418,6 +457,7 @@ function Reticle() {
       solid: spring(),
     };
     const press = spring(1);
+    const stretch = spring();
     const slide = spring();
     let slateWidth = 0;
 
@@ -453,6 +493,7 @@ function Reticle() {
       track.append(word);
     };
     let dirty = true;
+    let landing = false;
     let pressed = false;
     let landed = false;
     let leaving = 0;
@@ -470,15 +511,7 @@ function Reticle() {
     const put = (
       element: HTMLElement,
       key: string,
-      property:
-        | "background"
-        | "borderRadius"
-        | "boxShadow"
-        | "color"
-        | "height"
-        | "opacity"
-        | "transform"
-        | "width",
+      property: "borderRadius" | "height" | "opacity" | "transform" | "width",
       value: string,
     ) => {
       if (written.get(key) === value) return;
@@ -518,6 +551,8 @@ function Reticle() {
       }
       leaving = 0;
       dirty = false;
+      if (next.target !== reading.target && next.mode === "action")
+        landing = true;
       reading = next;
       if (next.mode === "card") slating = next.label;
       else if (next.label !== shown) {
@@ -650,13 +685,25 @@ function Reticle() {
       );
       if (weights.caption.x < 0.06) slide.x = centred;
 
+      const flowing = Math.hypot(
+        (edge.l.v + edge.r.v) / 2,
+        (edge.t.v + edge.b.v) / 2,
+      );
+      const smear =
+        unitClamp(flowing / 1800) * 0.62 * unitClamp(weights.bead.x);
+      if (landing) {
+        landing = false;
+        // A big pane wobbles less than a small one.
+        stretch.v += LANDING_KICK * unitClamp(80 / Math.max(tw, th, 1));
+      }
+
       const goals: [CursorSpring, number, SpringTune][] = [
         [edge.l, cx - tw / 2, travel],
         [edge.r, cx + tw / 2, travel],
         [edge.t, cy - th / 2, travel],
         [edge.b, cy + th / 2, travel],
         [radius, tr, travel],
-        [weights.bead, mode === "idle" ? 1 : 0, FADE],
+        [weights.bead, mode === "idle" ? 1 : 0, ABSORB],
         [weights.bracket, shape.bracket, FADE],
         [weights.caption, shape.caption, FADE],
         [weights.dot, shape.dot, FADE],
@@ -666,6 +713,7 @@ function Reticle() {
         [weights.presence, hidden ? 0 : 1, FADE],
         [press, pressed ? 1 - Math.min(inset, 0.14) : 1, PRESS],
         [slide, centred, FADE],
+        [stretch, smear, JELLY],
       ];
       owed += elapsed;
       while (owed >= CURSOR_STEP) {
@@ -685,14 +733,14 @@ function Reticle() {
         heading = { x: hx / norm, y: hy / norm };
       }
       const angle = Math.atan2(heading.y, heading.x);
-      const smear = unitClamp(flow / 2600) * 0.42 * unitClamp(weights.bead.x);
-      const along = 1 + smear;
+      const give = Math.min(1, CURSOR_GIVE / Math.max(width, height, 1));
+      const along = Math.min(Math.max(1 + stretch.x * give, 0.7), 1.8);
       const across = 1 / along;
 
       const presence = unitClamp(weights.presence.x);
       const solid = unitClamp(weights.solid.x);
       const glass = unitClamp(weights.glass.x);
-      const ink = Math.round(255 * (1 - solid));
+      const beaded = unitClamp(weights.bead.x);
       const scale = Math.max(press.x, 0);
 
       const fine = (n: number) => n.toFixed(3);
@@ -711,18 +759,17 @@ function Reticle() {
         "transform",
         `translate3d(${edge.l.x.toFixed(2)}px, ${edge.t.x.toFixed(2)}px, 0) rotate(${fine(angle)}rad) scale(${fine(along * scale)}, ${fine(across * scale)}) rotate(${fine(-angle)}rad)`,
       );
+      // Absorbed, not faded: the drop shrinks into the pane as it goes, so
+      // it never lies over the label it points at.
+      put(drop, "drop", "opacity", fine(beaded * beaded));
       put(
-        lens,
-        "fill",
-        "background",
-        `rgb(255 255 255 / ${fine(glass * 0.035 * (1 - solid) + solid * 0.94)})`,
+        drop,
+        "absorb",
+        "transform",
+        `translate(-50%, -50%) scale(${fine(0.3 + 0.7 * beaded)})`,
       );
-      put(
-        lens,
-        "shadow",
-        "boxShadow",
-        `inset 0 0 0 1px rgb(255 255 255 / ${fine(glass * 0.3 * (1 - solid))}), 0 0 0 1px rgb(0 0 0 / ${fine((glass + solid) * 0.12)})`,
-      );
+      put(pane, "pane", "opacity", fine(glass * (1 - beaded) * (1 - solid)));
+      put(bar, "caret", "opacity", fine(solid));
       put(corners, "brackets", "opacity", fine(unitClamp(weights.bracket.x)));
       put(
         corners,
@@ -733,7 +780,6 @@ function Reticle() {
       put(text, "label", "opacity", fine(unitClamp(weights.label.x)));
       put(caption, "caption", "opacity", fine(unitClamp(weights.caption.x)));
       put(caption, "slide", "transform", `translateX(${slide.x.toFixed(2)}px)`);
-      put(text, "ink", "color", `rgb(${ink} ${ink} ${ink})`);
       put(
         pin,
         "pin",
@@ -804,7 +850,8 @@ function Reticle() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none fixed inset-0 overflow-hidden opacity-0 [@media(hover:none),(pointer:coarse)]:hidden"
+      data-reticle=""
+      className="pointer-events-none fixed inset-0 [--liquid-drop:0_1px_3px_rgb(0_0_0/0.2),0_6px_16px_-6px_rgb(0_0_0/0.3)] overflow-hidden opacity-0 [@media(hover:none),(pointer:coarse)]:hidden"
       ref={root}
       style={{ zIndex: Z_INDEX.TOOLTIP + 20 }}
     >
@@ -812,6 +859,23 @@ function Reticle() {
         className="absolute top-0 left-0 flex items-center justify-center will-change-transform"
         ref={body}
       >
+        {/* Idle: a drop of clear glass that bends what lies under it. */}
+        <span
+          className="liquid liquid-clear absolute [--liquid-tint:rgb(255_255_255/0.03)] top-1/2 left-1/2 size-[34px] rounded-full"
+          ref={bead}
+          style={{ transform: "translate(-50%, -50%)" }}
+        />
+        {/* Over a control: the drop spreads into a pane hugging it. */}
+        <span
+          className="liquid liquid-fluid absolute inset-0 rounded-[inherit] [--liquid-tint:rgb(var(--ink-rgb)/0.05)]"
+          ref={sheet}
+          style={{ opacity: 0 }}
+        />
+        <span
+          className="absolute inset-0 rounded-[inherit] bg-ink"
+          ref={caret}
+          style={{ opacity: 0 }}
+        />
         <span
           className="absolute -inset-px"
           ref={brackets}
@@ -823,7 +887,7 @@ function Reticle() {
           <i className="absolute right-0 bottom-0 size-3.5 rounded-br-mark border-r-[1.5px] border-b-[1.5px] border-ink-lead" />
         </span>
         <span
-          className="tabular-nums type-micro leading-none font-bold tracking-label whitespace-nowrap uppercase"
+          className="relative tabular-nums type-micro leading-none font-bold tracking-label whitespace-nowrap text-ink uppercase"
           ref={words}
           style={{ opacity: 0 }}
         />

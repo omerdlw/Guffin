@@ -201,7 +201,15 @@ export async function SeasonPageContent({
             >
               <DetailLayout
                 backdrop={
-                  picture ? <DetailBackdrop src={picture} title={name} /> : null
+                  picture ? (
+                    <DetailBackdrop
+                      frames={season.episodes.flatMap((episode) =>
+                        episode.stillPath ? [episode.stillPath] : [],
+                      )}
+                      src={picture}
+                      title={name}
+                    />
+                  ) : null
                 }
                 className="movie-page"
                 header={

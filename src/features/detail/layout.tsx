@@ -102,9 +102,9 @@ function FactNames({
               text
             )}
             {at < visible.length - 1 ? (
-              <DetailPart as="span" index={index} name="value">
-                {", "}
-              </DetailPart>
+              <>
+                <DetailExpose index={index} part="value" text="," />{" "}
+              </>
             ) : null}
           </span>
         );
@@ -115,14 +115,12 @@ function FactNames({
           text={hidden.map((name) => name.text).join(", ")}
           triggerClassName="ml-1.5 inline-block cursor-help"
         >
-          <DetailPart
-            as="span"
-            className="inline-block type-meta font-bold text-ink-body"
+          <DetailExpose
+            className="type-meta font-bold text-ink-body"
             index={index}
-            name="value"
-          >
-            +{hidden.length}
-          </DetailPart>
+            part="value"
+            text={`+${hidden.length}`}
+          />
         </Tooltip>
       ) : null}
     </>

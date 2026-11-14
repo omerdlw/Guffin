@@ -1,0 +1,65 @@
+/* The dock's motion that tokens can't reach. Everything else it does is timed
+   in design/theme/dock-motion.ts, on the same φ beats and curves:
+   settle cubic-bezier(0.236, 1, 0.382, 1), touch (0.146, 1, 0.382, 1).
+
+   Only individual transform properties (translate, scale) move here, so they
+   compose with the transform the framework animates inline instead of
+   fighting it. Nothing fades the stack itself: an ancestor at partial
+   opacity would cut the cards' frost off from the page behind them. */
+
+@layer components {
+  @media (prefers-reduced-motion: no-preference) {
+    /* Arrival: the dock rises from below the frame and settles, a beat
+       after the page starts. */
+    @keyframes dock-arrive {
+      from {
+        translate: 0 calc(100% + 34px);
+        scale: 0.94;
+      }
+    }
+
+    .dock-root {
+      animation: dock-arrive 1.618s cubic-bezier(0.236, 1, 0.382, 1) 0.382s
+        backwards;
+    }
+
+    /* The deck folds: a card leaving the open stack stays drawn until it
+       has slid home and faded (card transition, 0.618s), then stops painting.
+       Only when the stack is shutting: a card pushed back by a surface goes
+       at once, or its empty glass would hang over the surface. */
+    #dock-card-stack[data-controls-hidden="false"]
+      > .dock-card[data-ghost="true"],
+    #dock-card-stack:has(> .dock-card[data-anchored="true"])
+      > .dock-card[data-ghost="true"] {
+      transition: visibility 0s linear 0.618s;
+    }
+
+    /* A surface closing: the shelf above it is let go while the surface's
+       card still stands (anchored). It tucks back and fades like any card
+       folding home, instead of vanishing in one frame and cutting a step
+       out of the dock's outline. Its bar leaves at once, so it keeps the
+       shelf's height: an empty card would shrink to a sliver adrift above
+       the dock. */
+    #dock-card-stack:has(> .dock-card[data-anchored="true"])
+      > .dock-card[data-ghost="true"] {
+      min-height: var(--spacing-dock-shelf);
+    }
+
+    /* Touch: every control in the dock warms and cools instead of snapping. */
+    .dock-root :is(button, a[href]) {
+      transition:
+        color 0.236s cubic-bezier(0.236, 1, 0.382, 1),
+        background-color 0.236s cubic-bezier(0.236, 1, 0.382, 1),
+        box-shadow 0.236s cubic-bezier(0.236, 1, 0.382, 1);
+    }
+
+    .dock-root .ui-iris::before,
+    .dock-root .ui-fade {
+      transition: opacity 0.236s cubic-bezier(0.236, 1, 0.382, 1);
+    }
+  }
+
+  .dock-card[data-ghost="true"] {
+    visibility: hidden;
+  }
+}

@@ -32,4 +32,7 @@
   --spacing-fib-5: 2.125rem;
   --spacing-fib-6: 3.4375rem;
   --spacing-fib-7: 5.5625rem;
+
+  /* The dock's extension shelf (theme/dock.ts; styles/dock.css). */
+  --spacing-dock-shelf: 96px;
 }

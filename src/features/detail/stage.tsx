@@ -17,6 +17,7 @@ import { BOTTOM_COVER, SIDE_COVER } from "@/design/components/backdrop";
 import { MAIN_COLUMN_CLASS, VIEW_CLASS } from "@/design/foundations/layout";
 import { cn } from "@/design/ui";
 import { Room } from "@/design/components/room";
+import { tmdbImageUrl } from "@/lib/tmdb/shared";
 import { bezier } from "@/motion/curve";
 import { Marquee } from "@/motion/marquee";
 import { clamp } from "@/motion/math";
@@ -61,6 +62,9 @@ const BACKDROP_POSITION = "center 20%";
 const BACKDROP_FOCUS = [0.5, 0.2] as const;
 
 const CARD_IMAGE_PATH = "/t/p/w1280/";
+
+// The opening's reel flicks past at a glance: a mid size loads fast.
+const FRAME_IMAGE_SIZE = "w780";
 
 const defocusAt = (y: number) =>
   DEFOCUS(
@@ -243,15 +247,25 @@ export function BackdropProjection({
 
 export function DetailBackdrop({
   children,
+  frames,
   src,
   still = null,
   title,
 }: {
   children?: ReactNode;
+  // Gallery pictures (TMDB paths) for the opening's reel behind the name.
+  frames?: readonly string[];
   src: string;
   still?: string | null;
   title?: string;
 }) {
+  const reel = useMemo(
+    () =>
+      frames
+        ?.map((path) => tmdbImageUrl("backdrop", path, FRAME_IMAGE_SIZE))
+        .filter((url): url is string => Boolean(url)),
+    [frames],
+  );
   const [ready, setReady] = useState(false);
   // The name plays first, as a curtain: the page's opening waits for it to
   // start leaving (the stage holds `data-play` while a curtain is down).
@@ -284,6 +298,7 @@ export function DetailBackdrop({
           className="font-zuume"
           edges={BACKDROP_EDGES}
           focus={BACKDROP_FOCUS}
+          frames={reel}
           onLift={() => lift(true)}
           quiet={ready}
           src={toCardImage(src)}

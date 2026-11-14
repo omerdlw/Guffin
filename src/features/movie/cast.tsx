@@ -2,11 +2,13 @@
 
 import { type CSSProperties, Suspense, use, useState } from "react";
 import { useModal } from "@omerdlw/base-framework/modal";
-import { Button, Image, SegmentedControl } from "@omerdlw/base-framework/ui";
+import { Button, Image } from "@omerdlw/base-framework/ui";
+import { SegmentedControl } from "@/design/components/segmented-control";
 import { Icon } from "@/design/components/icon";
 import { DockLink } from "@/design/components/link";
 import { MediaCard } from "@/design/components/media-card";
-import { RADIUS } from "@/design/foundations/geometry";
+import { nested, RADIUS } from "@/design/foundations/geometry";
+import { TONE } from "@/design/foundations/tones";
 import { cn } from "@/design/ui";
 import { useArtworkPath } from "@/features/artwork/artwork";
 import { Heading } from "@/features/detail/layout";
@@ -45,7 +47,7 @@ function compactCells(count: number, hasMore: boolean): CSSProperties {
   } as CSSProperties;
 }
 
-// The fan's leaves beside the portrait, innermost first.
+// The fan's leaves, innermost first.
 const FAN = [
   { side: "l", at: 1 },
   { side: "r", at: 1 },
@@ -77,8 +79,8 @@ function KnownForLeaves({
       <Image
         alt=""
         className="object-cover"
-        sizes="120px"
-        src={tmdbImageUrl("poster", title.posterPath, "w185")}
+        sizes="40px"
+        src={tmdbImageUrl("poster", title.posterPath, "w92")}
       />
     </DockLink>
   ));
@@ -101,62 +103,57 @@ function CastCard({
     "poster",
     person.profilePath,
   );
-  const src = tmdbImageUrl("profile", photoPath, "h632");
+  const src = tmdbImageUrl("profile", photoPath, "w185");
   const href = personHref(person.id);
 
   return (
-    <div className={cast.card}>
-      <div className={cast.folder} data-slot="folder">
-        <div className={cast.deck} data-slot="deck">
-          {knownFor ? (
-            <Suspense fallback={null}>
-              <KnownForLeaves
-                knownFor={knownFor}
-                personId={person.id}
-                tab={tab}
-              />
-            </Suspense>
-          ) : null}
-          <div className={cast.leaf} data-at="0" data-slot="leaf">
-            <MediaCard
-              aspect="free"
-              data-cursor="idle"
-              fallbackIcon="solar:user-bold"
-              fallbackIconSize={24}
-              frameClassName="h-full w-full"
-              href={href}
-              image={{ sizes: "(min-width: 640px) 140px, 36vw", src }}
-              label={`${person.name}, ${person.subtitle}`}
-              radius="0.5rem"
-            />
-          </div>
-        </div>
-      </div>
+    <div className={cn(cast.card, "rounded-panel", TONE.surface)}>
       <DockLink
-        aria-hidden="true"
-        className={cast.flap}
+        aria-label={`${person.name}, ${person.subtitle}`}
+        className="flex items-center gap-3 p-1.5 pr-[6.5rem]"
         data-cursor="card"
-        data-slot="flap"
         href={href}
-        tabIndex={-1}
       >
-        <DetailExpose
-          as="div"
-          className="max-w-full truncate type-base font-semibold text-ink-lead"
-          index={index}
-          part="credit"
-          text={person.name}
-          truncate
+        <MediaCard
+          aspect="free"
+          className="shrink-0"
+          fallbackIcon="solar:user-bold"
+          fallbackIconSize={20}
+          frameClassName="h-[84px] w-14"
+          framed={false}
+          image={{ sizes: "56px", src }}
+          radius={nested(RADIUS.panel, 6)}
         />
-        <DetailExpose
-          as="div"
-          className="max-w-full truncate type-meta font-medium tracking-tagline text-ink-muted uppercase"
-          index={index}
-          part="credit"
-          text={person.subtitle}
-          truncate
-        />
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <DetailExpose
+            as="div"
+            className="max-w-full truncate type-base font-semibold text-ink-lead"
+            index={index}
+            part="credit"
+            text={person.name}
+            truncate
+          />
+          <DetailExpose
+            as="div"
+            className="max-w-full truncate type-meta font-medium tracking-tagline text-ink-muted uppercase"
+            index={index}
+            part="credit"
+            text={person.subtitle}
+            truncate
+          />
+        </div>
       </DockLink>
+      {knownFor ? (
+        <div aria-hidden="true" className={cast.deck}>
+          <Suspense fallback={null}>
+            <KnownForLeaves
+              knownFor={knownFor}
+              personId={person.id}
+              tab={tab}
+            />
+          </Suspense>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -206,11 +203,11 @@ export function MoviePeople({
         intro="casting"
         now={now}
       >
-        <ul className="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2">
+        <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {featured.map((person, index) => (
             <DetailPart
               as="li"
-              className={cn("min-w-0", index >= 4 && "hidden sm:block")}
+              className="min-w-0"
               index={index}
               key={person.key}
               name="person"

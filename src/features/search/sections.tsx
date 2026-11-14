@@ -11,7 +11,7 @@ import {
   MoviePosterLink,
   MoviePosterPlaceholder,
 } from "@/features/movie/stage";
-import { SearchPart } from "./motion";
+import { SearchPart, SearchText } from "./motion";
 import {
   SEARCH_OVERVIEW,
   SEARCH_PER_PAGE,
@@ -210,14 +210,23 @@ export function Section({
 
   return (
     <div className="flex flex-col gap-2">
-      <div aria-hidden="true">
-        <SearchPart
-          className="flex h-4 items-center justify-between px-1 text-ink-muted"
+      <div
+        aria-hidden="true"
+        className="flex h-4 items-center justify-between px-1 text-ink-muted"
+      >
+        <SearchText
+          className={TONE.label}
           index={lead}
-          name="row"
+          part="label"
+          text={label}
+        />
+        <SearchPart
+          as="span"
+          className="type-label font-semibold tabular-nums"
+          index={lead}
+          name="count"
         >
-          <span className={TONE.label}>{label}</span>
-          <span className="type-label font-semibold tabular-nums">{total}</span>
+          {total}
         </SearchPart>
       </div>
       {list}

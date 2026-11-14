@@ -34,7 +34,7 @@ import {
   tvHref,
 } from "@/lib/project";
 import styles from "./search-command.module.css";
-import { SearchPart, SearchStage, SearchSwap } from "./motion";
+import { SearchPart, SearchStage, SearchSwap, useSearchPart } from "./motion";
 import {
   ACTIVE_SEARCH_TYPES,
   MATCH_SCORE,
@@ -211,6 +211,7 @@ function hrefsOf(item: SearchSection): string[] {
 function SearchAction({ onClose }: { onClose?: () => void } = {}) {
   const { navigate } = useDockActions();
   const actionClass = useDockActionClass();
+  const drawerPart = useSearchPart("drawer");
   const listId = useId();
   const listRef = useRef<HTMLDivElement>(null);
   const [scope, setScope] = useState<SearchScope>("all");
@@ -334,65 +335,61 @@ function SearchAction({ onClose }: { onClose?: () => void } = {}) {
 
   return (
     <SearchStage className="flex flex-col">
-      <SearchPart name="item">
-        <form
+      <form
+        className={cn(styles.scan, "group/field relative w-full rounded-card")}
+        data-busy={isLoading ? "" : undefined}
+        onSubmit={handleSubmit}
+        role="search"
+      >
+        <Icon
           className={cn(
-            styles.scan,
-            "group/field relative w-full rounded-card",
+            "pointer-events-none absolute top-1/2 left-4 -translate-y-1/2",
+            input
+              ? "text-grade"
+              : "text-ink-muted group-focus-within/field:text-ink",
           )}
-          data-busy={isLoading ? "" : undefined}
-          onSubmit={handleSubmit}
-          role="search"
-        >
-          <Icon
-            className={cn(
-              "pointer-events-none absolute top-1/2 left-4 -translate-y-1/2",
-              input
-                ? "text-grade"
-                : "text-ink-muted group-focus-within/field:text-ink",
-            )}
-            icon="solar:magnifer-linear"
-            size={16}
-          />
-          <Input
-            aria-activedescendant={active >= 0 ? optionId(active) : undefined}
-            aria-autocomplete="list"
-            aria-controls={listId}
-            aria-expanded={hitCount > 0}
-            aria-label="Search movies, people, users, lists and reviews"
-            autoCapitalize="off"
-            autoComplete="off"
-            autoCorrect="off"
-            className="pr-12 pl-11"
-            enterKeyHint="search"
-            maxLength={SEARCH_MAX_QUERY_LENGTH}
-            name="search"
-            onChange={(event) => handleInput(event.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Search movies, people, users, lists…"
-            role="combobox"
-            spellCheck={false}
-            type="text"
-            value={input}
-          />
-          <div className="absolute top-1/2 right-2 -translate-y-1/2">
-            {input ? (
-              <Button
-                aria-label="Clear search"
-                className="size-7 rounded-inset text-ink-muted"
-                icon
-                intent="ghost"
-                size="xs"
-                onClick={handleClear}
-              >
-                <Icon icon="material-symbols:close-rounded" size={16} />
-              </Button>
-            ) : null}
-          </div>
-        </form>
-      </SearchPart>
+          icon="solar:magnifer-linear"
+          size={16}
+        />
+        <Input
+          aria-activedescendant={active >= 0 ? optionId(active) : undefined}
+          aria-autocomplete="list"
+          aria-controls={listId}
+          aria-expanded={hitCount > 0}
+          aria-label="Search movies, people, users, lists and reviews"
+          autoCapitalize="off"
+          autoComplete="off"
+          autoCorrect="off"
+          className="pr-12 pl-11"
+          enterKeyHint="search"
+          maxLength={SEARCH_MAX_QUERY_LENGTH}
+          name="search"
+          onChange={(event) => handleInput(event.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Search movies, people, users, lists…"
+          role="combobox"
+          spellCheck={false}
+          type="text"
+          value={input}
+        />
+        <div className="absolute top-1/2 right-2 -translate-y-1/2">
+          {input ? (
+            <Button
+              aria-label="Clear search"
+              className="size-7 rounded-inset text-ink-muted"
+              icon
+              intent="ghost"
+              size="xs"
+              onClick={handleClear}
+            >
+              <Icon icon="material-symbols:close-rounded" size={16} />
+            </Button>
+          ) : null}
+        </div>
+      </form>
 
       <div
+        {...drawerPart}
         className={cn(
           "grid",
           query ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
@@ -400,7 +397,10 @@ function SearchAction({ onClose }: { onClose?: () => void } = {}) {
         inert={!query}
       >
         <div className="min-h-0 overflow-hidden">
-          <SearchPart className="pt-2.5" name="item">
+          <SearchPart
+            className={cn("pt-2.5", !query && "-translate-y-3 scale-95")}
+            name="scopes"
+          >
             <SegmentedControl
               ariaLabel="Search for"
               width="fill"
@@ -445,7 +445,7 @@ function SearchAction({ onClose }: { onClose?: () => void } = {}) {
                 aria-label="Search results"
                 className={cn(
                   SURFACE_SCROLL,
-                  "relative isolate flex max-h-[min(52dvh,30rem)] scroll-p-1 flex-col gap-4 p-1",
+                  "relative isolate flex max-h-[min(44dvh,22rem)] scroll-p-1 flex-col gap-4 p-1",
                 )}
                 id={listId}
                 key={viewKey}
@@ -468,7 +468,7 @@ function SearchAction({ onClose }: { onClose?: () => void } = {}) {
                 <SearchPart
                   className="flex h-8 items-center justify-between pl-1"
                   index={hitCount + view.sections.length + 1}
-                  name="row"
+                  name="footer"
                 >
                   <span className="type-meta text-ink-muted tabular-nums">
                     {`${from}–${to} of ${view.total}`}

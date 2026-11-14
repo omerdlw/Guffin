@@ -519,13 +519,21 @@ function MovieView({
   );
   const backdrops = getGalleryImages(images);
   const posters = getPosterImages(images);
+  // The opening's reel: text-free stills only, so no title fights the name.
+  const frames = backdrops
+    .filter((image) => !image.language)
+    .map((image) => image.filePath);
 
   if (page.kind === "reviews") {
     return (
       <ReelProvider>
         <MovieStage movie={movie}>
           <DetailReviewsLayout
-            backdrop={backdrop ? <MovieBackdropHero movie={movie} /> : null}
+            backdrop={
+              backdrop ? (
+                <MovieBackdropHero frames={frames} movie={movie} />
+              ) : null
+            }
             className="movie-page"
             header={
               <MediaReviewsHeader
@@ -562,7 +570,11 @@ function MovieView({
               </Suspense>
             </>
           }
-          backdrop={backdrop ? <MovieBackdropHero movie={movie} /> : null}
+          backdrop={
+            backdrop ? (
+              <MovieBackdropHero frames={frames} movie={movie} />
+            ) : null
+          }
           className="movie-page"
           header={<MovieHeader movie={movie} stats={stats} />}
           intermission={<MovieProjection movie={movie} />}

@@ -6,11 +6,11 @@ import { useToast } from "@omerdlw/base-framework/notification";
 import {
   Button,
   HighlightGroup,
-  Switch,
   Textarea,
   useHighlight,
   useHighlightReset,
 } from "@omerdlw/base-framework/ui";
+import { Switch } from "@/design/components/switch";
 import { report, toUserMessage } from "@omerdlw/base-framework/utils";
 import { useRouter } from "next/navigation";
 import { useConfirm } from "@/design/components/confirm";

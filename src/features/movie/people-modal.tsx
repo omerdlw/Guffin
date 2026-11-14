@@ -6,7 +6,7 @@ import {
   ModalContainer,
   type ModalContainerHeaderConfig,
 } from "@omerdlw/base-framework/modal";
-import { SegmentedControl } from "@omerdlw/base-framework/ui";
+import { SegmentedControl } from "@/design/components/segmented-control";
 import { DockLink } from "@/design/components/link";
 import { MediaCard } from "@/design/components/media-card";
 import { nested, RADIUS } from "@/design/foundations/geometry";

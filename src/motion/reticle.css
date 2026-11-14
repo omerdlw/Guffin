@@ -12,3 +12,10 @@ html.reticle nextjs-portal {
     cursor: auto;
   }
 }
+
+/* The cursor's glass never turns opaque: it would hide what it points at. */
+@media (prefers-reduced-transparency: reduce) {
+  [data-reticle] .liquid {
+    background-color: transparent;
+  }
+}

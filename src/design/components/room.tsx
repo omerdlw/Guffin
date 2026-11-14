@@ -90,6 +90,7 @@ export function Room({
         <div
           aria-hidden="true"
           className="pointer-events-none fixed inset-0 z-0"
+          data-part="wash"
           style={{ background: WASH, opacity: "var(--tint-presence, 0)" }}
         />
       )}
@@ -97,6 +98,7 @@ export function Room({
       <div
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 z-20"
+        data-part="vignette"
         style={{ background: black ? GLASS : `${SHEEN}, ${GLASS}` }}
       />
       <HouseLights />

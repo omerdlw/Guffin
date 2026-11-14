@@ -10,7 +10,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { SegmentedControl } from "@omerdlw/base-framework/ui";
+import { SegmentedControl } from "@/design/components/segmented-control";
 import { DetailAction, DetailViews } from "@/features/detail/stage";
 import type { Awards, MediaType } from "@/lib/tmdb/shared";
 

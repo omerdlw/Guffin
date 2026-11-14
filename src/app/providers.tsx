@@ -16,6 +16,7 @@ import { CoreProvider } from "@omerdlw/base-framework/provider";
 import { ThemeProvider } from "@omerdlw/base-framework/theme";
 import { TooltipProvider, UiProvider } from "@omerdlw/base-framework/ui";
 import { Logo } from "@/design/components/logo";
+import { LiquidLens } from "@/design/liquid";
 import { themes } from "@/design/theme";
 import { ui } from "@/design/ui";
 import { DEFAULT_ACCOUNT_ICON } from "@/features/account/account";
@@ -130,6 +131,7 @@ export function Providers({ children }: { children: ReactNode }): JSX.Element {
           <TintedFavicon />
         </EngineProvider>
         <Cursor />
+        <LiquidLens />
       </Compose>
     </>
   );

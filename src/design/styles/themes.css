@@ -31,10 +31,27 @@
     --chosen-edge-hover: rgb(var(--grade, var(--ink-rgb)) / 0.3);
     --chosen-ink: rgb(var(--grade, var(--ink-rgb)));
 
-    /* Light falls from above: a brighter top edge on every lit
-       surface (`lit`). Dark layers float on glass alone. */
-    --lit: rgb(var(--ink-rgb) / 0.08);
-    --unlit: transparent;
+    --liquid-tint: color-mix(in oklab, var(--page) 28%, transparent);
+    --liquid-tint-hover: color-mix(
+      in oklab,
+      var(--page) 30%,
+      rgb(var(--ink-rgb) / 0.1)
+    );
+    /* The rim's glint adds light to what is behind it. */
+    --liquid-rim: rgb(255 255 255 / 0.7);
+    /* Just outside the edge, a dark hairline keeps the glass apart from a
+       bright picture; the shadow lifts it off the page. */
+    --liquid-contour: rgb(0 0 0 / 0.5);
+    --liquid-shadow:
+      0 2px 6px -2px rgb(0 0 0 / 0.35), 0 12px 32px -12px rgb(0 0 0 / 0.55);
+    /* A control inside the glass: a fill, never glass on glass. */
+    --liquid-well: rgb(255 255 255 / 0.07);
+    --liquid-well-hover: rgb(255 255 255 / 0.11);
+    --liquid-well-shadow: 0 0 #0000;
+    --liquid-rim-blend: plus-lighter;
+    --liquid-frost: blur(12px) saturate(1.6) brightness(0.92);
+    --liquid-lens-tone: saturate(1.5) brightness(0.9);
+
     --lift: 0 0 #0000;
 
     --glass: color-mix(in srgb, var(--ink) 4%, var(--page));
@@ -104,8 +121,22 @@
     --chosen-edge-hover: rgb(var(--ink-rgb) / 0.16);
     --chosen-ink: var(--ink);
 
-    --lit: rgb(255 255 255 / 0.85);
-    --unlit: transparent;
+    --liquid-tint: rgb(255 255 255 / 0.34);
+    --liquid-tint-hover: rgb(255 255 255 / 0.5);
+    --liquid-rim: #fff;
+    --liquid-contour: rgb(var(--ink-rgb) / 0.09);
+    --liquid-shadow: var(--lift);
+    /* On paper, a control inside the glass is a white pill, set off by a
+       hairline and a breath of shadow. */
+    --liquid-well: rgb(255 255 255 / 0.5);
+    --liquid-well-hover: rgb(255 255 255 / 0.72);
+    --liquid-well-shadow:
+      0 0 0 0.5px rgb(var(--ink-rgb) / 0.06),
+      0 1px 2px rgb(var(--ink-rgb) / 0.05);
+    --liquid-rim-blend: normal;
+    --liquid-frost: blur(12px) saturate(1.25);
+    --liquid-lens-tone: saturate(1.2);
+
     /* Floating layers lift off paper on a shadow cut from the page's own
        hue: a tight contact edge and a long, soft fall. */
     --lift:

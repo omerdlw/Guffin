@@ -69,7 +69,7 @@ export type MovieArtwork = Pick<
   "backdropPath" | "id" | "posterPath" | "title"
 >;
 
-export const MOVIE_FEATURED_PEOPLE = 8;
+export const MOVIE_FEATURED_PEOPLE = 4;
 
 export const TAGLINE_TYPE = "type-body sm:type-copy";
 

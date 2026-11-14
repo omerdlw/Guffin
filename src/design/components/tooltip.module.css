@@ -11,4 +11,57 @@
   :global(html.reticle .ui-tooltip[data-cursor-owned]) {
     display: none;
   }
+
+  /* A tooltip grows out of its trigger and is gone sooner than it came, on
+     the dock's φ beats: in on Settle (0.236s), out on Leave (0.146s); the
+     instant one (moving between triggers) only fades. Glass never blurs,
+     so only offset, scale and fade move. The framework waits for the
+     closing animation before it removes the tooltip. */
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.ui-tooltip) {
+      --tip-x: 0px;
+      --tip-y: 3px;
+      transform-origin: var(--tooltip-transform-origin, 50% 100%);
+    }
+    :global(.ui-tooltip[data-side="bottom"]) {
+      --tip-y: -3px;
+    }
+    :global(.ui-tooltip[data-side="left"]) {
+      --tip-x: 3px;
+      --tip-y: 0px;
+    }
+    :global(.ui-tooltip[data-side="right"]) {
+      --tip-x: -3px;
+      --tip-y: 0px;
+    }
+    :global(.ui-tooltip[data-state="delayed-open"]) {
+      animation: tip-in 0.236s cubic-bezier(0.236, 1, 0.382, 1) both;
+    }
+    :global(.ui-tooltip[data-state="instant-open"]) {
+      animation: tip-fade 0.146s cubic-bezier(0.236, 1, 0.382, 1) both;
+    }
+    :global(.ui-tooltip[data-state="closed"]) {
+      animation: tip-out 0.146s cubic-bezier(0.618, 0, 0.854, 0.382) forwards;
+    }
+  }
+
+  @keyframes tip-in {
+    from {
+      opacity: 0;
+      translate: var(--tip-x) var(--tip-y);
+      scale: 0.94;
+    }
+  }
+  @keyframes tip-fade {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes tip-out {
+    to {
+      opacity: 0;
+      translate: var(--tip-x) var(--tip-y);
+      scale: 0.96;
+    }
+  }
 }

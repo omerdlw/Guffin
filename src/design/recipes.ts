@@ -241,7 +241,7 @@ const selectChevron = defineRecipe({
 const selectMenu = defineRecipe({
   base: [
     // eslint-disable-next-line no-restricted-syntax -- Tailwind needs a literal class; mirrors Z_INDEX.SELECT
-    "ui-motion absolute top-full left-0 z-[150] mt-1.5 max-h-[min(16rem,var(--select-available-height,16rem))] w-full overflow-y-auto overscroll-contain",
+    "ui-motion absolute top-full left-0 z-[150] mt-1.5 max-h-[min(16rem,var(--select-available-height,16rem))] w-full overflow-y-auto overscroll-contain after:hidden",
     LAYER.shell,
   ],
   variants: {
@@ -311,7 +311,7 @@ const carouselSlide = defineRecipe({ base: "shrink-0" });
 const carouselArrow = defineRecipe({
   base: [
     "center absolute top-[var(--arrow-y,50%)] z-10 size-control-chrome -translate-y-1/2 cursor-pointer sm:size-control-md",
-    "rounded-full bg-veil text-ink ring-1 ring-edge-hover ring-inset backdrop-saturate-150 hover:bg-glass focus-visible:bg-glass",
+    "liquid liquid-flat liquid-lens rounded-full text-ink",
   ],
   variants: {
     side: { left: "left-2 sm:left-3", right: "right-2 sm:right-3" },

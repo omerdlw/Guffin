@@ -1,17 +1,16 @@
 export const TONES = {
   neutral:
-    "lit bg-fill text-ink-body ring-1 ring-edge ring-inset hover:bg-fill-hover hover:text-ink hover:ring-edge-hover focus-visible:bg-fill-hover focus-visible:text-ink focus-visible:ring-edge-focus",
+    "bg-fill text-ink-body ring-1 ring-edge ring-inset hover:bg-fill-hover hover:text-ink hover:ring-edge-hover focus-visible:bg-fill-hover focus-visible:text-ink focus-visible:ring-edge-focus",
   outline:
     "ui-iris bg-transparent text-ink-body ring-1 ring-edge-hover ring-inset hover:text-ink hover:ring-edge-focus focus-visible:text-ink focus-visible:ring-edge-focus",
   chosen:
-    "lit bg-chosen text-chosen-ink ring-1 ring-chosen-edge ring-inset hover:bg-chosen-hover hover:ring-chosen-edge-hover focus-visible:bg-chosen-hover focus-visible:ring-chosen-edge-hover",
+    "bg-chosen text-chosen-ink ring-1 ring-chosen-edge ring-inset hover:bg-chosen-hover hover:ring-chosen-edge-hover focus-visible:bg-chosen-hover focus-visible:ring-chosen-edge-hover",
   primary:
     "ui-sheen bg-primary text-on-primary ring-1 ring-primary ring-inset [--sheen-ink:var(--sheen-primary)] [--sheen:0.1] hover:bg-primary-hover focus-visible:bg-primary-hover",
   danger:
     "bg-danger/15 text-danger ring-1 ring-danger/25 ring-inset hover:bg-danger/20 hover:ring-danger/30 focus-visible:bg-danger/20 focus-visible:ring-danger/30",
   armed: "bg-danger text-on-accent ring-1 ring-danger ring-inset",
-  glass:
-    "lit bg-veil text-ink ring-1 ring-edge-hover ring-inset backdrop-saturate-150 hover:bg-glass focus-visible:bg-glass",
+  glass: "liquid liquid-flat liquid-lens text-ink",
   ghost:
     "ui-iris bg-transparent text-ink-body ring-1 ring-transparent ring-inset hover:text-ink focus-visible:text-ink",
 } as const;
@@ -23,23 +22,27 @@ export const STATE = {
 } as const;
 
 export const FILL =
-  "lit bg-fill ring-1 ring-edge ring-inset hover:bg-fill-hover hover:ring-edge-hover focus-visible:bg-fill-hover focus-visible:ring-edge-focus";
+  "bg-fill ring-1 ring-edge ring-inset hover:bg-fill-hover hover:ring-edge-hover focus-visible:bg-fill-hover focus-visible:ring-edge-focus";
+
+// A control inside a glass layer (the dock and its surfaces): a fill, never
+// glass on glass. White on paper, a white tint in the dark.
+export const WELL = "bg-(--liquid-well) shadow-(--liquid-well-shadow)";
+export const WELL_HOVER =
+  "hover:bg-(--liquid-well-hover) focus-visible:bg-(--liquid-well-hover)";
 
 export const LAYER = {
-  shell:
-    "lit lift bg-glass ring-1 ring-edge-hover ring-inset backdrop-saturate-150",
-  tip: "lit lift bg-glass text-ink-lead ring-1 ring-edge ring-inset backdrop-saturate-150",
+  shell: "liquid liquid-lens",
+  tip: "liquid liquid-frost text-ink-lead",
   veil: "bg-veil",
   dim: "bg-dim",
 } as const;
 
 export const PRIMARY = TONES.primary;
 
-const PAGE_GLASS =
-  "lit rounded-full bg-veil text-ink ring-1 ring-edge-hover ring-inset backdrop-saturate-150";
+const PAGE_GLASS = "liquid liquid-flat liquid-lens rounded-full text-ink";
 
 export const TONE = {
-  arrows: `${PAGE_GLASS} hover:bg-glass focus-visible:bg-glass`,
+  arrows: PAGE_GLASS,
   chosen: TONES.chosen,
   glass: PAGE_GLASS,
   label: "type-label font-semibold tracking-label uppercase",

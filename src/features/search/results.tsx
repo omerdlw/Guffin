@@ -12,6 +12,7 @@ import { RatingStars } from "@/features/reviews/rating";
 import { pluralize } from "@/lib/format";
 import { accountHref, listHref, personHref, reviewHref } from "@/lib/project";
 import { tmdbImageSrcSet, tmdbImageUrl } from "@/lib/tmdb/shared";
+import { useSearchPart } from "./motion";
 import {
   folded,
   type ListSearchHit,
@@ -83,7 +84,10 @@ function ResultRow({
       href={href}
       onNavigated={onNavigated}
     >
-      <span className="ui-glyph center w-8 shrink-0 in-data-active:scale-[1.08]">
+      <span
+        className="ui-glyph center w-8 shrink-0 in-data-active:scale-[1.08]"
+        data-slot="thumb"
+      >
         {thumb}
       </span>
       <span className="flex min-w-0 flex-1 flex-col gap-1">
@@ -325,6 +329,7 @@ export function ResultSheet({
   listRef: RefObject<HTMLElement | null>;
 }) {
   const sheet = useRef<HTMLSpanElement>(null);
+  const part = useSearchPart("sheet");
 
   useLayoutEffect(() => {
     const el = sheet.current;
@@ -347,7 +352,16 @@ export function ResultSheet({
       el.style.transform = `translate(${x - inset}px, ${y - inset}px)`;
     };
 
-    place();
+    // Appearing, the sheet is set down where it lands; only a move from
+    // one option to the next glides.
+    if (el.style.opacity !== "1") {
+      el.style.transition = "none";
+      place();
+      void el.offsetWidth;
+      el.style.removeProperty("transition");
+    } else {
+      place();
+    }
     el.style.opacity = "1";
 
     const observer = new ResizeObserver(place);
@@ -358,6 +372,7 @@ export function ResultSheet({
 
   return (
     <span
+      {...part}
       aria-hidden="true"
       className="pointer-events-none absolute top-0 left-0 z-0 rounded-card bg-grade/15 opacity-0 ring-1 ring-grade/25 ring-inset data-[kind=tile]:ring-grade/50"
       ref={sheet}

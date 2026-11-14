@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Button, SegmentedControl } from "@omerdlw/base-framework/ui";
+import { Button } from "@omerdlw/base-framework/ui";
+import { SegmentedControl } from "@/design/components/segmented-control";
 import { Select } from "@/design/components/select";
 import { RADIUS } from "@/design/foundations/geometry";
 import { Heading } from "@/features/detail/layout";

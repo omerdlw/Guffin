@@ -1,176 +1,26 @@
-import {
-  type DockMotion,
-  type DockSurfacePhaseMotion,
-  dockTheme,
-} from "@omerdlw/base-framework/dock";
+import { dockTheme } from "@omerdlw/base-framework/dock";
 import { defineTheme } from "@omerdlw/base-framework/theme";
-import { gpuTransform } from "@omerdlw/base-framework/utils";
 import { SKELETON } from "@/design/components/skeleton";
 import { TOOLTIP } from "@/design/components/tooltip";
 import { RADIUS } from "@/design/foundations/geometry";
 import { BACKDROP, FLOAT, GLASS, TIP } from "@/design/foundations/layers";
-import { FILL, PRIMARY } from "@/design/foundations/tones";
+import {
+  PRIMARY,
+  WELL as WELL_FILL,
+  WELL_HOVER,
+} from "@/design/foundations/tones";
 import { Z_INDEX } from "@/design/foundations/z-index";
-import { INSTANT } from "./motion";
-
-const DARK = { opacity: 0 } as const;
-const LIT = { opacity: 1 } as const;
-
-const atRest = (y: unknown) => gpuTransform(Number(y) || 0);
-
-const lightSet = {
-  hidden: DARK,
-  visible: { ...LIT, transition: INSTANT },
-  exit: { ...DARK, transition: INSTANT },
-};
-
-const REST_PHASE: DockSurfacePhaseMotion = {
-  deck: null,
-  transform: null,
-  scale: 1,
-  body: INSTANT,
-  header: INSTANT,
-  headerReturn: null,
-};
-
-const controlSlot = {
-  hidden: { opacity: 0, width: 0, marginRight: -2 },
-  visible: { opacity: 1, width: "auto", marginRight: 0, transition: INSTANT },
-  exit: { opacity: 0, width: 0, marginRight: -2, transition: INSTANT },
-};
-
-const dockMotion: DockMotion = {
-  transitions: {
-    stack: INSTANT,
-    expand: INSTANT,
-    surfaceExit: INSTANT,
-    layout: INSTANT,
-    card: INSTANT,
-    cardExpanded: INSTANT,
-    cardPeek: INSTANT,
-    fade: INSTANT,
-    text: INSTANT,
-    headerSwap: INSTANT,
-    actionDismiss: INSTANT,
-    icon: INSTANT,
-    badge: INSTANT,
-    hud: INSTANT,
-    press: INSTANT,
-    scrubberTooltip: INSTANT,
-    scrubberFollow: INSTANT,
-    mediaVolume: INSTANT,
-  },
-  variants: {
-    fade: lightSet,
-    textCrossfade: lightSet,
-    description: (opacity = 0.7) => ({
-      hidden: DARK,
-      visible: { opacity, transition: INSTANT },
-      exit: { ...DARK, transition: INSTANT },
-    }),
-    headerSwap: lightSet,
-    headerRestore: lightSet,
-    extensionShelf: lightSet,
-    actionDismiss: lightSet,
-    commandBar: lightSet,
-    icon: lightSet,
-    badge: lightSet,
-    hud: lightSet,
-    scrubberTooltip: lightSet,
-    breadcrumbs: lightSet,
-    backdrop: lightSet,
-    surfaceBody: { hidden: DARK, visible: LIT, exit: DARK },
-    controlsContainer: {
-      hidden: (y: unknown = 0) => ({ opacity: 0, transform: atRest(y) }),
-      visible: (y: unknown = 0) => ({
-        opacity: 1,
-        transform: atRest(y),
-        transition: INSTANT,
-      }),
-      exit: (y: unknown = 0) => ({
-        opacity: 0,
-        transform: atRest(y),
-        transition: INSTANT,
-      }),
-    },
-    controlsAction: controlSlot,
-    controlsBack: controlSlot,
-    controlsClose: lightSet,
-    press: {
-      idle: { scale: 1 },
-      hover: { scale: 1 },
-      tap: { scale: 1 },
-    },
-    mediaVolumeThumb: { idle: { scale: 1 }, dragging: { scale: 1 } },
-    cardContent: { hidden: DARK, visible: LIT },
-  },
-  phases: {
-    idle: REST_PHASE,
-    dismissAction: REST_PHASE,
-    expandBody: { ...REST_PHASE, deck: INSTANT, transform: INSTANT },
-    open: { ...REST_PHASE, deck: () => INSTANT },
-    anticipation: { ...REST_PHASE, deck: () => INSTANT, transform: INSTANT },
-    collapseBody: { ...REST_PHASE, deck: INSTANT, headerReturn: INSTANT },
-    restoreHeader: { ...REST_PHASE, deck: INSTANT },
-  },
-  deck: {
-    elevation: {
-      rest: "none",
-      elevated: "none",
-    },
-    peek: () => ({ lift: 0, scale: 1 }),
-    exit: ({ y, scale }) => ({
-      opacity: 0,
-      transform: gpuTransform(y, scale ?? 1),
-      transition: INSTANT,
-    }),
-    tapScale: 1,
-    stacking: {
-      collapsed: {
-        offsetY: -10,
-        scale: 0.88,
-        opacityStep: 0.2,
-        opacityMin: 0.1,
-      },
-      expanded: { offsetY: -72 },
-      shelf: { offsetY: -42, scale: 0.94 },
-      visible: { stack: 3, extensions: 2, status: 1 },
-    },
-    breadcrumbOffset: -44,
-    fullscreenOpacity: 0,
-    origin: "50% 100%",
-    resizeFallback: 260,
-  },
-  opacity: { banner: 0.95, description: 0.7 },
-  drag: {
-    elastic: { top: 0.05, bottom: 0.5 },
-    range: [0, 180],
-    opacity: [1, 1],
-    scale: [1, 1],
-    dismiss: { offset: 65, velocity: 400 },
-  },
-  skeleton: "",
-  timings: {
-    dismissAction: 0,
-    anticipation: 0,
-    expandBody: 0,
-    collapseBody: 0,
-    restoreHeader: 0,
-    expandStagger: 0,
-    expandStaggerCap: 0,
-    peekStagger: 0,
-    peekStaggerCap: 0,
-    staggerExponent: 1,
-  },
-};
+import { dockMotion } from "./dock-motion";
 
 const INNER = "rounded-card";
 
+const WELL = `${WELL_FILL} ${WELL_HOVER}`;
+
 const CONTROL_BUTTON = `ui-iris center relative size-control-chrome shrink-0 cursor-pointer text-ink-body hover:text-ink focus-visible:text-ink ${FLOAT}`;
 
-const MEDIA_ICON_BUTTON = `ui-iris center relative size-control-sm cursor-pointer rounded-full text-ink-body hover:text-ink focus-visible:text-ink ${FILL}`;
+const MEDIA_ICON_BUTTON = `ui-iris center relative size-control-sm cursor-pointer rounded-full text-ink-body hover:text-ink focus-visible:text-ink ${WELL}`;
 
-const TONE_MUTED = `text-ink-body hover:text-ink focus-visible:text-ink ${FILL}`;
+const TONE_MUTED = `text-ink-body hover:text-ink focus-visible:text-ink ${WELL}`;
 const TIP_SHAPE = "rounded-full px-3 py-1.5 type-meta font-medium";
 
 export const dockThemeConfig = defineTheme(dockTheme, {
@@ -180,20 +30,27 @@ export const dockThemeConfig = defineTheme(dockTheme, {
     backdrop: `fixed inset-0 cursor-pointer ${BACKDROP}`,
 
     card: [
-      `group @container absolute h-auto w-full overflow-hidden rounded-shell p-2.5 cursor-pointer lit data-[placement=top]:lift bg-glass/70 ring-1 ring-edge-hover ring-inset data-[placement=top]:backdrop-blur-md data-[placement=top]:backdrop-saturate-150`,
-      "data-[blur=heavy]:[#dock-card-stack[data-controls-hidden=true]_&]:backdrop-blur-md data-[blur=heavy]:[#dock-card-stack[data-controls-hidden=true]_&]:backdrop-saturate-150",
+      // Every card with content is glass of its own. The collapsed cards
+      // behind the front one are not drawn at all once the deck has folded
+      // (dock.css): nothing to paint or filter until the stack opens.
+      "dock-card group @container absolute h-auto w-full overflow-hidden rounded-shell p-2.5 cursor-pointer liquid liquid-flat liquid-lens data-[placement=top]:[--liquid-drop:var(--liquid-shadow)]",
       "data-[anchored=true]:cursor-default data-[shelf=true]:px-[6.5px] data-[shelf=true]:py-0",
       "data-[placement=top]:inset-0 data-[placement=top]:h-full data-[placement=bottom]:bottom-0 data-[placement=float]:top-0 data-[placement=float]:[#dock-card-stack[data-controls-hidden=false]_&]:h-full",
-      "data-[ghost=true]:pointer-events-none data-[ghost=true]:select-none",
     ].join(" "),
+    // Clipped for the card's height animation, but with room for the wells'
+    // hairline and shadow: the action buttons sit flush with this box's
+    // edges, and a plain overflow-hidden shaved their sides and foot. The
+    // margin only widens what paints (the framework measures offsetHeight).
     cardContent:
-      "flow-root w-full overflow-hidden data-[shelf=true]:min-h-[96px]",
+      "flow-root w-full overflow-clip [overflow-clip-margin:4px] data-[shelf=true]:min-h-dock-shelf",
     cardSurface: `w-full overflow-hidden ${INNER}`,
     cardShelf: "relative flex h-[45px] w-full items-center justify-between",
     cardStandard: "w-full",
     cardHud: "relative flex w-full items-center justify-between",
     cardBody: "relative flex h-auto w-full flex-col gap-2.5",
-    cardFooter: "relative w-full overflow-visible",
+    // MovieAction and friends can render nothing; an empty footer would still
+    // take the body's gap below the header.
+    cardFooter: "relative w-full overflow-visible has-[>:empty]:hidden",
     cardAction: "flow-root overflow-visible",
 
     bannerRoot:
@@ -222,7 +79,7 @@ export const dockThemeConfig = defineTheme(dockTheme, {
     icon: "relative size-12 shrink-0",
     iconMotion: "size-full",
     iconImage: `size-12 shrink-0 ${INNER} bg-cover bg-center bg-no-repeat ring-1 ring-inset ring-edge`,
-    iconGlyph: `center size-12 shrink-0 ${INNER} text-ink ${FILL}`,
+    iconGlyph: `center size-12 shrink-0 ${INNER} text-ink ${WELL}`,
     iconGlyphInner: "center shrink-0",
     iconButton: "size-full cursor-pointer p-0 focus:outline-none select-none",
     iconBadge:
@@ -252,9 +109,8 @@ export const dockThemeConfig = defineTheme(dockTheme, {
 
     controls:
       "pointer-events-none absolute inset-x-0 bottom-[calc(100%+12px)] select-none flex items-center justify-center gap-1",
-    controlAction:
-      "pointer-events-auto flex shrink-0 items-center overflow-hidden",
-    controlBack: "pointer-events-auto shrink-0 overflow-hidden",
+    controlAction: "pointer-events-auto flex shrink-0 items-center",
+    controlBack: "pointer-events-auto shrink-0",
     controlClose: "pointer-events-auto shrink-0",
     controlButton: CONTROL_BUTTON,
     controlBackIcon: "rtl:rotate-180",
@@ -289,12 +145,12 @@ export const dockThemeConfig = defineTheme(dockTheme, {
 
     media: "flex w-full items-center justify-between gap-2 select-none",
     mediaGroup: "flex items-center gap-1.5",
-    mediaSpeed: `center h-control-sm cursor-pointer rounded-full px-3.5 type-meta font-medium tabular-nums text-ink-body select-none hover:text-ink focus-visible:text-ink data-[active=true]:bg-grade/15 data-[active=true]:text-grade data-[active=true]:ring-grade/25 data-[active=true]:hover:bg-grade/20 data-[active=true]:focus-visible:bg-grade/20 data-[active=true]:hover:text-grade data-[active=true]:hover:ring-grade/30 data-[active=true]:focus-visible:ring-grade/30 ${FILL}`,
+    mediaSpeed: `center h-control-sm cursor-pointer rounded-full px-3.5 type-meta font-medium tabular-nums text-ink-body select-none hover:text-ink focus-visible:text-ink data-[active=true]:bg-grade/15 data-[active=true]:text-grade data-[active=true]:ring-grade/25 data-[active=true]:hover:bg-grade/20 data-[active=true]:focus-visible:bg-grade/20 data-[active=true]:hover:text-grade data-[active=true]:hover:ring-grade/30 data-[active=true]:focus-visible:ring-grade/30 ${WELL}`,
     mediaSkip: MEDIA_ICON_BUTTON,
-    mediaToggle: `flex size-control-sm cursor-pointer items-center justify-center rounded-full text-ink-body select-none hover:text-ink focus-visible:text-ink data-[active=true]:bg-grade/15 data-[active=true]:text-grade data-[active=true]:ring-grade/25 data-[active=true]:hover:bg-grade/20 data-[active=true]:focus-visible:bg-grade/20 data-[active=true]:hover:text-grade data-[active=true]:hover:ring-grade/30 data-[active=true]:focus-visible:ring-grade/30 ${FILL}`,
+    mediaToggle: `flex size-control-sm cursor-pointer items-center justify-center rounded-full text-ink-body select-none hover:text-ink focus-visible:text-ink data-[active=true]:bg-grade/15 data-[active=true]:text-grade data-[active=true]:ring-grade/25 data-[active=true]:hover:bg-grade/20 data-[active=true]:focus-visible:bg-grade/20 data-[active=true]:hover:text-grade data-[active=true]:hover:ring-grade/30 data-[active=true]:focus-visible:ring-grade/30 ${WELL}`,
     mediaMute:
       "center size-5 cursor-pointer p-0 text-ink-body hover:text-ink focus-visible:text-ink",
-    mediaVolume: `group flex h-control-sm items-center gap-1.5 rounded-full px-3 select-none data-[active=true]:bg-fill-hover ${FILL}`,
+    mediaVolume: `group flex h-control-sm items-center gap-1.5 rounded-full px-3 select-none data-[active=true]:bg-(--liquid-well-hover) ${WELL}`,
     mediaVolumeTrack:
       "group/track relative flex h-6 w-16 cursor-pointer touch-none items-center select-none sm:w-20",
     mediaVolumeRail:
@@ -325,7 +181,7 @@ export const dockThemeConfig = defineTheme(dockTheme, {
     actionMuted: TONE_MUTED,
     actionRow: "flex w-full items-center gap-2.5",
     actionStack: "flex flex-col gap-2.5",
-    actionSurface: GLASS,
+    actionSurface: WELL,
   },
   styles: {
     stack: {
