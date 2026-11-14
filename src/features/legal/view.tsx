@@ -177,7 +177,6 @@ export function LegalPage({
               part="title"
               text={document.title}
               as="h1"
-              mask
               className="font-zuume type-display-sm leading-none font-bold uppercase sm:type-display-md"
             />
             <LegalPart

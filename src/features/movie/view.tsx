@@ -477,7 +477,6 @@ function MovieHeader({
       {movie.tagline ? (
         <DetailText
           as="p"
-          by="char"
           className={`${TAGLINE_CLASS} opacity-90`}
           part="tagline"
           text={movie.tagline}

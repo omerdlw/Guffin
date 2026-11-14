@@ -278,8 +278,15 @@ export function DetailBackdrop({
 }) {
   const [ready, setReady] = useState(false);
 
+  // The picture's entrance waits for it to load; a picture that never reports
+  // still enters after a moment.
+  useEffect(() => {
+    const late = setTimeout(() => setReady(true), 2500);
+    return () => clearTimeout(late);
+  }, []);
+
   return (
-    <div className="relative">
+    <div className="relative" data-ready={ready ? "" : undefined}>
       <DetailPart name="backdrop">
         <div className="relative">
           <BackdropProjection

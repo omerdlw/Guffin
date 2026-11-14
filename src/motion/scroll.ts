@@ -78,7 +78,18 @@ function locked(now: number) {
   return lock.held;
 }
 
+// How the wheel feels: the spring's period in seconds and how far one notch
+// travels (1 = the wheel's own distance). A page may ask for its own while it
+// is mounted; the last one released restores the default.
+export interface ScrollFeel {
+  period: number;
+  gain: number;
+}
+
+const DEFAULT_FEEL: ScrollFeel = { period: SCROLL_PERIOD, gain: 1 };
+
 class ScrollDriver {
+  private feel: ScrollFeel = DEFAULT_FEEL;
   private position: Value;
   private written = 0;
   private started = false;
@@ -110,7 +121,15 @@ class ScrollDriver {
   }
 
   private get spring() {
-    return { period: SCROLL_PERIOD, damping: 1, mass: 1 };
+    return { period: this.feel.period, damping: 1, mass: 1 };
+  }
+
+  // Takes the page's feel; the returned function gives it back.
+  tune(feel: ScrollFeel) {
+    this.feel = feel;
+    return () => {
+      if (this.feel === feel) this.feel = DEFAULT_FEEL;
+    };
   }
 
   start() {
@@ -232,7 +251,11 @@ class ScrollDriver {
     if (this.quiet() || this.inside(event) || locked(event.timeStamp)) return;
     event.preventDefault();
     const from = this.moving ? this.position.target : this.position.current;
-    const y = clamp(from + wheelPixels(event), 0, this.limit());
+    const y = clamp(
+      from + wheelPixels(event) * this.feel.gain,
+      0,
+      this.limit(),
+    );
     this.position.to(y, { spring: this.spring });
   };
 

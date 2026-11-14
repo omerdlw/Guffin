@@ -144,8 +144,9 @@ export function Projection({
       aria-hidden="true"
       className={cn(BACKDROP_HERO, className)}
       data-cursor-stage=""
+      data-slot="screen"
     >
-      <div className="absolute inset-0" style={mask}>
+      <div className="absolute inset-0" data-slot="picture" style={mask}>
         <motion.img
           alt=""
           className="absolute inset-0 size-full object-cover"

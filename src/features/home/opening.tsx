@@ -181,9 +181,12 @@ export function HomeOpening({
 
       <div className={cn(pageBodyClass(Boolean(src)), src && HERO_LIFT)}>
         {src ? (
+          // The scrim fades out at its foot instead of stopping: the picture
+          // drifts down under it while scrolling, and a hard stop would show
+          // as a band of tone above the first section.
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute -top-40 -bottom-24 left-1/2 z-0 w-screen -translate-x-1/2 bg-linear-to-t from-page/85 via-page/40 to-transparent"
+            className="pointer-events-none absolute -top-40 -bottom-24 left-1/2 z-0 w-screen -translate-x-1/2 bg-linear-to-t from-page/85 via-page/40 to-transparent [mask-image:linear-gradient(to_bottom,#000_55%,transparent)]"
           />
         ) : null}
         <HomeSection
@@ -192,40 +195,35 @@ export function HomeOpening({
           cue="opening"
           now
         >
-          <HomePart
+          <HomeText
             as="p"
             className={`${TONE.label} text-grade`}
-            name="eyebrow"
-          >
-            {first ? `Welcome back, ${first}` : "The film diary"}
-          </HomePart>
+            part="eyebrow"
+            text={first ? `Welcome back, ${first}` : "The film diary"}
+          />
           <h2 className="mt-5 text-balance text-ink">
             <HomeText
               as="span"
-              by="word"
               className={HEADLINE_CLASS}
               part="headline"
               text="Every film you’ve seen."
             />
             <HomeText
               as="span"
-              by="word"
               className={cn(HEADLINE_CLASS, "text-ink-muted")}
+              index={1}
               part="headline"
               text="Every one you’re about to."
             />
           </h2>
           <div className="mt-8 grid grid-cols-1 gap-x-16 gap-y-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
             <div className="flex min-w-0 flex-col gap-7">
-              <HomePart
+              <HomeText
                 as="p"
                 className={cn(PROSE_CLASS, "max-w-[52ch] text-ink-body")}
-                name="copy"
-              >
-                Keep a diary of what you watch. Rate it, write about it, make
-                lists worth sharing, and see what the people you follow thought
-                of the same film.
-              </HomePart>
+                part="copy"
+                text="Keep a diary of what you watch. Rate it, write about it, make lists worth sharing, and see what the people you follow thought of the same film."
+              />
               <Actions username={username} />
             </div>
             {feature ? <Credit film={feature} /> : null}

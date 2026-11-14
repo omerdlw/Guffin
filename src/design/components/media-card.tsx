@@ -91,6 +91,7 @@ export function MediaCard({
       <div
         className={cn(mediaFrameVariants({ aspect, framed }), frameClassName)}
         data-cursor-frame=""
+        data-slot="frame"
         style={style}
       >
         <Image
@@ -132,6 +133,7 @@ export function MediaCard({
         className={classes}
         data-cursor="card"
         data-cursor-label={tooltip}
+        data-kind="media"
         href={href}
         onNavigated={onNavigated}
         style={style}
@@ -147,6 +149,7 @@ export function MediaCard({
         className={cn(classes, "cursor-pointer text-left")}
         data-cursor="card"
         data-cursor-label={tooltip}
+        data-kind="media"
         onClick={onClick}
         style={style}
         type="button"
@@ -156,7 +159,7 @@ export function MediaCard({
     );
   } else {
     card = (
-      <div className={classes} style={style}>
+      <div className={classes} data-kind="media" style={style}>
         {body}
       </div>
     );

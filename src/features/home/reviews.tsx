@@ -55,6 +55,7 @@ function Lead({ review }: { review: HomeReview }): JSX.Element {
             aria-label={film.title}
             className="cine-card on-photo relative block aspect-[16/9] overflow-hidden rounded-panel bg-plate"
             href={movieHref(film.id)}
+            data-slot="frame"
           >
             <Image
               alt=""
@@ -94,7 +95,6 @@ function Lead({ review }: { review: HomeReview }): JSX.Element {
       <blockquote className="flex flex-col gap-6">
         <HomeText
           as="p"
-          by="word"
           className="line-clamp-8 max-w-[44ch] type-heading font-medium text-pretty text-ink sm:line-clamp-6"
           part="lead"
           text={`“${review.content}”`}

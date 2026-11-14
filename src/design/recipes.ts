@@ -3,7 +3,7 @@ import { LAYER, STATE, TONES } from "./foundations/tones";
 
 const buttonRoot = defineRecipe({
   base: [
-    "center relative inline-flex cursor-pointer items-center justify-center font-medium select-none outline-none",
+    "choreo-button center relative inline-flex cursor-pointer items-center justify-center font-medium select-none outline-none",
     STATE.disabled,
     STATE.busy,
   ],
@@ -145,7 +145,7 @@ const checkboxGlyph = defineRecipe({
 });
 
 const segmentedRoot = defineRecipe({
-  base: "relative max-w-full items-stretch gap-0.5 overflow-x-auto bg-fill p-0.5 ring-1 ring-edge ring-inset select-none scrollbar-none",
+  base: "choreo-segmented relative max-w-full items-stretch gap-0.5 overflow-x-auto bg-fill p-0.5 ring-1 ring-edge ring-inset select-none scrollbar-none",
   variants: {
     size: { sm: "h-control-sm", md: "h-control-md" },
     shape: { pill: "rounded-full", card: "rounded-card" },
@@ -310,7 +310,7 @@ const carouselSlide = defineRecipe({ base: "shrink-0" });
 
 const carouselArrow = defineRecipe({
   base: [
-    "center absolute top-1/2 z-10 size-control-chrome -translate-y-1/2 cursor-pointer sm:size-control-md",
+    "center absolute top-[var(--arrow-y,50%)] z-10 size-control-chrome -translate-y-1/2 cursor-pointer sm:size-control-md",
     "rounded-full bg-veil text-ink ring-1 ring-edge-hover ring-inset backdrop-saturate-150 hover:bg-glass focus-visible:bg-glass",
   ],
   variants: {

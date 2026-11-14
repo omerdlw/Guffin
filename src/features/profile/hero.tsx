@@ -267,7 +267,6 @@ function AccountHero({
               <AccountText
                 as="h1"
                 className="font-zuume max-w-full type-display-xs leading-none font-bold text-ink uppercase [overflow-wrap:anywhere] sm:type-display-sm lg:type-display-md"
-                mask
                 part="name"
                 text={displayName}
               />

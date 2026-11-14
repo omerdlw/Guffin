@@ -7,7 +7,7 @@ import { TONE } from "@/design/foundations/tones";
 import { useOpenSignIn } from "@/features/auth/sign-in";
 import { GuestOnly } from "./craft";
 import { formatWhole } from "./format";
-import { HomePart, HomeSection } from "./motion";
+import { HomePart, HomeSection, HomeText } from "./motion";
 
 export function HomeJoin({ members }: { members: number }): JSX.Element {
   const openSignIn = useOpenSignIn();
@@ -21,28 +21,40 @@ export function HomeJoin({ members }: { members: number }): JSX.Element {
           name="close"
         >
           <div className="flex flex-col gap-6">
-            <p className={`${TONE.label} text-ink-muted`}>Roll credits</p>
-            <h2
+            <HomeText
+              as="p"
+              className={`${TONE.label} text-ink-muted`}
+              part="tag"
+              text="Roll credits"
+            />
+            <HomeText
+              as="h2"
               className={`${HEADLINE_BOX} font-zuume type-display-lg leading-none font-bold text-balance text-ink uppercase sm:type-display-xl lg:type-display-2xl`}
-            >
-              Start your diary tonight
-            </h2>
+              part="finale"
+              text="Start your diary tonight"
+            />
           </div>
           <div className="flex flex-col items-start gap-6">
-            <p className="max-w-[40ch] type-base leading-7 text-pretty text-ink-body">
-              {members > 0
-                ? `Join ${formatWhole(members)} members who keep track of what they watch.`
-                : "Keep track of what you watch."}{" "}
-              It’s free, and your first film takes a minute to log.
-            </p>
-            <Button
-              intent="primary"
-              onClick={openSignIn}
-              shape="pill"
-              size="lg"
-            >
-              Create your account
-            </Button>
+            <HomeText
+              as="p"
+              className="max-w-[40ch] type-base leading-7 text-pretty text-ink-body"
+              part="pitch"
+              text={`${
+                members > 0
+                  ? `Join ${formatWhole(members)} members who keep track of what they watch.`
+                  : "Keep track of what you watch."
+              } It’s free, and your first film takes a minute to log.`}
+            />
+            <HomePart name="cta">
+              <Button
+                intent="primary"
+                onClick={openSignIn}
+                shape="pill"
+                size="lg"
+              >
+                Create your account
+              </Button>
+            </HomePart>
           </div>
         </HomePart>
       </HomeSection>

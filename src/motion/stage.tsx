@@ -2,6 +2,7 @@
 
 import {
   createContext,
+  type CSSProperties,
   type ElementType,
   type ReactNode,
   useCallback,
@@ -13,7 +14,15 @@ import {
   useState,
 } from "react";
 import { type Grading, useGrade } from "@/design/grade";
+import {
+  type Choreography,
+  compile,
+  type Curve,
+  type TextMoves,
+  LEAVING,
+} from "./choreo";
 import { useScrollDriver } from "./react";
+import type { ScrollFeel } from "./scroll";
 
 // A page's stage: the parts and sections it renders, by name. The names are
 // where the page's choreography attaches; until a page writes one, every
@@ -22,7 +31,30 @@ import { useScrollDriver } from "./react";
 interface StageRoles<P extends string, S extends string> {
   parts: readonly P[];
   sections?: readonly S[];
+  // The page's name and choreography; without them every role renders still.
+  scope?: string;
+  motion?: Choreography<P, S>;
+  // How scrolling feels while the page is mounted.
+  scroll?: ScrollFeel;
+  // How a carousel pans when its arrows are pressed; without it, it jumps.
+  glide?: Glide;
 }
+
+export interface Glide {
+  duration: number;
+  ease: Curve;
+}
+
+const GlideContext = createContext<Glide | null>(null);
+
+export const useGlide = () => useContext(GlideContext);
+
+const TextContext = createContext<
+  Partial<Record<string, TextMoves | undefined>>
+>({});
+
+const order = (index: number | undefined): CSSProperties | undefined =>
+  index === undefined ? undefined : ({ "--i": index } as CSSProperties);
 
 interface PartProps<P extends string> {
   name: P;
@@ -43,8 +75,7 @@ interface SectionProps<S extends string> {
 interface TextProps<P extends string> {
   part: P;
   text: string;
-  by?: "word" | "line" | "char" | "block";
-  mask?: boolean;
+  index?: number;
   as?: ElementType;
   className?: string;
 }
@@ -141,10 +172,11 @@ export function Part({
   name,
   as: Tag = "div",
   className,
+  index,
   children,
 }: PartProps<string>) {
   return (
-    <Tag className={className} data-part={name}>
+    <Tag className={className} data-part={name} style={order(index)}>
       {children}
     </Tag>
   );
@@ -163,15 +195,98 @@ export function Section({
   );
 }
 
+// The order units play in. "center" spreads from the middle of the text
+// outwards; "random" scatters them, the same way on server and client.
+function sequence(count: number, moves: TextMoves, seed: string): number[] {
+  const order = moves.order ?? "forward";
+  const at = Array.from({ length: count }, (_, i) => i);
+  if (order === "center") {
+    const middle = (count - 1) / 2;
+    return at.map((i) => Math.round(Math.abs(i - middle)));
+  }
+  if (order === "random") {
+    let hash = 2166136261;
+    for (let i = 0; i < seed.length; i++)
+      hash = Math.imul(hash ^ seed.charCodeAt(i), 16777619);
+    const next = () => {
+      hash = Math.imul(hash ^ (hash >>> 15), 2246822507);
+      hash = Math.imul(hash ^ (hash >>> 13), 3266489909);
+      return ((hash ^= hash >>> 16) >>> 0) / 4294967296;
+    };
+    for (let i = count - 1; i > 0; i--) {
+      const j = Math.floor(next() * (i + 1));
+      [at[i], at[j]] = [at[j]!, at[i]!];
+    }
+  }
+  return at;
+}
+
+function split(text: string, moves: TextMoves) {
+  const words = text.split(/(\s+)/);
+  const solid = words.filter((word) => !/^\s+$/.test(word));
+  const count =
+    moves.by === "word"
+      ? solid.length
+      : solid.reduce((sum, word) => sum + [...word].length, 0);
+  const slot = sequence(count, moves, text);
+  let w = 0;
+  let c = 0;
+  return words.map((word, key) => {
+    if (/^\s+$/.test(word)) return word;
+    const inner =
+      moves.by === "char"
+        ? [...word].map((char, at) => (
+            <span
+              data-c=""
+              key={at}
+              style={{ "--c": slot[c++] } as CSSProperties}
+            >
+              {char}
+            </span>
+          ))
+        : word;
+    const unit =
+      moves.by === "word" ? (
+        <span data-w="" style={{ "--w": slot[w++] } as CSSProperties}>
+          {inner}
+        </span>
+      ) : (
+        <span className="inline-block whitespace-nowrap">{inner}</span>
+      );
+    return moves.mask ? (
+      <span data-m="" key={key}>
+        {unit}
+      </span>
+    ) : (
+      <span className="contents" key={key}>
+        {unit}
+      </span>
+    );
+  });
+}
+
 export function Text({
   part,
   text,
+  index,
   as: Tag = "span",
   className,
 }: TextProps<string>) {
+  const moves = useContext(TextContext)[part];
+  if (!moves)
+    return (
+      <Tag className={className} data-part={part} style={order(index)}>
+        {text}
+      </Tag>
+    );
   return (
-    <Tag className={className} data-part={part}>
-      {text}
+    <Tag
+      aria-label={text}
+      className={className}
+      data-part={part}
+      style={order(index)}
+    >
+      <span aria-hidden="true">{split(text, moves)}</span>
     </Tag>
   );
 }
@@ -187,6 +302,7 @@ export function Header({
 }: HeaderProps<string>) {
   const meter =
     progress === undefined ? null : Math.max(0, Math.min(1, progress));
+  const moves = useContext(TextContext)[part];
 
   return (
     <div className={className ?? "relative z-10 mb-4"} data-part={part}>
@@ -200,7 +316,13 @@ export function Header({
               {icon}
             </span>
           ) : null}
-          <h2 className={nameClassName}>{title}</h2>
+          {moves ? (
+            <h2 aria-label={title} className={nameClassName}>
+              <span aria-hidden="true">{split(title, moves)}</span>
+            </h2>
+          ) : (
+            <h2 className={nameClassName}>{title}</h2>
+          )}
         </div>
         <div
           aria-hidden={meter === null ? "true" : undefined}
@@ -208,6 +330,7 @@ export function Header({
           aria-valuemin={meter === null ? undefined : 0}
           aria-valuenow={meter === null ? undefined : Math.round(meter * 100)}
           className="relative h-2 min-w-6 flex-1"
+          data-slot="rule"
           role={meter === null ? undefined : "progressbar"}
         >
           <div
@@ -279,6 +402,12 @@ export function Count({ part, value, format, className }: CountProps<string>) {
   );
 }
 
+// Swapped content leaves before the new content enters: the old view stays,
+// marked `data-leaving`, until its leave animation ends (the page's
+// choreography gives it one), then the new one mounts and plays its entrance.
+// Without a leave it swaps at once.
+const LEAVE_LIMIT_MS = 3000;
+
 export function Swap({
   id,
   cue,
@@ -286,10 +415,42 @@ export function Swap({
   className,
   children,
 }: SwapProps<string>) {
+  const [shown, setShown] = useState(id);
+  const box = useRef<HTMLElement>(null);
+  const held = useRef(children);
+
+  useLayoutEffect(() => {
+    if (id === shown) held.current = children;
+  });
+
+  useEffect(() => {
+    const element = box.current;
+    if (id === shown || !element) return;
+    element.setAttribute("data-leaving", "");
+    if (!getComputedStyle(element).animationName.includes(LEAVING)) {
+      element.removeAttribute("data-leaving");
+      setShown(id);
+      return;
+    }
+    const done = () => setShown(id);
+    const end = (event: AnimationEvent) => {
+      if (event.target === element && event.animationName.endsWith(LEAVING))
+        done();
+    };
+    element.addEventListener("animationend", end);
+    const limit = setTimeout(done, LEAVE_LIMIT_MS);
+    return () => {
+      element.removeEventListener("animationend", end);
+      clearTimeout(limit);
+      element.removeAttribute("data-leaving");
+    };
+  }, [id, shown]);
+
   return (
     <div>
-      <Tag className={className} data-section={cue} key={id}>
-        {children}
+      <Tag className={className} data-section={cue} key={shown} ref={box}>
+        {/* eslint-disable-next-line react-hooks/refs -- the leaving view keeps what it last showed */}
+        {id === shown ? children : held.current}
       </Tag>
     </div>
   );
@@ -375,12 +536,100 @@ export function WallStage({ wall, children }: WallStageProps<string>) {
   );
 }
 
+// The stage's cues. The opening waits for the page to be hydrated and two
+// frames painted, then `data-play` releases it. Every part and section is
+// marked `data-seen` the first time it comes into view, which releases its
+// entrance; roles added later (a swapped shelf, more rows) are watched too.
+const ROLES = "[data-part], [data-section]";
+
+function useCue(root: { current: HTMLElement | null }, on: boolean) {
+  useEffect(() => {
+    const element = root.current;
+    if (!on || !element) return;
+
+    let frame = requestAnimationFrame(() => {
+      frame = requestAnimationFrame(() =>
+        element.setAttribute("data-play", ""),
+      );
+    });
+
+    const seen = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          entry.target.setAttribute("data-seen", "");
+          seen.unobserve(entry.target);
+        }
+      },
+      { rootMargin: "0px 0px -16% 0px" },
+    );
+    const watch = (node: Element) => {
+      if (node.matches(ROLES) && !node.hasAttribute("data-seen"))
+        seen.observe(node);
+      node.querySelectorAll(ROLES).forEach((child) => {
+        if (!child.hasAttribute("data-seen")) seen.observe(child);
+      });
+    };
+    watch(element);
+    const added = new MutationObserver((records) => {
+      for (const record of records)
+        record.addedNodes.forEach((node) => {
+          if (node instanceof Element) watch(node);
+        });
+    });
+    added.observe(element, { childList: true, subtree: true });
+
+    return () => {
+      cancelAnimationFrame(frame);
+      seen.disconnect();
+      added.disconnect();
+    };
+  }, [root, on]);
+}
+
 export function defineStage<
   const P extends string,
   const S extends string = never,
->(_roles: StageRoles<P, S>) {
+>(roles: StageRoles<P, S>) {
+  const { scope, motion, scroll, glide = null } = roles;
+  const css = scope && motion ? compile(scope, motion) : "";
+  const texts = Object.fromEntries(
+    Object.entries(motion?.parts ?? {}).map(([key, moves]) => [
+      key,
+      (moves as { text?: TextMoves } | undefined)?.text,
+    ]),
+  );
+
+  function ChoreoRoot({
+    grade,
+    children,
+  }: {
+    grade?: Grading;
+    children: ReactNode;
+  }) {
+    useGrade(grade);
+    const root = useRef<HTMLDivElement>(null);
+    useCue(root, Boolean(scope && css));
+    const driver = useScrollDriver();
+    useEffect(() => (scroll ? driver.tune(scroll) : undefined), [driver]);
+    if (!scope || !css)
+      return <GlideContext value={glide}>{children}</GlideContext>;
+    return (
+      <GlideContext value={glide}>
+        <TextContext value={texts}>
+          <style href={`choreo-${scope}`} precedence="choreo">
+            {css}
+          </style>
+          <div className="contents" data-choreo={scope} ref={root}>
+            {children}
+          </div>
+        </TextContext>
+      </GlideContext>
+    );
+  }
+
   return {
-    StageRoot,
+    StageRoot: ChoreoRoot,
     SurfaceRoot: ({ children }: { children: ReactNode }) => <>{children}</>,
     Part: Part as (props: PartProps<P>) => ReactNode,
     Section: Section as (props: SectionProps<S>) => ReactNode,
