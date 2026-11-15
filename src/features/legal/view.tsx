@@ -1,5 +1,6 @@
 "use client";
 
+import { usePage } from "@omerdlw/base-framework/kernel";
 import type { JSX } from "react";
 import { DockLink, ExternalLink, linkVariants } from "@/design/components/link";
 import {
@@ -56,12 +57,10 @@ const sectionId = (title: string) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
 
-const bound = LEGAL;
-
-const LegalStage = bound.StageRoot;
-const LegalPart = bound.Part;
-const LegalSection = bound.Section;
-const LegalHeadline = bound.Text;
+const LegalStage = LEGAL.StageRoot;
+const LegalPart = LEGAL.Part;
+const LegalSection = LEGAL.Section;
+const LegalHeadline = LEGAL.Text;
 
 function LegalLink({
   active,
@@ -210,6 +209,17 @@ export function LegalPage({
 }: {
   document: LegalDocument;
 }): JSX.Element {
+  // The page's own dock card, so the dock's actions (search) have a card
+  // that owns this path to show on.
+  usePage({
+    dock: {
+      description: document.description,
+      icon: document.icon,
+      name: document.path.slice(1),
+      title: document.title,
+    },
+  });
+
   return (
     <LegalStage grade={null}>
       <main className={`ui-scene ${PAGE_CLASS}`}>

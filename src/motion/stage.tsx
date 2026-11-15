@@ -108,7 +108,6 @@ interface CountProps<P extends string> {
   format: (value: number) => string;
   index?: number;
   className?: string;
-  hover?: boolean;
 }
 
 interface ExposeProps<P extends string> {
@@ -117,7 +116,6 @@ interface ExposeProps<P extends string> {
   index?: number;
   as?: ElementType;
   className?: string;
-  hover?: boolean;
   truncate?: boolean;
 }
 
@@ -392,36 +390,6 @@ export function Header({
   );
 }
 
-export function Bloom({
-  part,
-  text,
-  as: Tag = "span",
-  className,
-}: {
-  part: string;
-  text: string;
-  as?: ElementType;
-  className?: string;
-}) {
-  const moves = useContext(TextContext)[part];
-  if (!moves)
-    return (
-      <Tag className={className} data-part={part}>
-        {text}
-      </Tag>
-    );
-  return (
-    <Tag
-      aria-label={text}
-      className={className}
-      data-part={part}
-      style={counted(text, moves)}
-    >
-      <span aria-hidden="true">{split(text, moves)}</span>
-    </Tag>
-  );
-}
-
 export function Expose({
   part,
   text,
@@ -451,11 +419,22 @@ export function Expose({
   );
 }
 
-export function Count({ part, value, format, className }: CountProps<string>) {
+// A number among the facts: it enters as the text around it does, in its
+// place in the order.
+export function Count({
+  part,
+  value,
+  format,
+  index,
+  className,
+}: CountProps<string>) {
   return (
-    <span className={className} data-part={part}>
-      {format(value)}
-    </span>
+    <Expose
+      className={className}
+      index={index}
+      part={part}
+      text={format(value)}
+    />
   );
 }
 
@@ -640,28 +619,7 @@ function useCue(
       }, opening * 1000);
     };
 
-    // A curtain (a title card playing over the page) holds the opening
-    // until it lifts; a stuck one gives way after CURTAIN_LIMIT_MS.
-    let frame = 0;
-    const play = () => {
-      if (frame || element.querySelector("[data-curtain]")) return;
-      curtain.disconnect();
-      clearTimeout(limit);
-      frame = requestAnimationFrame(() => {
-        frame = requestAnimationFrame(start);
-      });
-    };
-    const curtain = new MutationObserver(play);
-    curtain.observe(element, {
-      attributeFilter: ["data-curtain"],
-      childList: true,
-      subtree: true,
-    });
-    const limit = setTimeout(() => {
-      curtain.disconnect();
-      start();
-    }, CURTAIN_LIMIT_MS);
-    play();
+    const stopLift = whenLifted(element, start);
 
     const release = (node: Element) => {
       mark(node);
@@ -712,9 +670,7 @@ function useCue(
     added.observe(element, { childList: true, subtree: true });
 
     return () => {
-      cancelAnimationFrame(frame);
-      curtain.disconnect();
-      clearTimeout(limit);
+      stopLift();
       clearTimeout(hold);
       seen.disconnect();
       near.disconnect();
@@ -811,12 +767,8 @@ function useQueue(
 
     let played = false;
     const waiting = new Set<Element>();
-    // What each mark set going: the nodes it marked and their entrances.
     // A role plays once; marked, it stays as it landed.
-    const marked = new Map<
-      Element,
-      { nodes: Element[]; tracks: Animation[] }
-    >();
+    const marked = new Set<Element>();
     const line: Element[][] = [];
     let steps: Step[] = [];
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -866,10 +818,14 @@ function useQueue(
         );
     };
 
+    // Once marked, a trigger is done with both watches: each would only
+    // find it marked and pass.
     const mark = (trigger: Element, nodes: Element[]) => {
-      const tracks = nodes.flatMap(entrances);
       nodes.forEach((node) => node.setAttribute("data-seen", ""));
-      marked.set(trigger, { nodes, tracks });
+      marked.add(trigger);
+      seen.unobserve(trigger);
+      near.unobserve(trigger);
+      showing.delete(trigger);
     };
 
     // Roles of the same place in the order wait as one.
@@ -890,8 +846,9 @@ function useQueue(
 
     const land = (node: Element) => {
       const nodes = expand(node);
+      const tracks = nodes.flatMap(entrances);
       mark(node, nodes);
-      marked.get(node)?.tracks.forEach((animation) => animation.finish());
+      tracks.forEach((animation) => animation.finish());
     };
 
     const measure = (nodes: Element[]) => {
@@ -1208,7 +1165,7 @@ export function defineStage<
     Section: Section as (props: SectionProps<S>) => ReactNode,
     Text: Text as (props: TextProps<P>) => ReactNode,
     Header: Header as (props: HeaderProps<P>) => ReactNode,
-    Bloom: Bloom as (props: {
+    Bloom: Text as (props: {
       part: P;
       text: string;
       as?: ElementType;
