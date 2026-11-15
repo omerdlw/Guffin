@@ -36,33 +36,46 @@ const CLEAR = "liquid-clear";
  * with its size, so it keeps the size-free CSS rim instead.
  */
 const FLUID = "liquid-fluid";
+/**
+ * Clear glass laid on a picture rather than text: its colours split at the
+ * rim (nothing there to fringe), so the edge reads as glass.
+ */
+const PRISM = "liquid-prism";
 const REFRACTIVE_INDEX = 1.5;
 const SAMPLES = 128;
 const MIN_SIDE = 16;
 /** Red bends a little more than green, blue a little less. */
 const DISPERSION = 0.07;
 /**
- * How the edge light brightens the scene it carries: colours ×1.7 plus a
- * touch of white, so it glows vividly over a picture and stays faint over a
- * dark page.
+ * How the edge light brightens the scene it carries: colours ×1.3 plus a
+ * touch of white, so it glows over a picture and stays faint over a dark
+ * page.
  */
-const EDGE_GAIN = 1.7;
+const EDGE_GAIN = 1.3;
+/**
+ * The edge light carries the scene a little softened (px, standard
+ * deviation): sharp, it read as a clear window cut round the frost.
+ */
+const EDGE_BLUR = 1.75;
 /** Clear glass over text: a gentler edge light, so letters do not flare. */
 const CLEAR_EDGE_GAIN = 1.25;
 /** …and a gentler bend, so letters at the rim stay letters. */
 const CLEAR_BEND = 0.5;
 /** Glass thickness against the bezel's width: the bend reaches ~0.9 × bezel. */
 const THICKNESS = 1.9;
-/** The lens's own frost (px, the blur's standard deviation). */
-const FROST_BLUR = 5;
+/**
+ * The lens's own frost (px, the blur's standard deviation): light, so the
+ * scene behind keeps its shapes and the bend at the rim reads as glass.
+ */
+const FROST_BLUR = 4;
 const EDGE_LIFT = 0.05;
 /**
  * How deep the lens's slices reach (css px) at least: the edge light fades
  * out over ~12px, deeper than a small bezel.
  */
 const EDGE_REACH = 12;
-/** The glint fades out within ~2px of the outline. */
-const GLINT_REACH = 4;
+/** The glint's bloom fades out within ~8px of the outline. */
+const GLINT_REACH = 8;
 /** Light from the top left. */
 const LIGHT_X = -Math.SQRT1_2;
 const LIGHT_Y = -Math.SQRT1_2;
@@ -168,12 +181,16 @@ const sideOf = (slice: number) => slice * 2 + 2;
  * A white alpha mask around the outline of the square, at `density`. `shade`
  * gets the depth inside the outline (css px) and how squarely the edge faces
  * the light (1 facing it, −1 facing away) and returns the alpha there.
+ * `opaque` draws it as grey on black instead (the value in the colour, full
+ * alpha): slices of it laid over one another then replace each other where
+ * they meet instead of adding up into a bright seam.
  */
 function drawMask(
   slice: number,
   radius: number,
   density: number,
   shade: (depth: number, facing: number) => number,
+  opaque = false,
 ) {
   const side = sideOf(slice);
   const size = Math.round(side * density);
@@ -192,10 +209,11 @@ function drawMask(
   return paint(columns, rows, (data) => {
     for (let i = 0; i < alpha.length; i++) {
       const at = i * 4;
-      data[at] = 255;
-      data[at + 1] = 255;
-      data[at + 2] = 255;
-      data[at + 3] = Math.round(alpha[i]! * 255);
+      const value = Math.round(alpha[i]! * 255);
+      data[at] = opaque ? value : 255;
+      data[at + 1] = opaque ? value : 255;
+      data[at + 2] = opaque ? value : 255;
+      data[at + 3] = opaque ? 255 : value;
     }
   });
 }
@@ -208,7 +226,13 @@ function drawMask(
 const drawSpecular = (slice: number, radius: number, density: number) =>
   drawMask(slice, radius, density, (depth, facing) => {
     const glint = facing > 0 ? facing ** 4 : 0.45 * (-facing) ** 4;
-    return (0.1 + 0.9 * glint) * Math.exp(-depth / 0.45);
+    // A soft bloom inside the line, wider round the lit corners, so the rim
+    // reads as a curved, thick edge catching the light.
+    const spread = facing > 0 ? facing ** 2 : 0.5 * (-facing) ** 2;
+    return (
+      (0.1 + 0.9 * glint) * Math.exp(-depth / 0.45) +
+      0.3 * spread * Math.exp(-depth / 2.5)
+    );
   });
 
 /**
@@ -217,12 +241,18 @@ const drawSpecular = (slice: number, radius: number, density: number) =>
  * colours it sits on. Even all round, a little stronger on the lit corners.
  */
 const drawEdgeLight = (slice: number, radius: number, density: number) =>
-  drawMask(slice, radius, density, (depth, facing) => {
-    const weight = 0.45 + 0.55 * facing ** 2;
-    return (
-      weight * (0.85 * Math.exp(-depth / 1.1) + 0.3 * Math.exp(-depth / 3.5))
-    );
-  });
+  drawMask(
+    slice,
+    radius,
+    density,
+    (depth, facing) => {
+      const weight = 0.45 + 0.55 * facing ** 2;
+      return (
+        weight * (0.85 * Math.exp(-depth / 1.1) + 0.3 * Math.exp(-depth / 3.5))
+      );
+    },
+    true,
+  );
 
 function drawRefraction(slice: number, radius: number, bezel: number) {
   const profile = bezelSlice(bezel, bezel * THICKNESS);
@@ -373,6 +403,7 @@ type Lens = {
   map: Record<Piece, SVGElement>;
   band: Record<Piece, SVGElement> | null;
   flat: SVGElement;
+  dark: SVGElement | null;
   width: number;
   height: number;
 };
@@ -442,7 +473,13 @@ function startLiquid(lensing: boolean) {
     }
   }
 
-  function buildLens(maps: LensMaps, clear: boolean, key: string): Lens {
+  function buildLens(
+    maps: LensMaps,
+    clear: boolean,
+    prism: boolean,
+    bend: number,
+    key: string,
+  ): Lens {
     const id = `liquid-lens-${++count}`;
     // Pixel units: inside backdrop-filter, Chromium resolves percentages
     // against a box other than the element, which misaligns the map.
@@ -464,23 +501,23 @@ function startLiquid(lensing: boolean) {
     });
     const map = pieces(filter, "map");
     merge(filter, "map", "flat");
-    if (clear) {
+    if (clear && !prism) {
       // Clear glass sits over text (a label, a page): split colours would
       // fringe every letter, so all three bend together.
       set(filter, "feDisplacementMap", {
         in: "SourceGraphic",
         in2: "map",
-        scale: (maps.scale * CLEAR_BEND).toFixed(2),
+        scale: (maps.scale * bend).toFixed(2),
         xChannelSelector: "R",
         yChannelSelector: "G",
         result: "bent",
       });
     } else {
-      [1 + DISPERSION, 1, 1 - DISPERSION].forEach((bend, channel) => {
+      [1 + DISPERSION, 1, 1 - DISPERSION].forEach((spread, channel) => {
         set(filter, "feDisplacementMap", {
           in: "SourceGraphic",
           in2: "map",
-          scale: (maps.scale * bend).toFixed(2),
+          scale: (maps.scale * bend * spread).toFixed(2),
           xChannelSelector: "R",
           yChannelSelector: "G",
           result: `bent${channel}`,
@@ -506,23 +543,50 @@ function startLiquid(lensing: boolean) {
       });
       // The frost, after the bending so the bend stays legible even where
       // the scene behind is smooth. (Blurring first would bend a scene with
-      // nothing left in it to bend.)
-      set(filter, "feGaussianBlur", {
-        in: "bent",
-        stdDeviation: FROST_BLUR,
-        edgeMode: "duplicate",
-        result: "frosted",
-      });
+      // nothing left in it to bend.) Clear glass has none.
+      if (!clear) {
+        set(filter, "feGaussianBlur", {
+          in: "bent",
+          stdDeviation: FROST_BLUR,
+          edgeMode: "duplicate",
+          result: "frosted",
+        });
+      }
     }
-    // The edge light: the bent scene, sharp, kept only in the band at the rim
-    // and brightened, laid over the frost.
+    // The edge light: the bent scene, softened a touch (clear glass keeps it
+    // sharp), kept only in the band at the rim and brightened, laid over the
+    // frost.
     let band: Lens["band"] = null;
+    let dark: Lens["dark"] = null;
     if (maps.band) {
+      // Drawn grey on black (opaque, so the slices' overlaps leave no seam),
+      // then the grey made the alpha.
+      dark = set(filter, "feFlood", {
+        "flood-color": "#000",
+        "flood-opacity": 1,
+        x: 0,
+        y: 0,
+        result: "dark",
+      });
       band = pieces(filter, "band");
-      merge(filter, "band");
+      merge(filter, "band", "dark");
+      set(filter, "feColorMatrix", {
+        in: "band",
+        type: "matrix",
+        values: "0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  1 0 0 0 0",
+        result: "edge",
+      });
+      if (!clear) {
+        set(filter, "feGaussianBlur", {
+          in: "bent",
+          stdDeviation: EDGE_BLUR,
+          edgeMode: "duplicate",
+          result: "softened",
+        });
+      }
       set(filter, "feComposite", {
-        in: "bent",
-        in2: "band",
+        in: clear ? "bent" : "softened",
+        in2: "edge",
         operator: "in",
         result: "caught",
       });
@@ -554,6 +618,7 @@ function startLiquid(lensing: boolean) {
       map,
       band,
       flat,
+      dark,
       width: -1,
       height: -1,
     };
@@ -566,8 +631,10 @@ function startLiquid(lensing: boolean) {
     lens.height = height;
     lens.filter.setAttribute("width", String(width));
     lens.filter.setAttribute("height", String(height));
-    lens.flat.setAttribute("width", String(width));
-    lens.flat.setAttribute("height", String(height));
+    for (const flood of lens.dark ? [lens.flat, lens.dark] : [lens.flat]) {
+      flood.setAttribute("width", String(width));
+      flood.setAttribute("height", String(height));
+    }
     const boxes = layout(lens.slice, width, height);
     for (const piece of PIECES) {
       const [x, y, w, h] = boxes[piece];
@@ -632,7 +699,24 @@ function startLiquid(lensing: boolean) {
       dropLens(element);
       return;
     }
-    const bezel = Math.round(bezelOf(width, height, radius));
+    // A surface can ask for its own rim (`--liquid-bezel`, px) and its own
+    // strength (`--liquid-bend`, × the full lens): a narrow rim bends a thin
+    // band, and the strength keeps that band from going faint.
+    const style = getComputedStyle(element);
+    const asked = parseFloat(style.getPropertyValue("--liquid-bezel"));
+    const strength = parseFloat(style.getPropertyValue("--liquid-bend"));
+    const bend =
+      Number.isFinite(strength) && strength > 0
+        ? strength
+        : clear
+          ? CLEAR_BEND
+          : 1;
+    const prism = clear && element.classList.contains(PRISM);
+    const bezel = Math.round(
+      Number.isFinite(asked) && asked > 0
+        ? Math.min(asked, Math.min(width, height) / 2)
+        : bezelOf(width, height, radius),
+    );
     // Deep enough for the bezel and the edge light, but never past the
     // middle of a small surface.
     const slice = Math.max(
@@ -642,7 +726,7 @@ function startLiquid(lensing: boolean) {
       ),
       Math.ceil(radius),
     );
-    const key = `${slice}r${radius}b${bezel}${clear ? "c" : ""}`;
+    const key = `${slice}r${radius}b${bezel}x${bend}${clear ? "c" : ""}${prism ? "p" : ""}`;
     let lens = lenses.get(element);
     if (lens?.key !== key) {
       const found = mapsFor(key, slice, radius, bezel);
@@ -652,7 +736,7 @@ function startLiquid(lensing: boolean) {
         element.style.removeProperty("--liquid-lens");
         return;
       }
-      lens = buildLens(found, clear, key);
+      lens = buildLens(found, clear, prism, bend, key);
       lenses.set(element, lens);
       // Tone first (saturation, brightness); the lens bends, frosts and
       // lights the edge itself.

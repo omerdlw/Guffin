@@ -136,7 +136,7 @@ const SEARCH = defineStage({
         rest: { duration: beat(-1), ease: SETTLE },
         slots: {
           image: {
-            hover: { scale: 1.09, duration: beat(0), ease: SETTLE },
+            hover: { scale: 1.146, duration: beat(0), ease: SETTLE },
             rest: { duration: beat(0), ease: SETTLE },
             focus: "hover",
           },
@@ -145,13 +145,6 @@ const SEARCH = defineStage({
       button,
       segmented: {
         slots: {
-          pill: {
-            follow: {
-              of: ["transform", "translate", "width", "height"],
-              duration: beat(-2),
-              ease: SWEEP,
-            },
-          },
           tab: {
             follow: { of: ["color"], duration: beat(-2), ease: SWEEP },
             press,

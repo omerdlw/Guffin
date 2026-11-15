@@ -16,9 +16,9 @@ import {
   drive,
   DRAG_SLOP,
   feel,
-  GLASS_CLASS,
   type Goal,
   spring,
+  thumbTransform,
 } from "@/design/components/glass-thumb";
 import { cn } from "@/design/ui";
 
@@ -43,16 +43,19 @@ interface Box {
   width: number;
 }
 
-/** The indicator travels with a little overshoot, and follows a drag tight. */
-const TRAVEL = feel(260, 0.7);
+/**
+ * The indicator travels with the faintest overshoot (well under a pixel: it
+ * lands centred on its item), and follows a drag tight.
+ */
+const TRAVEL = feel(260, 0.82);
 const FOLLOW = feel(900, 0.95);
 const GLASS_ON = feel(520, 1);
 const GLASS_OFF = feel(190, 0.9);
-/** Stretch along the travel: loose, so the glass wobbles as it lands. */
-const JELLY = feel(200, 0.3);
+/** Stretch along the travel: a single soft wobble as the glass lands. */
+const JELLY = feel(200, 0.5);
 /** At full glass the indicator swells past the track. */
 const SWELL_X = 0.12;
-const SWELL_Y = 0.3;
+const SWELL_Y = 0.36;
 
 const REDUCED = "(prefers-reduced-motion: reduce)";
 
@@ -70,9 +73,11 @@ function nearest(boxes: readonly Box[], centre: number) {
 }
 
 /**
- * Picks one of a few items. The chosen one sits on a solid indicator; press
- * it and it swells into clear glass you can drag across the others, and it
- * travels as glass whenever the choice changes, settling solid on arrival.
+ * Picks one of a few items. One indicator, made of the liquid material
+ * (liquid.css): at rest it carries the chosen fill; press it and it swells
+ * into clear liquid glass you can drag across the others, and it travels as
+ * glass whenever the choice changes, taking the chosen fill back on arrival.
+ * The labels sit above it and stay crisp.
  */
 export function SegmentedControl<K extends string>({
   ariaLabel,
@@ -82,8 +87,7 @@ export function SegmentedControl<K extends string>({
   value,
 }: SegmentedControlProps<K>) {
   const root = useRef<HTMLDivElement>(null);
-  const plate = useRef<HTMLSpanElement>(null);
-  const lens = useRef<HTMLSpanElement>(null);
+  const pill = useRef<HTMLSpanElement>(null);
   const [ready, setReady] = useState(false);
   const [lit, setLit] = useState<number | null>(null);
 
@@ -107,13 +111,11 @@ export function SegmentedControl<K extends string>({
 
   useEffect(() => {
     const list = root.current;
-    const solid = plate.current;
-    const glass = lens.current;
-    if (!list || !solid || !glass) return;
+    const glass = pill.current;
+    if (!list || !glass) return;
     const reduced = matchMedia(REDUCED);
 
     let boxes: Box[] = [];
-    let base = 0;
     let measured = false;
     const x = spring();
     const w = spring();
@@ -123,11 +125,24 @@ export function SegmentedControl<K extends string>({
     let target = latest.current.chosenIndex;
     let pressed = false;
     let dragging = false;
+    /**
+     * On its way to a new item: glass from the moment the choice changes
+     * until it first arrives, then solid for good, so the spring settling
+     * round its mark never turns it back to glass.
+     */
+    let trip = false;
     let grab = 0;
     let startX = 0;
     let pointerX = 0;
     let tapped = -1;
     let shownLit: number | null = null;
+    /**
+     * The pointer being followed. Tracked here, not read back from
+     * hasPointerCapture: once capture is lost (lostpointercapture, or a
+     * browser that drops it before pointerup) that reads false, and the
+     * release would be skipped, leaving the glass frozen mid-drag.
+     */
+    let pointer: number | null = null;
 
     const local = (clientX: number) =>
       clientX - list.getBoundingClientRect().left;
@@ -143,8 +158,8 @@ export function SegmentedControl<K extends string>({
         tw = boxes[nearest(boxes, x.x + w.x / 2)]!.width;
         tx = clamp(pointerX - grab, first.left, end.left + end.width - tw);
       }
-      const travelling = Math.abs(x.x - tx) > 1.5 || Math.abs(w.x - tw) > 1.5;
-      const on = pressed || dragging || travelling;
+      if (Math.abs(x.x - tx) < 1.5 && Math.abs(w.x - tw) < 1.5) trip = false;
+      const on = pressed || dragging || trip;
       return [
         [x, tx, dragging ? FOLLOW : TRAVEL],
         [w, tw, dragging ? FOLLOW : TRAVEL],
@@ -155,14 +170,15 @@ export function SegmentedControl<K extends string>({
 
     const draw = () => {
       const g = clamp(amount.x, 0, 1);
-      solid.style.transform = `translateX(${x.x.toFixed(2)}px)`;
-      solid.style.width = `${w.x.toFixed(2)}px`;
-      solid.style.opacity = (1 - g).toFixed(3);
-      const sx = (w.x / base) * (1 + SWELL_X * g + stretch.x);
+      // Its height never changes, so its corners (and the glint and lens
+      // drawn for them) stay put; the swell is a scale.
+      const sx = 1 + SWELL_X * g + stretch.x;
       const sy = 1 + SWELL_Y * g - stretch.x * 0.6;
-      glass.style.transform = `translateX(${(x.x + (w.x - base) / 2).toFixed(2)}px) scale(${sx.toFixed(4)}, ${sy.toFixed(4)})`;
-      glass.style.opacity = g.toFixed(3);
-      glass.style.visibility = g < 0.01 ? "hidden" : "visible";
+      glass.style.visibility = "visible";
+      glass.style.width = `${w.x.toFixed(2)}px`;
+      glass.style.transform = thumbTransform(x.x, sx, sy);
+      // The chosen fill gives way to the glass's own tint.
+      glass.style.backgroundColor = `color-mix(in oklab, var(--chosen) ${((1 - g) * 100).toFixed(1)}%, var(--liquid-tint))`;
       const next = dragging ? nearest(boxes, x.x + w.x / 2) : null;
       if (next !== shownLit) {
         shownLit = next;
@@ -179,10 +195,6 @@ export function SegmentedControl<K extends string>({
       );
       const chosen = boxes[target];
       if (!chosen) return;
-      // The glass keeps one drawn size and is scaled to each segment, so
-      // its refraction never has to be redrawn mid-flight.
-      base = chosen.width;
-      glass.style.width = `${base}px`;
       if (!dragging) {
         // Layout moved (a font loaded, the page resized): follow at once.
         x.x = chosen.left;
@@ -193,17 +205,21 @@ export function SegmentedControl<K extends string>({
         measured = true;
         setReady(true);
       }
+      draw();
       motion.wake();
     };
 
     const sizes = new ResizeObserver(measure);
     sizes.observe(list);
-    for (const tab of list.children) sizes.observe(tab);
+    for (const tab of list.querySelectorAll('[role="tab"]')) {
+      sizes.observe(tab);
+    }
     measure();
 
     engine.current = {
       down(event) {
-        if (event.button !== 0 || !boxes.length) return;
+        if (event.button !== 0 || !boxes.length || pointer !== null) return;
+        pointer = event.pointerId;
         const at = local(event.clientX);
         startX = at;
         pointerX = at;
@@ -217,7 +233,7 @@ export function SegmentedControl<K extends string>({
         motion.wake();
       },
       move(event) {
-        if (!list.hasPointerCapture(event.pointerId)) return;
+        if (event.pointerId !== pointer) return;
         pointerX = local(event.clientX);
         if (!dragging && Math.abs(pointerX - startX) > DRAG_SLOP) {
           dragging = true;
@@ -225,24 +241,31 @@ export function SegmentedControl<K extends string>({
         if (dragging) motion.wake();
       },
       up(event, cancel) {
-        if (!list.hasPointerCapture(event.pointerId)) return;
-        list.releasePointerCapture(event.pointerId);
+        if (event.pointerId !== pointer) return;
+        pointer = null;
+        if (list.hasPointerCapture(event.pointerId)) {
+          list.releasePointerCapture(event.pointerId);
+        }
         const { items: options, onChange: choose } = latest.current;
         const picked = cancel
           ? -1
           : dragging
             ? nearest(boxes, x.x + w.x / 2)
             : tapped;
+        // A drag released goes on as glass to the item it lands on.
+        trip = dragging;
         pressed = false;
         dragging = false;
         const item = options[picked];
         if (item && !item.disabled) {
+          if (picked !== target) trip = true;
           target = picked;
           choose(item.key);
         }
         motion.wake();
       },
       wake() {
+        if (latest.current.chosenIndex !== target) trip = true;
         target = latest.current.chosenIndex;
         motion.wake();
       },
@@ -294,7 +317,9 @@ export function SegmentedControl<K extends string>({
         className,
       )}
       onKeyDown={onKeyDown}
-      onLostPointerCapture={(event) => engine.current?.up(event, true)}
+      // Capture lost before the release (it is ours to release otherwise):
+      // settle as a release, on the item the glass is over.
+      onLostPointerCapture={(event) => engine.current?.up(event, false)}
       onPointerCancel={(event) => engine.current?.up(event, true)}
       onPointerDown={(event) => engine.current?.down(event)}
       onPointerMove={(event) => engine.current?.move(event)}
@@ -302,19 +327,12 @@ export function SegmentedControl<K extends string>({
       ref={root}
       role="tablist"
     >
+      {/* The indicator: the liquid material, under the labels. */}
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute top-0.5 bottom-0.5 left-0 rounded-full bg-chosen"
-        data-pill=""
-        ref={plate}
-        style={{ opacity: 0 }}
-      />
-      {/* Under the labels: the glass bends the track, the words stay crisp. */}
-      <span
-        aria-hidden="true"
-        className={cn(GLASS_CLASS, "top-0.5 bottom-0.5 left-0 rounded-full")}
-        ref={lens}
-        style={{ opacity: 0, visibility: "hidden" }}
+        className="liquid liquid-lens liquid-flat pointer-events-none absolute top-0.5 bottom-0.5 left-0 rounded-full"
+        ref={pill}
+        style={{ visibility: "hidden" }}
       />
       {items.map((item, index) => {
         const active = index === chosenIndex;

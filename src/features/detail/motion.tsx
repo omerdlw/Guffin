@@ -456,7 +456,7 @@ const DETAIL = defineStage({
         rest: { duration: beat(-1), ease: SETTLE },
         slots: {
           image: {
-            hover: { scale: 1.09, duration: beat(1), ease: SETTLE },
+            hover: { scale: 1.146, duration: beat(1), ease: SETTLE },
             rest: { duration: beat(1), ease: SETTLE },
             focus: "hover",
           },
@@ -471,13 +471,6 @@ const DETAIL = defineStage({
       },
       segmented: {
         slots: {
-          pill: {
-            follow: {
-              of: ["transform", "translate", "width", "height"],
-              duration: beat(-1),
-              ease: SWEEP,
-            },
-          },
           tab: {
             follow: { of: ["color"], duration: beat(-1), ease: SWEEP },
             press,

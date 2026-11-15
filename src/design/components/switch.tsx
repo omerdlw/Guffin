@@ -12,9 +12,9 @@ import {
   drive,
   DRAG_SLOP,
   feel,
-  GLASS_CLASS,
   type Goal,
   spring,
+  thumbTransform,
 } from "@/design/components/glass-thumb";
 import { cn } from "@/design/ui";
 
@@ -27,23 +27,28 @@ export interface SwitchProps extends Omit<
 }
 
 /** Track 60 × 28, knob 34 × 24 (a capsule, wider than tall), 2px inset. */
-const TRAVEL_PX = 60 - 4 - 34;
+const TRACK_W = 60;
+const TRACK_H = 28;
+const KNOB_W = 34;
+const TRAVEL_PX = TRACK_W - 4 - KNOB_W;
 
-const TRAVEL = feel(300, 0.62);
+const TRAVEL = feel(300, 0.82);
 const FOLLOW = feel(900, 0.95);
 const GLASS_ON = feel(520, 1);
 const GLASS_OFF = feel(180, 0.85);
-const JELLY = feel(220, 0.28);
-/** At full glass the knob swells past the track. */
-const SWELL_X = 0.28;
-const SWELL_Y = 0.42;
+const JELLY = feel(220, 0.5);
+/** At full glass the knob swells past the track (a scale: its corners, and
+ * the glint and lens drawn for them, stay put). */
+const SWELL_X = 0.32;
+const SWELL_Y = 0.36;
 
 const REDUCED = "(prefers-reduced-motion: reduce)";
 
 /**
- * A two-state toggle. Its knob is solid at rest; press it and it swells into
- * clear glass over the track, which you can drag across; it crosses as
- * glass and settles solid.
+ * A two-state toggle. One knob, made of the liquid material (liquid.css):
+ * solid at rest; press it and it swells into clear liquid glass that bends
+ * the track under it, which you can drag across; it crosses as glass and
+ * settles solid.
  */
 export function Switch({
   checked = false,
@@ -52,10 +57,9 @@ export function Switch({
   onCheckedChange,
   ...props
 }: SwitchProps) {
-  const track = useRef<HTMLButtonElement>(null);
-  const knob = useRef<HTMLSpanElement>(null);
+  const button = useRef<HTMLButtonElement>(null);
   const fill = useRef<HTMLSpanElement>(null);
-  const lens = useRef<HTMLSpanElement>(null);
+  const knob = useRef<HTMLSpanElement>(null);
 
   const latest = useRef({ checked, onCheckedChange });
   useLayoutEffect(() => {
@@ -70,11 +74,10 @@ export function Switch({
   } | null>(null);
 
   useEffect(() => {
-    const button = track.current;
-    const solid = knob.current;
-    const glass = lens.current;
+    const root = button.current;
     const paint = fill.current;
-    if (!button || !solid || !glass || !paint) return;
+    const glass = knob.current;
+    if (!root || !paint || !glass) return;
     const reduced = matchMedia(REDUCED);
 
     const x = spring(latest.current.checked ? TRAVEL_PX : 0);
@@ -83,12 +86,14 @@ export function Switch({
     let on = latest.current.checked;
     let pressed = false;
     let dragging = false;
+    /** Crossing: glass until it first arrives, then solid for good. */
+    let trip = false;
     let startX = 0;
     let grab = 0;
     let pointerX = 0;
 
     const local = (clientX: number) =>
-      clientX - button.getBoundingClientRect().left - 2;
+      clientX - root.getBoundingClientRect().left - 2;
 
     const goals = (): Goal[] => {
       const tx = dragging
@@ -96,7 +101,8 @@ export function Switch({
         : on
           ? TRAVEL_PX
           : 0;
-      const lit = pressed || dragging || Math.abs(x.x - tx) > 1;
+      if (Math.abs(x.x - tx) < 1) trip = false;
+      const lit = pressed || dragging || trip;
       return [
         [x, tx, dragging ? FOLLOW : TRAVEL],
         [amount, lit ? 1 : 0, lit ? GLASS_ON : GLASS_OFF],
@@ -106,16 +112,17 @@ export function Switch({
 
     const draw = () => {
       const g = clamp(amount.x, 0, 1);
-      const at = `translateX(${x.x.toFixed(2)}px)`;
-      solid.style.transform = at;
-      solid.style.opacity = (1 - g).toFixed(3);
-      // The track fills as the knob crosses it.
-      paint.style.opacity = clamp(x.x / TRAVEL_PX, 0, 1).toFixed(3);
       const sx = 1 + SWELL_X * g + stretch.x;
       const sy = 1 + SWELL_Y * g - stretch.x * 0.5;
-      glass.style.transform = `${at} scale(${sx.toFixed(4)}, ${sy.toFixed(4)})`;
-      glass.style.opacity = g.toFixed(3);
-      glass.style.visibility = g < 0.01 ? "hidden" : "visible";
+      glass.style.transform = thumbTransform(x.x, sx, sy);
+      // The solid knob gives way to the glass's own tint.
+      glass.style.backgroundColor = `color-mix(in oklab, var(--knob) ${((1 - g) * 100).toFixed(1)}%, var(--liquid-tint))`;
+      // The fill runs from the left end to the knob's middle, out to the
+      // right end once on: half and half under the glass in mid-crossing.
+      const progress = clamp(x.x / TRAVEL_PX, 0, 1);
+      const reach = 2 + x.x + KNOB_W / 2 + (KNOB_W / 2 + 2) * progress;
+      paint.style.clipPath = `inset(0 ${(TRACK_W - reach).toFixed(2)}px 0 0 round ${TRACK_H / 2}px)`;
+      paint.style.opacity = clamp(progress * 4, 0, 1).toFixed(3);
     };
 
     const motion = drive(goals, draw, () => reduced.matches);
@@ -128,12 +135,12 @@ export function Switch({
         startX = at;
         pointerX = at;
         pressed = true;
-        grab = at >= x.x && at <= x.x + 34 ? at - x.x : 17;
-        button.setPointerCapture(event.pointerId);
+        grab = at >= x.x && at <= x.x + KNOB_W ? at - x.x : KNOB_W / 2;
+        root.setPointerCapture(event.pointerId);
         motion.wake();
       },
       move(event) {
-        if (!button.hasPointerCapture(event.pointerId)) return;
+        if (!root.hasPointerCapture(event.pointerId)) return;
         pointerX = local(event.clientX);
         if (!dragging && Math.abs(pointerX - startX) > DRAG_SLOP) {
           dragging = true;
@@ -141,13 +148,14 @@ export function Switch({
         if (dragging) motion.wake();
       },
       up(event, cancel) {
-        if (!button.hasPointerCapture(event.pointerId)) return;
-        button.releasePointerCapture(event.pointerId);
+        if (!root.hasPointerCapture(event.pointerId)) return;
+        root.releasePointerCapture(event.pointerId);
         const next = cancel
           ? on
           : dragging
-            ? x.x + 17 > (TRAVEL_PX + 34) / 2
+            ? x.x + KNOB_W / 2 > (TRAVEL_PX + KNOB_W) / 2
             : !on;
+        trip = dragging || next !== on;
         pressed = false;
         dragging = false;
         on = next;
@@ -157,6 +165,7 @@ export function Switch({
         motion.wake();
       },
       wake() {
+        if (latest.current.checked !== on) trip = true;
         on = latest.current.checked;
         motion.wake();
       },
@@ -177,8 +186,7 @@ export function Switch({
       {...props}
       aria-checked={checked}
       className={cn(
-        "relative inline-flex h-7 w-[60px] shrink-0 cursor-pointer touch-pan-y rounded-full ring-1 ring-inset select-none disabled:cursor-not-allowed disabled:opacity-50",
-        "bg-fill-active ring-edge hover:ring-edge-hover",
+        "group relative inline-flex h-7 w-[60px] shrink-0 cursor-pointer touch-pan-y rounded-full select-none disabled:cursor-not-allowed disabled:opacity-50",
         className,
       )}
       data-cursor="point"
@@ -194,35 +202,32 @@ export function Switch({
       onPointerDown={(event) => !disabled && engine.current?.down(event)}
       onPointerMove={(event) => engine.current?.move(event)}
       onPointerUp={(event) => engine.current?.up(event, false)}
-      ref={track}
+      ref={button}
       role="switch"
       type="button"
     >
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 rounded-full bg-primary"
-        ref={fill}
-        style={{ opacity: checked ? 1 : 0 }}
-      />
+        className="pointer-events-none absolute inset-0 rounded-full bg-fill-active ring-1 ring-edge ring-inset group-hover:ring-edge-hover"
+      >
+        <span
+          className="absolute inset-0 rounded-full bg-primary"
+          ref={fill}
+          style={{ opacity: checked ? 1 : 0 }}
+        />
+      </span>
+      {/* The knob: the liquid material, solid at rest. */}
       <span
         aria-hidden="true"
         className={cn(
-          "pointer-events-none absolute top-0.5 left-0.5 h-6 w-[34px] rounded-full shadow-[0_1px_3px_rgb(0_0_0/0.2)] transition-colors duration-fast",
-          checked ? "bg-on-primary" : "bg-ink-lead",
+          "liquid liquid-lens pointer-events-none absolute top-0.5 left-0.5 h-6 w-[34px] rounded-full [--liquid-drop:0_1px_3px_rgb(0_0_0/0.2)]",
+          checked ? "[--knob:var(--on-primary)]" : "[--knob:var(--ink-lead)]",
         )}
         ref={knob}
         style={{
+          backgroundColor: "var(--knob)",
           transform: `translateX(${checked ? TRAVEL_PX : 0}px)`,
         }}
-      />
-      <span
-        aria-hidden="true"
-        className={cn(
-          GLASS_CLASS,
-          "top-0.5 left-0.5 h-6 w-[34px] rounded-full",
-        )}
-        ref={lens}
-        style={{ opacity: 0, visibility: "hidden" }}
       />
     </button>
   );

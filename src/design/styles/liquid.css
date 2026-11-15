@@ -13,6 +13,9 @@
                   src/design/liquid.tsx); elsewhere the full frost.
    .liquid-clear  the lens without frost, and nothing at all outside
                   Chromium: clear glass, a drop of water (the cursor).
+   .liquid-prism  on clear glass laid over a picture: the colours split at
+                  the rim. --liquid-bezel (px) and --liquid-bend (× the full
+                  lens) tune any lens's rim width and strength.
    .liquid-fluid  no maps drawn per size: a surface that morphs every frame
                   (the cursor's pane) keeps the gradient rim, which fits any
                   size.

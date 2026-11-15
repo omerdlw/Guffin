@@ -317,7 +317,7 @@ const HOME = defineStage({
         rest: { duration: beat(-1), ease: SETTLE },
         slots: {
           image: {
-            hover: { scale: 1.09, duration: beat(1), ease: SETTLE },
+            hover: { scale: 1.146, duration: beat(1), ease: SETTLE },
             rest: { duration: beat(1), ease: SETTLE },
             focus: "hover",
           },
@@ -328,21 +328,14 @@ const HOME = defineStage({
         rest: { duration: beat(-1), ease: SETTLE },
         press,
       },
-      // A section's tabs surface after its title. Choosing a tab, the pill
-      // glides across under it and the labels cross-fade on the same beat.
+      // A section's tabs surface after its title. Choosing a tab, the labels
+      // cross-fade; the indicator travels on the control's own spring.
       segmented: {
         enter: reveal(
           { opacity: 0, x: 21, blur: BLUR.hint },
           { along: "section", delay: beat(-1) },
         ),
         slots: {
-          pill: {
-            follow: {
-              of: ["transform", "translate", "width", "height"],
-              duration: beat(-1),
-              ease: SWEEP,
-            },
-          },
           tab: {
             follow: { of: ["color"], duration: beat(-1), ease: SWEEP },
             press,

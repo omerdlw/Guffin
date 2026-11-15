@@ -22,10 +22,6 @@ export const feel = (stiffness: number, ratio: number): Feel => ({
   stiffness,
 });
 
-/** The glass: clear, a breath of white, a soft shadow under it. */
-export const GLASS_CLASS =
-  "liquid liquid-clear pointer-events-none absolute [--liquid-drop:0_2px_10px_-2px_rgb(0_0_0/0.22)] [--liquid-tint:rgb(255_255_255/0.05)]";
-
 const STEP = 1 / 240;
 const MOST = 1 / 20;
 const STILL = 0.01;
@@ -86,3 +82,15 @@ export const clamp = (n: number, low: number, high: number) =>
 
 /** Pointer travel (px) before a press becomes a drag. */
 export const DRAG_SLOP = 3;
+
+/**
+ * The thumb's transform: moved along by `x`, swelled by `sx`, `sy`. A swell
+ * all but gone (the springs stop within a hair of rest) is dropped, so the
+ * thumb at rest draws one to one.
+ */
+export function thumbTransform(x: number, sx: number, sy: number) {
+  const moved = `translateX(${x.toFixed(2)}px)`;
+  return Math.abs(sx - 1) < 0.004 && Math.abs(sy - 1) < 0.004
+    ? moved
+    : `${moved} scale(${sx.toFixed(4)}, ${sy.toFixed(4)})`;
+}

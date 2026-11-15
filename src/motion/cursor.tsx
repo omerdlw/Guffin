@@ -40,6 +40,8 @@ interface CursorShape {
   glass: number;
   h: number;
   label: number;
+  /** Clear glass that refracts at its rim, fitted to a card's own shape. */
+  lens: number;
   r: number;
   solid: number;
   w: number;
@@ -73,17 +75,21 @@ const CURSOR_SHAPES: Record<Exclude<CursorMode, "none">, CursorShape> = {
     glass: 1,
     h: 0,
     label: 0,
+    lens: 0,
     r: 0,
     solid: 0,
     w: 0,
   },
+  // Over a card: no frame drawn round it; a sheet of clear glass laid
+  // exactly on it, edge to edge, that bends the picture at its corners.
   card: {
-    bracket: 1,
+    bracket: 0,
     caption: 1,
     dot: 1,
     glass: 0,
     h: 0,
     label: 0,
+    lens: 1,
     r: 4,
     solid: 0,
     w: 0,
@@ -95,6 +101,7 @@ const CURSOR_SHAPES: Record<Exclude<CursorMode, "none">, CursorShape> = {
     glass: 1,
     h: 46,
     label: 1,
+    lens: 0,
     r: 23,
     solid: 0,
     w: 96,
@@ -106,6 +113,7 @@ const CURSOR_SHAPES: Record<Exclude<CursorMode, "none">, CursorShape> = {
     glass: 0,
     h: 116,
     label: 0,
+    lens: 0,
     r: 4,
     solid: 0,
     w: 116,
@@ -117,6 +125,7 @@ const CURSOR_SHAPES: Record<Exclude<CursorMode, "none">, CursorShape> = {
     glass: 1,
     h: 34,
     label: 0,
+    lens: 0,
     r: 17,
     solid: 0,
     w: 34,
@@ -129,6 +138,7 @@ const CURSOR_SHAPES: Record<Exclude<CursorMode, "none">, CursorShape> = {
     glass: 0,
     h: 0,
     label: 0,
+    lens: 0,
     r: 0,
     solid: 0,
     w: 0,
@@ -140,6 +150,7 @@ const CURSOR_SHAPES: Record<Exclude<CursorMode, "none">, CursorShape> = {
     glass: 0,
     h: 26,
     label: 0,
+    lens: 0,
     r: 1,
     solid: 1,
     w: 2,
@@ -151,6 +162,7 @@ const CURSOR_SHAPES: Record<Exclude<CursorMode, "none">, CursorShape> = {
     glass: 0,
     h: 0,
     label: 0,
+    lens: 0,
     r: 4,
     solid: 0,
     w: 0,
@@ -171,7 +183,8 @@ const CURSOR_WRAP = 7;
 
 const CURSOR_FRAMING = 14;
 
-const CURSOR_CARD_FRAMING = 6;
+/** Over a card, the glass reaches a hair past the picture's edge (px). */
+const CURSOR_CARD_FRAMING = 1;
 
 const CURSOR_SLATE = /^(.*\S)\s+\((\d{4})\)(?:,\s*(.+))?$/;
 
@@ -372,7 +385,13 @@ function read(x: number, y: number): CursorReading {
         y <= box.bottom + CURSOR_FRAMING;
       if (inside) return { label: "", mode: "wrap", target: own };
     } else if (named && named in CURSOR_SHAPES) {
-      const corner = Number.parseFloat(own.dataset.cursorCorner ?? "");
+      let corner = Number.parseFloat(own.dataset.cursorCorner ?? "");
+      if (!Number.isFinite(corner) && named === "card") {
+        // The glass takes the picture's own corners, not a guess.
+        corner = cornerOf(
+          own.querySelector<HTMLElement>("[data-cursor-frame]") ?? own,
+        );
+      }
       return {
         corner: Number.isFinite(corner) ? corner : undefined,
         label: label || CURSOR_LABELS[named] || "",
@@ -411,6 +430,7 @@ function Reticle() {
   const body = useRef<HTMLDivElement>(null);
   const bead = useRef<HTMLSpanElement>(null);
   const sheet = useRef<HTMLSpanElement>(null);
+  const lensSheet = useRef<HTMLSpanElement>(null);
   const caret = useRef<HTMLSpanElement>(null);
   const dot = useRef<HTMLDivElement>(null);
   const words = useRef<HTMLSpanElement>(null);
@@ -430,9 +450,10 @@ function Reticle() {
     const year = slateYear.current;
     const drop = bead.current;
     const pane = sheet.current;
+    const prism = lensSheet.current;
     const bar = caret.current;
     if (!host || !lens || !pin || !text || !corners) return;
-    if (!drop || !pane || !bar) return;
+    if (!drop || !pane || !prism || !bar) return;
     if (!caption || !name || !year) return;
 
     const html = document.documentElement;
@@ -453,6 +474,7 @@ function Reticle() {
       dot: spring(1),
       glass: spring(1),
       label: spring(),
+      lens: spring(),
       presence: spring(),
       solid: spring(),
     };
@@ -622,20 +644,24 @@ function Reticle() {
           held = { at: now, box, target };
         }
         const box = held!.box;
-        const pad =
-          mode === "wrap"
+        // A card is fitted: a hair of margin and no lean towards the
+        // pointer, so the glass lies on the picture edge to edge.
+        const fitted = mode === "card";
+        const pad = fitted
+          ? CURSOR_CARD_FRAMING
+          : mode === "wrap"
             ? CURSOR_FRAMING
-            : mode === "card"
-              ? CURSOR_CARD_FRAMING
-              : CURSOR_WRAP;
+            : CURSOR_WRAP;
         const corner = reading.corner ?? Number.NaN;
         const mx = (box.left + box.right) / 2;
         const my = (box.top + box.bottom) / 2;
         const lean = (to: number, from: number) =>
-          Math.max(
-            -CURSOR_MAGNET_MAX,
-            Math.min((to - from) * CURSOR_MAGNET, CURSOR_MAGNET_MAX),
-          );
+          fitted
+            ? 0
+            : Math.max(
+                -CURSOR_MAGNET_MAX,
+                Math.min((to - from) * CURSOR_MAGNET, CURSOR_MAGNET_MAX),
+              );
         cx = mx + lean(px, mx);
         cy = my + lean(py, my);
         tw = box.right - box.left + pad * 2;
@@ -644,6 +670,10 @@ function Reticle() {
           (Number.isFinite(corner) ? corner : 12) + pad,
           Math.min(tw, th) / 2,
         );
+        // The lens keeps the card's corner while the pane grows into it:
+        // its refraction maps are drawn per corner radius, so a radius
+        // that morphed every frame would redraw them every frame.
+        if (fitted) put(prism, "prism-radius", "borderRadius", `${tr}px`);
       } else if (mode === "frame") {
         held = null;
         const grow = 1 + busy * 0.34;
@@ -709,6 +739,7 @@ function Reticle() {
         [weights.dot, shape.dot, FADE],
         [weights.glass, shape.glass, FADE],
         [weights.label, shape.label, FADE],
+        [weights.lens, shape.lens, FADE],
         [weights.solid, shape.solid, FADE],
         [weights.presence, hidden ? 0 : 1, FADE],
         [press, pressed ? 1 - Math.min(inset, 0.14) : 1, PRESS],
@@ -769,6 +800,7 @@ function Reticle() {
         `translate(-50%, -50%) scale(${fine(0.3 + 0.7 * beaded)})`,
       );
       put(pane, "pane", "opacity", fine(glass * (1 - beaded) * (1 - solid)));
+      put(prism, "prism", "opacity", fine(unitClamp(weights.lens.x)));
       put(bar, "caret", "opacity", fine(solid));
       put(corners, "brackets", "opacity", fine(unitClamp(weights.bracket.x)));
       put(
@@ -869,6 +901,14 @@ function Reticle() {
         <span
           className="liquid liquid-fluid absolute inset-0 rounded-[inherit] [--liquid-tint:rgb(var(--ink-rgb)/0.05)]"
           ref={sheet}
+          style={{ opacity: 0 }}
+        />
+        {/* Over a card: clear glass cut to the card's own shape. Not fluid,
+            so it gets a real lens: the picture bends at the rim and most
+            at the corners, and stays still in the middle. */}
+        <span
+          className="liquid liquid-clear liquid-prism liquid-flat absolute inset-0 [--liquid-bend:1.6] [--liquid-bezel:10] [--liquid-lens-tone:saturate(1)] [--liquid-tint:transparent]"
+          ref={lensSheet}
           style={{ opacity: 0 }}
         />
         <span

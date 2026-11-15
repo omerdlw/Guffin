@@ -154,7 +154,8 @@ export const SLOTS = {
   // here: the mask and the blur then share one surface. On the canvas inside
   // they split into layers and a pixel row seams at the foot.
   screen: '[data-slot="screen"]',
-  // A segmented control's sliding pill and its tabs.
+  // A tab bar's CSS-driven sliding pill (the framework Tabs) and tabs. The
+  // segmented control's indicator moves on its own spring: no pill here.
   pill: "[data-pill]",
   tab: '[role="tab"]',
   rule: '[data-slot="rule"]',
