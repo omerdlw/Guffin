@@ -8,12 +8,12 @@ import { defineStage } from "@/motion/stage";
 // here; a role left out renders still.
 //
 // It runs on home's proportion, the golden ratio: durations are φⁿ seconds,
-// staggers Fibonacci milliseconds, travel Fibonacci pixels, blur a Fibonacci
-// radius, curves from φ's fractions.
+// staggers Fibonacci milliseconds, travel Fibonacci pixels, curves from φ's
+// fractions.
 //
 // The opening plays in `order` (motion/stage.tsx, useQueue): the picture
-// develops out of the dark as the room's light comes up; the title pulls
-// into focus a letter at a time; the one-sheet is unveiled beside it; the
+// develops out of the dark as the room's light comes up; the title settles
+// in a letter at a time; the one-sheet is unveiled beside it; the
 // rule is drawn under the title, and what sits at its ends (the person's
 // role and profiles, the numbers) arrives along it; the tagline and the
 // synopsis surface word by word.
@@ -36,7 +36,6 @@ const PHI = 1.618034;
 // φⁿ seconds: 0.146, 0.236, 0.382, 0.618, 1, 1.618, 2.618.
 const beat = (n: number) => Math.round(PHI ** n * 1000) / 1000;
 const STAGGER = { char: 0.034, word: 0.055, item: 0.089, row: 0.144 };
-const BLUR = { hint: 3, soft: 5, lens: 8, deep: 13 };
 
 const SETTLE: Curve = [0.236, 1, 0.382, 1];
 const DEVELOP: Curve = [0.382, 0, 0.146, 1];
@@ -83,7 +82,7 @@ const subtitle = (enter: (from: Look) => Enter, budget: number) => ({
   by: "word" as const,
   stagger: STAGGER.word,
   budget,
-  enter: enter({ opacity: 0, y: 8, blur: BLUR.hint }),
+  enter: enter({ opacity: 0, y: 8 }),
 });
 
 // A heading, in order: its icon lights, its title resolves from the middle
@@ -115,13 +114,13 @@ const DETAIL = defineStage({
   glide: { duration: beat(1), ease: SWEEP },
   motion: {
     parts: {
-      // The dive lands in the picture: it is already there, large and
-      // soft, and settles into focus as it develops out of the dark.
+      // The dive lands in the picture: it is already there, large, and
+      // settles as it develops out of the dark.
       backdrop: {
         slots: {
           screen: {
             enter: load(
-              { scale: 1.236, blur: BLUR.deep },
+              { scale: 1.236 },
               {
                 duration: beat(1),
                 ease: DEVELOP,
@@ -133,7 +132,7 @@ const DETAIL = defineStage({
           },
         },
       },
-      // The title pulls into focus a letter at a time like home's headline.
+      // The title settles in a letter at a time like home's headline.
       title: {
         text: {
           by: "char",
@@ -143,7 +142,6 @@ const DETAIL = defineStage({
             opacity: 0,
             y: "0.382em",
             scale: 1.236,
-            blur: BLUR.lens,
           }),
         },
       },
@@ -176,12 +174,12 @@ const DETAIL = defineStage({
           order: "random",
           stagger: STAGGER.char / 2,
           budget: beat(-2),
-          enter: load({ opacity: 0, blur: BLUR.hint }, { duration: beat(-1) }),
+          enter: load({ opacity: 0 }, { duration: beat(-1) }),
         },
       },
       link: {
         enter: load(
-          { opacity: 0, scale: 0.618, blur: BLUR.hint },
+          { opacity: 0, scale: 0.618 },
           {
             stagger: STAGGER.word,
             duration: beat(-1),
@@ -195,7 +193,7 @@ const DETAIL = defineStage({
       },
       stat: {
         enter: load(
-          { opacity: 0, x: 21, blur: BLUR.hint },
+          { opacity: 0, x: 21 },
           {
             stagger: STAGGER.item,
             duration: beat(-1),
@@ -204,31 +202,31 @@ const DETAIL = defineStage({
       },
       // A season's line under its title (the show, its place in the run).
       kicker: {
-        enter: load({ opacity: 0, y: 13, blur: BLUR.hint }),
+        enter: load({ opacity: 0, y: 13 }),
       },
       tagline: { text: subtitle(load, beat(-2)) },
       overview: { text: subtitle(load, beat(0)) },
       // The biography's "read more" follows its excerpt.
       more: {
         enter: load(
-          { opacity: 0, y: 8, blur: BLUR.hint },
+          { opacity: 0, y: 8 },
           {
             duration: beat(-1),
           },
         ),
       },
       // The actions pop up out of the glass one after another: risen a
-      // little, small and soft, they overshoot by a hair and settle.
+      // little and small, they overshoot by a hair and settle.
       action: {
         enter: reveal(
-          { opacity: 0, y: 13, scale: 0.854, blur: BLUR.lens },
+          { opacity: 0, y: 13, scale: 0.854 },
           { stagger: STAGGER.item, ease: SPRING },
         ),
       },
       // Social proof under the actions surfaces after them.
       proof: {
         enter: reveal(
-          { opacity: 0, y: 13, blur: BLUR.soft },
+          { opacity: 0, y: 13 },
           { delay: beat(-2), ease: UNHURRIED },
         ),
       },
@@ -248,7 +246,7 @@ const DETAIL = defineStage({
           stagger: STAGGER.char / 2,
           budget: beat(-2),
           enter: reveal(
-            { opacity: 0, blur: BLUR.hint },
+            { opacity: 0 },
             { delay: beat(-3), duration: beat(-1) },
           ),
         },
@@ -275,14 +273,14 @@ const DETAIL = defineStage({
           stagger: STAGGER.char,
           budget: HEADING.title.budget,
           enter: reveal(
-            { opacity: 0, y: "0.382em", scale: 1.236, blur: BLUR.lens },
+            { opacity: 0, y: "0.382em", scale: 1.236 },
             { delay: HEADING.title.at, duration: HEADING.title.duration },
           ),
         },
         slots: {
           icon: {
             enter: reveal(
-              { opacity: 0, scale: 0.382, rotate: -34, blur: BLUR.soft },
+              { opacity: 0, scale: 0.382, rotate: -34 },
               { duration: HEADING.icon.duration, ease: SPRING },
             ),
           },
@@ -299,7 +297,7 @@ const DETAIL = defineStage({
           // The heading's tabs or readout surface after its title.
           actions: {
             enter: reveal(
-              { opacity: 0, x: 21, blur: BLUR.hint },
+              { opacity: 0, x: 21 },
               {
                 delay: HEADING.actions.at,
                 duration: HEADING.actions.duration,
@@ -309,14 +307,14 @@ const DETAIL = defineStage({
         },
       },
       control: {
-        enter: reveal({ opacity: 0, x: 21, blur: BLUR.hint }),
+        enter: reveal({ opacity: 0, x: 21 }),
       },
       // The cast, dealt as cards across the two columns. Each arrives
       // with its fan gathered behind its middle; the fan deals out of the
       // card's foot. The credits follow.
       person: {
         enter: reveal(
-          { opacity: 0, y: 34, blur: BLUR.soft },
+          { opacity: 0, y: 34 },
           { stagger: STAGGER.word, wrap: 2 },
         ),
         slots: {
@@ -330,7 +328,6 @@ const DETAIL = defineStage({
               y: "calc(var(--fan-y) - 13px)",
               rotate: "calc(var(--fan-r) * 1.3)",
               scale: "calc(var(--fan-s) * 1.02)",
-              blur: 0,
               bright: "var(--fan-lit)",
               duration: beat(0),
               ease: SPRING,
@@ -342,7 +339,7 @@ const DETAIL = defineStage({
       },
       credit: {
         enter: reveal(
-          { opacity: 0, y: 8, blur: BLUR.hint },
+          { opacity: 0, y: 8 },
           {
             delay: beat(-3),
             stagger: STAGGER.word,
@@ -353,7 +350,7 @@ const DETAIL = defineStage({
       },
       slide: {
         enter: reveal(
-          { opacity: 0, x: 89, scale: 0.944, blur: BLUR.soft },
+          { opacity: 0, x: 89, scale: 0.944 },
           { along: "section", stagger: STAGGER.word, wrap: 8 },
         ),
       },
@@ -361,37 +358,37 @@ const DETAIL = defineStage({
       // itself (its links are), so it neither lifts nor presses.
       review: {
         enter: reveal(
-          { opacity: 0, y: 55, blur: BLUR.soft },
+          { opacity: 0, y: 55 },
           { stagger: STAGGER.item, wrap: 3 },
         ),
       },
       // Stars light one after another as their card settles.
       star: {
         enter: reveal(
-          { opacity: 0, scale: 0.618, blur: BLUR.hint },
+          { opacity: 0, scale: 0.618 },
           { delay: beat(-3), stagger: STAGGER.char, duration: beat(-2) },
         ),
       },
       list: {
         ...lift,
         enter: reveal(
-          { opacity: 0, y: 55, scale: 0.944, blur: BLUR.soft },
+          { opacity: 0, y: 55, scale: 0.944 },
           { stagger: STAGGER.item, wrap: 3 },
         ),
       },
       awards: {
-        enter: reveal({ opacity: 0, y: 34, blur: BLUR.soft }),
+        enter: reveal({ opacity: 0, y: 34 }),
       },
       tile: {
         enter: reveal(
-          { opacity: 0, y: 34, scale: 0.944, blur: BLUR.soft },
+          { opacity: 0, y: 34, scale: 0.944 },
           { stagger: STAGGER.char, wrap: 8 },
         ),
       },
       // The career chart: the readout surfaces, the years fade in, and the
       // bars open out of the baseline.
       readout: {
-        enter: reveal({ opacity: 0, y: 13, blur: BLUR.hint }),
+        enter: reveal({ opacity: 0, y: 13 }),
       },
       tick: {
         enter: reveal({ opacity: 0 }),
@@ -411,14 +408,11 @@ const DETAIL = defineStage({
       },
       // Stamps keep still in place (the dot is centred with `translate`).
       stamp: {
-        enter: reveal(
-          { opacity: 0, scale: 0.618, blur: BLUR.hint },
-          { ease: SPRING },
-        ),
+        enter: reveal({ opacity: 0, scale: 0.618 }, { ease: SPRING }),
       },
       entry: {
         enter: reveal(
-          { opacity: 0, x: -21, blur: BLUR.hint },
+          { opacity: 0, x: -21 },
           { stagger: STAGGER.char / 2, wrap: 10 },
         ),
       },
@@ -427,9 +421,9 @@ const DETAIL = defineStage({
       // Switching the page's views (overview, awards, timeline), the view
       // shown slides in from the right and resolves.
       view: {
-        enter: load({ opacity: 0, x: 34, blur: BLUR.soft }),
+        enter: load({ opacity: 0, x: 34 }),
       },
-      // Switching tabs, the shown view drifts off to the left and defocuses
+      // Switching tabs, the shown view drifts off to the left and fades
       // before the next one is dealt in from the right.
       ...Object.fromEntries(
         (["cast", "slides", "tiles", "reviews", "chart"] as const).map(
@@ -437,11 +431,11 @@ const DETAIL = defineStage({
             cue,
             {
               enter: reveal(
-                { opacity: 0, x: 55, blur: BLUR.soft },
+                { opacity: 0, x: 55 },
                 { delay: beat(-3), duration: beat(1) },
               ),
               leave: {
-                to: { opacity: 0, x: -55, blur: BLUR.soft },
+                to: { opacity: 0, x: -55 },
                 duration: beat(-1),
                 ease: LEAVE,
               },
@@ -480,7 +474,7 @@ const DETAIL = defineStage({
       // A row's arrows surface once its posters are under way.
       arrow: {
         enter: reveal(
-          { opacity: 0, scale: 0.618, blur: BLUR.hint },
+          { opacity: 0, scale: 0.618 },
           { along: "section", delay: beat(-2), duration: beat(-2) },
         ),
         hover: { scale: 1.09, opacity: 1, duration: beat(-2), ease: TOUCH },
@@ -549,16 +543,14 @@ const DETAIL = defineStage({
   ],
 });
 
-const bound = DETAIL;
-
-export const DetailStageRoot = bound.StageRoot;
-export const DetailPart = bound.Part;
-export const DetailSection = bound.Section;
-export const DetailText = bound.Text;
-export const DetailHeader = bound.Header;
-export const DetailBloom = bound.Bloom;
-export const DetailExpose = bound.Expose;
-export const DetailCount = bound.Count;
-export const DetailSwap = bound.Swap;
-export const DetailDeck = bound.Deck;
-export const DetailWallStage = bound.WallStage;
+export const DetailStageRoot = DETAIL.StageRoot;
+export const DetailPart = DETAIL.Part;
+export const DetailSection = DETAIL.Section;
+export const DetailText = DETAIL.Text;
+export const DetailHeader = DETAIL.Header;
+export const DetailBloom = DETAIL.Bloom;
+export const DetailExpose = DETAIL.Expose;
+export const DetailCount = DETAIL.Count;
+export const DetailSwap = DETAIL.Swap;
+export const DetailDeck = DETAIL.Deck;
+export const DetailWallStage = DETAIL.WallStage;

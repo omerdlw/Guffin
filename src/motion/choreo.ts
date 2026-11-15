@@ -32,7 +32,6 @@ export interface Look {
   // from the reader. Shares the `rotate` property with `rotate`; tilt wins.
   tilt?: number | string;
   opacity?: number;
-  blur?: number;
   bright?: number | string;
   // A mask, as a `clip-path` (e.g. `inset(100% 0 0 0)`: shut from the top,
   // so it opens upwards). Entrances open it to `inset(0)`.
@@ -74,8 +73,7 @@ export interface Drift {
 
 export interface TextMoves {
   by: "word" | "char";
-  // Each word or letter rises out of its own clip. Keep blur out of a
-  // masked text: the clip cuts the blur's edge into a sliver.
+  // Each word or letter rises out of its own clip.
   mask?: boolean;
   // Which unit plays first: in reading order, from the middle outwards, or
   // scattered.
@@ -138,14 +136,14 @@ export interface Moves {
 // Shared components mark themselves with a kind; their inner pieces with a
 // slot. The framework's Button takes no data attributes, so its recipe
 // carries a marker class instead.
-export const KINDS = {
+const KINDS = {
   media: '[data-kind="media"]',
   button: ".choreo-button",
   arrow: ".choreo-arrow",
   segmented: ".choreo-segmented",
 } as const;
 
-export const SLOTS = {
+const SLOTS = {
   frame: '[data-slot="frame"]',
   image: '[data-slot="frame"] img',
   caption: '[data-slot="caption"]',
@@ -202,13 +200,7 @@ function declare(look: Look, reduced: boolean): string[] {
   if (look.tilt !== undefined) out.push(`rotate: x ${degrees(look.tilt)}`);
   else if (look.rotate !== undefined)
     out.push(`rotate: ${degrees(look.rotate)}`);
-  const filter = [
-    look.blur !== undefined ? `blur(${look.blur}px)` : "",
-    look.bright !== undefined ? `brightness(${look.bright})` : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
-  if (filter) out.push(`filter: ${filter}`);
+  if (look.bright !== undefined) out.push(`filter: brightness(${look.bright})`);
   if (look.clip !== undefined) out.push(`clip-path: ${look.clip}`);
   return out;
 }

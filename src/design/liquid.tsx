@@ -293,7 +293,10 @@ type Piece = (typeof PIECES)[number];
 type Pieces = Record<Piece, string>;
 
 /** Cuts a map drawn for the square into its eight rim pieces. */
-function cut(canvas: HTMLCanvasElement, slice: number): Pieces | null {
+function cut(
+  canvas: HTMLCanvasElement,
+  slice: number,
+): Record<Piece, HTMLCanvasElement> | null {
   const k = canvas.width / sideOf(slice);
   const corner = Math.round(slice * k);
   const run = canvas.width - corner * 2;
@@ -308,15 +311,55 @@ function cut(canvas: HTMLCanvasElement, slice: number): Pieces | null {
     bl: [0, far, corner, corner],
     br: [far, far, corner, corner],
   };
-  const pieces = {} as Pieces;
+  const pieces = {} as Record<Piece, HTMLCanvasElement>;
   for (const piece of PIECES) {
     const [x, y, w, h] = boxes[piece];
     const part = document.createElement("canvas");
     part.width = w;
     part.height = h;
-    const context = part.getContext("2d");
+    const context = part.getContext("2d", { willReadFrequently: true });
     if (!context) return null;
     context.drawImage(canvas, x, y, w, h, 0, 0, w, h);
+    pieces[piece] = part;
+  }
+  return pieces;
+}
+
+/**
+ * Both maps in one set of slices: the bend in red and green (all the
+ * displacement reads) and the edge light in blue. The filter then lays out
+ * eight slices instead of sixteen, and on the GPU every slice is a pass on
+ * every frame the scene behind moves. Each bend slice is first drawn up to
+ * the edge light's density, smoothed as the filter would smooth it, so the
+ * filter reads the values it read before.
+ */
+function fold(
+  refraction: HTMLCanvasElement,
+  edge: HTMLCanvasElement | null,
+  slice: number,
+): Pieces | null {
+  const bends = cut(refraction, slice);
+  const lights = edge && cut(edge, slice);
+  if (!bends || (edge && !lights)) return null;
+  const pieces = {} as Pieces;
+  for (const piece of PIECES) {
+    const bend = bends[piece];
+    const light = lights?.[piece];
+    const part = document.createElement("canvas");
+    part.width = light?.width ?? bend.width;
+    part.height = light?.height ?? bend.height;
+    const context = part.getContext("2d", { willReadFrequently: true });
+    if (!context) return null;
+    context.imageSmoothingQuality = "high";
+    context.drawImage(bend, 0, 0, part.width, part.height);
+    const image = context.getImageData(0, 0, part.width, part.height);
+    const glow = light
+      ?.getContext("2d")
+      ?.getImageData(0, 0, part.width, part.height).data;
+    for (let at = 0; at < image.data.length; at += 4) {
+      image.data[at + 2] = glow ? glow[at]! : 0;
+    }
+    context.putImageData(image, 0, 0);
     pieces[piece] = part.toDataURL();
   }
   return pieces;
@@ -391,8 +434,9 @@ const CHANNEL = [
 type LensMaps = {
   slice: number;
   scale: number;
+  /** Bend in red and green, edge light in blue (see `fold`). */
   map: Pieces;
-  band: Pieces | null;
+  edge: boolean;
 };
 
 /** One surface's own lens: a filter whose slices follow its size. */
@@ -401,9 +445,7 @@ type Lens = {
   filter: SVGFilterElement;
   slice: number;
   map: Record<Piece, SVGElement>;
-  band: Record<Piece, SVGElement> | null;
   flat: SVGElement;
-  dark: SVGElement | null;
   width: number;
   height: number;
 };
@@ -424,7 +466,8 @@ function startLiquid(lensing: boolean) {
   const glints = new WeakMap<Element, string>();
   const lenses = new Map<Element, Lens>();
   const sizes = new WeakMap<Element, { width: number; height: number }>();
-  const timers = new WeakMap<Element, number>();
+  // Pending hydration retries, cancelled with the rest on teardown.
+  const timers = new Map<Element, number>();
   let count = 0;
 
   function specularFor(slice: number, radius: number) {
@@ -439,16 +482,11 @@ function startLiquid(lensing: boolean) {
   function mapsFor(key: string, slice: number, radius: number, bezel: number) {
     if (maps.has(key)) return maps.get(key) ?? null;
     const refraction = drawRefraction(slice, radius, bezel);
-    const map = refraction && cut(refraction.canvas, slice);
     const edge = drawEdgeLight(slice, radius, density);
+    const map = refraction && fold(refraction.canvas, edge, slice);
     const value =
       refraction && map
-        ? {
-            slice,
-            scale: refraction.scale,
-            map,
-            band: edge && cut(edge, slice),
-          }
+        ? { slice, scale: refraction.scale, map, edge: Boolean(edge) }
         : null;
     maps.set(key, value);
     return value;
@@ -491,9 +529,10 @@ function startLiquid(lensing: boolean) {
       y: 0,
       "color-interpolation-filters": "sRGB",
     }) as SVGFilterElement;
-    // The middle of the map does not bend: neutral grey under the rim.
+    // The middle of the map does not bend (neutral red and green) and
+    // carries no edge light (no blue).
     const flat = set(filter, "feFlood", {
-      "flood-color": "rgb(128 128 128)",
+      "flood-color": "rgb(128 128 0)",
       "flood-opacity": 1,
       x: 0,
       y: 0,
@@ -556,24 +595,12 @@ function startLiquid(lensing: boolean) {
     // The edge light: the bent scene, softened a touch (clear glass keeps it
     // sharp), kept only in the band at the rim and brightened, laid over the
     // frost.
-    let band: Lens["band"] = null;
-    let dark: Lens["dark"] = null;
-    if (maps.band) {
-      // Drawn grey on black (opaque, so the slices' overlaps leave no seam),
-      // then the grey made the alpha.
-      dark = set(filter, "feFlood", {
-        "flood-color": "#000",
-        "flood-opacity": 1,
-        x: 0,
-        y: 0,
-        result: "dark",
-      });
-      band = pieces(filter, "band");
-      merge(filter, "band", "dark");
+    if (maps.edge) {
+      // The map's blue made the alpha.
       set(filter, "feColorMatrix", {
-        in: "band",
+        in: "map",
         type: "matrix",
-        values: "0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  1 0 0 0 0",
+        values: "0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 1 0 0",
         result: "edge",
       });
       if (!clear) {
@@ -609,16 +636,13 @@ function startLiquid(lensing: boolean) {
     }
     for (const piece of PIECES) {
       map[piece].setAttribute("href", maps.map[piece]);
-      if (band && maps.band) band[piece].setAttribute("href", maps.band[piece]);
     }
     return {
       key,
       filter,
       slice: maps.slice,
       map,
-      band,
       flat,
-      dark,
       width: -1,
       height: -1,
     };
@@ -631,20 +655,16 @@ function startLiquid(lensing: boolean) {
     lens.height = height;
     lens.filter.setAttribute("width", String(width));
     lens.filter.setAttribute("height", String(height));
-    for (const flood of lens.dark ? [lens.flat, lens.dark] : [lens.flat]) {
-      flood.setAttribute("width", String(width));
-      flood.setAttribute("height", String(height));
-    }
+    lens.flat.setAttribute("width", String(width));
+    lens.flat.setAttribute("height", String(height));
     const boxes = layout(lens.slice, width, height);
     for (const piece of PIECES) {
       const [x, y, w, h] = boxes[piece];
-      for (const nodes of lens.band ? [lens.map, lens.band] : [lens.map]) {
-        const node = nodes[piece];
-        node.setAttribute("x", String(x));
-        node.setAttribute("y", String(y));
-        node.setAttribute("width", String(w));
-        node.setAttribute("height", String(h));
-      }
+      const node = lens.map[piece];
+      node.setAttribute("x", String(x));
+      node.setAttribute("y", String(y));
+      node.setAttribute("width", String(w));
+      node.setAttribute("height", String(h));
     }
   }
 
@@ -664,6 +684,7 @@ function startLiquid(lensing: boolean) {
       timers.set(
         element,
         window.setTimeout(() => {
+          timers.delete(element);
           if (element.isConnected) fit(element);
         }, HYDRATION_RETRY_MS),
       );
@@ -816,6 +837,8 @@ function startLiquid(lensing: boolean) {
   return () => {
     additions.disconnect();
     observer.disconnect();
+    timers.forEach((timer) => window.clearTimeout(timer));
+    timers.clear();
     defs.remove();
   };
 }

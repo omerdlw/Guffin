@@ -12,7 +12,6 @@ const css = compile("t", {
             x: "calc(-50% + var(--fan-x) * 1.4)",
             rotate: "calc(var(--fan-r) * 1.3)",
             scale: "calc(var(--fan-s) * 1.02)",
-            blur: 0,
             bright: "var(--fan-lit)",
             duration: 0.6,
           },
@@ -32,7 +31,7 @@ describe("compile", () => {
     expect(css).toContain("rotate: calc(var(--fan-r) * 1.3)");
     expect(css).toContain("scale: calc(var(--fan-s) * 1.02)");
     expect(css).toContain("translate: calc(-50% + var(--fan-x) * 1.4) 0");
-    expect(css).toContain("filter: blur(0px) brightness(var(--fan-lit))");
+    expect(css).toContain("filter: brightness(var(--fan-lit))");
   });
 
   it("keeps numeric rotation in degrees", () => {

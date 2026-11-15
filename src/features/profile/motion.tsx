@@ -8,13 +8,13 @@ import { defineStage } from "@/motion/stage";
 // still.
 //
 // It runs on home's proportion, the golden ratio: durations and cues are φⁿ
-// seconds, staggers Fibonacci milliseconds, travel Fibonacci pixels, blur a
-// Fibonacci radius, curves from φ's fractions.
+// seconds, staggers Fibonacci milliseconds, travel Fibonacci pixels, curves
+// from φ's fractions.
 //
 // Detail is a film's one-sheet; this page is a member's card being handed
 // over. The cover picture develops out of the dark, the tabs settle in at the
-// top, the portrait swells into place, the name pulls into focus a letter at
-// a time from its middle, and the handle and join date are read off after it.
+// top, the portrait swells into place, the name settles in a letter at a
+// time from its middle, and the handle and join date are read off after it.
 // The counts arrive along the right, one after another.
 //
 // Below, each block plays as it comes into view: its label slides in and its
@@ -33,7 +33,6 @@ const STAGGER = {
   item: 0.089,
   row: 0.144,
 };
-const BLUR = { hint: 3, soft: 5, lens: 8, deep: 13 };
 
 const SETTLE: Curve = [0.236, 1, 0.382, 1];
 const DEVELOP: Curve = [0.382, 0, 0.146, 1];
@@ -90,14 +89,14 @@ const ACCOUNT = defineStage({
   scroll: { period: beat(0), gain: beat(-1) },
   motion: {
     parts: {
-      // The cover develops out of the dark: large and soft, it settles into
-      // focus once its picture has loaded.
+      // The cover develops out of the dark: large, it settles once its
+      // picture has loaded.
       backdrop: {
         slots: {
           screen: {
             enter: {
               on: "ready",
-              from: { scale: 1.146, blur: BLUR.deep },
+              from: { scale: 1.146 },
               duration: beat(2),
               ease: DEVELOP,
             },
@@ -114,7 +113,7 @@ const ACCOUNT = defineStage({
       },
       // The tabs settle down from above the page.
       tabs: {
-        enter: load({ opacity: 0, y: -21, blur: BLUR.soft }, CUE.tabs),
+        enter: load({ opacity: 0, y: -21 }, CUE.tabs),
         slots: {
           pill: {
             follow: {
@@ -127,42 +126,39 @@ const ACCOUNT = defineStage({
       },
       // The portrait swells into place and overshoots by a hair.
       avatar: {
-        enter: load({ opacity: 0, scale: 0.618, blur: BLUR.soft }, CUE.avatar, {
+        enter: load({ opacity: 0, scale: 0.618 }, CUE.avatar, {
           ease: SPRING,
         }),
       },
-      // The name pulls into focus a letter at a time, from its middle out.
+      // The name settles in a letter at a time, from its middle out.
       name: {
         text: {
           by: "char",
           order: "center",
           stagger: STAGGER.char,
-          enter: load(
-            { opacity: 0, y: "0.382em", scale: 1.236, blur: BLUR.lens },
-            CUE.name,
-          ),
+          enter: load({ opacity: 0, y: "0.382em", scale: 1.236 }, CUE.name),
         },
       },
       // The handle, the join date and the lock are read off after it.
       meta: {
-        enter: load({ opacity: 0, x: -13, blur: BLUR.hint }, CUE.meta, {
+        enter: load({ opacity: 0, x: -13 }, CUE.meta, {
           stagger: STAGGER.row,
           ease: UNHURRIED,
         }),
       },
       proof: {
-        enter: load({ opacity: 0, y: 8, blur: BLUR.hint }, CUE.proof),
+        enter: load({ opacity: 0, y: 8 }, CUE.proof),
       },
       // The counts arrive along the right, one after another.
       stat: {
         ...nudge,
-        enter: load({ opacity: 0, y: 13, blur: BLUR.soft }, CUE.stat, {
+        enter: load({ opacity: 0, y: 13 }, CUE.stat, {
           stagger: STAGGER.item,
         }),
       },
       // A block's label slides in and its rule is drawn under it.
       label: {
-        enter: reveal({ opacity: 0, x: -13, blur: BLUR.hint }),
+        enter: reveal({ opacity: 0, x: -13 }),
       },
       rule: {
         origin: "left center",
@@ -174,14 +170,14 @@ const ACCOUNT = defineStage({
       // Posters are dealt across the row.
       tile: {
         enter: reveal(
-          { opacity: 0, y: 34, scale: 0.944, blur: BLUR.soft },
+          { opacity: 0, y: 34, scale: 0.944 },
           { stagger: STAGGER.word, wrap: 6 },
         ),
       },
       // Rows surface one after another.
       row: {
         enter: reveal(
-          { opacity: 0, y: 21, blur: BLUR.soft },
+          { opacity: 0, y: 21 },
           { delay: beat(-3), stagger: STAGGER.item, wrap: 6 },
         ),
       },
@@ -214,7 +210,7 @@ const ACCOUNT = defineStage({
       face: {
         ...nudge,
         enter: reveal(
-          { opacity: 0, scale: 0.618, blur: BLUR.hint },
+          { opacity: 0, scale: 0.618 },
           {
             delay: beat(-2),
             stagger: STAGGER.word,
@@ -228,7 +224,7 @@ const ACCOUNT = defineStage({
     sections: {
       // Choosing a tab, its page slides in from the right and resolves.
       page: {
-        enter: load({ opacity: 0, x: 34, blur: BLUR.soft }, 0, {
+        enter: load({ opacity: 0, x: 34 }, 0, {
           duration: beat(0),
         }),
       },
@@ -280,10 +276,8 @@ const ACCOUNT = defineStage({
   sections: ["page", "shelf", "rows", "ratings", "activity", "faces"],
 });
 
-const bound = ACCOUNT;
-
-export const AccountStageRoot = bound.StageRoot;
-export const AccountPart = bound.Part;
-export const AccountSection = bound.Section;
-export const AccountText = bound.Text;
-export const useAccountPart = bound.usePart;
+export const AccountStageRoot = ACCOUNT.StageRoot;
+export const AccountPart = ACCOUNT.Part;
+export const AccountSection = ACCOUNT.Section;
+export const AccountText = ACCOUNT.Text;
+export const useAccountPart = ACCOUNT.usePart;

@@ -18,13 +18,12 @@ import { cn } from "@/design/ui";
 // When the results change, the old ones lift away before the new ones are
 // dealt. The highlight glides from option to option instead of jumping.
 //
-// Glass (the field, the scopes) never blurs; only what sits on it does.
+// Nothing blurs: a blurring animation repaints on every frame it plays.
 
 const PHI = 1.618034;
 // φⁿ seconds: 0.146, 0.236, 0.382, 0.618, 1.
 const beat = (n: number) => Math.round(PHI ** n * 1000) / 1000;
 const STAGGER = { char: 0.021, item: 0.034, row: 0.055 };
-const BLUR = { hint: 3, soft: 5 };
 
 const SETTLE: Curve = [0.236, 1, 0.382, 1];
 const SWEEP: Curve = [0.618, 0, 0.382, 1];
@@ -78,7 +77,7 @@ const SEARCH = defineStage({
           order: "random",
           stagger: STAGGER.char,
           line: STAGGER.row,
-          enter: show({ opacity: 0, blur: BLUR.hint }),
+          enter: show({ opacity: 0 }),
         },
       },
       count: {
@@ -90,10 +89,7 @@ const SEARCH = defineStage({
       // Rows surface one after another; the thumbnail swells a hair under
       // the highlight.
       row: {
-        enter: show(
-          { opacity: 0, y: 8, blur: BLUR.hint },
-          { stagger: STAGGER.row },
-        ),
+        enter: show({ opacity: 0, y: 8 }, { stagger: STAGGER.row }),
         press: { scale: 0.98, duration: beat(-4), ease: PRESS },
         rest: { duration: beat(-2), ease: SETTLE },
         slots: {
@@ -103,7 +99,7 @@ const SEARCH = defineStage({
       // Posters are dealt across the grid.
       tile: {
         enter: show(
-          { opacity: 0, y: 13, scale: 0.944, blur: BLUR.soft },
+          { opacity: 0, y: 13, scale: 0.944 },
           { stagger: STAGGER.row },
         ),
       },
@@ -121,7 +117,7 @@ const SEARCH = defineStage({
       },
       // Loading, empty and failed states settle in.
       note: {
-        enter: show({ opacity: 0, y: 5, blur: BLUR.hint }),
+        enter: show({ opacity: 0, y: 5 }),
       },
     },
     sections: {
@@ -167,13 +163,11 @@ const SEARCH = defineStage({
   sections: ["rows"],
 });
 
-const bound = SEARCH;
-
-const SearchRoot = bound.SurfaceRoot;
-export const SearchPart = bound.Part;
-export const SearchText = bound.Text;
-export const SearchSwap = bound.Swap;
-export const useSearchPart = bound.usePart;
+const SearchRoot = SEARCH.SurfaceRoot;
+export const SearchPart = SEARCH.Part;
+export const SearchText = SEARCH.Text;
+export const SearchSwap = SEARCH.Swap;
+export const useSearchPart = SEARCH.usePart;
 
 export function SearchStage({
   children,

@@ -9,33 +9,32 @@ import { gpuTransform } from "@omerdlw/base-framework/utils";
 // its rise on arrival, the lift under the pointer and the deck's fold.
 //
 // The dock speaks the site's proportion, the golden ratio: durations are
-// powers of φ seconds, staggers Fibonacci milliseconds, travel and blur
-// Fibonacci pixels, curves drawn from φ's fractions. It is quicker than a
+// powers of φ seconds, staggers Fibonacci milliseconds, travel Fibonacci
+// pixels, curves drawn from φ's fractions. It is quicker than a
 // page, because it answers the hand, but it never snaps.
 //
 // Three ideas run through it:
 // - Glass moves like a body. The stack, the cards and the surface resize and
 //   travel on critically damped springs, so a move that is interrupted keeps
 //   its momentum instead of restarting, and nothing wobbles.
-// - Words move like a lens pulling focus. A title, a description, an icon,
-//   a header: the outgoing one lifts away and dissolves, the incoming one
-//   rises out of soft focus a beat behind it, like a line of credits rolling.
+// - Words move like credits rolling. A title, a description, an icon, a
+//   header: the outgoing one lifts away and fades, the incoming one rises in
+//   a beat behind it.
 // - A surface opens and closes as one breath. Opening, the card's own
 //   header and action lift away while the glass draws in a hair; then the
 //   glass blooms to its new size and the surface surfaces into it. Closing,
 //   the glass gathers, the body sinks out, and the header settles back in.
 //
-// Glass (the cards, the floating controls, the breadcrumbs) never blurs:
-// a filter on frosted glass costs a full repaint and smears its frost. Only
-// its contents do.
+// Nothing blurs, glass or words: a blurring animation cannot run on the
+// compositor, so it repaints on every frame it plays, and on frosted glass it
+// smears the frost.
 
 const PHI = 1.618034;
 // φⁿ seconds: 0.146, 0.236, 0.382, 0.618, 1, 1.618.
 const beat = (n: number) => Math.round(PHI ** n * 1000) / 1000;
-// Fibonacci: staggers in seconds, travel in px, blur radii in px.
+// Fibonacci: staggers in seconds, travel in px.
 const STAGGER = { item: 0.034, line: 0.055, step: 0.089 };
 const TRAVEL = { hair: 3, nudge: 5, step: 8, rise: 13 };
-const BLUR = { hint: 3, soft: 5 };
 
 type Ease = [number, number, number, number];
 
@@ -65,21 +64,9 @@ const spring = (visualDuration: number, bounce = 0) => ({
 
 const at = (y = 0, scale = 1) => gpuTransform(y, scale);
 
-// Out of focus, offset and gone; and its resolved counterpart.
-const haze = (blur: number, y = 0, scale = 1) => ({
-  opacity: 0,
-  filter: `blur(${blur}px)`,
-  transform: at(y, scale),
-});
-const clear = (opacity = 1) => ({
-  opacity,
-  filter: "blur(0px)",
-  transform: at(),
-});
-
-// For glass: no filter, only offset, scale and fade.
+// Offset and gone; and in place.
 const away = (y = 0, scale = 1) => ({ opacity: 0, transform: at(y, scale) });
-const here = { opacity: 1, transform: at() };
+const here = (opacity = 1) => ({ opacity, transform: at() });
 
 // The glass travels on these.
 const GLIDE = spring(beat(-1));
@@ -96,15 +83,11 @@ const resize = (distancePx: number) =>
     ),
   );
 
-// The lens pull, for words and glyphs. In from below, out through the top.
-const lens = (
-  blur: number,
-  travel: number,
-  enter = tween(beat(-2), SETTLE),
-) => ({
-  hidden: haze(blur, travel),
-  visible: { ...clear(), transition: enter },
-  exit: { ...haze(blur, -travel), transition: tween(beat(-3), LEAVE) },
+// For words and glyphs. In from below, out through the top.
+const lift = (travel: number, enter = tween(beat(-2), SETTLE)) => ({
+  hidden: away(travel),
+  visible: { ...here(), transition: enter },
+  exit: { ...away(-travel), transition: tween(beat(-3), LEAVE) },
 });
 
 // The surface's body: rises into the opened glass and sinks out of it.
@@ -180,48 +163,44 @@ export const dockMotion: DockMotion = {
   },
   variants: {
     // Titles, and the card body when a HUD takes its place.
-    fade: lens(BLUR.soft, TRAVEL.step),
+    fade: lift(TRAVEL.step),
     // The action under a header and the status card's actions.
-    textCrossfade: lens(
-      BLUR.hint,
-      TRAVEL.nudge,
-      tween(beat(-2), SETTLE, beat(-4)),
-    ),
+    textCrossfade: lift(TRAVEL.nudge, tween(beat(-2), SETTLE, beat(-4))),
     // A line behind its title, at its own reading opacity.
     description: (opacity = 0.7) => ({
-      hidden: haze(BLUR.hint, TRAVEL.nudge),
+      hidden: away(TRAVEL.nudge),
       visible: {
-        ...clear(opacity),
+        ...here(opacity),
         transition: tween(beat(-2), SETTLE, STAGGER.line),
       },
       exit: {
-        ...haze(BLUR.hint, -TRAVEL.nudge),
+        ...away(-TRAVEL.nudge),
         transition: tween(beat(-3), LEAVE),
       },
     }),
     // The surface's header rising into the card.
-    headerSwap: lens(BLUR.soft, TRAVEL.rise, tween(beat(-1), SETTLE, beat(-4))),
+    headerSwap: lift(TRAVEL.rise, tween(beat(-1), SETTLE, beat(-4))),
     // The card's own header: it lifts away when a surface opens (hidden) and
     // settles back down from above when it closes.
     headerRestore: {
-      hidden: haze(BLUR.soft, -TRAVEL.step),
-      visible: { ...clear(), transition: HEADER_RETURN },
-      exit: { ...haze(BLUR.soft, TRAVEL.step), transition: SURFACE_OUT },
+      hidden: away(-TRAVEL.step),
+      visible: { ...here(), transition: HEADER_RETURN },
+      exit: { ...away(TRAVEL.step), transition: SURFACE_OUT },
     },
-    extensionShelf: lens(BLUR.hint, TRAVEL.step),
+    extensionShelf: lift(TRAVEL.step),
     actionDismiss: {
-      hidden: haze(BLUR.hint, TRAVEL.step, 0.96),
-      visible: clear(),
+      hidden: away(TRAVEL.step, 0.96),
+      visible: here(),
       exit: {
-        ...haze(BLUR.hint, TRAVEL.step, 0.96),
+        ...away(TRAVEL.step, 0.96),
         transition: tween(beat(-3), LEAVE),
       },
     },
     // Page commands arrive one after another, left to right.
     commandBar: {
-      hidden: haze(BLUR.hint, TRAVEL.nudge, 0.9),
+      hidden: away(TRAVEL.nudge, 0.9),
       visible: (index: unknown = 0) => ({
-        ...clear(),
+        ...here(),
         transition: tween(
           beat(-2),
           SETTLE,
@@ -229,21 +208,21 @@ export const dockMotion: DockMotion = {
         ),
       }),
       exit: {
-        ...haze(BLUR.hint, -TRAVEL.hair, 0.9),
+        ...away(-TRAVEL.hair, 0.9),
         transition: tween(beat(-4), LEAVE),
       },
     },
-    // A glyph or poster swapping through the lens: the old one swells out of
-    // focus, the new one resolves from a step back.
+    // A glyph or poster swapping: the old one swells and fades, the new one
+    // settles in from a step back.
     icon: {
-      hidden: haze(BLUR.soft, 0, 0.84),
-      visible: { ...clear(), transition: tween(beat(-2), SETTLE) },
-      exit: { ...haze(BLUR.soft, 0, 1.12), transition: tween(beat(-3), LEAVE) },
+      hidden: away(0, 0.84),
+      visible: { ...here(), transition: tween(beat(-2), SETTLE) },
+      exit: { ...away(0, 1.12), transition: tween(beat(-3), LEAVE) },
     },
     badge: {
       hidden: away(0, 0.5),
       visible: {
-        ...here,
+        ...here(),
         transition: {
           transform: spring(beat(-2), 0.35),
           opacity: tween(beat(-3), SETTLE),
@@ -251,17 +230,17 @@ export const dockMotion: DockMotion = {
       },
       exit: { ...away(0, 0.7), transition: tween(beat(-4), LEAVE) },
     },
-    hud: lens(BLUR.soft, TRAVEL.step),
+    hud: lift(TRAVEL.step),
     scrubberTooltip: {
       hidden: away(-TRAVEL.hair, 0.94),
-      visible: { ...here, transition: tween(beat(-3), SETTLE) },
+      visible: { ...here(), transition: tween(beat(-3), SETTLE) },
       exit: { ...away(-TRAVEL.hair, 0.94), transition: tween(beat(-4), LEAVE) },
     },
     // The trail drops in under the stack once the stack has lifted for it.
     breadcrumbs: {
       hidden: away(-TRAVEL.step, 0.96),
       visible: {
-        ...here,
+        ...here(),
         transition: {
           transform: { ...spring(beat(-1), 0.1), delay: beat(-4) },
           opacity: tween(beat(-2), SETTLE, beat(-4)),
@@ -279,10 +258,9 @@ export const dockMotion: DockMotion = {
       exit: { opacity: 0, transition: tween(beat(-2), LEAVE) },
     },
     // The surface's body rises into the opened glass and sinks out of it.
-    // No blur: a body holds controls of its own glass.
     surfaceBody: {
       hidden: away(TRAVEL.rise),
-      visible: here,
+      visible: here(),
       exit: away(TRAVEL.step),
     },
     // The floating controls bloom above the surface once its body is in.
@@ -313,7 +291,7 @@ export const dockMotion: DockMotion = {
     controlsClose: {
       hidden: away(0, 0.6),
       visible: {
-        ...here,
+        ...here(),
         transition: {
           transform: spring(beat(-2), 0.2),
           opacity: tween(beat(-3), SETTLE),
@@ -332,8 +310,8 @@ export const dockMotion: DockMotion = {
     },
     // The words on a card behind the front one, while the stack is shut.
     cardContent: {
-      hidden: { opacity: 0, filter: `blur(${BLUR.soft}px)` },
-      visible: { opacity: 1, filter: "blur(0px)" },
+      hidden: { opacity: 0 },
+      visible: { opacity: 1 },
     },
   },
   phases: {

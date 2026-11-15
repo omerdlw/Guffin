@@ -12,22 +12,22 @@ import { ambientImage } from "./feed";
 //
 // One proportion runs the page: the golden ratio. Every duration and every
 // cue is a power of φ seconds, every stagger a Fibonacci number of
-// milliseconds, every travel a Fibonacci number of pixels, every blur a
-// Fibonacci radius, every curve drawn from φ's fractions. Moves of one rank
+// milliseconds, every travel a Fibonacci number of pixels, every curve
+// drawn from φ's fractions. Moves of one rank
 // share one value, and each rank is φ times the one below, so nothing on the
 // page fights for the eye at the same weight.
 //
 // The page is paced like a film, not a feed: the wheel travels φ⁻¹ of a
-// notch and glides for a beat, and things arrive slightly out of focus and
-// resolve, the way a lens pulls focus. Blur stays light (3–13px): enough to
-// read as focus, cheap enough to keep scrolling smooth.
+// notch and glides for a beat, and things arrive a little large and faint
+// and settle. Nothing blurs: a blurring animation cannot run on the
+// compositor, so it would repaint the page on every frame it plays.
 //
 // The opening is a title sequence on φ cues. The picture develops out of the
 // dark like a print in the bath over 4.2s. At 0.6s the eyebrow flickers in
-// letter by letter; at 1s the headline pulls into focus a letter at a time,
+// letter by letter; at 1s the headline settles in a letter at a time,
 // its second line 0.4s behind; at 2.6s the copy arrives word by word like a
 // subtitle; the actions at 3.2s, the credit at 3.6s. Scrolling, the picture
-// sinks, defocuses and fades while the titles lift away.
+// sinks, shrinks and fades while the titles lift away.
 //
 // Below, every block plays its entrance as it comes well into view: headings
 // resolve from their middle outwards and draw their rule, rows deal their
@@ -39,9 +39,8 @@ import { ambientImage } from "./feed";
 const PHI = 1.618034;
 // φⁿ seconds: 0.146, 0.236, 0.382, 0.618, 1, 1.618, 2.618, 4.236.
 const beat = (n: number) => Math.round(PHI ** n * 1000) / 1000;
-// Fibonacci: staggers in ms, travel in px, blur radii.
+// Fibonacci: staggers in ms, travel in px.
 const STAGGER = { char: 0.034, word: 0.055, item: 0.089, row: 0.144 };
-const BLUR = { hint: 3, soft: 5, lens: 8, deep: 13 };
 
 // Curves from φ's fractions (0.146, 0.236, 0.382, 0.618, 0.854).
 // Settle: arrives quickly and spends its long tail coming to rest.
@@ -96,7 +95,7 @@ const draw: Moves = {
   ),
 };
 
-// A text that resolves letter by letter from a little large and soft.
+// A text that settles letter by letter from a little large and faint.
 const titling = (
   enter: (from: Look) => Enter,
   order: "forward" | "center" = "forward",
@@ -104,14 +103,14 @@ const titling = (
   by: "char" as const,
   order,
   stagger: STAGGER.char,
-  enter: enter({ opacity: 0, y: "0.236em", scale: 1.146, blur: BLUR.soft }),
+  enter: enter({ opacity: 0, y: "0.236em", scale: 1.146 }),
 });
 
 // A text that surfaces word by word, like a subtitle.
 const subtitle = (enter: (from: Look) => Enter) => ({
   by: "word" as const,
   stagger: STAGGER.word,
-  enter: enter({ opacity: 0, y: 8, blur: BLUR.hint }),
+  enter: enter({ opacity: 0, y: 8 }),
 });
 
 // A short label that flickers in letter by letter, scattered.
@@ -119,7 +118,7 @@ const flicker = (enter: (from: Look) => Enter) => ({
   by: "char" as const,
   order: "random" as const,
   stagger: STAGGER.char,
-  enter: enter({ opacity: 0, blur: BLUR.hint }),
+  enter: enter({ opacity: 0 }),
 });
 
 const HOME = defineStage({
@@ -131,18 +130,18 @@ const HOME = defineStage({
       backdrop: {
         scroll: { to: { y: "21%", opacity: 0.146 }, range: ["0px", "100vh"] },
         slots: {
-          // Size and focus move on the clipping box, so its soft edges grow
-          // with it; on the picture inside, a large picture would show the
-          // box's hard edges until it settled.
+          // Size moves on the clipping box, so its edges grow with it; on the
+          // picture inside, a large picture would show the box's hard edges
+          // until it settled.
           screen: {
             enter: {
               on: "ready",
-              from: { scale: 1.236, blur: BLUR.deep },
+              from: { scale: 1.236 },
               duration: beat(3),
               ease: DEVELOP,
             },
             scroll: {
-              to: { scale: 1.09, blur: BLUR.soft },
+              to: { scale: 1.09 },
               range: ["0px", "100vh"],
             },
           },
@@ -162,11 +161,7 @@ const HOME = defineStage({
       headline: {
         text: {
           ...titling((from) =>
-            load(
-              { ...from, y: "0.382em", scale: 1.236, blur: BLUR.lens },
-              beat(0),
-              beat(1),
-            ),
+            load({ ...from, y: "0.382em", scale: 1.236 }, beat(0), beat(1)),
           ),
           line: beat(-2),
         },
@@ -175,27 +170,21 @@ const HOME = defineStage({
         text: subtitle((from) => load(from, beat(2), beat(1))),
       },
       actions: {
-        enter: load(
-          { opacity: 0, y: 21, scale: 0.944, blur: BLUR.soft },
-          beat(2) + beat(-1),
-        ),
+        enter: load({ opacity: 0, y: 21, scale: 0.944 }, beat(2) + beat(-1)),
       },
       credit: {
-        enter: load({ opacity: 0, x: 34, blur: BLUR.soft }, beat(2) + beat(0)),
+        enter: load({ opacity: 0, x: 34 }, beat(2) + beat(0)),
       },
       header: {
         text: titling((from) => reveal(from), "center"),
         slots: { rule: draw },
       },
       live: {
-        enter: reveal(
-          { opacity: 0, x: 21, blur: BLUR.hint },
-          { delay: beat(-1) },
-        ),
+        enter: reveal({ opacity: 0, x: 21 }, { delay: beat(-1) }),
       },
       slide: {
         enter: reveal(
-          { opacity: 0, x: 89, scale: 0.944, blur: BLUR.soft },
+          { opacity: 0, x: 89, scale: 0.944 },
           {
             along: "section",
             delay: beat(-2),
@@ -206,25 +195,25 @@ const HOME = defineStage({
         ),
       },
       poster: {
-        enter: reveal({ opacity: 0, y: 55, scale: 0.944, blur: BLUR.soft }),
+        enter: reveal({ opacity: 0, y: 55, scale: 0.944 }),
       },
       card: {
         ...lift,
         enter: reveal(
-          { opacity: 0, y: 55, scale: 0.944, blur: BLUR.soft },
+          { opacity: 0, y: 55, scale: 0.944 },
           { stagger: STAGGER.item, wrap: 6, duration: beat(1) },
         ),
       },
       rank: {
         ...nudge,
         enter: reveal(
-          { opacity: 0, x: -34, blur: BLUR.hint },
+          { opacity: 0, x: -34 },
           { stagger: STAGGER.word, wrap: 10 },
         ),
       },
       cover: {
         enter: reveal(
-          { opacity: 0, scale: 1.146, blur: BLUR.lens, bright: 0.618 },
+          { opacity: 0, scale: 1.146, bright: 0.618 },
           { duration: beat(2), ease: DEVELOP },
         ),
         slots: {
@@ -239,37 +228,31 @@ const HOME = defineStage({
         text: subtitle((from) => reveal(from, { delay: beat(-2) })),
       },
       byline: {
-        enter: reveal(
-          { opacity: 0, y: 21, blur: BLUR.hint },
-          { delay: beat(0) + beat(-2) },
-        ),
+        enter: reveal({ opacity: 0, y: 21 }, { delay: beat(0) + beat(-2) }),
       },
       review: {
         ...lift,
         enter: reveal(
-          { opacity: 0, y: 55, blur: BLUR.soft },
+          { opacity: 0, y: 55 },
           { stagger: STAGGER.row, wrap: 3, duration: beat(1) },
         ),
       },
       list: {
         ...lift,
         enter: reveal(
-          { opacity: 0, y: 55, scale: 0.944, blur: BLUR.soft },
+          { opacity: 0, y: 55, scale: 0.944 },
           { stagger: STAGGER.row, wrap: 3, duration: beat(1) },
         ),
       },
       member: {
         ...lift,
         enter: reveal(
-          { opacity: 0, y: 34, scale: 0.944, blur: BLUR.soft },
+          { opacity: 0, y: 34, scale: 0.944 },
           { stagger: STAGGER.item, wrap: 4 },
         ),
       },
       verb: {
-        enter: reveal(
-          { opacity: 0, y: 34, blur: BLUR.soft },
-          { stagger: STAGGER.row, wrap: 3 },
-        ),
+        enter: reveal({ opacity: 0, y: 34 }, { stagger: STAGGER.row, wrap: 3 }),
       },
       rule: draw,
       // The credits roll: the tag, the title, then the pitch and the action,
@@ -278,7 +261,7 @@ const HOME = defineStage({
       finale: {
         text: titling((from) =>
           reveal(
-            { ...from, y: "0.382em", scale: 1.236, blur: BLUR.lens },
+            { ...from, y: "0.382em", scale: 1.236 },
             { delay: beat(-2), duration: beat(1) },
           ),
         ),
@@ -287,25 +270,22 @@ const HOME = defineStage({
         text: subtitle((from) => reveal(from, { delay: beat(1) })),
       },
       cta: {
-        enter: reveal(
-          { opacity: 0, y: 21, scale: 0.944, blur: BLUR.soft },
-          { delay: beat(2) },
-        ),
+        enter: reveal({ opacity: 0, y: 21, scale: 0.944 }, { delay: beat(2) }),
       },
     },
     sections: {
       opening: {
         scroll: {
-          to: { y: -144, opacity: 0, blur: BLUR.soft },
+          to: { y: -144, opacity: 0 },
           range: ["5vh", "80vh"],
         },
       },
-      // Switching tabs, the shown row drifts off to the left and defocuses
+      // Switching tabs, the shown row drifts off to the left and fades
       // before the next one is dealt in from the right.
       slides: {
-        enter: load({ opacity: 0, x: 55, blur: BLUR.soft }, beat(-3)),
+        enter: load({ opacity: 0, x: 55 }, beat(-3)),
         leave: {
-          to: { opacity: 0, x: -55, blur: BLUR.soft },
+          to: { opacity: 0, x: -55 },
           duration: beat(-1),
           ease: LEAVE,
         },
@@ -332,7 +312,7 @@ const HOME = defineStage({
       // cross-fade; the indicator travels on the control's own spring.
       segmented: {
         enter: reveal(
-          { opacity: 0, x: 21, blur: BLUR.hint },
+          { opacity: 0, x: 21 },
           { along: "section", delay: beat(-1) },
         ),
         slots: {
@@ -346,7 +326,7 @@ const HOME = defineStage({
       // Showing and hiding as the row scrolls fades rather than pops.
       arrow: {
         enter: reveal(
-          { opacity: 0, scale: 0.618, blur: BLUR.hint },
+          { opacity: 0, scale: 0.618 },
           { along: "section", delay: beat(1) },
         ),
         hover: { scale: 1.09, opacity: 1, duration: beat(-2), ease: TOUCH },
@@ -399,14 +379,12 @@ const HOME = defineStage({
   ],
 });
 
-const bound = HOME;
-
-const HomeStageRoot = bound.StageRoot;
-export const HomePart = bound.Part;
-export const HomeSection = bound.Section;
-export const HomeText = bound.Text;
-const HomeHeader = bound.Header;
-export const HomeSwap = bound.Swap;
+const HomeStageRoot = HOME.StageRoot;
+export const HomePart = HOME.Part;
+export const HomeSection = HOME.Section;
+export const HomeText = HOME.Text;
+const HomeHeader = HOME.Header;
+export const HomeSwap = HOME.Swap;
 
 interface Lighting {
   lead: (src: string | null) => void;
