@@ -31,6 +31,7 @@ export interface Surface<P extends object> {
     ...args: Args<P>
   ): Promise<SurfaceResult>;
   use(): SurfaceHandle;
+  readonly config: { component?: unknown };
 }
 
 /** The framework's `defineSurface`, typed by the props its component takes. */

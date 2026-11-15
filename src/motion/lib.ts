@@ -1,7 +1,6 @@
 export {
   animate,
   AnimatePresence,
-  LayoutGroup,
   motion,
   MotionConfig,
   Reorder,
@@ -11,4 +10,4 @@ export {
   useSpring,
   useTransform,
 } from "motion/react";
-export type { MotionValue, TargetAndTransition, Variants } from "motion/react";
+export type { MotionValue, TargetAndTransition } from "motion/react";

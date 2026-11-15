@@ -1,5 +1,6 @@
 import type { Database } from "@/lib/supabase/database.types";
-import type { SeasonSummary } from "@/lib/tmdb/shared";
+import { artworkOf } from "@/features/movie/movie";
+import type { SeasonSummary, ShowDetails } from "@/lib/tmdb/shared";
 
 export type ShowStatus = (typeof SHOW_STATUSES)[number];
 
@@ -154,3 +155,34 @@ export function daysUntil(
   if (!date || date < today) return null;
   return Math.round((Date.parse(date) - Date.parse(today)) / 86_400_000);
 }
+
+/** The dock's line under a show's title. */
+function describeShow(
+  show: Pick<
+    ShowDetails,
+    | "endYear"
+    | "inProduction"
+    | "networks"
+    | "releaseYear"
+    | "seasonsCount"
+    | "status"
+  >,
+): string {
+  const airing = show.status === "Returning Series" || show.inProduction;
+  return [
+    formatShowYears(show.releaseYear, show.endYear, airing),
+    show.seasonsCount
+      ? `${show.seasonsCount} season${show.seasonsCount === 1 ? "" : "s"}`
+      : null,
+    show.networks[0]?.name ?? null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
+
+/** What the page chrome (dock card, ambient light) is handed of a show. */
+export const showChrome = (show: ShowDetails) => ({
+  description: describeShow(show),
+  hasProviders: Object.keys(show.watchProviders).length > 0,
+  show: artworkOf(show),
+});

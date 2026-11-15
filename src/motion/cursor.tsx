@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from "react";
 import { Z_INDEX } from "@/design/foundations/z-index";
-import { LAYER_MEMORY_MS, raised } from "./dom";
 import { pointerSample, watchPointer } from "./engine";
 import { useHydratedReducedMotion } from "./react";
 import "./reticle.css";
@@ -237,6 +236,11 @@ function pullSpring(
 
 const unitClamp = (n: number) => Math.max(0, Math.min(n, 1));
 
+/** How long a node's "raised above the dock" answer is trusted before re-reading its style. */
+const LAYER_MEMORY_MS = 750;
+
+const raised = new WeakMap<Element, { at: number; layer: boolean }>();
+
 function isLayer(node: Element, now: number) {
   const known = raised.get(node);
   if (known && now - known.at < LAYER_MEMORY_MS) return known.layer;
@@ -375,7 +379,6 @@ function read(x: number, y: number): CursorReading {
   if (own) {
     const named = own.dataset.cursor as CursorMode | undefined;
     if (named === "none") return { label: "", mode: "none", target: own };
-    const label = own.dataset.cursorLabel ?? "";
     if (named === "wrap") {
       const box = boxOf(own);
       const inside =
@@ -394,7 +397,8 @@ function read(x: number, y: number): CursorReading {
       }
       return {
         corner: Number.isFinite(corner) ? corner : undefined,
-        label: label || CURSOR_LABELS[named] || "",
+        // An empty label is a choice: the glass alone, no caption.
+        label: own.dataset.cursorLabel ?? CURSOR_LABELS[named] ?? "",
         mode: named,
         target: own,
       };
@@ -735,7 +739,7 @@ function Reticle() {
         [radius, tr, travel],
         [weights.bead, mode === "idle" ? 1 : 0, ABSORB],
         [weights.bracket, shape.bracket, FADE],
-        [weights.caption, shape.caption, FADE],
+        [weights.caption, reading.label ? shape.caption : 0, FADE],
         [weights.dot, shape.dot, FADE],
         [weights.glass, shape.glass, FADE],
         [weights.label, shape.label, FADE],

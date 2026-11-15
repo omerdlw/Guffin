@@ -1,7 +1,10 @@
 import type { ReportSink } from "@omerdlw/base-framework/utils";
 import { getSentryDsn } from "@/lib/env";
 
-type Sentry = typeof import("@sentry/nextjs");
+type Sentry = Pick<
+  typeof import("@sentry/nextjs"),
+  "captureException" | "captureMessage" | "withScope"
+>;
 
 const PRODUCTION = process.env.NODE_ENV === "production";
 

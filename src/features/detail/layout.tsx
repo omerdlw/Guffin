@@ -56,7 +56,7 @@ function FactRow({
     >
       <div className="flex w-full items-baseline justify-between gap-6">
         <dt className={`shrink-0 ${TONE.label} text-ink-muted`}>
-          <DetailExpose hover index={index} part="label" text={label} />
+          <DetailExpose index={index} part="label" text={label} />
         </dt>
         <dd
           className={`min-w-0 text-right ${FACT_ROW_TYPE} font-medium text-ink tabular-nums`}
@@ -88,7 +88,7 @@ function FactNames({
     <>
       {visible.map((name, at) => {
         const text = (
-          <DetailExpose hover index={index} part="value" text={name.text} />
+          <DetailExpose index={index} part="value" text={name.text} />
         );
         return (
           <span key={`${name.text}-${at}`}>
@@ -128,7 +128,7 @@ function FactNames({
 }
 
 function FactText({ children, index }: { children: string; index: number }) {
-  return <DetailExpose hover index={index} part="value" text={children} />;
+  return <DetailExpose index={index} part="value" text={children} />;
 }
 
 export const namesFact = (

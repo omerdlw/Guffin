@@ -18,21 +18,35 @@ export interface LazySurface<P extends object> {
     props?: P,
     overrides?: Partial<SurfaceDescriptor>,
   ): Promise<SurfaceResult>;
+  /**
+   * Whether `component` is this surface's own: tells it apart in the dock's
+   * state without importing it. False until it has loaded (nothing of it can
+   * be open before).
+   */
+  shows(component: unknown): boolean;
 }
 
 export function lazySurface<P extends object>(
   load: () => Promise<Surface<P>>,
 ): LazySurface<P> {
   let pending: Promise<Surface<P>> | null = null;
+  let own: unknown = null;
   const preload = () => {
-    pending ??= load().catch((error: unknown) => {
-      pending = null;
-      throw error;
-    });
+    pending ??= load().then(
+      (surface) => {
+        own = surface.config.component ?? null;
+        return surface;
+      },
+      (error: unknown) => {
+        pending = null;
+        throw error;
+      },
+    );
     return pending;
   };
   return {
     preload,
+    shows: (component) => own !== null && component === own,
     async open(openSurface, ...args) {
       const surface = await preload();
       return (
@@ -58,7 +72,7 @@ const INTENT_EVENTS = [
  * Pointer movement, a touch or a key always comes before the click that opens a surface.
  */
 export function preloadOnIntent(
-  surfaces: readonly Pick<LazySurface<never>, "preload">[],
+  surfaces: readonly { preload(): Promise<unknown> }[],
   target: EventTarget,
 ): () => void {
   const options = { capture: true, passive: true };

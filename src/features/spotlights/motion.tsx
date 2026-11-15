@@ -10,11 +10,9 @@ const DIRECTORS = defineStage({
   sections: ["director"],
 });
 
-const bound = DIRECTORS;
-
-const DirectorsStageRoot = bound.StageRoot;
-export const DirectorsPart = bound.Part;
-export const DirectorsSwap = bound.Swap;
+const DirectorsStageRoot = DIRECTORS.StageRoot;
+export const DirectorsPart = DIRECTORS.Part;
+export const DirectorsSwap = DIRECTORS.Swap;
 
 export function DirectorsStage({ children }: { children: ReactNode }) {
   return (

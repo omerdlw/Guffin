@@ -12,11 +12,9 @@ const SURFACE = defineStage({
   sections: ["items", "rows"],
 });
 
-const bound = SURFACE;
-
-const SurfaceRoot = bound.SurfaceRoot;
-export const SurfacePart = bound.Part;
-export const SurfaceSwap = bound.Swap;
+const SurfaceRoot = SURFACE.SurfaceRoot;
+export const SurfacePart = SURFACE.Part;
+export const SurfaceSwap = SURFACE.Swap;
 
 export function SurfaceStage({
   children,
@@ -54,7 +52,7 @@ export function DockAction({ children }: { children: ReactNode }) {
   );
 }
 
-export const SURFACE_SEARCH_MIN = 30;
+const SURFACE_SEARCH_MIN = 30;
 
 function fold(text: string): string {
   return text

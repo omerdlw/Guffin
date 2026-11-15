@@ -4,7 +4,7 @@ import { lazySurface, preloadOnIntent } from "./lazy-surface";
 type Props = { id: number };
 
 function fakeSurface() {
-  return { open: vi.fn(async () => ({ status: "closed" })) };
+  return { config: {}, open: vi.fn(async () => ({ status: "closed" })) };
 }
 
 describe("lazySurface", () => {
@@ -59,6 +59,18 @@ describe("lazySurface", () => {
     );
     await expect(lazy.preload()).resolves.toBe(surface);
     expect(load).toHaveBeenCalledTimes(2);
+  });
+
+  it("shows tells its own component apart, and nothing before it loads", async () => {
+    const Component = () => null;
+    const surface = { config: { component: Component }, open: vi.fn() };
+    const lazy = lazySurface<Props>((async () => surface) as never);
+
+    expect(lazy.shows(Component)).toBe(false);
+    await lazy.preload();
+    expect(lazy.shows(Component)).toBe(true);
+    expect(lazy.shows(() => null)).toBe(false);
+    expect(lazy.shows(null)).toBe(false);
   });
 });
 

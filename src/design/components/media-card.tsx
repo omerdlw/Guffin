@@ -15,7 +15,7 @@ const ASPECT = {
   video: "aspect-video",
 } as const;
 
-export const mediaCardVariants = variants(
+const mediaCardVariants = variants(
   "cine-card group/media flex min-w-0 flex-col gap-1.5 outline-none",
   {
     variants: {
@@ -25,7 +25,7 @@ export const mediaCardVariants = variants(
   },
 );
 
-export const mediaFrameVariants = variants("relative isolate overflow-hidden", {
+const mediaFrameVariants = variants("relative isolate overflow-hidden", {
   variants: {
     aspect: ASPECT,
     framed: { false: "", true: "bg-fill" },

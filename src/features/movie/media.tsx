@@ -128,7 +128,6 @@ export function MoneyCount({ index, value }: { index: number; value: number }) {
   return (
     <DetailCount
       format={formatMoneyOrZero}
-      hover
       index={index}
       part="value"
       value={value}

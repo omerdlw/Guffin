@@ -20,7 +20,6 @@ import {
 import { pluralize } from "@/lib/format";
 import { mediaHref } from "@/lib/project";
 import type { MediaType } from "@/lib/tmdb/shared";
-import { layoutTop } from "@/motion/dom";
 import { clamp } from "@/motion/math";
 import { useEngine } from "@/motion/react";
 import type {
@@ -31,6 +30,17 @@ import type {
   TimelineYear,
 } from "./person";
 import { PersonMediumControl, usePersonMedium, usePersonView } from "./views";
+
+/** Document top from the offset chain: unlike a bounding box, untouched by transforms in flight. */
+function layoutTop(element: HTMLElement): number {
+  let top = 0;
+  let node: HTMLElement | null = element;
+  while (node) {
+    top += node.offsetTop;
+    node = node.offsetParent as HTMLElement | null;
+  }
+  return top;
+}
 
 const CAREER_SLOT_CLASS = "relative min-w-[3px] max-w-7 flex-1";
 

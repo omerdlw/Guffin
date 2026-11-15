@@ -61,7 +61,7 @@ export function ShowStatusAction({
   );
 }
 
-export const SHOW_TRACK_ICON = "solar:play-circle-linear";
+const SHOW_TRACK_ICON = "solar:play-circle-linear";
 
 export interface ShowChange {
   showId: number;

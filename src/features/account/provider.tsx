@@ -43,7 +43,6 @@ import {
   fetchUnreadCount,
 } from "./client";
 import { AccountInboxAction } from "./inbox-action";
-import { AccountNotificationsSurface } from "./notifications-surface";
 import { accountNotificationsSurface, accountSetupSurface } from "./surfaces";
 
 interface AccountState {
@@ -294,9 +293,8 @@ function AccountDockActions(): null {
   const router = useRouter();
   const { closeSurface, openSurface } = useDockActions();
   useSurfacePreload(accountNotificationsSurface);
-  const notificationsOpen = useDockSelector(
-    (state) =>
-      state.activeSurfaceEntry?.component === AccountNotificationsSurface,
+  const notificationsOpen = useDockSelector((state) =>
+    accountNotificationsSurface.shows(state.activeSurfaceEntry?.component),
   );
   const signedIn = auth.isReady && auth.isAuthenticated;
   const unreadCount = useRemoteCount(

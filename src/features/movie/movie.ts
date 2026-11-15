@@ -11,7 +11,6 @@ import { readable } from "@/motion/gl";
 
 export interface PersonEntry {
   id: number;
-  key: string;
   name: string;
   profilePath: string | null;
   subtitle: string;
@@ -68,6 +67,18 @@ export type MovieArtwork = Pick<
   MovieDetails,
   "backdropPath" | "id" | "posterPath" | "title"
 >;
+
+/**
+ * What a title's client parts are handed: its pictures and its name. Passing
+ * the whole record across instead would send all of it to the browser (every
+ * credit, every image, the providers of every region), used or not.
+ */
+export const artworkOf = ({
+  backdropPath,
+  id,
+  posterPath,
+  title,
+}: MovieArtwork): MovieArtwork => ({ backdropPath, id, posterPath, title });
 
 export const MOVIE_FEATURED_PEOPLE = 4;
 
@@ -129,6 +140,10 @@ export function getGalleryImages(images: MovieImages) {
 export function getPosterImages(images: MovieImages) {
   return [...images.posters].sort(byVotes);
 }
+
+/** A gallery's pictures as the client draws them: their paths alone. */
+export const pathsOf = (images: readonly MovieImage[]) =>
+  images.map((image) => image.filePath);
 
 export function getVideoTypes(movie: Pick<MovieDetails, "videos">): string[] {
   return [

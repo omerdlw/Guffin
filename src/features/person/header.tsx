@@ -213,7 +213,6 @@ export function AgeCount({ index, value }: { index: number; value: number }) {
   return (
     <DetailCount
       format={formatYears}
-      hover
       index={index}
       part="value"
       value={value}

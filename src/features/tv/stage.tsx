@@ -17,59 +17,27 @@ import {
   useArtworkContextMenu,
   useArtworkPath,
 } from "@/features/artwork/artwork";
-import { movieSwatch } from "@/features/movie/movie";
+import { type MovieArtwork, movieSwatch } from "@/features/movie/movie";
 import { watchProvidersSurface } from "@/features/movie/surfaces";
 import { MovieAction } from "@/features/reviews/movie-action";
 import { describeReviewStats, useReviewsPager } from "@/features/reviews/pager";
-import { type ShowDetails, tmdbImageUrl } from "@/lib/tmdb/shared";
-import { formatShowYears } from "./show";
+import { tmdbImageUrl } from "@/lib/tmdb/shared";
 
 const SHOW_FALLBACK_ICON = "solar:tv-bold";
 
-function describeShow(
-  show: Pick<
-    ShowDetails,
-    | "endYear"
-    | "inProduction"
-    | "networks"
-    | "releaseYear"
-    | "seasonsCount"
-    | "status"
-  >,
-): string {
-  const airing = show.status === "Returning Series" || show.inProduction;
-  return [
-    formatShowYears(show.releaseYear, show.endYear, airing),
-    show.seasonsCount
-      ? `${show.seasonsCount} season${show.seasonsCount === 1 ? "" : "s"}`
-      : null,
-    show.networks[0]?.name ?? null,
-  ]
-    .filter(Boolean)
-    .join(" · ");
-}
-
 export function ShowPageChrome({
+  description,
+  hasProviders,
   palette = null,
   reviews = false,
   show,
 }: {
+  /** The dock's line under the title (years, seasons, network). */
+  description: string;
+  hasProviders: boolean;
   palette?: AmbientPalette | null;
   reviews?: boolean;
-  show: Pick<
-    ShowDetails,
-    | "backdropPath"
-    | "endYear"
-    | "id"
-    | "inProduction"
-    | "networks"
-    | "posterPath"
-    | "releaseYear"
-    | "seasonsCount"
-    | "status"
-    | "title"
-    | "watchProviders"
-  >;
+  show: MovieArtwork;
 }): null {
   const posterPath = useArtworkPath("tv", show.id, "poster", show.posterPath);
   const backdropPath = useArtworkPath(
@@ -91,7 +59,6 @@ export function ShowPageChrome({
   useSurfacePreload(watchProvidersSurface);
   const pager = useReviewsPager();
   const board = reviews ? pager : null;
-  const hasProviders = Object.keys(show.watchProviders).length > 0;
 
   const action = useMemo(
     () => (
@@ -124,8 +91,7 @@ export function ShowPageChrome({
     dock: {
       action,
       description:
-        (board ? describeReviewStats(board.stats) : describeShow(show)) ||
-        undefined,
+        (board ? describeReviewStats(board.stats) : description) || undefined,
       icon: poster ?? SHOW_FALLBACK_ICON,
       name: `tv-${show.id}`,
       targetPath: departure,

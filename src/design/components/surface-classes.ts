@@ -1,5 +1,5 @@
 import { WELL, WELL_HOVER } from "@/design/foundations/tones";
-import { type VariantProps, variants } from "@/design/foundations/variants";
+import { variants } from "@/design/foundations/variants";
 
 export const SURFACE_STACK = "flex w-full flex-col gap-2.5";
 export const SURFACE_TILE_INNER = "rounded-inset";
@@ -41,5 +41,3 @@ export const tileVariants = variants([TILE, WELL], {
   },
   defaultVariants: { interactive: false },
 });
-
-export type RowVariants = VariantProps<typeof rowVariants>;

@@ -19,7 +19,7 @@ export interface ConfirmOptions {
   tone?: "danger" | "neutral";
 }
 
-export function ConfirmHud({
+function ConfirmHud({
   action = "Delete",
   description,
   icon = "solar:trash-bin-trash-bold",

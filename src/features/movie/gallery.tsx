@@ -19,7 +19,6 @@ import { ImageModal } from "@/features/detail/image-modal";
 import { Heading } from "@/features/detail/layout";
 import { DetailSection, DetailSwap } from "@/features/detail/motion";
 import {
-  type MovieImage,
   type MovieVideo,
   tmdbImageSrcSet,
   tmdbImageUrl,
@@ -104,13 +103,14 @@ export function MovieGallery({
   posters,
   title,
 }: {
-  backdrops: MovieImage[];
+  /** TMDB file paths, best first. */
+  backdrops: readonly string[];
   now?: boolean;
-  posters: MovieImage[];
+  posters: readonly string[];
   title: string;
 }) {
   const [openImage] = useModal(ImageModal);
-  const sets: Record<GalleryTab, MovieImage[]> = { backdrops, posters };
+  const sets: Record<GalleryTab, readonly string[]> = { backdrops, posters };
   const available = GALLERY_TAB_ORDER.filter((key) => sets[key].length > 0);
   const [shelf, setShelf] = useState<{ reach: number; tab: GalleryTab }>({
     reach: GALLERY_REACH_STEP,
@@ -173,15 +173,15 @@ export function MovieGallery({
             onNearEnd={more}
             part="slide"
           >
-            {images.map((image, index) => {
+            {images.map((path, index) => {
               const label = `View ${view.noun} ${index + 1} of ${title}`;
-              const shown = thumbnailFor("gallery", key, image.filePath);
+              const shown = thumbnailFor("gallery", key, path);
               return (
                 <MediaCard
-                  key={image.filePath}
+                  key={path}
                   {...artworkAttributes(
                     key === "backdrops" ? "backdrop" : "poster",
-                    image.filePath,
+                    path,
                   )}
                   aspect={view.aspect}
                   image={{
@@ -191,7 +191,7 @@ export function MovieGallery({
                     srcSet: shown.srcSet,
                   }}
                   label={label}
-                  onClick={() => open(image.filePath, index)}
+                  onClick={() => open(path, index)}
                   radius={RADIUS.card}
                 />
               );
@@ -208,8 +208,9 @@ export function MovieGalleryWall({
   posters,
   title,
 }: {
-  backdrops: MovieImage[];
-  posters: MovieImage[];
+  /** TMDB file paths, best first. */
+  backdrops: readonly string[];
+  posters: readonly string[];
   title: string;
 }) {
   const sets: WallSet[] = GALLERY_TAB_ORDER.flatMap((key) => {
@@ -223,12 +224,12 @@ export function MovieGalleryWall({
         key,
         label: view.label,
         noun: view.noun,
-        pictures: images.map((image) => {
-          const shown = thumbnailFor("wall", key, image.filePath);
+        pictures: images.map((path) => {
+          const shown = thumbnailFor("wall", key, path);
           return {
             crossOrigin: shown.crossOrigin,
-            full: galleryOriginal(key, image.filePath),
-            path: image.filePath,
+            full: galleryOriginal(key, path),
+            path,
             sizes: key === "backdrops" ? WALL_SIZES.video : WALL_SIZES.poster,
             src: shown.src,
             srcSet: shown.srcSet,

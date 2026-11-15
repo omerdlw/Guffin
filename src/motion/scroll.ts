@@ -20,7 +20,7 @@ const SCROLL_LOCK_TTL = 250;
 
 const SCROLL_LIMIT_TTL = 200;
 
-export const SCROLLING = "data-scrolling";
+const SCROLLING = "data-scrolling";
 
 const SCROLL_LOCK = "data-scroll-lock";
 

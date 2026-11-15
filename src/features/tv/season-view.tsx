@@ -23,6 +23,7 @@ import {
 import { MediaTypeProvider } from "@/features/media/media-type";
 import {
   AFTER_TAGLINE,
+  artworkOf,
   movieTitleClass,
   readableUrl,
   TAGLINE_CLASS,
@@ -44,7 +45,7 @@ import {
 } from "./episodes";
 import { SeasonShelf } from "./seasons";
 import { getSeasonStills } from "./server";
-import { formatEpisodeDate } from "./show";
+import { formatEpisodeDate, showChrome } from "./show";
 import { ShowPageChrome } from "./stage";
 import { ShowStatusAction } from "./status";
 import { facts, formatRuntime, loadShow, seasonShelf, Stat } from "./view";
@@ -188,9 +189,9 @@ export async function SeasonPageContent({
   return (
     <MediaTypeProvider mediaType="tv">
       <MovieViewProvider>
-        <ShowPageChrome palette={palette} show={show} />
+        <ShowPageChrome palette={palette} {...showChrome(show)} />
         <ReelProvider>
-          <MovieStage movie={show}>
+          <MovieStage movie={artworkOf(show)}>
             <SeasonTrackerProvider
               initialRatings={tracking?.ratings ?? []}
               initialWatched={(tracking?.watched ?? []).filter((key) =>

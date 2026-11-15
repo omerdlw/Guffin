@@ -86,8 +86,12 @@ export function Tilt({
 
   return (
     <div
-      className={cn("[perspective:1400px]", className)}
-      data-cursor="wrap"
+      // The cursor lays its glass on the print, as on a card: fitted to
+      // this untilted box (with the print's corners) so the lens holds
+      // still while the print leans under it.
+      className={cn("rounded-sheet [perspective:1400px]", className)}
+      data-cursor="card"
+      data-cursor-label=""
       onPointerEnter={onEnter}
       onPointerLeave={onLeave}
       onPointerMove={onMove}

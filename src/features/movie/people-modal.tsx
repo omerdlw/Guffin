@@ -145,7 +145,7 @@ function PeopleModalView({
         {inHeader ? null : control}
         <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {people.map((person) => (
-            <li className="min-w-0" key={person.key}>
+            <li className="min-w-0" key={person.id}>
               <PersonCard
                 dense
                 onNavigated={() => close()}

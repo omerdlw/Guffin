@@ -482,7 +482,7 @@ function NotificationList({
 const notificationText = (item: NotificationItem) =>
   `${notificationHeadline(item)} ${notificationSummary(item)} ${item.actor?.username ?? ""}`;
 
-export function AccountNotificationsSurface({ close }: { close?: () => void }) {
+function AccountNotificationsSurface({ close }: { close?: () => void }) {
   const auth = useAuth();
   const signedIn = auth.isReady && auth.isAuthenticated;
   const [filter, setFilter] = useState<NotificationFilter>("all");

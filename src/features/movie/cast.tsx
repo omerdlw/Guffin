@@ -209,7 +209,7 @@ export function MoviePeople({
               as="li"
               className="min-w-0"
               index={index}
-              key={person.key}
+              key={person.id}
               name="person"
             >
               <CastCard
@@ -231,7 +231,7 @@ export function MoviePeople({
               <DetailPart
                 className={`min-w-0 ${index > 1 ? "hidden sm:block" : ""}`}
                 index={featured.length + index}
-                key={person.key}
+                key={person.id}
                 name="person"
               >
                 <PersonCard

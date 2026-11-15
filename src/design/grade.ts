@@ -155,7 +155,7 @@ function sampleTint(src: string, retry = true): Promise<Tint | null> {
 
 const tints = new Map<string, Promise<Tint | null>>();
 
-export function sampledTint(src: string): Promise<Tint | null> {
+function sampledTint(src: string): Promise<Tint | null> {
   let tint = tints.get(src);
   if (!tint) {
     tint = sampleTint(src).then((found) => {

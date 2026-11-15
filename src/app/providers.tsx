@@ -10,6 +10,7 @@ import { modalModule } from "@omerdlw/base-framework/modal";
 import {
   configureNavigation,
   navigationModule,
+  pathOf,
 } from "@omerdlw/base-framework/navigation";
 import { notificationModule } from "@omerdlw/base-framework/notification";
 import { CoreProvider } from "@omerdlw/base-framework/provider";
@@ -25,14 +26,13 @@ import {
   AccountProvider,
   SocialRealtimeSync,
 } from "@/features/account/provider";
-import { BackdropPreloader } from "@/features/artwork/artwork";
+import { BackdropPreloader } from "@/features/artwork/backdrop-preloader";
 import { AuthListener, AuthProvider } from "@/features/auth/provider";
 import { SearchDockCommand } from "@/features/search/search-command";
 import { ThemeSync } from "@/features/theme/store";
 import { ThemeDockCommand } from "@/features/theme/theme-command";
 import { project } from "@/lib/project";
 import { Cursor } from "@/motion/cursor";
-import { isFilmPage } from "@/motion/dom";
 import { EngineProvider } from "@/motion/react";
 import { TintedFavicon } from "@/motion/screen";
 import { moduleMotion } from "@/design/theme/motion";
@@ -85,7 +85,11 @@ const APP_REGISTRY_ENTRIES: readonly AppRegistryEntry[] = Object.freeze([
 const TOOLTIP_DELAY = 300;
 const TOOLTIP_SKIP_DELAY = 150;
 
-configureNavigation({ intent: { match: isFilmPage } });
+const FILM_PAGE = /^\/(?:movie|person)\/[^/]+$/;
+
+configureNavigation({
+  intent: { match: (href) => FILM_PAGE.test(pathOf(href)) },
+});
 
 const MODULES = Object.freeze([
   ambientModule,

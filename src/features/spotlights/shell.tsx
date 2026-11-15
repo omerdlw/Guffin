@@ -42,10 +42,8 @@ const SALON = defineStage({
   parts: ["scene", "chrome"],
 });
 
-const bound = SALON;
-
-const SalonStageRoot = bound.StageRoot;
-export const SalonPart = bound.Part;
+const SalonStageRoot = SALON.StageRoot;
+export const SalonPart = SALON.Part;
 
 export function SalonStage({
   children,

@@ -47,15 +47,18 @@ import {
 } from "@/features/movie/media";
 import {
   AFTER_TAGLINE,
+  artworkOf,
   capitalizeWords,
   getGalleryImages,
   getPosterImages,
+  pathsOf,
   getVideoTypes,
   hasFilmStats,
   movieSwatch,
   movieTitleClass,
   type PersonEntry,
   TAGLINE_CLASS,
+  uniqueById,
 } from "@/features/movie/movie";
 import { MovieReviewDigest, MovieReviews } from "@/features/movie/reviews";
 import { getFilmStats, getPeopleKnownFor } from "@/features/movie/server";
@@ -79,6 +82,7 @@ import {
   formatEpisodeDate,
   formatShowYears,
   isAired,
+  showChrome,
   type ShowTracking,
   splitSeasons,
 } from "./show";
@@ -154,32 +158,34 @@ function toShowPersonEntries(show: Pick<ShowDetails, "credits">): {
     count > 0 ? `${count} episode${count === 1 ? "" : "s"}` : null;
 
   return {
-    cast: [...show.credits.cast]
-      .sort((a, b) => a.order - b.order || b.episodeCount - a.episodeCount)
-      .map((member) => ({
-        id: member.id,
-        key: member.creditId,
-        name: member.name,
-        profilePath: member.profilePath,
-        subtitle:
-          [member.character, episodes(member.episodeCount)]
-            .filter(Boolean)
-            .join(" · ") || "Cast",
-      })),
-    crew: [...show.credits.crew]
-      .filter((member) => member.job)
-      .sort(
-        (a, b) => rank(a.job) - rank(b.job) || b.episodeCount - a.episodeCount,
-      )
-      .map((member) => ({
-        id: member.id,
-        key: `${member.id}-${member.creditId}`,
-        name: member.name,
-        profilePath: member.profilePath,
-        subtitle: [member.job, episodes(member.episodeCount)]
+    cast: uniqueById(
+      [...show.credits.cast].sort(
+        (a, b) => a.order - b.order || b.episodeCount - a.episodeCount,
+      ),
+    ).map((member) => ({
+      id: member.id,
+      name: member.name,
+      profilePath: member.profilePath,
+      subtitle:
+        [member.character, episodes(member.episodeCount)]
           .filter(Boolean)
-          .join(" · "),
-      })),
+          .join(" · ") || "Cast",
+    })),
+    crew: uniqueById(
+      show.credits.crew
+        .filter((member) => member.job)
+        .sort(
+          (a, b) =>
+            rank(a.job) - rank(b.job) || b.episodeCount - a.episodeCount,
+        ),
+    ).map((member) => ({
+      id: member.id,
+      name: member.name,
+      profilePath: member.profilePath,
+      subtitle: [member.job, episodes(member.episodeCount)]
+        .filter(Boolean)
+        .join(" · "),
+    })),
   };
 }
 
@@ -445,6 +451,7 @@ export async function ShowPageContent({
   const { palette, show, stats, tracking } = await loadShow(id);
   const page: ShowPageKind = reviews ?? { kind: "show" };
   const backdrop = tmdbImageUrl("backdrop", show.backdropPath, "original");
+  const art = artworkOf(show);
   const { cast, crew } = toShowPersonEntries(show);
   const knownFor = getPeopleKnownFor(
     { cast, crew },
@@ -456,6 +463,8 @@ export async function ShowPageContent({
     .filter((image) => !image.language)
     .map((image) => image.filePath);
   const posters = getPosterImages(show.images);
+  // Sent once, shared by the gallery and its wall.
+  const gallery = { backdrops: pathsOf(backdrops), posters: pathsOf(posters) };
   const { regular, seasons, watchedBySeason } = seasonShelf(show, tracking);
   const stills = await getSeasonStills(show.id, seasons, isAiring(show.status));
 
@@ -463,24 +472,24 @@ export async function ShowPageContent({
     return (
       <MediaTypeProvider mediaType="tv">
         <MovieViewProvider>
-          <ShowPageChrome palette={palette} reviews show={show} />
+          <ShowPageChrome palette={palette} reviews {...showChrome(show)} />
           <ReelProvider>
-            <MovieStage movie={show}>
+            <MovieStage movie={art}>
               <DetailReviewsLayout
                 backdrop={
                   backdrop ? (
-                    <MovieBackdropHero frames={frames} movie={show} />
+                    <MovieBackdropHero frames={frames} movie={art} />
                   ) : null
                 }
                 className="movie-page"
                 header={
                   <MediaReviewsHeader
                     href={tvHref(show.id)}
-                    media={show}
+                    media={art}
                     poster={!page.reviewer}
                   />
                 }
-                intermission={<MovieProjection movie={show} />}
+                intermission={<MovieProjection movie={art} />}
                 main={
                   <MovieReviews
                     key={page.reviewer ?? ""}
@@ -501,19 +510,19 @@ export async function ShowPageContent({
   return (
     <MediaTypeProvider mediaType="tv">
       <MovieViewProvider>
-        <ShowPageChrome palette={palette} show={show} />
+        <ShowPageChrome palette={palette} {...showChrome(show)} />
         <ReelProvider>
-          <MovieStage movie={show}>
+          <MovieStage movie={art}>
             <DetailLayout
               after={<MovieReviewDigest movieId={show.id} title={show.title} />}
               backdrop={
                 backdrop ? (
-                  <MovieBackdropHero frames={frames} movie={show} />
+                  <MovieBackdropHero frames={frames} movie={art} />
                 ) : null
               }
               className="movie-page"
               header={<ShowHeader show={show} stats={stats} />}
-              intermission={<MovieProjection movie={show} />}
+              intermission={<MovieProjection movie={art} />}
               main={
                 <DetailViews
                   shown="overview"
@@ -535,8 +544,8 @@ export async function ShowPageContent({
                           knownFor={knownFor}
                         />
                         <MovieGallery
-                          backdrops={backdrops}
-                          posters={posters}
+                          backdrops={gallery.backdrops}
+                          posters={gallery.posters}
                           title={show.title}
                         />
                         <MovieVideos
@@ -551,7 +560,7 @@ export async function ShowPageContent({
               }
               sidebar={
                 <DetailSidebar facts={buildShowFacts(show)}>
-                  <MoviePoster movie={show} />
+                  <MoviePoster movie={art} />
                   <MovieCollectionActions mediaType="tv" movieId={show.id}>
                     <ShowStatusAction
                       index={3}
@@ -569,8 +578,8 @@ export async function ShowPageContent({
               }
               wall={
                 <MovieGalleryWall
-                  backdrops={backdrops}
-                  posters={posters}
+                  backdrops={gallery.backdrops}
+                  posters={gallery.posters}
                   title={show.title}
                 />
               }

@@ -32,7 +32,7 @@ export const linkVariants = variants("cursor-pointer outline-none", {
 
 export type LinkVariants = VariantProps<typeof linkVariants>;
 
-export function useDockLinkClick(href: string, onNavigated?: () => void) {
+function useDockLinkClick(href: string, onNavigated?: () => void) {
   const { navigate } = useDockActions();
 
   return (event: MouseEvent<HTMLAnchorElement>) => {

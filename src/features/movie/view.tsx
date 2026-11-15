@@ -62,10 +62,12 @@ import {
   AFTER_TAGLINE,
   capitalizeWords,
   type FilmStats,
+  artworkOf,
   formatMoney,
   getDirectors,
   getGalleryImages,
   getPosterImages,
+  pathsOf,
   getVideoTypes,
   hasFilmStats,
   movieSwatch,
@@ -83,15 +85,6 @@ import {
   MovieStage,
 } from "./stage";
 import { MovieViewProvider, MovieViews, ReelProvider } from "./views";
-
-interface MovieCrewEntry {
-  creditId: string;
-  department: string | null;
-  id: number;
-  jobs: string;
-  name: string;
-  profilePath: string | null;
-}
 
 type AwardsRequest = Promise<Awards | null>;
 
@@ -169,8 +162,9 @@ function getCast(movie: MovieDetails) {
   return uniqueById([...movie.credits.cast].sort((a, b) => a.order - b.order));
 }
 
-function getCrew(movie: MovieDetails): MovieCrewEntry[] {
-  const people = new Map<number, MovieCrewEntry & { rank: number }>();
+/** One entry per person, their jobs joined, the most senior job first. */
+function getCrew(movie: MovieDetails): PersonEntry[] {
+  const people = new Map<number, PersonEntry & { rank: number }>();
   const rankOf = (job: string | null) => {
     const index = job ? CREW_JOB_PRIORITY.indexOf(job) : -1;
     return index === -1 ? CREW_JOB_PRIORITY.length : index;
@@ -181,17 +175,15 @@ function getCrew(movie: MovieDetails): MovieCrewEntry[] {
     const existing = people.get(member.id);
     if (!existing) {
       people.set(member.id, {
-        creditId: member.creditId,
-        department: member.department,
         id: member.id,
-        jobs: member.job,
         name: member.name,
         profilePath: member.profilePath,
         rank: rankOf(member.job),
+        subtitle: member.job,
       });
     } else {
-      if (!existing.jobs.split(" / ").includes(member.job)) {
-        existing.jobs = `${existing.jobs} / ${member.job}`;
+      if (!existing.subtitle.split(" / ").includes(member.job)) {
+        existing.subtitle = `${existing.subtitle} / ${member.job}`;
       }
       existing.rank = Math.min(existing.rank, rankOf(member.job));
     }
@@ -262,18 +254,11 @@ function toPersonEntries(movie: MovieDetails): {
   return {
     cast: getCast(movie).map((member) => ({
       id: member.id,
-      key: member.creditId,
       name: member.name,
       profilePath: member.profilePath,
       subtitle: member.character ?? "Cast",
     })),
-    crew: getCrew(movie).map((member) => ({
-      id: member.id,
-      key: `${member.id}-${member.creditId}`,
-      name: member.name,
-      profilePath: member.profilePath,
-      subtitle: member.jobs,
-    })),
+    crew: getCrew(movie),
   };
 }
 
@@ -350,6 +335,30 @@ function buildFacts(movie: MovieDetails): Fact[] {
   return facts.filter((fact): fact is Fact => Boolean(fact));
 }
 
+const DOCK_DIRECTOR_LIMIT = 2;
+
+function formatRuntime(minutes: number | null): string | null {
+  if (!minutes || minutes <= 0) return null;
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  if (hours === 0) return `${rest}m`;
+  return rest === 0 ? `${hours}h` : `${hours}h ${rest}m`;
+}
+
+function describeMovie(movie: MovieDetails): string {
+  const directors = getDirectors(movie)
+    .slice(0, DOCK_DIRECTOR_LIMIT)
+    .map((director) => director.name)
+    .join(", ");
+  return [
+    directors && `by ${directors}`,
+    movie.releaseYear,
+    formatRuntime(movie.runtimeMinutes),
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
+
 function MovieSidebar({
   awards,
   movie,
@@ -359,7 +368,7 @@ function MovieSidebar({
 }): JSX.Element {
   return (
     <DetailSidebar facts={buildFacts(movie)}>
-      <MoviePoster awards={awards} movie={movie} />
+      <MoviePoster awards={awards} movie={artworkOf(movie)} />
       <MovieCollectionActions movieId={movie.id}>
         <Suspense fallback={null}>
           <MovieAwardsAction awards={awards} />
@@ -512,6 +521,7 @@ function MovieView({
   stats: FilmStats | null;
 }): JSX.Element {
   const backdrop = tmdbImageUrl("backdrop", movie.backdropPath, "original");
+  const art = artworkOf(movie);
   const { cast, crew } = toPersonEntries(movie);
   const knownFor = getPeopleKnownFor(
     { cast, crew },
@@ -519,6 +529,8 @@ function MovieView({
   );
   const backdrops = getGalleryImages(images);
   const posters = getPosterImages(images);
+  // Sent once, shared by the gallery and its wall.
+  const gallery = { backdrops: pathsOf(backdrops), posters: pathsOf(posters) };
   // The opening's reel: text-free stills only, so no title fights the name.
   const frames = backdrops
     .filter((image) => !image.language)
@@ -527,22 +539,22 @@ function MovieView({
   if (page.kind === "reviews") {
     return (
       <ReelProvider>
-        <MovieStage movie={movie}>
+        <MovieStage movie={art}>
           <DetailReviewsLayout
             backdrop={
               backdrop ? (
-                <MovieBackdropHero frames={frames} movie={movie} />
+                <MovieBackdropHero frames={frames} movie={art} />
               ) : null
             }
             className="movie-page"
             header={
               <MediaReviewsHeader
                 href={movieHref(movie.id)}
-                media={movie}
+                media={art}
                 poster={!page.reviewer}
               />
             }
-            intermission={<MovieProjection movie={movie} />}
+            intermission={<MovieProjection movie={art} />}
             main={
               <MovieReviews
                 key={page.reviewer ?? ""}
@@ -560,7 +572,7 @@ function MovieView({
 
   return (
     <ReelProvider>
-      <MovieStage movie={movie}>
+      <MovieStage movie={art}>
         <DetailLayout
           after={
             <>
@@ -571,13 +583,11 @@ function MovieView({
             </>
           }
           backdrop={
-            backdrop ? (
-              <MovieBackdropHero frames={frames} movie={movie} />
-            ) : null
+            backdrop ? <MovieBackdropHero frames={frames} movie={art} /> : null
           }
           className="movie-page"
           header={<MovieHeader movie={movie} stats={stats} />}
-          intermission={<MovieProjection movie={movie} />}
+          intermission={<MovieProjection movie={art} />}
           main={
             <MovieViews
               views={{
@@ -590,9 +600,9 @@ function MovieView({
                   <>
                     <MoviePeople cast={cast} crew={crew} knownFor={knownFor} />
                     <MovieGallery
-                      backdrops={backdrops}
+                      backdrops={gallery.backdrops}
                       now
-                      posters={posters}
+                      posters={gallery.posters}
                       title={movie.title}
                     />
                     <MovieVideos
@@ -608,8 +618,8 @@ function MovieView({
           sidebar={<MovieSidebar awards={awards} movie={movie} />}
           wall={
             <MovieGalleryWall
-              backdrops={backdrops}
-              posters={posters}
+              backdrops={gallery.backdrops}
+              posters={gallery.posters}
               title={movie.title}
             />
           }
@@ -651,7 +661,9 @@ export async function MoviePageContent({
   return (
     <MovieViewProvider>
       <MoviePageChrome
-        movie={result.data}
+        description={describeMovie(result.data)}
+        hasProviders={Object.keys(result.data.watchProviders).length > 0}
+        movie={artworkOf(result.data)}
         palette={palette}
         reviews={reviews !== null}
       />
