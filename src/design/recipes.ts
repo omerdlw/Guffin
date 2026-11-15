@@ -1,14 +1,23 @@
 import { defineRecipe } from "@omerdlw/base-framework/recipes";
 import { LAYER, STATE, TONES } from "./foundations/tones";
 
+// A button is glass on the page (liquid.css `.liquid-control`): the neutral
+// tone fills it, the outline tone leaves it clear until it is touched. The
+// other tones keep their fill; every button takes the touch (liquid-touch.ts).
+const BUTTON_TONES = {
+  ...TONES,
+  neutral: `${TONES.neutral} liquid-control`,
+  outline: `${TONES.outline} liquid-control liquid-control-clear`,
+} as const;
+
 const buttonRoot = defineRecipe({
   base: [
-    "choreo-button center relative inline-flex cursor-pointer items-center justify-center font-medium select-none outline-none",
+    "choreo-button liquid-touch center relative inline-flex cursor-pointer items-center justify-center font-medium select-none outline-none",
     STATE.disabled,
     STATE.busy,
   ],
   variants: {
-    intent: TONES,
+    intent: BUTTON_TONES,
     size: {
       xs: "h-control-xs gap-1 px-2.5 type-label",
       sm: "h-control-sm gap-1.5 px-3.5 type-meta",
@@ -57,7 +66,7 @@ const inputField = defineRecipe({
   variants: {
     appearance: {
       field:
-        "bg-fill text-ink ring-1 ring-edge ring-inset placeholder:text-ink-muted hover:bg-fill-hover focus:bg-fill-hover focus:ring-edge-focus",
+        "liquid-control liquid-touch liquid-touch-field bg-fill text-ink ring-1 ring-edge ring-inset placeholder:text-ink-muted hover:bg-fill-hover focus:bg-fill-hover focus:ring-edge-focus",
       bare: "",
     },
     size: {
@@ -203,7 +212,7 @@ const selectRoot = defineRecipe({
 
 const selectTrigger = defineRecipe({
   base: [
-    "ui-fade group flex w-full items-center justify-between gap-2 bg-fill text-left text-ink ring-1 ring-edge ring-inset",
+    "ui-fade liquid-control liquid-touch group relative flex w-full items-center justify-between gap-2 bg-fill text-left text-ink ring-1 ring-edge ring-inset",
     "hover:bg-fill-hover hover:ring-edge-hover focus-visible:bg-fill-hover focus-visible:ring-edge-focus aria-expanded:bg-fill-hover aria-expanded:ring-edge-focus",
     "disabled:cursor-not-allowed disabled:opacity-50",
     "",
@@ -277,7 +286,7 @@ const selectOption = defineRecipe({
 });
 
 const selectHighlight = defineRecipe({
-  base: "z-0 rounded-[inherit] bg-fill-hover",
+  base: "z-0 rounded-[inherit] bg-fill-lift",
 });
 
 const selectOptionBody = defineRecipe({

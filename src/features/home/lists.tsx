@@ -27,6 +27,7 @@ function ListCard({
     >
       <DockLink
         aria-label={list.title}
+        data-cursor-fit="snug"
         className="block ui-fade hover:opacity-80 focus-visible:opacity-80"
         href={href}
       >

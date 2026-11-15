@@ -25,8 +25,10 @@ import { Icon } from "@/design/components/icon";
 import { Link } from "@/design/components/link";
 import { SKELETON } from "@/design/components/skeleton";
 import {
-  SurfaceAnchor,
+  SurfacePart,
   SurfaceSearch,
+  SurfaceStage,
+  SurfaceSwap,
   useSurfaceSearch,
 } from "@/design/components/surface";
 import {
@@ -421,40 +423,53 @@ function NotificationList({
   onMarkRead: NotificationRowAction;
   status: NotificationFeed["status"];
 }) {
-  if (status === "loading") return <NotificationSkeleton />;
+  if (status === "loading")
+    return (
+      <SurfacePart name="item">
+        <NotificationSkeleton />
+      </SurfacePart>
+    );
 
   if (status === "failed") {
     return (
-      <StatusTile
-        description="Please try again in a moment"
-        icon="solar:danger-circle-bold"
-        title="Couldn't load notifications"
-      />
+      <SurfacePart name="note">
+        <StatusTile
+          description="Please try again in a moment"
+          icon="solar:danger-circle-bold"
+          title="Couldn't load notifications"
+        />
+      </SurfacePart>
     );
   }
 
   if (notifications.length === 0 && query) {
     return (
-      <StatusTile
-        description={`Nothing matches “${query}”`}
-        icon="solar:magnifer-linear"
-        title="No results"
-      />
+      <SurfacePart name="note">
+        <StatusTile
+          description={`Nothing matches “${query}”`}
+          icon="solar:magnifer-linear"
+          title="No results"
+        />
+      </SurfacePart>
     );
   }
 
   if (notifications.length === 0) {
     const unreadOnly = filter === "unread";
     return (
-      <StatusTile
-        description={
-          unreadOnly
-            ? "You are all caught up"
-            : "New followers and activity will appear here"
-        }
-        icon="solar:bell-bold"
-        title={unreadOnly ? "No unread notifications" : "No notifications yet"}
-      />
+      <SurfacePart name="note">
+        <StatusTile
+          description={
+            unreadOnly
+              ? "You are all caught up"
+              : "New followers and activity will appear here"
+          }
+          icon="solar:bell-bold"
+          title={
+            unreadOnly ? "No unread notifications" : "No notifications yet"
+          }
+        />
+      </SurfacePart>
     );
   }
 
@@ -462,18 +477,25 @@ function NotificationList({
     <div
       className={`${SURFACE_SCROLL} max-h-[min(56dvh,26rem)] w-full touch-pan-y`}
       data-scroll-native
-      key={filter}
     >
-      <HighlightGroup className="flex min-h-[48px] w-full flex-col justify-center gap-2.5 overflow-visible">
-        {notifications.map((notification) => (
-          <NotificationRow
-            key={notification.id}
-            notification={notification}
-            onDelete={onDelete}
-            onMarkRead={onMarkRead}
-            onNavigate={onClose}
-          />
-        ))}
+      <HighlightGroup>
+        {/* A new filter lifts the old rows away and deals its own. */}
+        <SurfaceSwap
+          className="flex min-h-[48px] w-full flex-col justify-center gap-2.5 overflow-visible"
+          cue="rows"
+          id={filter}
+        >
+          {notifications.map((notification, index) => (
+            <SurfacePart index={index} key={notification.id} name="row">
+              <NotificationRow
+                notification={notification}
+                onDelete={onDelete}
+                onMarkRead={onMarkRead}
+                onNavigate={onClose}
+              />
+            </SurfacePart>
+          ))}
+        </SurfaceSwap>
       </HighlightGroup>
     </div>
   );
@@ -499,10 +521,19 @@ function AccountNotificationsSurface({ close }: { close?: () => void }) {
   );
 
   const search = useSurfaceSearch(visible, notificationText, feed.items.length);
+  const query = search.searching ? search.query.trim() : "";
+  // What the list shows: a state change lifts the old view before the next.
+  const view =
+    feed.status !== "ready"
+      ? feed.status
+      : search.matches.length > 0
+        ? "list"
+        : query
+          ? "none"
+          : `empty-${filter}`;
 
   return (
-    <div className="flex w-full flex-col overflow-hidden">
-      <SurfaceAnchor />
+    <SurfaceStage className="flex flex-col overflow-hidden">
       <DockSurfaceExtension align="left" id="account-notifications-toolbar">
         <div className="flex h-8 w-full items-center justify-between gap-2 select-none">
           <SegmentedControl
@@ -534,23 +565,26 @@ function AccountNotificationsSurface({ close }: { close?: () => void }) {
         </div>
       </DockSurfaceExtension>
       {search.enabled && feed.status === "ready" ? (
-        <SurfaceSearch
-          className="mb-2.5"
-          label="Search notifications"
-          onChange={search.setQuery}
-          value={search.query}
-        />
+        <SurfacePart className="mb-2.5" name="item">
+          <SurfaceSearch
+            label="Search notifications"
+            onChange={search.setQuery}
+            value={search.query}
+          />
+        </SurfacePart>
       ) : null}
-      <NotificationList
-        filter={filter}
-        notifications={search.matches}
-        query={search.searching ? search.query.trim() : ""}
-        onClose={close}
-        onDelete={remove}
-        onMarkRead={markRead}
-        status={feed.status}
-      />
-    </div>
+      <SurfaceSwap cue="items" id={view}>
+        <NotificationList
+          filter={filter}
+          notifications={search.matches}
+          query={query}
+          onClose={close}
+          onDelete={remove}
+          onMarkRead={markRead}
+          status={feed.status}
+        />
+      </SurfaceSwap>
+    </SurfaceStage>
   );
 }
 

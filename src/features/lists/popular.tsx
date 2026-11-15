@@ -31,6 +31,7 @@ function PopularListItem({
     >
       <DockLink
         aria-label={list.title}
+        data-cursor-fit="snug"
         className="block w-full shrink-0 ui-fade hover:opacity-80 focus-visible:opacity-80 sm:w-60"
         href={href}
       >

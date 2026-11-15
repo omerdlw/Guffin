@@ -34,7 +34,7 @@ export function Star({
       className={cn("relative inline-flex shrink-0", className)}
       style={{ height: size, width: size }}
     >
-      <svg className="absolute inset-0 fill-fill-active" viewBox="0 0 24 24">
+      <svg className="absolute inset-0 fill-rated-off" viewBox="0 0 24 24">
         <path d={STAR_PATH} />
       </svg>
       {lit ? (
@@ -90,7 +90,7 @@ export function RatingStars({
     >
       <span
         aria-hidden="true"
-        className={cn(styles.stars, "absolute inset-0 bg-fill-active")}
+        className={cn(styles.stars, "absolute inset-0 bg-rated-off")}
         style={mask}
       />
       {lit > 0 ? (
@@ -145,7 +145,7 @@ export function RatingSelector({
                 />
               </clipPath>
             </defs>
-            <path className="fill-fill-active" d={STAR_PATH} />
+            <path className="fill-rated-off" d={STAR_PATH} />
             <path
               className="fill-rated"
               clipPath={`url(#rating-star-${star})`}

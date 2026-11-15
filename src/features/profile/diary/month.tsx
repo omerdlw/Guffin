@@ -11,6 +11,7 @@ import {
 import { useDockActionClass } from "@omerdlw/base-framework/dock";
 import { Button } from "@omerdlw/base-framework/ui";
 import { useRouter } from "next/navigation";
+import { ActionLabel } from "@/design/components/action-content";
 import { useConfirmedAction } from "@/design/components/confirm";
 import { Icon } from "@/design/components/icon";
 import { DockLink } from "@/design/components/link";
@@ -59,94 +60,87 @@ function dayOf(value: string) {
   };
 }
 
+interface MonthLinks {
+  /** The month on show: where an unavailable step points. */
+  current: string;
+  latest: string | null;
+  next: string | null;
+  previous: string | null;
+}
+
+// Every control is always a DockLink, only disabled when it leads nowhere: a
+// link that turned into a span (and back) would remount, and the action
+// would rise into the dock again on each month.
 function Step({
+  current,
   direction,
   href,
 }: {
+  current: string;
   direction: "next" | "previous";
   href: string | null;
 }): JSX.Element {
   const actionClass = useDockActionClass();
-  const className = actionClass({
-    className: "w-10 shrink-0 px-0",
-  });
   const icon =
     direction === "next"
       ? "solar:alt-arrow-right-linear"
       : "solar:alt-arrow-left-linear";
   const label = direction === "next" ? "Next month" : "Previous month";
 
-  return href ? (
-    <DockLink aria-label={label} className={className} href={href}>
-      <Icon icon={icon} size={16} />
-    </DockLink>
-  ) : (
-    <span
-      aria-disabled="true"
+  return (
+    <DockLink
       aria-label={label}
-      className={`${className} cursor-default opacity-50`}
-      role="link"
+      className={actionClass({
+        className: cn("w-10 shrink-0 px-0", !href && "opacity-50"),
+      })}
+      disabled={!href}
+      href={href ?? current}
     >
       <Icon icon={icon} size={16} />
-    </span>
+    </DockLink>
   );
 }
 
 function MonthAction({
+  current,
   label,
   latest,
   next,
   previous,
-}: {
-  label: string;
-  latest: string | null;
-  next: string | null;
-  previous: string | null;
-}): JSX.Element {
+}: MonthLinks & { label: string }): JSX.Element {
   const actionClass = useDockActionClass();
-  const middle = actionClass({
-    className: "min-w-0 flex-1",
-  });
 
   return (
     <DockAction>
       <div className="flex w-full items-center gap-2.5">
-        <Step direction="previous" href={previous} />
-        {latest ? (
-          <DockLink
-            aria-label={`${label}, back to the latest month`}
-            className={middle}
-            href={latest}
-          >
-            <span className="truncate">{label}</span>
-            <Icon icon="solar:restart-linear" size={14} />
-          </DockLink>
-        ) : (
-          <span className={`${middle} cursor-default`}>
-            <span className="truncate">{label}</span>
-          </span>
-        )}
-        <Step direction="next" href={next} />
+        <Step current={current} direction="previous" href={previous} />
+        <DockLink
+          aria-label={latest ? `${label}, back to the latest month` : label}
+          className={actionClass({ className: "min-w-0 flex-1" })}
+          disabled={!latest}
+          href={latest ?? current}
+        >
+          <ActionLabel>{label}</ActionLabel>
+          {latest ? <Icon icon="solar:restart-linear" size={14} /> : null}
+        </DockLink>
+        <Step current={current} direction="next" href={next} />
       </div>
     </DockAction>
   );
 }
 
 export function DiaryChrome({
+  current,
   label,
   latest,
   next,
   previous,
-}: {
-  label: string;
-  latest: string | null;
-  next: string | null;
-  previous: string | null;
-}): null {
+}: MonthLinks & { label: string }): null {
   const dock = useMemo(
     () => ({
       action: (
         <MonthAction
+          current={current}
           label={label}
           latest={latest}
           next={next}
@@ -154,7 +148,7 @@ export function DiaryChrome({
         />
       ),
     }),
-    [label, latest, next, previous],
+    [current, label, latest, next, previous],
   );
   useAccountDock(dock);
   return null;

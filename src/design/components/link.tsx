@@ -62,11 +62,20 @@ export function Link({ className, variant, ...props }: LinkProps): JSX.Element {
 
 export type DockLinkProps = Omit<NextLinkProps, "onClick" | "prefetch"> &
   LinkVariants & {
+    /**
+     * Unavailable for now (a step past the last page): the same element, so
+     * a link that comes and goes keeps its node and does not arrive again.
+     */
+    disabled?: boolean;
     onNavigated?: () => void;
   };
 
+const preventDefault = (event: MouseEvent<HTMLAnchorElement>) =>
+  event.preventDefault();
+
 export function DockLink({
   className,
+  disabled = false,
   href,
   onNavigated,
   variant,
@@ -76,10 +85,16 @@ export function DockLink({
   return (
     <NextLink
       {...props}
-      className={cn(variant && linkVariants({ variant }), className)}
+      aria-disabled={disabled || undefined}
+      className={cn(
+        variant && linkVariants({ variant }),
+        disabled && "pointer-events-none",
+        className,
+      )}
       href={href}
-      onClick={onClick}
+      onClick={disabled ? preventDefault : onClick}
       prefetch={false}
+      tabIndex={disabled ? -1 : props.tabIndex}
     />
   );
 }

@@ -61,6 +61,7 @@ export async function AccountDiaryView({
       toolbar={
         diary.first ? (
           <DiaryChrome
+            current={href(diary.month)}
             label={VIEW_MONTH_FORMAT.format(
               new Date(`${diary.month}-01T00:00:00Z`),
             )}

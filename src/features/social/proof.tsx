@@ -8,26 +8,23 @@ import {
   useState,
 } from "react";
 import { useDockActions } from "@omerdlw/base-framework/dock";
-import {
-  Avatar,
-  Button,
-  HighlightGroup,
-  useHighlight,
-} from "@omerdlw/base-framework/ui";
+import { Avatar, Button } from "@omerdlw/base-framework/ui";
 import { report } from "@omerdlw/base-framework/utils";
 import { Icon } from "@/design/components/icon";
 import { Link } from "@/design/components/link";
 import { SurfaceSegmentedControl } from "@/design/components/segmented-control";
-import { SurfaceAnchor } from "@/design/components/surface";
+import {
+  SurfacePart,
+  SurfaceStage,
+  SurfaceSwap,
+} from "@/design/components/surface";
 import {
   SURFACE_META,
   SURFACE_SCROLL,
   SURFACE_STACK,
   SURFACE_TEXT,
-  SURFACE_TILE_END,
   SURFACE_TILE_INNER,
   SURFACE_TITLE,
-  tileVariants,
 } from "@/design/components/surface-classes";
 import { defineSurface } from "@/design/surface-definition";
 import { cn } from "@/design/ui";
@@ -196,6 +193,9 @@ const socialProofSurface = defineSurface<{ data: SocialProofSurfaceData }>({
   title: "People you follow",
 });
 
+const SIGNAL_INK =
+  "text-ink-muted group-hover/friend:text-ink-body group-focus-visible/friend:text-ink-body group-has-focus-visible/friend:text-ink-body";
+
 function Signal({
   active,
   icon,
@@ -207,38 +207,37 @@ function Signal({
 }): JSX.Element | null {
   if (!active) return null;
   return (
-    <span
-      className="text-ink-muted group-hover/friend:text-ink-body group-focus-visible/friend:text-ink-body group-has-focus-visible/friend:text-ink-body"
-      title={label}
-    >
+    <span className={SIGNAL_INK} data-slot="icon" title={label}>
       <Icon aria-label={label} icon={icon} size={15} />
     </span>
   );
 }
 
+// A row is a hairline ring and nothing else; the fill only comes with the
+// pointer, glowing in on the surface stage's `tile` (caption and icons with
+// it). The signals sit flush right, as far from the edge as from the top and
+// foot (52px row, 15px glyphs: 18px), so the row closes as evenly as the
+// avatar opens it.
 function FriendRow({
   close,
   friend,
+  index,
   movieId,
 }: {
   close: () => void;
   friend: Friend;
+  index: number;
   movieId: number;
 }): JSX.Element {
-  const highlight = useHighlight(friend.id);
-
   return (
-    <li
-      className={cn(
-        tileVariants(),
-        SURFACE_TILE_END,
-        "group/friend relative isolate",
-      )}
-      {...highlight.props}
+    <SurfacePart
+      as="li"
+      className="group/friend flex min-w-0 items-center gap-3 rounded-card p-1.5 pr-4.5 ring-1 ring-edge ring-inset hover:bg-fill has-focus-visible:bg-fill"
+      index={index}
+      name="tile"
     >
-      {highlight.node}
       <Link
-        className={`relative z-10 flex min-w-0 flex-1 items-center gap-3 ${SURFACE_TILE_INNER}`}
+        className={`flex min-w-0 flex-1 items-center gap-3 ${SURFACE_TILE_INNER}`}
         href={accountHref(friend.username)}
         onClick={close}
         prefetch={false}
@@ -253,13 +252,14 @@ function FriendRow({
           <span className={SURFACE_TITLE}>{friend.displayName}</span>
           <span
             className={`${SURFACE_META} group-hover/friend:text-ink-body group-focus-visible/friend:text-ink-body group-has-focus-visible/friend:text-ink-body`}
+            data-slot="caption"
           >
             @{friend.username}
           </span>
         </span>
       </Link>
 
-      <span className="relative z-10 flex shrink-0 items-center gap-2.5">
+      <span className="flex shrink-0 items-center gap-2.5">
         {friend.rating !== null ? (
           <RatingStars rating={friend.rating} size={12} />
         ) : null}
@@ -273,7 +273,11 @@ function FriendRow({
         {friend.reviewed ? (
           <Link
             aria-label={`Read ${friend.displayName}'s review`}
-            className="center -m-1.5 size-7 rounded-full text-ink-muted group-hover/friend:text-ink-body group-focus-visible/friend:text-ink-body group-has-focus-visible/friend:text-ink-body hover:bg-fill-hover focus-visible:bg-fill-hover hover:text-ink focus-visible:text-ink"
+            className={cn(
+              "center -m-1.5 size-7 rounded-full hover:bg-fill-hover focus-visible:bg-fill-hover hover:text-ink focus-visible:text-ink",
+              SIGNAL_INK,
+            )}
+            data-slot="icon"
             href={reviewHref(movieId, friend.username)}
             onClick={close}
             prefetch={false}
@@ -283,7 +287,7 @@ function FriendRow({
           </Link>
         ) : null}
       </span>
-    </li>
+    </SurfacePart>
   );
 }
 
@@ -318,8 +322,9 @@ function SocialProofSurface({
   );
 
   return (
-    <div className={SURFACE_STACK}>
-      <SurfaceAnchor />
+    <SurfaceStage className={SURFACE_STACK}>
+      {/* On the shelf, not in the stack: a part around it would stay
+          behind empty and take the stack's gap above the list. */}
       {tabs.length > 2 ? (
         <SurfaceSegmentedControl
           ariaLabel="Filter by what they did"
@@ -330,28 +335,31 @@ function SocialProofSurface({
         />
       ) : null}
 
-      <HighlightGroup>
+      <SurfaceSwap cue="rows" id={tab}>
         <ul
           className={`${SURFACE_SCROLL} flex max-h-[min(56dvh,26rem)] flex-col gap-2.5`}
           data-scroll-native
         >
-          {visible.map((friend) => (
+          {visible.map((friend, index) => (
             <FriendRow
               close={() => closeSurface?.()}
               friend={friend}
+              index={index}
               key={friend.id}
               movieId={data.movieId}
             />
           ))}
         </ul>
-      </HighlightGroup>
+      </SurfaceSwap>
 
       {data.proof.total > friends.length ? (
-        <p className="text-center type-meta text-ink-muted">
-          Showing the {friends.length} most recent of {data.proof.total}.
-        </p>
+        <SurfacePart name="note">
+          <p className="text-center type-meta text-ink-muted">
+            Showing the {friends.length} most recent of {data.proof.total}.
+          </p>
+        </SurfacePart>
       ) : null}
-    </div>
+    </SurfaceStage>
   );
 }
 

@@ -17,10 +17,7 @@ import {
   useTransition,
 } from "react";
 import type { AmbientPalette } from "@omerdlw/base-framework/ambient";
-import {
-  useDockActions,
-  useDockContextActions,
-} from "@omerdlw/base-framework/dock";
+import { useDockActions } from "@omerdlw/base-framework/dock";
 import { globalEvents } from "@omerdlw/base-framework/events";
 import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
 import { REGISTRY_SOURCES, usePage } from "@omerdlw/base-framework/kernel";
@@ -31,6 +28,7 @@ import {
   UserError,
 } from "@omerdlw/base-framework/utils";
 import { usePathname } from "next/navigation";
+import { useDockCommands } from "@/design/dock-commands";
 import { useSurfacePreload } from "@/design/lazy-surface";
 import {
   DEFAULT_ACCOUNT_ICON,
@@ -294,7 +292,7 @@ function AccountRegistry({
     ],
   );
 
-  useDockContextActions(actions);
+  useDockCommands(actions);
 
   const dock = useMemo(
     () =>

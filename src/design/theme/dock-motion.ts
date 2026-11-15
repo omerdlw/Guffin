@@ -4,6 +4,12 @@ import type {
 } from "@omerdlw/base-framework/dock";
 import { gpuTransform } from "@omerdlw/base-framework/utils";
 
+/** The dock's resting width in px; the framework clamps it to the viewport. */
+export const DOCK_WIDTH = 520;
+
+/** The dock card's padding in px (p-3 in theme/dock.ts). */
+export const DOCK_PADDING = 12;
+
 // The dock's choreography. Everything the dock does on screen is timed here;
 // the dock's CSS (styles/dock.css) adds only what motion tokens can't reach:
 // its rise on arrival, the lift under the pointer and the deck's fold.
@@ -372,8 +378,14 @@ export const dockMotion: DockMotion = {
         opacityStep: 0.2,
         opacityMin: 0.1,
       },
-      expanded: { offsetY: -72 },
-      shelf: { offsetY: -42, scale: 0.94 },
+      // One card's height (48px header + padding on both sides) plus a 4px gap.
+      expanded: { offsetY: -(48 + DOCK_PADDING * 2 + 4) },
+      // The shelf shows exactly its bar (45px, theme/dock.ts) above the
+      // surface, at its scale: less and the surface covers the bar's foot,
+      // and its control sits closer to the surface than to the shelf's top.
+      // gpuTransform rounds the lift to whole pixels, so the scale is the
+      // one that makes the bar a whole 42px.
+      shelf: { offsetY: -42, scale: 42 / 45 },
       // Only the front card shows at rest; the rest wait for the stack to open.
       visible: { stack: 1, extensions: 2, status: 1 },
     },
@@ -381,6 +393,10 @@ export const dockMotion: DockMotion = {
     fullscreenOpacity: 0,
     origin: "50% 100%",
     resizeFallback: 260,
+    width: DOCK_WIDTH,
+    // The card's p-3 (theme/dock.ts): the framework sizes the card to its
+    // content plus this above and below.
+    padding: DOCK_PADDING,
   },
   opacity: { banner: 0.95, description: 0.7 },
   // A surface dragged down shrinks and dims under the finger.

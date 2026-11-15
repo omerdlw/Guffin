@@ -7,7 +7,7 @@ import {
 } from "@omerdlw/base-framework/dock";
 import { Button } from "@omerdlw/base-framework/ui";
 import { useRouter } from "next/navigation";
-import { Icon } from "@/design/components/icon";
+import { ActionIcon, ActionLabel } from "@/design/components/action-content";
 import { useSurfacePreload } from "@/design/lazy-surface";
 import { useAuth } from "@/features/auth/provider";
 import { useOpenSignIn } from "@/features/auth/sign-in";
@@ -58,13 +58,8 @@ export function ListCommentAction({
       onClick={open}
       type="button"
     >
-      <Icon
-        icon={editing ? "solar:pen-bold" : "solar:chat-round-bold"}
-        size={16}
-      />
-      <span className="truncate">
-        {editing ? "Edit Comment" : "Add Comment"}
-      </span>
+      <ActionIcon icon={editing ? "solar:pen-bold" : "solar:chat-round-bold"} />
+      <ActionLabel>{editing ? "Edit Comment" : "Add Comment"}</ActionLabel>
     </Button>
   );
 }
@@ -101,15 +96,11 @@ export function ListLikeButton({
       onClick={toggle}
       type="button"
     >
-      <Icon
+      <ActionIcon
         className={liked ? "center text-liked" : "center"}
         icon={liked ? "solar:heart-bold" : "solar:heart-linear"}
-        key={liked ? "liked" : "unliked"}
-        size={16}
       />
-      <span className="tabular-nums" key={count}>
-        {count}
-      </span>
+      <ActionLabel className="tabular-nums">{String(count)}</ActionLabel>
     </Button>
   );
 }

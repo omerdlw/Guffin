@@ -9,7 +9,7 @@ import {
 import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
 import { Button } from "@omerdlw/base-framework/ui";
 import { report } from "@omerdlw/base-framework/utils";
-import { Icon } from "@/design/components/icon";
+import { ActionIcon, ActionLabel } from "@/design/components/action-content";
 import { DockAction } from "@/design/components/surface";
 import { useSurfacePreload } from "@/design/lazy-surface";
 import { useAuth } from "@/features/auth/provider";
@@ -100,8 +100,8 @@ export function MovieAction({
         onClick={pager.clear}
         type="button"
       >
-        <Icon icon="solar:users-group-rounded-bold" size={16} />
-        <span className={slots.actionLabel}>All reviews</span>
+        <ActionIcon icon="solar:users-group-rounded-bold" />
+        <ActionLabel className={slots.actionLabel}>All reviews</ActionLabel>
       </Button>
     ) : null;
 
@@ -115,15 +115,16 @@ export function MovieAction({
         onClick={pager.more}
         type="button"
       >
-        <Icon
+        <ActionIcon
           icon={
             pager.loading
               ? "svg-spinners:90-ring-with-bg"
               : "solar:alt-arrow-down-bold"
           }
-          size={16}
         />
-        <span className={slots.actionLabel}>More reviews ({pager.left})</span>
+        <ActionLabel className={slots.actionLabel}>
+          {`More reviews (${pager.left})`}
+        </ActionLabel>
       </Button>
     ) : null;
 
@@ -137,8 +138,8 @@ export function MovieAction({
       onClick={onOpenProviders}
       type="button"
     >
-      <Icon icon="solar:tv-bold" size={16} />
-      <span className={slots.actionLabel}>Where to watch?</span>
+      <ActionIcon icon="solar:tv-bold" />
+      <ActionLabel className={slots.actionLabel}>Where to watch?</ActionLabel>
     </Button>
   ) : null;
 
@@ -161,10 +162,10 @@ export function MovieAction({
       onClick={openEditor}
       type="button"
     >
-      <Icon icon="solar:pen-new-square-bold" size={16} />
-      <span className={slots.actionLabel}>
+      <ActionIcon icon="solar:pen-new-square-bold" />
+      <ActionLabel className={slots.actionLabel}>
         {review ? "Edit Review" : "Add Review"}
-      </span>
+      </ActionLabel>
     </Button>
   );
 

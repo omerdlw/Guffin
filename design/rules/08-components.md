@@ -2,51 +2,59 @@
 
 ### 5.1 Pick the component
 
-| You need                                  | Use                                                              |
-| ----------------------------------------- | ---------------------------------------------------------------- |
-| Any button                                | `<Button intent size shape icon width>`                          |
-| A link drawn as a button                  | `<LinkButton intent size shape dock>`                            |
-| A link: a card, a row, running text       | `<Link variant>`, `<DockLink variant>`, `<ExternalLink variant>` |
-| A text action (Read more, Show it anyway) | `<TextButton variant>` (`inline`, `reveal`, `label`, `quiet`)    |
-| A picture                                 | `<Image layout fit wrapperClassName>`; never a bare `<img>`      |
-| A toggle on a detail page                 | `<ActionButton>`                                                 |
-| The button that shows the rest of a list  | `<Button intent="neutral" shape="pill" width="full">`            |
-| A text field                              | `<Input size shape>`, `<Textarea>`                               |
-| A choice that applies at once             | `<Switch>`                                                       |
-| A row that is checked                     | `<CheckboxIndicator>` inside the row; `<Checkbox>` alone         |
-| A select                                  | `<Select size shape>`                                            |
-| Tabs that switch a view                   | `<SegmentedControl size shape width>`                            |
-| A picture that is a target                | `<MediaCard aspect framed>` in a `<Carousel>`                    |
-| A label on hover                          | `<Tooltip>`                                                      |
-| A row or tile inside a surface            | `rowVariants({ intent })`, `tileVariants()` and the anatomy      |
-| Floating chrome over a picture            | `TONE.glass`; carousel arrows `TONE.arrows`                      |
-| A small caps label                        | `TONE.label`                                                     |
-| Dividers between rows                     | `TONE.rule`, `TONE.rules`                                        |
-| Long-form reading                         | `PROSE_CLASS` (`PROSE_TYPE`)                                     |
-| A page headline                           | `headlineClass()`, `HEADLINE_*`                                  |
+| You need                                  | Use                                                                |
+| ----------------------------------------- | ------------------------------------------------------------------ |
+| Any button                                | `<Button intent size shape icon width>`                            |
+| A link drawn as a button                  | `<Link className={ui.parts.button.root({ intent, size, shape })}>` |
+| A link: a card, a row, running text       | `<Link variant>`, `<DockLink variant>`, `<ExternalLink variant>`   |
+| A text action (Read more, Show it anyway) | `<TextButton variant>` (`inline`, `reveal`, `label`, `quiet`)      |
+| A picture                                 | `<Image layout fit>` (framework); never a bare `<img>`             |
+| A toggle on a detail page                 | `<ActionButton>`                                                   |
+| What a dock action shows                  | `<ActionIcon>`, `<ActionLabel>` (never a bare `Icon` and span)     |
+| A confirmation                            | `useConfirm()` (a dock HUD), `useConfirmedAction()`                |
+| The button that shows the rest of a list  | `<Button intent="neutral" shape="pill" width="full">`              |
+| A text field                              | `<Input size shape>`, `<Textarea>`                                 |
+| A choice that applies at once             | `<Switch>`                                                         |
+| A row that is checked                     | `<CheckboxIndicator>` inside the row; `<Checkbox>` alone           |
+| A select                                  | `<Select size shape>`                                              |
+| Tabs that switch a view                   | `<SegmentedControl size shape width>`                              |
+| A picture that is a target                | `<MediaCard aspect framed>` in a `<Carousel>`                      |
+| A label on hover                          | `<Tooltip>`                                                        |
+| A row or tile inside a surface            | `rowVariants({ intent })`, `tileVariants()` and the anatomy        |
+| Floating chrome over a picture            | `TONE.glass`; carousel arrows `TONE.arrows`                        |
+| A small caps label                        | `TONE.label`                                                       |
+| Dividers between rows                     | `TONE.rule`, `TONE.rules`                                          |
+| Long-form reading                         | `PROSE_CLASS` (`PROSE_TYPE`)                                       |
+| A page headline                           | `headlineClass()`, `HEADLINE_*`                                    |
 
 ### 5.2 Layers
 
-The dock, modals, the context menu, toasts and tooltips are cut from one set of
-chrome in `src/design/foundations/layers.ts`.
+The dock, modals, the context menu, toasts and tooltips are cut from one
+material, liquid glass (section 10). The named layers are in
+`foundations/layers.ts` and `tones.ts`:
 
-| Name       | Look                                                | For                                |
-| ---------- | --------------------------------------------------- | ---------------------------------- |
-| `SHELL`    | `glass`, `ring-edge-hover`                          | Dock card, modal, context menu     |
-| `FLOAT`    | The same glass, blurred                             | Dock controls, breadcrumbs, toasts |
-| `TIP`      | The same glass with `ring-edge` and `ink-lead` text | Tooltips (and `TOOLTIP.content`)   |
-| `BACKDROP` | `veil`, `blur-md`                                   | What dims the page behind a layer  |
-| `DIM`      | `dim`, `blur-xs`                                    | A layer left under the top one     |
-| `FILL`     | `fill` / `edge`, one step up on hover               | A control inside a layer           |
-| `PRIMARY`  | `primary`, `on-primary` ink, a 10% sheen            | The one action a layer exists for  |
+| Name                  | Classes                                         | For                                       |
+| --------------------- | ----------------------------------------------- | ----------------------------------------- |
+| `SHELL`               | `liquid liquid-lens`                            | Modal, context menu, select menu, toasts  |
+| `FLOAT`               | `liquid liquid-flat liquid-lens`                | Dock controls                             |
+| `TIP`                 | `liquid liquid-frost text-ink-lead`             | Tooltips (`TOOLTIP.content`), dock tips   |
+| `GLASS`               | `liquid liquid-flat`                            | The dock's status card                    |
+| `BACKDROP`            | `bg-veil`                                       | What veils the page behind a layer        |
+| `DIM`                 | `bg-dim`                                        | A layer left under the top one            |
+| `FILL`                | `fill` / `edge`, one step up on hover           | A control inside a layer outside the dock |
+| `WELL` + `WELL_HOVER` | `--liquid-well(-hover)`, `--liquid-well-shadow` | A control or tile inside the dock         |
+| `PRIMARY`             | `TONES.primary`                                 | The one action a layer exists for         |
 
-Each is a call of `layerVariants({ kind })` or a tone in `foundations/tones.ts`.
+Shells hold content on the card scale: the dock card is `rounded-shell` (28,
+12px padding), the context menu `rounded-sheet` (24), and what sits inside is
+`rounded-card`. A select's menu is `SHELL` at `rounded-card` (a pill select's
+menu: `rounded-sheet`).
 
-Shells hold content on the card scale: a shell is `rounded-shell` (26), or
-`rounded-sheet` (24) for the menu, and what sits inside is `rounded-card`. A
-select's list is a menu: `SHELL` with `backdrop-blur-xl`.
+Controls lying on the page are glass too (`liquid-control`, section 10.4);
+inside a layer they keep their fill. Never glass on glass.
 
-**Layer motion.** Layers open and close in one cut until the modules get their own choreography (section 6.2).
+**Layer motion**: the dock and its surfaces are choreographed; modal, menu
+and toast still open and close in one cut (section 6.8).
 
 ### 5.3 Inside a surface
 
@@ -55,8 +63,13 @@ select's list is a menu: `SHELL` with `backdrop-blur-xl`.
 `tileVariants`) and the tile's anatomy (`SURFACE_TEXT`, `SURFACE_TITLE`,
 `SURFACE_META`, `SURFACE_TILE_INNER` …).
 
-- **Tiles and rows carry no ring.** A tile is `bg-fill`; only a chosen one takes
-  the grade ring. Rings stay on fields and buttons.
+- **A surface is staged.** Its root is `<SurfaceStage>` (it holds the
+  autofocus anchor); blocks, rows and notes are `SurfacePart`s and swapped
+  views `SurfaceSwap`s (section 4.1 of the interaction rules). `DockAction`
+  is a stage without a part: its buttons rise on their own.
+- **Tiles and rows carry no ring.** A tile or row is a `WELL`
+  (`tileVariants`, `rowVariants`); only a chosen row takes the grade ring
+  (`rowVariants({ intent: "chosen" })`). Rings stay on fields and buttons.
 - **Text in a tile** is a title over a meta line with no gap (`SURFACE_TEXT`).
 - **Radius inside a tile:** buttons and icon tiles are `rounded-inset`.
 - **A list of rows shares one hover.** `HighlightGroup` and `useHighlight`
@@ -70,10 +83,8 @@ select's list is a menu: `SHELL` with `backdrop-blur-xl`.
   36px so it sits 8px from the tile's top, bottom and right, with the `thumb`
   radius so its corners are concentric with the card's (16 = 8 + 8). The
   primary one beside it (Follow, Accept) takes the same size and shape. An
-  action that cannot be undone (Unfollow) arms on the first press, as
-  `intent="armed"` reading "Confirm", and runs on the second
-  (`useConfirmStep`).
-- **A long list is searchable.** From `SURFACE_SEARCH_MIN` (30) rows a list in a
+  action that is hard to undo (Unfollow) asks first with `useConfirm()`.
+- **A long list is searchable.** From 30 rows (`SURFACE_SEARCH_MIN`) a list in a
   surface opens with `<SurfaceSearch>` above it, driven by `useSurfaceSearch`
   (case, accent and dotless-i insensitive; every word must match). A shorter
   list shows no field.
@@ -83,17 +94,19 @@ select's list is a menu: `SHELL` with `backdrop-blur-xl`.
 
 ### 5.4 The variant API
 
-Every component is driven by props, and its look lives in a `variants.ts`
-beside it, written with CVA through `variants()` (`foundations/variants.ts`),
-which merges with `cn`: a caller's class replaces the recipe's class of the
-same family instead of both landing in the DOM.
+Every component is driven by props. A framework component's look lives in
+`PARTS` (`src/design/recipes.ts`, `defineRecipe`); a Guffin component's in
+its own file, written with CVA through `variants()`
+(`foundations/variants.ts`). Both merge with `cn`: a caller's class replaces
+the recipe's class of the same family instead of both landing in the DOM.
+A recipe can be called directly: `ui.parts.button.root({ intent: "primary" })`.
 
 ```tsx
 <Button intent="primary">Save</Button>
 <Button intent="ghost" icon shape="pill" size="sm" aria-label="Close">…</Button>
 <Select options={…} value={v} onChange={setV} size="sm" shape="pill" />
 <SegmentedControl items={…} value={tab} onChange={setTab} size="md" width="fill" />
-<Link className={buttonVariants({ width: "full" })} href="/">Home</Link>
+<Link className={ui.parts.button.root({ width: "full" })} href="/">Home</Link>
 ```
 
 The props mean the same thing on every component:
@@ -112,18 +125,48 @@ The props mean the same thing on every component:
 - `className` is for placement (margins, widths, grid positions), not for
   restyling a component. If a call site needs a different look, the component
   needs a variant.
-- A component's folder is its boundary: features import from
-  `@/design/components/<name>`, never from a file inside it.
+- Features import components from `@/design/components/<name>` or the
+  framework's `/ui`; a Guffin wrapper wins when one exists (section 1.3).
 
 ### 5.5 Where a style lives
 
-- **Global** (`src/app/globals.css`): the reset and the import of the design
+- **Global** (`src/app/globals.css`): the reset and the imports of the design
   system. Nothing else.
-- **System** (`src/design/styles`): tokens, palettes, the interaction
-  contract, and vocabulary used by several features (`cine-*`, `ui-sheen`).
+- **System** (`src/design/styles`): tokens, themes, the glass material, the
+  interaction contract, and vocabulary used by several features (`cine-*`,
+  `ui-*`, `plan`, `lift`).
 - **Component** (`*.module.css` beside it): keyframes, masks, pseudo-elements
   and cross-element selectors that only one component uses. Wrap rules in the
   layer the original sat in (`@layer components` or `utilities`) so utilities
   passed by a caller still win; reach page scopes with
   `:global([data-cinematic])`.
 - **Inline** (Tailwind in the recipe or the element): everything else.
+
+### 5.6 Module themes
+
+The framework's modules (dock, modal, context menu, toast, controls rail,
+error screen, ambient) render unstyled slots; `src/design/theme/<module>.ts`
+fills them with `defineTheme(moduleTheme, { slots, styles, motion })`, and
+`src/design/theme.ts` hands the list to `ThemeProvider`.
+
+- **`slots`** are class strings built from foundations (`SHELL`, `FLOAT`,
+  `TIP`, `WELL`, `TONES`, `TOOLTIP`, `SKELETON`), never raw values.
+- **`styles`** carry what classes cannot: `zIndex` from `Z_INDEX`, padding
+  the framework measures.
+- **`motion`** is the module's choreography (`dock-motion.ts`) or `INSTANT`.
+- State reaches the slots as data attributes (`data-placement`,
+  `data-shelf`, `data-anchored`, `data-ghost`, `data-active`), styled with
+  `data-[…]:` variants in the slot string.
+
+| Module       | File                                           | Notes                                                                                                                                                                    |
+| ------------ | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Dock         | `dock.ts`, `dock-motion.ts`, `styles/dock.css` | Width 520px, card padding 12px, cards `rounded-shell` glass; shelf card 96px, `rounded-[22.5px]`, holds a 45px bar; header icon 48px; commands 36px clear with `ui-iris` |
+| Modal        | `modal.ts`                                     | `SHELL` frame, `BACKDROP` veil, `DIM` under the top one; positions center/top/right/bottom/left                                                                          |
+| Context menu | `context-menu.ts`                              | `SHELL` at `rounded-sheet`, 8px padding, items 40px `rounded-card`, `TONE.label` eyebrow                                                                                 |
+| Toast        | `notification.ts`                              | A 40px `SHELL` pill, `type-meta`, max 380px, docked 6px under the dock                                                                                                   |
+| Controls     | `controls.ts`                                  | The side rail for page controls (lg and up)                                                                                                                              |
+| Error        | `error.ts`                                     | The crash screen; retry is `ui.parts.button.root({ intent: "primary" })`                                                                                                 |
+
+The dock's command row is shared through `src/design/dock-commands.ts`: a
+command can take the whole row over for a moment (the theme picker); every
+other command steps out while it holds it.

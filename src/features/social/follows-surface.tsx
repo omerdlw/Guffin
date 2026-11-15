@@ -16,13 +16,16 @@ import {
   useHighlight,
 } from "@omerdlw/base-framework/ui";
 import { USER_MESSAGES } from "@omerdlw/base-framework/utils";
+import { ActionLabel } from "@/design/components/action-content";
 import { useConfirm } from "@/design/components/confirm";
 import { Link } from "@/design/components/link";
 import { SurfaceSegmentedControl } from "@/design/components/segmented-control";
 import { SKELETON } from "@/design/components/skeleton";
 import {
-  SurfaceAnchor,
+  SurfacePart,
   SurfaceSearch,
+  SurfaceStage,
+  SurfaceSwap,
   useSurfaceSearch,
 } from "@/design/components/surface";
 import {
@@ -231,7 +234,7 @@ const UserAction = memo(function UserAction({
         loading={pending === action}
         onClick={() => void act(action)}
       >
-        <span>{label}</span>
+        <ActionLabel>{label}</ActionLabel>
       </Button>
     );
   };
@@ -264,7 +267,7 @@ const UserAction = memo(function UserAction({
       disabled={busy || requested}
       onClick={() => act("follow")}
     >
-      <span>{requested ? "Requested" : "Follow"}</span>
+      <ActionLabel>{requested ? "Requested" : "Follow"}</ActionLabel>
     </Button>
   );
 });
@@ -434,55 +437,67 @@ function AccountSocialSurface({
     [setQuery],
   );
 
+  // What the body shows; a new tab or state lifts the old view first.
+  let view: string;
   let body: ReactNode;
   if (active.loading) {
+    view = "loading";
     body = (
-      <div className="flex w-full flex-col gap-2.5">
+      <SurfacePart className="flex w-full flex-col gap-2.5" name="item">
         {Array.from({ length: 4 }, (_, index) => (
           <LoadingRow key={index} />
         ))}
-      </div>
+      </SurfacePart>
     );
   } else if (active.error || active.list.length === 0) {
-    body = <SocialTabStatus collection={active} tab={tab} />;
+    view = "status";
+    body = (
+      <SurfacePart name="note">
+        <SocialTabStatus collection={active} tab={tab} />
+      </SurfacePart>
+    );
   } else if (searching && search.matches.length === 0) {
-    body =
-      active.next || active.loadingMore ? (
-        <div className="flex w-full flex-col gap-2.5">
-          <LoadingRow />
-        </div>
-      ) : (
+    const more = Boolean(active.next || active.loadingMore);
+    view = more ? "searching" : "none";
+    body = more ? (
+      <SurfacePart className="flex w-full flex-col gap-2.5" name="item">
+        <LoadingRow />
+      </SurfacePart>
+    ) : (
+      <SurfacePart name="note">
         <SocialTabStatus
           collection={active}
           query={search.query.trim()}
           tab={tab}
         />
-      );
+      </SurfacePart>
+    );
   } else {
+    view = "list";
     body = (
       <div
         className={`${SURFACE_SCROLL} max-h-[min(56dvh,26rem)] w-full touch-pan-y`}
         data-scroll-native
-        key={tab}
       >
         <HighlightGroup className="flex w-full flex-col gap-2.5">
-          {search.matches.map((user) => (
-            <UserRow
-              action={
-                <UserAction
-                  followStatus={followStatus[user.id] || null}
-                  onAction={runAction}
-                  ownProfile={ownProfile}
-                  pending={pending[user.id] ?? null}
-                  showFollow={viewerId !== null && viewerId !== user.id}
-                  tab={tab}
-                  userId={user.id}
-                />
-              }
-              key={user.id}
-              onNavigate={close}
-              user={user}
-            />
+          {search.matches.map((user, index) => (
+            <SurfacePart index={index} key={user.id} name="row">
+              <UserRow
+                action={
+                  <UserAction
+                    followStatus={followStatus[user.id] || null}
+                    onAction={runAction}
+                    ownProfile={ownProfile}
+                    pending={pending[user.id] ?? null}
+                    showFollow={viewerId !== null && viewerId !== user.id}
+                    tab={tab}
+                    userId={user.id}
+                  />
+                }
+                onNavigate={close}
+                user={user}
+              />
+            </SurfacePart>
           ))}
           {active.next && !searching ? (
             <LoadMoreSentinel
@@ -496,8 +511,7 @@ function AccountSocialSurface({
   }
 
   return (
-    <div className="flex w-full flex-col overflow-hidden">
-      <SurfaceAnchor />
+    <SurfaceStage className="flex flex-col overflow-hidden">
       <SurfaceSegmentedControl
         ariaLabel="Followers and following"
         id="account-social-tabs"
@@ -506,15 +520,18 @@ function AccountSocialSurface({
         value={tab}
       />
       {search.enabled ? (
-        <SurfaceSearch
-          className="mb-2.5"
-          label={`Search ${tab}`}
-          onChange={search.setQuery}
-          value={search.query}
-        />
+        <SurfacePart className="mb-2.5" name="item">
+          <SurfaceSearch
+            label={`Search ${tab}`}
+            onChange={search.setQuery}
+            value={search.query}
+          />
+        </SurfacePart>
       ) : null}
-      {body}
-    </div>
+      <SurfaceSwap cue="items" id={`${tab}-${view}`}>
+        {body}
+      </SurfaceSwap>
+    </SurfaceStage>
   );
 }
 

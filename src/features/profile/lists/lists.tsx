@@ -7,6 +7,7 @@ import {
 } from "@omerdlw/base-framework/dock";
 import { Avatar, Button, type ButtonProps } from "@omerdlw/base-framework/ui";
 import { useRouter } from "next/navigation";
+import { ActionIcon, ActionLabel } from "@/design/components/action-content";
 import { Icon } from "@/design/components/icon";
 import { DockLink } from "@/design/components/link";
 import { DockAction } from "@/design/components/surface";
@@ -78,10 +79,10 @@ function NewListAction({
         }
         type="button"
       >
-        <Icon icon="solar:add-circle-bold" size={16} />
-        <span className="truncate">
+        <ActionIcon icon="solar:add-circle-bold" />
+        <ActionLabel>
           {mediaType === "tv" ? "New show list" : "New list"}
-        </span>
+        </ActionLabel>
       </Button>
     </DockAction>
   );
@@ -323,6 +324,7 @@ function ListRow({
     <li className="flex flex-col gap-4 py-6 first:pt-0 last:pb-0 sm:flex-row sm:items-start sm:gap-6">
       <DockLink
         aria-label={list.title}
+        data-cursor-fit="snug"
         className="block w-full shrink-0 ui-fade hover:opacity-80 focus-visible:opacity-80 sm:w-60"
         href={href}
       >

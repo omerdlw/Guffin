@@ -67,10 +67,13 @@
 
   /* The glint, laid out in nine slices (liquid.tsx): its corners keep their
      shape at any size, so a surface that resizes never stretches them. */
+  /* Longhands only: the build moves shorthands after the longhands, and in
+     WebKit the mask shorthand resets mask-border (the -webkit-mask-box-image
+     below), which left the rim colour washing the whole surface in Safari. */
   .liquid[data-liquid]::after {
     background: var(--liquid-rim);
-    -webkit-mask: none;
-    mask: none;
+    -webkit-mask-image: none;
+    mask-image: none;
     -webkit-mask-box-image-source: var(--liquid-specular);
     -webkit-mask-box-image-slice: var(--liquid-specular-slice);
     -webkit-mask-box-image-width: var(--liquid-specular-width);
@@ -112,4 +115,47 @@
 
 @utility liquid-clear {
   backdrop-filter: var(--liquid-lens, none);
+}
+
+/* Controls made of glass (buttons, a select's trigger, a field, a segmented
+   control's track) lying on the page. There is nothing to bend behind them,
+   so they take no lens and no frost: a light glass, a bevel lit from above
+   and the contour. Inside a glass layer (the dock, a modal, a menu) they keep
+   their fill: never glass on glass.
+
+   Unlayered on purpose: the material replaces the fill and ring utilities a
+   tone carries, and those stay in force inside a layer. */
+.liquid-control:not(:where(.dock-root, .liquid, [role="dialog"]) *) {
+  background-color: var(--glass-control);
+  box-shadow: var(--glass-control-contour), var(--glass-control-bevel);
+
+  &.liquid-control-clear {
+    background-color: transparent;
+  }
+  /* The tone's own hover fill would lie under the glass's. */
+  &.ui-iris::before {
+    display: none;
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      background-color: var(--glass-control-hover);
+    }
+  }
+  &:focus-visible,
+  &[aria-expanded="true"] {
+    background-color: var(--glass-control-hover);
+    box-shadow:
+      var(--glass-control-contour), var(--glass-control-bevel),
+      var(--glass-control-focus);
+  }
+  &:is(input, textarea):focus {
+    background-color: var(--glass-control-hover);
+    box-shadow:
+      var(--glass-control-contour), var(--glass-control-bevel),
+      var(--glass-control-focus);
+  }
+  &:is(button, a[href], [role="button"]):active {
+    background-color: var(--glass-control-active);
+  }
 }

@@ -51,7 +51,7 @@ const DISPERSION = 0.07;
  * touch of white, so it glows over a picture and stays faint over a dark
  * page.
  */
-const EDGE_GAIN = 1.3;
+const EDGE_GAIN = 1.4;
 /**
  * The edge light carries the scene a little softened (px, standard
  * deviation): sharp, it read as a clear window cut round the frost.
@@ -68,7 +68,27 @@ const THICKNESS = 1.9;
  * scene behind keeps its shapes and the bend at the rim reads as glass.
  */
 const FROST_BLUR = 4;
-const EDGE_LIFT = 0.05;
+/**
+ * How far past the surface's edge the filter reads the scene (css px): the
+ * frost's reach (3σ). Cut at the edge, the blur fades to transparent within
+ * that reach and the sharp scene behind shows through round the rim, a
+ * hazy, stepped edge; with the scene beyond the edge to blur, the frost runs
+ * to the edge like a CSS blur. The browser still clips to the surface.
+ */
+const MARGIN = FROST_BLUR * 3;
+/**
+ * White added to the edge light: a touch, or it lays a grey bevel over a dark
+ * page instead of the colours behind.
+ */
+const EDGE_LIFT = 0.02;
+/** The edge light carries the scene's colours a little richer than it is. */
+const EDGE_SATURATE = 1.35;
+/** The glint's hairline: full this deep (css px), then fading over… */
+const HAIRLINE = 0.5;
+/** …this many css px. */
+const HAIRLINE_FADE = 0.35;
+/** Points read across each pixel of a mask, per axis (see `drawMask`). */
+const SUPERSAMPLE = 4;
 /**
  * How deep the lens's slices reach (css px) at least: the edge light fades
  * out over ~12px, deeper than a small bezel.
@@ -105,9 +125,44 @@ function bezelSlice(bezel: number, thickness: number): Float32Array {
   return slice;
 }
 
+type Probe = (px: number, py: number) => [number, number, number];
+
+/**
+ * Measures a rounded rectangle at a point (css px from its centre): the
+ * depth inside the outline (≤ 0 outside) and the outward normal of the
+ * nearest edge.
+ */
+function prober(width: number, height: number, radius: number): Probe {
+  const hx = width / 2;
+  const hy = height / 2;
+  const r = Math.min(radius, hx, hy);
+  return (px, py) => {
+    const qx = Math.abs(px) - (hx - r);
+    const qy = Math.abs(py) - (hy - r);
+    const ox = Math.max(qx, 0);
+    const oy = Math.max(qy, 0);
+    const outside = Math.hypot(ox, oy);
+    const depth = r - outside - Math.min(Math.max(qx, qy), 0);
+    let nx: number;
+    let ny: number;
+    if (ox > 0 && oy > 0) {
+      nx = ox / outside;
+      ny = oy / outside;
+    } else if (qx > qy) {
+      nx = 1;
+      ny = 0;
+    } else {
+      nx = 0;
+      ny = 1;
+    }
+    return [depth, nx * (Math.sign(px) || 1), ny * (Math.sign(py) || 1)];
+  };
+}
+
 /**
  * Walks a rounded rectangle pixel by pixel. `visit` gets the depth inside the
- * outline in css px (≤ 0 outside) and the outward normal of the nearest edge.
+ * outline in css px (≤ 0 outside) and the outward normal of the nearest edge,
+ * measured at the pixel's centre.
  */
 function walk(
   width: number,
@@ -116,39 +171,14 @@ function walk(
   density: number,
   visit: (index: number, depth: number, nx: number, ny: number) => void,
 ) {
-  const hx = width / 2;
-  const hy = height / 2;
-  const r = Math.min(radius, hx, hy);
+  const probe = prober(width, height, radius);
   const columns = Math.round(width * density);
   const rows = Math.round(height * density);
   for (let y = 0; y < rows; y++) {
-    const py = (y + 0.5) / density - hy;
-    const qy = Math.abs(py) - (hy - r);
+    const py = (y + 0.5) / density - height / 2;
     for (let x = 0; x < columns; x++) {
-      const px = (x + 0.5) / density - hx;
-      const qx = Math.abs(px) - (hx - r);
-      const ox = Math.max(qx, 0);
-      const oy = Math.max(qy, 0);
-      const outside = Math.hypot(ox, oy);
-      const depth = r - outside - Math.min(Math.max(qx, qy), 0);
-      let nx: number;
-      let ny: number;
-      if (ox > 0 && oy > 0) {
-        nx = ox / outside;
-        ny = oy / outside;
-      } else if (qx > qy) {
-        nx = 1;
-        ny = 0;
-      } else {
-        nx = 0;
-        ny = 1;
-      }
-      visit(
-        y * columns + x,
-        depth,
-        nx * (Math.sign(px) || 1),
-        ny * (Math.sign(py) || 1),
-      );
+      const [depth, nx, ny] = probe((x + 0.5) / density - width / 2, py);
+      visit(y * columns + x, depth, nx, ny);
     }
   }
   return { columns, rows };
@@ -184,6 +214,11 @@ const sideOf = (slice: number) => slice * 2 + 2;
  * `opaque` draws it as grey on black instead (the value in the colour, full
  * alpha): slices of it laid over one another then replace each other where
  * they meet instead of adding up into a bright seam.
+ *
+ * Each pixel is the average of SUPERSAMPLE² points across it: a line about a
+ * pixel wide, read only at pixel centres, flickers from bright to dim along
+ * a curve (one pixel lands on it, the next straddles it), and the outline
+ * reads as steps.
  */
 function drawMask(
   slice: number,
@@ -194,19 +229,26 @@ function drawMask(
 ) {
   const side = sideOf(slice);
   const size = Math.round(side * density);
+  const probe = prober(side, side, radius);
   const alpha = new Float32Array(size * size);
-  const { columns, rows } = walk(
-    side,
-    side,
-    radius,
-    density,
-    (index, depth, nx, ny) => {
-      if (depth <= 0) return;
-      const value = shade(depth, nx * LIGHT_X + ny * LIGHT_Y);
-      alpha[index] = Math.min(1, value) * Math.min(1, depth * density);
-    },
-  );
-  return paint(columns, rows, (data) => {
+  const step = 1 / (density * SUPERSAMPLE);
+  const half = side / 2;
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      let sum = 0;
+      for (let j = 0; j < SUPERSAMPLE; j++) {
+        const py = y / density + (j + 0.5) * step - half;
+        for (let i = 0; i < SUPERSAMPLE; i++) {
+          const px = x / density + (i + 0.5) * step - half;
+          const [depth, nx, ny] = probe(px, py);
+          if (depth <= 0) continue;
+          sum += Math.min(1, shade(depth, nx * LIGHT_X + ny * LIGHT_Y));
+        }
+      }
+      alpha[y * size + x] = sum / (SUPERSAMPLE * SUPERSAMPLE);
+    }
+  }
+  return paint(size, size, (data) => {
     for (let i = 0; i < alpha.length; i++) {
       const at = i * 4;
       const value = Math.round(alpha[i]! * 255);
@@ -219,19 +261,27 @@ function drawMask(
 }
 
 /**
+ * The rim's hairline across its depth (css px): full over the outermost
+ * device pixel, then gone within about a pixel, so it stays one crisp line.
+ */
+const line = (depth: number) =>
+  Math.exp(-Math.max(0, depth - HAIRLINE) / HAIRLINE_FADE);
+
+/**
  * The glint: one crisp line on the outline, bright on the corner facing the
  * light, a little on the opposite one, a whisper along the sides. Drawn by
  * CSS in the theme's colour.
  */
 const drawSpecular = (slice: number, radius: number, density: number) =>
   drawMask(slice, radius, density, (depth, facing) => {
-    const glint = facing > 0 ? facing ** 4 : 0.45 * (-facing) ** 4;
-    // A soft bloom inside the line, wider round the lit corners, so the rim
-    // reads as a curved, thick edge catching the light.
+    const glint = facing > 0 ? facing ** 3 : 0.5 * (-facing) ** 3;
+    // A soft bloom just inside the line, wider round the lit corners, so the
+    // rim reads as a curved, thick edge catching the light; tight, or it
+    // reads as a bevel rather than glass.
     const spread = facing > 0 ? facing ** 2 : 0.5 * (-facing) ** 2;
     return (
-      (0.1 + 0.9 * glint) * Math.exp(-depth / 0.45) +
-      0.3 * spread * Math.exp(-depth / 2.5)
+      (0.16 + 0.84 * glint) * line(depth) +
+      0.2 * spread * Math.exp(-depth / 1.3)
     );
   });
 
@@ -248,28 +298,41 @@ const drawEdgeLight = (slice: number, radius: number, density: number) =>
     (depth, facing) => {
       const weight = 0.45 + 0.55 * facing ** 2;
       return (
-        weight * (0.85 * Math.exp(-depth / 1.1) + 0.3 * Math.exp(-depth / 3.5))
+        weight * (0.9 * Math.exp(-depth / 0.9) + 0.22 * Math.exp(-depth / 2.6))
       );
     },
     true,
   );
 
-function drawRefraction(slice: number, radius: number, bezel: number) {
+function drawRefraction(
+  slice: number,
+  radius: number,
+  bezel: number,
+  density: number,
+) {
   const profile = bezelSlice(bezel, bezel * THICKNESS);
   let max = 0;
   for (const value of profile) max = Math.max(max, Math.abs(value));
   if (max === 0) return null;
   const side = sideOf(slice);
-  const shift = new Float32Array(side * side * 2);
+  const size = Math.round(side * density);
+  const shift = new Float32Array(size * size * 2);
+  // Drawn at the screen's density, like the edge light: a map drawn per css
+  // px and stretched steps the bend round the corners.
   const { columns, rows } = walk(
     side,
     side,
     radius,
-    1,
+    density,
     (index, depth, nx, ny) => {
-      if (depth <= 0 || depth >= bezel) return;
+      // The outline's own pixel (centre just outside) bends as the rim does.
+      if (depth <= -0.5 / density || depth >= bezel) return;
+      // Read between the profile's samples, so the bend has no steps.
+      const at = (Math.max(depth, 0) / bezel) * (SAMPLES - 1);
+      const low = Math.floor(at);
+      const high = Math.min(low + 1, SAMPLES - 1);
       const magnitude =
-        profile[Math.round((depth / bezel) * (SAMPLES - 1))]! / max;
+        (profile[low]! + (profile[high]! - profile[low]!) * (at - low)) / max;
       // Sample inward of the pixel: the rim shows what lies further in.
       shift[index * 2] = -nx * magnitude;
       shift[index * 2 + 1] = -ny * magnitude;
@@ -329,39 +392,27 @@ function cut(
  * Both maps in one set of slices: the bend in red and green (all the
  * displacement reads) and the edge light in blue. The filter then lays out
  * eight slices instead of sixteen, and on the GPU every slice is a pass on
- * every frame the scene behind moves. Each bend slice is first drawn up to
- * the edge light's density, smoothed as the filter would smooth it, so the
- * filter reads the values it read before.
+ * every frame the scene behind moves. Both maps are drawn at the same
+ * density, so they are folded pixel for pixel before they are cut.
  */
 function fold(
   refraction: HTMLCanvasElement,
   edge: HTMLCanvasElement | null,
   slice: number,
 ): Pieces | null {
-  const bends = cut(refraction, slice);
-  const lights = edge && cut(edge, slice);
-  if (!bends || (edge && !lights)) return null;
-  const pieces = {} as Pieces;
-  for (const piece of PIECES) {
-    const bend = bends[piece];
-    const light = lights?.[piece];
-    const part = document.createElement("canvas");
-    part.width = light?.width ?? bend.width;
-    part.height = light?.height ?? bend.height;
-    const context = part.getContext("2d", { willReadFrequently: true });
-    if (!context) return null;
-    context.imageSmoothingQuality = "high";
-    context.drawImage(bend, 0, 0, part.width, part.height);
-    const image = context.getImageData(0, 0, part.width, part.height);
-    const glow = light
-      ?.getContext("2d")
-      ?.getImageData(0, 0, part.width, part.height).data;
-    for (let at = 0; at < image.data.length; at += 4) {
-      image.data[at + 2] = glow ? glow[at]! : 0;
-    }
-    context.putImageData(image, 0, 0);
-    pieces[piece] = part.toDataURL();
+  const context = refraction.getContext("2d", { willReadFrequently: true });
+  if (!context) return null;
+  const { width, height } = refraction;
+  const image = context.getImageData(0, 0, width, height);
+  const glow = edge?.getContext("2d")?.getImageData(0, 0, width, height).data;
+  for (let at = 0; at < image.data.length; at += 4) {
+    image.data[at + 2] = glow ? glow[at]! : 0;
   }
+  context.putImageData(image, 0, 0);
+  const parts = cut(refraction, slice);
+  if (!parts) return null;
+  const pieces = {} as Pieces;
+  for (const piece of PIECES) pieces[piece] = parts[piece].toDataURL();
   return pieces;
 }
 
@@ -481,7 +532,7 @@ function startLiquid(lensing: boolean) {
 
   function mapsFor(key: string, slice: number, radius: number, bezel: number) {
     if (maps.has(key)) return maps.get(key) ?? null;
-    const refraction = drawRefraction(slice, radius, bezel);
+    const refraction = drawRefraction(slice, radius, bezel, density);
     const edge = drawEdgeLight(slice, radius, density);
     const map = refraction && fold(refraction.canvas, edge, slice);
     const value =
@@ -520,13 +571,14 @@ function startLiquid(lensing: boolean) {
   ): Lens {
     const id = `liquid-lens-${++count}`;
     // Pixel units: inside backdrop-filter, Chromium resolves percentages
-    // against a box other than the element, which misaligns the map.
+    // against a box other than the element, which misaligns the map. The
+    // region reaches MARGIN past the edge (see MARGIN).
     const filter = set(defs, "filter", {
       id,
       filterUnits: "userSpaceOnUse",
       primitiveUnits: "userSpaceOnUse",
-      x: 0,
-      y: 0,
+      x: -MARGIN,
+      y: -MARGIN,
       "color-interpolation-filters": "sRGB",
     }) as SVGFilterElement;
     // The middle of the map does not bend (neutral red and green) and
@@ -534,8 +586,8 @@ function startLiquid(lensing: boolean) {
     const flat = set(filter, "feFlood", {
       "flood-color": "rgb(128 128 0)",
       "flood-opacity": 1,
-      x: 0,
-      y: 0,
+      x: -MARGIN,
+      y: -MARGIN,
       result: "flat",
     });
     const map = pieces(filter, "map");
@@ -617,8 +669,16 @@ function startLiquid(lensing: boolean) {
         operator: "in",
         result: "caught",
       });
-      const lift = set(filter, "feComponentTransfer", {
+      // Light caught in glass comes back in the scene's own colours, a little
+      // richer; then brightened.
+      set(filter, "feColorMatrix", {
         in: "caught",
+        type: "saturate",
+        values: EDGE_SATURATE,
+        result: "rich",
+      });
+      const lift = set(filter, "feComponentTransfer", {
+        in: "rich",
         result: "glow",
       });
       for (const channel of ["feFuncR", "feFuncG", "feFuncB"]) {
@@ -653,10 +713,11 @@ function startLiquid(lensing: boolean) {
     if (lens.width === width && lens.height === height) return;
     lens.width = width;
     lens.height = height;
-    lens.filter.setAttribute("width", String(width));
-    lens.filter.setAttribute("height", String(height));
-    lens.flat.setAttribute("width", String(width));
-    lens.flat.setAttribute("height", String(height));
+    const outer = [String(width + MARGIN * 2), String(height + MARGIN * 2)];
+    lens.filter.setAttribute("width", outer[0]!);
+    lens.filter.setAttribute("height", outer[1]!);
+    lens.flat.setAttribute("width", outer[0]!);
+    lens.flat.setAttribute("height", outer[1]!);
     const boxes = layout(lens.slice, width, height);
     for (const piece of PIECES) {
       const [x, y, w, h] = boxes[piece];

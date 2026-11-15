@@ -173,21 +173,39 @@ const REEL_LEVEL = 0.28;
 
 const REEL_CLEAR = [0, 0.32] as const;
 
-// As the name leaves, the page under it ripples like water: a sea of noise
-// displaces everything on screen. It starts the moment the name starts to
-// leave (when the page's own opening begins), crests as the last of the
-// letters fade and settles as the page comes in. How long it runs (s), where
-// it crests (as a share of its run), how far it pushes (px), the sea's grain
-// (across, down) and how fast it rolls.
-const RIPPLE_TIME = 1.9;
+// As the name leaves, the page under it ripples like water: the name falls
+// into the page like a drop and a ring of waves runs out from where it fell,
+// smaller waves trailing it inward and dying off. It starts the moment the
+// name starts to leave (when the page's own opening begins), swells as the
+// last of the letters fade and goes still as the page comes in. How long it
+// runs (s), how it swells and settles (shares of its run), how far a crest
+// pushes (px), how far the ring starts and ends (share of the way to the far
+// corner), how many waves trail the ring and how fast they die off.
+const RIPPLE_TIME = 2.2;
 
-const RIPPLE_CREST = 0.3;
+const RIPPLE_SWELL = [0, 0.14] as const;
 
-const RIPPLE_REACH = 58;
+const RIPPLE_STILL = [0.22, 1] as const;
 
-const RIPPLE_GRAIN = [0.0045, 0.019] as const;
+const RIPPLE_REACH = 44;
 
-const RIPPLE_ROLL = 3.2;
+const RIPPLE_SPREAD = [0.06, 1.7] as const;
+
+const RIPPLE_WAVES = 5;
+
+const RIPPLE_TRAIL = 3.6;
+
+// The ring's shape, drawn once (texels across) and scaled as it spreads.
+const RIPPLE_MAP = 384;
+
+// The shore: the push dies off toward the screen's edges (share of its
+// side), so they never pull in the empty space past the page.
+const RIPPLE_SHORE = 64;
+
+const RIPPLE_SHORE_FADE = 0.06;
+
+// The ring runs out fast and slows, like a wave losing its push.
+const RIPPLE_RUN = bezier(0.22, 0.61, 0.36, 1);
 
 const RIPPLE_HOST: CSSProperties = {
   position: "absolute",
@@ -195,6 +213,151 @@ const RIPPLE_HOST: CSSProperties = {
   height: 0,
   overflow: "hidden",
   pointerEvents: "none",
+};
+
+// What the ripple moves: the page itself (its `<main>`) and the leaving
+// name, which lives over it in a layer of its own. Each has its own filter.
+type RippleWater = "page" | "name";
+
+const RIPPLE_WATERS: readonly RippleWater[] = ["page", "name"];
+
+interface RippleParts {
+  ring?: SVGFEImageElement;
+  shore?: SVGFEImageElement;
+  push?: SVGFEDisplacementMapElement;
+}
+
+function RippleFilter({
+  id,
+  sea,
+  store,
+  water,
+}: {
+  id: string;
+  sea: { ring: string; shore: string } | null;
+  store: { current: Record<RippleWater, RippleParts> };
+  water: RippleWater;
+}) {
+  const parts = (el: Partial<RippleParts>) =>
+    Object.assign(store.current[water], el);
+
+  return (
+    <filter
+      colorInterpolationFilters="sRGB"
+      height="100%"
+      id={id}
+      width="100%"
+      x="0"
+      y="0"
+    >
+      <feFlood floodColor="rgb(128, 128, 128)" result="still" />
+      {sea ? (
+        <>
+          <feImage
+            height="0"
+            href={sea.ring}
+            preserveAspectRatio="none"
+            ref={(el) => {
+              parts({ ring: el ?? undefined });
+            }}
+            result="ring"
+            width="0"
+            x="0"
+            y="0"
+          />
+          <feImage
+            height="0"
+            href={sea.shore}
+            preserveAspectRatio="none"
+            ref={(el) => {
+              parts({ shore: el ?? undefined });
+            }}
+            result="shore"
+            width="0"
+            x="0"
+            y="0"
+          />
+          <feComposite in="ring" in2="shore" operator="in" result="near" />
+        </>
+      ) : null}
+      <feMerge result="sea">
+        <feMergeNode in="still" />
+        {sea ? <feMergeNode in="near" /> : null}
+      </feMerge>
+      <feDisplacementMap
+        in="SourceGraphic"
+        in2="sea"
+        ref={(el) => {
+          parts({ push: el ?? undefined });
+        }}
+        scale={0}
+        xChannelSelector="R"
+        yChannelSelector="G"
+      />
+    </filter>
+  );
+}
+
+const smooth = (from: number, to: number, x: number) => {
+  const t = clamp((x - from) / (to - from), 0, 1);
+  return t * t * (3 - 2 * t);
+};
+
+let rippleMap: { ring: string; shore: string } | null = null;
+
+const drawMap = (
+  n: number,
+  texel: (i: number, j: number) => readonly [number, number, number, number],
+) => {
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = n;
+  const context = canvas.getContext("2d");
+  if (!context) return null;
+  const image = context.createImageData(n, n);
+  for (let j = 0; j < n; j++) {
+    for (let i = 0; i < n; i++) {
+      image.data.set(texel(i, j), (j * n + i) * 4);
+    }
+  }
+  context.putImageData(image, 0, 0);
+  return canvas.toDataURL("image/png");
+};
+
+// The ring as a displacement map: each texel pushes along the radius, red
+// across and green down, mid grey being still water. Its outer edge is the
+// leading wave; inside it the trailing waves shrink toward the middle.
+// The shore is white whose alpha fades to nothing at the edges.
+const rippleMaps = () => {
+  if (rippleMap) return rippleMap;
+  const n = RIPPLE_MAP;
+  const ring = drawMap(n, (i, j) => {
+    const dx = ((i + 0.5) / n) * 2 - 1;
+    const dy = ((j + 0.5) / n) * 2 - 1;
+    const r = Math.hypot(dx, dy);
+    let push = 0;
+    if (r > 0 && r < 1) {
+      const behind = 1 - r;
+      push =
+        smooth(0, 0.07, behind) *
+        smooth(0, 0.2, r) *
+        Math.exp(-behind * RIPPLE_TRAIL) *
+        Math.sin(2 * Math.PI * RIPPLE_WAVES * behind);
+    }
+    const along = (d: number) =>
+      Math.round(128 + 127 * push * (r > 0 ? d / r : 0));
+    return [along(dx), along(dy), 128, 255];
+  });
+  const m = RIPPLE_SHORE;
+  const shore = drawMap(m, (i, j) => {
+    const off = (k: number) => Math.min(k + 0.5, m - k - 0.5) / m;
+    const fade =
+      smooth(0, RIPPLE_SHORE_FADE, off(i)) *
+      smooth(0, RIPPLE_SHORE_FADE, off(j));
+    return [255, 255, 255, Math.round(255 * fade)];
+  });
+  if (!ring || !shore) return null;
+  rippleMap = { ring, shore };
+  return rippleMap;
 };
 
 const shuffled = <T,>(items: readonly T[]) => {
@@ -410,10 +573,15 @@ export function Marquee({
     canvas?: HTMLCanvasElement;
   }>({});
   const rippleId = `marquee-ripple-${useId().replace(/[^\w-]/g, "")}`;
-  const ripple$ = useRef<{
-    sea?: SVGFETurbulenceElement;
-    push?: SVGFEDisplacementMapElement;
-  }>({});
+  const ripple$ = useRef<Record<RippleWater, RippleParts>>({
+    page: {},
+    name: {},
+  });
+  const output$ = useRef<HTMLDivElement | null>(null);
+  const [rippleSea, setRippleSea] = useState<{
+    ring: string;
+    shore: string;
+  } | null>(null);
   const [values] = useState(() => ({
     enter: new Value(engine.clock),
     wave: new Value(engine.clock),
@@ -460,9 +628,7 @@ export function Marquee({
       if (alive) setReelIn(true);
     };
     const late = setTimeout(settle, REEL_PATIENCE * 1000);
-    void Promise.allSettled(images.map((image) => image.decode())).then(
-      settle,
-    );
+    void Promise.allSettled(images.map((image) => image.decode())).then(settle);
     return () => {
       alive = false;
       clearTimeout(late);
@@ -505,10 +671,13 @@ export function Marquee({
     if (!held || skipped) return;
     void values.enter.to(1, { tween: MARQUEE_DIVE_TIME, curve: linear });
     // The dive is linear in time, so its fade starts at a known moment.
-    const at = setTimeout(() => {
-      lift();
-      void values.wave.to(1, { tween: RIPPLE_TIME, curve: linear });
-    }, MARQUEE_FADE[0] * MARQUEE_DIVE_TIME * 1000);
+    const at = setTimeout(
+      () => {
+        lift();
+        void values.wave.to(1, { tween: RIPPLE_TIME, curve: linear });
+      },
+      MARQUEE_FADE[0] * MARQUEE_DIVE_TIME * 1000,
+    );
     return () => clearTimeout(at);
   }, [held, skipped, values, lift]);
 
@@ -964,38 +1133,58 @@ export function Marquee({
     };
   }, [engine, values, card]);
 
-  // The page's ripple, on its own clock from the moment the name lifts. It is set on the root
-  // element, the one place a filter leaves fixed layers where they are.
+  // The ring's map is drawn in the browser only, so the markup matches.
+  useEffect(() => {
+    if (!skipped) setRippleSea(rippleMaps());
+  }, [skipped]);
+
+  // The page's ripple, on its own clock from the moment the name lifts. It
+  // is set on the page's own `<main>` and on the leaving name, never on the
+  // root, so the dock and the rest of the app's chrome stay still. Each
+  // filter works in its element's own space, so the ring is placed from
+  // that element's corner.
   useEffect(() => {
     if (skipped) return;
-    const root = document.documentElement;
-    let on = false;
+    const lit = new Set<HTMLElement>();
     const calm = () => {
-      if (!on) return;
-      on = false;
-      root.style.removeProperty("filter");
+      for (const element of lit) element.style.removeProperty("filter");
+      lit.clear();
     };
     const wave = () => {
       const run = values.wave.current;
       const swell =
-        run < RIPPLE_CREST
-          ? SILK(run / RIPPLE_CREST)
-          : 1 - FADE((run - RIPPLE_CREST) / (1 - RIPPLE_CREST));
-      const { sea, push } = ripple$.current;
-      if (run <= 0 || run >= 1 || swell < 0.01 || !sea || !push) return calm();
-      const time = run * RIPPLE_TIME * RIPPLE_ROLL;
-      const [across, down] = RIPPLE_GRAIN;
-      sea.setAttribute(
-        "baseFrequency",
-        `${(across * (1 + 0.12 * Math.cos(time))).toFixed(5)} ${(
-          down *
-          (1 + 0.2 * Math.sin(time))
-        ).toFixed(5)}`,
+        SILK(within(run, RIPPLE_SWELL)) * (1 - FADE(within(run, RIPPLE_STILL)));
+      const set = card$.current;
+      if (run <= 0 || run >= 1 || swell < 0.01 || !set) return calm();
+      // From where the name fell, out past the farthest corner so the
+      // trailing waves cross the screen too.
+      const far = Math.hypot(
+        Math.max(set.x, set.width - set.x),
+        Math.max(set.y, set.height - set.y),
       );
-      push.setAttribute("scale", (RIPPLE_REACH * swell).toFixed(2));
-      if (!on) {
-        on = true;
-        root.style.filter = `url(#${rippleId})`;
+      const [near, past] = RIPPLE_SPREAD;
+      const radius = far * (near + (past - near) * RIPPLE_RUN(run));
+      const waters: [RippleWater, HTMLElement | null | undefined][] = [
+        ["page", host.current?.closest("main")],
+        ["name", output$.current],
+      ];
+      for (const [water, element] of waters) {
+        const { ring, shore, push } = ripple$.current[water];
+        if (!element?.isConnected || !ring || !shore || !push) continue;
+        const corner = element.getBoundingClientRect();
+        ring.setAttribute("x", (set.x - corner.left - radius).toFixed(1));
+        ring.setAttribute("y", (set.y - corner.top - radius).toFixed(1));
+        ring.setAttribute("width", (radius * 2).toFixed(1));
+        ring.setAttribute("height", (radius * 2).toFixed(1));
+        shore.setAttribute("x", (-corner.left).toFixed(1));
+        shore.setAttribute("y", (-corner.top).toFixed(1));
+        shore.setAttribute("width", String(window.innerWidth));
+        shore.setAttribute("height", String(window.innerHeight));
+        push.setAttribute("scale", (RIPPLE_REACH * swell).toFixed(2));
+        if (!lit.has(element)) {
+          lit.add(element);
+          element.style.filter = `url(#${rippleId}-${water})`;
+        }
       }
     };
     const stop = values.wave.subscribe(wave);
@@ -1020,39 +1209,19 @@ export function Marquee({
     <>
       <div aria-hidden="true" className={className} hidden ref={ref} />
       <svg aria-hidden="true" focusable="false" style={RIPPLE_HOST}>
-        <filter
-          colorInterpolationFilters="sRGB"
-          height="100%"
-          id={rippleId}
-          width="100%"
-          x="0"
-          y="0"
-        >
-          <feTurbulence
-            baseFrequency={RIPPLE_GRAIN.join(" ")}
-            numOctaves={2}
-            ref={(el) => {
-              ripple$.current.sea = el ?? undefined;
-            }}
-            result="sea"
-            seed={7}
-            type="fractalNoise"
+        {RIPPLE_WATERS.map((water) => (
+          <RippleFilter
+            id={`${rippleId}-${water}`}
+            key={water}
+            sea={rippleSea}
+            store={ripple$}
+            water={water}
           />
-          <feDisplacementMap
-            in="SourceGraphic"
-            in2="sea"
-            ref={(el) => {
-              ripple$.current.push = el ?? undefined;
-            }}
-            scale={0}
-            xChannelSelector="R"
-            yChannelSelector="G"
-          />
-        </filter>
+        ))}
       </svg>
       {shown
         ? createPortal(
-            <div aria-hidden="true" style={MARQUEE_OUTPUT}>
+            <div aria-hidden="true" ref={output$} style={MARQUEE_OUTPUT}>
               <div
                 ref={(el) => {
                   els.current.glow = el ?? undefined;

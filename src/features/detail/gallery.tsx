@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useModal } from "@omerdlw/base-framework/modal";
-import { Button, SegmentedControl } from "@omerdlw/base-framework/ui";
+import { Button } from "@omerdlw/base-framework/ui";
+import { SegmentedControl } from "@/design/components/segmented-control";
 import { Icon } from "@/design/components/icon";
 import {
   MediaCard,

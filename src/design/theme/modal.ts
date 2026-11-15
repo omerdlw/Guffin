@@ -82,16 +82,16 @@ export const modalThemeConfig = defineTheme(modalTheme, {
 
     content:
       "flex min-h-0 flex-col overflow-hidden data-[height=capped]:max-h-[70dvh] data-[height=full]:h-full data-[height=full]:max-h-full",
-    body: "modal-body min-h-0 w-full flex-1 overflow-y-auto overscroll-contain p-2.5 pt-0 first:pt-2.5",
+    body: "modal-body min-h-0 w-full flex-1 overflow-y-auto overscroll-contain p-3 pt-0 first:pt-3",
 
-    row: "items-center gap-2.5 p-2.5 pl-4 data-[columns=2]:flex data-[columns=2]:justify-between data-[columns=3]:grid data-[columns=3]:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] data-[sticky]:bg-glass data-[sticky]: data-[sticky=bottom]:sticky data-[sticky=bottom]:bottom-0 data-[sticky=top]:sticky data-[sticky=top]:top-0",
+    row: "items-center gap-2.5 p-3 pl-4 data-[columns=2]:flex data-[columns=2]:justify-between data-[columns=3]:grid data-[columns=3]:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] data-[sticky]:bg-glass data-[sticky]: data-[sticky=bottom]:sticky data-[sticky=bottom]:bottom-0 data-[sticky=top]:sticky data-[sticky=top]:top-0",
     rowCenter: "flex items-center justify-center",
     rowEnd: "flex min-w-0 items-center justify-end gap-2.5",
     rowStart: "min-w-0",
     title: "truncate type-copy font-semibold text-ink",
     closeButton: `ui-iris center relative inline-flex size-control-sm cursor-pointer rounded-full text-ink-body hover:text-ink focus-visible:text-ink ${FILL}`,
 
-    switcher: "center shrink-0 gap-2 border-t border-rule bg-fill p-2.5",
+    switcher: "center shrink-0 gap-2 border-t border-rule bg-fill p-3",
     switcherButton: `flex h-control-sm cursor-pointer items-center gap-1.5 rounded-full px-3.5 type-meta font-medium text-ink-body *:shrink-0 hover:text-ink focus-visible:text-ink ${FILL}`,
     switcherCurrent:
       "flex h-control-sm items-center rounded-full bg-fill-active px-3.5 type-meta font-medium ring-1 ring-edge-hover ring-inset",

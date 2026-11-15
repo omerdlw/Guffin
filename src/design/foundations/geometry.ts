@@ -6,7 +6,7 @@ export const RADIUS = {
   card: 16,
   panel: 20,
   sheet: 24,
-  shell: 26,
+  shell: 28,
 } as const;
 
 export const nested = (outer: number, padding: number) =>

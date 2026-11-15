@@ -16,8 +16,10 @@ import { notificationModule } from "@omerdlw/base-framework/notification";
 import { CoreProvider } from "@omerdlw/base-framework/provider";
 import { ThemeProvider } from "@omerdlw/base-framework/theme";
 import { TooltipProvider, UiProvider } from "@omerdlw/base-framework/ui";
+import { ActionArrival } from "@/design/components/action-content";
 import { Logo } from "@/design/components/logo";
 import { LiquidLens } from "@/design/liquid";
+import { LiquidTouch } from "@/design/liquid-touch";
 import { themes } from "@/design/theme";
 import { ui } from "@/design/ui";
 import { DEFAULT_ACCOUNT_ICON } from "@/features/account/account";
@@ -136,6 +138,8 @@ export function Providers({ children }: { children: ReactNode }): JSX.Element {
         </EngineProvider>
         <Cursor />
         <LiquidLens />
+        <LiquidTouch />
+        <ActionArrival />
       </Compose>
     </>
   );

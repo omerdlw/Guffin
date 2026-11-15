@@ -4,6 +4,7 @@ import { type ChangeEvent, useActionState, useEffect, useState } from "react";
 import { useToast } from "@omerdlw/base-framework/notification";
 import { Button } from "@omerdlw/base-framework/ui";
 import { Input } from "@/design/components/input";
+import { SurfacePart, SurfaceStage } from "@/design/components/surface";
 import { defineSurface } from "@/design/surface-definition";
 import { useAuth } from "@/features/auth/provider";
 import { AUTH_INPUT_CLASS } from "@/features/auth/sign-in";
@@ -63,38 +64,46 @@ function AccountSetupSurface({
       setFields((current) => ({ ...current, [name]: event.target.value }));
 
   return (
-    <form action={submit} className="flex flex-col gap-2.5">
-      <Input
-        aria-label="Username"
-        autoComplete="username"
-        className={AUTH_INPUT_CLASS}
-        disabled={pending}
-        name="username"
-        onChange={bindField("username")}
-        placeholder="Username"
-        required
-        value={fields.username}
-      />
-      <Input
-        aria-label="Display name"
-        autoComplete="name"
-        className={AUTH_INPUT_CLASS}
-        disabled={pending}
-        name="displayName"
-        onChange={bindField("displayName")}
-        placeholder="Display name (optional)"
-        value={fields.displayName}
-      />
-      <Button
-        intent="primary"
-        width="full"
-        disabled={pending || !fields.username.trim()}
-        loading={pending}
-        type="submit"
-      >
-        Continue
-      </Button>
-    </form>
+    <SurfaceStage>
+      <form action={submit} className="flex flex-col gap-2.5">
+        <SurfacePart name="item">
+          <Input
+            aria-label="Username"
+            autoComplete="username"
+            className={AUTH_INPUT_CLASS}
+            disabled={pending}
+            name="username"
+            onChange={bindField("username")}
+            placeholder="Username"
+            required
+            value={fields.username}
+          />
+        </SurfacePart>
+        <SurfacePart name="item">
+          <Input
+            aria-label="Display name"
+            autoComplete="name"
+            className={AUTH_INPUT_CLASS}
+            disabled={pending}
+            name="displayName"
+            onChange={bindField("displayName")}
+            placeholder="Display name (optional)"
+            value={fields.displayName}
+          />
+        </SurfacePart>
+        <SurfacePart name="item">
+          <Button
+            intent="primary"
+            width="full"
+            disabled={pending || !fields.username.trim()}
+            loading={pending}
+            type="submit"
+          >
+            Continue
+          </Button>
+        </SurfacePart>
+      </form>
+    </SurfaceStage>
   );
 }
 

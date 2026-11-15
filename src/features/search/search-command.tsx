@@ -8,13 +8,13 @@ import {
   useState,
 } from "react";
 import {
-  useDockContextActions,
   useDockRegistration,
   useDockSelector,
 } from "@omerdlw/base-framework/dock";
 import { REGISTRY_SOURCES } from "@omerdlw/base-framework/kernel";
 import { report } from "@omerdlw/base-framework/utils";
 import { usePathname } from "next/navigation";
+import { useDockCommands } from "@/design/dock-commands";
 import { preloadOnIntent } from "@/design/lazy-surface";
 
 // The dock's search button, on every page. The search itself (its drawer,
@@ -108,6 +108,6 @@ export function SearchDockCommand(): null {
     [open, toggle],
   );
 
-  useDockContextActions(actions);
+  useDockCommands(actions);
   return null;
 }

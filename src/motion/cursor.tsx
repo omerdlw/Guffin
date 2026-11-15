@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { Z_INDEX } from "@/design/foundations/z-index";
 import { pointerSample, watchPointer } from "./engine";
 import { useHydratedReducedMotion } from "./react";
+import { shapeOf } from "./shape";
 import "./reticle.css";
 import ticker from "./ticker.module.css";
 
@@ -20,6 +21,7 @@ type CursorMode =
   | "drag"
   | "frame"
   | "idle"
+  | "inside"
   | "none"
   | "point"
   | "text"
@@ -29,6 +31,8 @@ interface CursorReading {
   corner?: number;
   label: string;
   mode: CursorMode;
+  /** What the glass is fitted to, when that is not the target itself. */
+  shape?: HTMLElement;
   target: HTMLElement | null;
 }
 
@@ -43,6 +47,8 @@ interface CursorShape {
   lens: number;
   r: number;
   solid: number;
+  /** The drop swells (a large target: it stays a drop, a little fuller). */
+  swell: number;
   w: number;
 }
 
@@ -77,6 +83,7 @@ const CURSOR_SHAPES: Record<Exclude<CursorMode, "none">, CursorShape> = {
     lens: 0,
     r: 0,
     solid: 0,
+    swell: 0,
     w: 0,
   },
   // Over a card: no frame drawn round it; a sheet of clear glass laid
@@ -91,6 +98,7 @@ const CURSOR_SHAPES: Record<Exclude<CursorMode, "none">, CursorShape> = {
     lens: 1,
     r: 4,
     solid: 0,
+    swell: 0,
     w: 0,
   },
   drag: {
@@ -103,6 +111,7 @@ const CURSOR_SHAPES: Record<Exclude<CursorMode, "none">, CursorShape> = {
     lens: 0,
     r: 23,
     solid: 0,
+    swell: 0,
     w: 96,
   },
   frame: {
@@ -115,6 +124,7 @@ const CURSOR_SHAPES: Record<Exclude<CursorMode, "none">, CursorShape> = {
     lens: 0,
     r: 4,
     solid: 0,
+    swell: 0,
     w: 116,
   },
   idle: {
@@ -127,6 +137,22 @@ const CURSOR_SHAPES: Record<Exclude<CursorMode, "none">, CursorShape> = {
     lens: 0,
     r: 17,
     solid: 0,
+    swell: 0,
+    w: 34,
+  },
+  // Over something you can press that is too large to wrap (a wide row, a
+  // big card): the drop stays with the pointer, a little fuller.
+  inside: {
+    bracket: 0,
+    caption: 0,
+    dot: 1,
+    glass: 1,
+    h: 34,
+    label: 0,
+    lens: 0,
+    r: 17,
+    solid: 0,
+    swell: 1,
     w: 34,
   },
   // Only the dot: over a control whose own thumb is the glass.
@@ -140,6 +166,7 @@ const CURSOR_SHAPES: Record<Exclude<CursorMode, "none">, CursorShape> = {
     lens: 0,
     r: 0,
     solid: 0,
+    swell: 0,
     w: 0,
   },
   text: {
@@ -152,6 +179,7 @@ const CURSOR_SHAPES: Record<Exclude<CursorMode, "none">, CursorShape> = {
     lens: 0,
     r: 1,
     solid: 1,
+    swell: 0,
     w: 2,
   },
   wrap: {
@@ -164,6 +192,7 @@ const CURSOR_SHAPES: Record<Exclude<CursorMode, "none">, CursorShape> = {
     lens: 0,
     r: 4,
     solid: 0,
+    swell: 0,
     w: 0,
   },
 };
@@ -176,7 +205,10 @@ const CURSOR_LABELS: Partial<Record<CursorMode, string>> = {
 const CURSOR_TEXT_INPUT =
   "input:not([type=button],[type=checkbox],[type=file],[type=image],[type=radio],[type=range],[type=reset],[type=submit]), textarea, [contenteditable=''], [contenteditable='true']";
 
-const CURSOR_OWNER = `[data-cursor], [data-dragging], ${CURSOR_TEXT_INPUT}, a[href], button, summary, select, label, [role='button'], [role='link'], [role='tab'], [role='switch'], [role='menuitem']`;
+const CURSOR_OWNER = `[data-cursor], [data-dragging], ${CURSOR_TEXT_INPUT}, a[href], button, summary, select, label, [role='button'], [role='link'], [role='tab'], [role='switch'], [role='menuitem'], [role='menuitemradio'], [role='menuitemcheckbox'], [role='option'], [role='checkbox'], [role='radio'], [role='combobox'], [role='slider'], [aria-haspopup]:not([aria-haspopup='false'])`;
+
+/** How much fuller the drop is over a large target. */
+const CURSOR_SWELL = 0.32;
 
 const CURSOR_WRAP = 7;
 
@@ -184,6 +216,10 @@ const CURSOR_FRAMING = 14;
 
 /** Over a card, the glass reaches a hair past the picture's edge (px). */
 const CURSOR_CARD_FRAMING = 1;
+
+/** A snug target (`data-cursor-fit="snug"`, e.g. a poster stack): the pane
+ * keeps an even, close margin all round and does not lean to the pointer. */
+const CURSOR_SNUG_FRAMING = 4;
 
 const CURSOR_SLATE = /^(.*\S)\s+\((\d{4})\)(?:,\s*(.+))?$/;
 
@@ -309,17 +345,8 @@ function inkOf(element: HTMLElement): CursorInk | null {
   return ink;
 }
 
-const corners = new WeakMap<HTMLElement, number>();
-function cornerOf(element: HTMLElement): number {
-  let corner = corners.get(element);
-  if (corner === undefined) {
-    corner = Number.parseFloat(getComputedStyle(element).borderTopLeftRadius);
-    corners.set(element, corner);
-  }
-  return corner;
-}
-
-function boxOf(target: HTMLElement): CursorBox {
+function boxOf(target: HTMLElement, shape?: HTMLElement): CursorBox {
+  if (shape && shape !== target) return shape.getBoundingClientRect();
   const drawn = target.dataset.cursorBox?.split(",").map(Number);
   if (drawn?.length === 4 && drawn.every(Number.isFinite)) {
     const [left, top, right, bottom] = drawn as [
@@ -391,9 +418,9 @@ function read(x: number, y: number): CursorReading {
       let corner = Number.parseFloat(own.dataset.cursorCorner ?? "");
       if (!Number.isFinite(corner) && named === "card") {
         // The glass takes the picture's own corners, not a guess.
-        corner = cornerOf(
+        corner = shapeOf(
           own.querySelector<HTMLElement>("[data-cursor-frame]") ?? own,
-        );
+        ).radius;
       }
       return {
         corner: Number.isFinite(corner) ? corner : undefined,
@@ -412,8 +439,17 @@ function read(x: number, y: number): CursorReading {
     const fits = (limit: readonly [number, number]) =>
       box.width <= limit[0] && box.height <= limit[1];
     if (fits(CURSOR_SNAP_MAX) || fits(CURSOR_ROW_MAX)) {
-      return { corner: cornerOf(own), label: "", mode: "action", target: own };
+      // Fitted to what is painted: a round avatar in a bare link is a circle.
+      const shape = shapeOf(own);
+      return {
+        corner: shape.radius,
+        label: "",
+        mode: "action",
+        shape: shape.node as HTMLElement,
+        target: own,
+      };
     }
+    return { label: "", mode: "inside", target: own };
   }
 
   const stage = document.querySelector<HTMLElement>("[data-cursor-stage]");
@@ -476,6 +512,7 @@ function Reticle() {
       bracket: spring(),
       caption: spring(),
       dot: spring(1),
+      swell: spring(),
       glass: spring(1),
       label: spring(),
       lens: spring(),
@@ -637,7 +674,7 @@ function Reticle() {
           moved ||
           now - held.at >= CURSOR_REREAD_MS;
         if (stale) {
-          const box = boxOf(target);
+          const box = boxOf(target, reading.shape);
           const before = held?.target === target ? held.box : null;
           steady =
             before !== null &&
@@ -651,16 +688,19 @@ function Reticle() {
         // A card is fitted: a hair of margin and no lean towards the
         // pointer, so the glass lies on the picture edge to edge.
         const fitted = mode === "card";
+        const snug = mode === "action" && target.dataset.cursorFit === "snug";
         const pad = fitted
           ? CURSOR_CARD_FRAMING
-          : mode === "wrap"
-            ? CURSOR_FRAMING
-            : CURSOR_WRAP;
+          : snug
+            ? CURSOR_SNUG_FRAMING
+            : mode === "wrap"
+              ? CURSOR_FRAMING
+              : CURSOR_WRAP;
         const corner = reading.corner ?? Number.NaN;
         const mx = (box.left + box.right) / 2;
         const my = (box.top + box.bottom) / 2;
         const lean = (to: number, from: number) =>
-          fitted
+          fitted || snug
             ? 0
             : Math.max(
                 -CURSOR_MAGNET_MAX,
@@ -737,7 +777,8 @@ function Reticle() {
         [edge.t, cy - th / 2, travel],
         [edge.b, cy + th / 2, travel],
         [radius, tr, travel],
-        [weights.bead, mode === "idle" ? 1 : 0, ABSORB],
+        [weights.bead, mode === "idle" || mode === "inside" ? 1 : 0, ABSORB],
+        [weights.swell, shape.swell, FADE],
         [weights.bracket, shape.bracket, FADE],
         [weights.caption, reading.label ? shape.caption : 0, FADE],
         [weights.dot, shape.dot, FADE],
@@ -801,7 +842,7 @@ function Reticle() {
         drop,
         "absorb",
         "transform",
-        `translate(-50%, -50%) scale(${fine(0.3 + 0.7 * beaded)})`,
+        `translate(-50%, -50%) scale(${fine((0.3 + 0.7 * beaded) * (1 + CURSOR_SWELL * unitClamp(weights.swell.x)))})`,
       );
       put(pane, "pane", "opacity", fine(glass * (1 - beaded) * (1 - solid)));
       put(prism, "prism", "opacity", fine(unitClamp(weights.lens.x)));

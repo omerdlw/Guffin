@@ -52,6 +52,49 @@
         background-color 0.236s cubic-bezier(0.236, 1, 0.382, 1),
         box-shadow 0.236s cubic-bezier(0.236, 1, 0.382, 1);
     }
+    /* …and a clear control's fill (ui-iris) blooms in at the same pace. */
+    .dock-root .ui-iris::before {
+      transition: opacity 0.236s cubic-bezier(0.236, 1, 0.382, 1);
+    }
+
+    /* An action arrives from below: it rises a step and settles, after the
+       words above it; side by side, left to right, a line apart. On a fresh
+       page it waits for the dock itself to land (ActionArrival holds it
+       back). Individual properties, so the press (liquid-touch.ts,
+       transform) composes. */
+    @keyframes dock-action-arrive {
+      from {
+        opacity: 0;
+        translate: 0 13px;
+        scale: 0.96;
+      }
+    }
+
+    .dock-root .dock-action {
+      animation: dock-action-arrive 0.618s cubic-bezier(0.236, 1, 0.382, 1)
+        0.09s backwards;
+    }
+    .dock-root .dock-action:nth-child(2) {
+      animation-delay: 0.145s;
+    }
+    .dock-root .dock-action:nth-child(n + 3) {
+      animation-delay: 0.2s;
+    }
+
+    /* A surface's blocks rise in turn (surface.tsx): their turn is their
+       place among their sibling blocks, so no surface has to number them. */
+    .dock-surface [data-part="item"]:nth-child(2 of [data-part="item"]) {
+      --i: 1;
+    }
+    .dock-surface [data-part="item"]:nth-child(3 of [data-part="item"]) {
+      --i: 2;
+    }
+    .dock-surface [data-part="item"]:nth-child(4 of [data-part="item"]) {
+      --i: 3;
+    }
+    .dock-surface [data-part="item"]:nth-child(n + 5 of [data-part="item"]) {
+      --i: 4;
+    }
 
     .dock-root .ui-iris::before,
     .dock-root .ui-fade {

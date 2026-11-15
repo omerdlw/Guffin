@@ -18,6 +18,8 @@
   --color-listed: var(--listed);
   --color-liked: var(--liked);
   --color-rated: var(--rated);
+  --color-rated-off: var(--rated-off);
+  --color-fill-lift: var(--fill-lift);
   --color-award: var(--award);
 
   --color-white: var(--ink);

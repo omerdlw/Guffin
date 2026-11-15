@@ -3,6 +3,7 @@
 import { type JSX, useRef } from "react";
 import { useDockActionClass } from "@omerdlw/base-framework/dock";
 import { Button, Image } from "@omerdlw/base-framework/ui";
+import { ActionIcon, ActionLabel } from "@/design/components/action-content";
 import { Icon } from "@/design/components/icon";
 import { Link, TextButton } from "@/design/components/link";
 import { DockAction } from "@/design/components/surface";
@@ -225,11 +226,10 @@ export function WallAction({
           onClick={() => onToggle("watched")}
           type="button"
         >
-          <Icon
+          <ActionIcon
             icon={seen ? "solar:check-circle-bold" : "solar:eye-bold"}
-            size={16}
           />
-          <span className="truncate">{seen ? "Seen" : "Mark seen"}</span>
+          <ActionLabel>{seen ? "Seen" : "Mark seen"}</ActionLabel>
         </Button>
         {seen ? null : (
           <Button
@@ -242,11 +242,10 @@ export function WallAction({
             onClick={() => onToggle("watchlist")}
             type="button"
           >
-            <Icon
+            <ActionIcon
               icon={listed ? "solar:bookmark-bold" : "solar:bookmark-linear"}
-              size={16}
             />
-            <span className="truncate">{listed ? "Saved" : "Watchlist"}</span>
+            <ActionLabel>{listed ? "Saved" : "Watchlist"}</ActionLabel>
           </Button>
         )}
         <Button

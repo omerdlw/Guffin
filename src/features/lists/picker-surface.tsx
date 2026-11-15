@@ -18,6 +18,7 @@ import {
   useHighlight,
 } from "@omerdlw/base-framework/ui";
 import { report, toUserMessage } from "@omerdlw/base-framework/utils";
+import { ActionIcon } from "@/design/components/action-content";
 import { Icon } from "@/design/components/icon";
 import { Input } from "@/design/components/input";
 import { SKELETON } from "@/design/components/skeleton";
@@ -467,7 +468,7 @@ function ListPickerSurface({ data }: { data: ListPickerData }): JSX.Element {
                 }))
               }
             >
-              <Icon
+              <ActionIcon
                 icon={
                   draft.isPrivate
                     ? "solar:lock-bold"

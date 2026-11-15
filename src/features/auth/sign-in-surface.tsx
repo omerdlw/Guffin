@@ -9,7 +9,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { Icon } from "@/design/components/icon";
 import { Input } from "@/design/components/input";
 import { Link } from "@/design/components/link";
-import { SurfaceAnchor } from "@/design/components/surface";
+import { SurfacePart, SurfaceStage } from "@/design/components/surface";
 import { useSurfacePreload } from "@/design/lazy-surface";
 import { defineSurface } from "@/design/surface-definition";
 import {
@@ -193,16 +193,17 @@ function SignInSurface({ close, data = {} }: SignInSurfaceProps) {
   if (!auth.isConfigured) return <SupabaseSetupNotice />;
 
   return (
-    <div className="flex flex-col gap-2.5">
-      <SurfaceAnchor />
-      <MethodButton
-        busy={active === "passkey"}
-        disabled={Boolean(active)}
-        method="passkey"
-        onSelect={selectMethod}
-        primary
-      />
-      <div className="grid w-full grid-cols-2 gap-2.5">
+    <SurfaceStage className="flex flex-col gap-2.5">
+      <SurfacePart name="item">
+        <MethodButton
+          busy={active === "passkey"}
+          disabled={Boolean(active)}
+          method="passkey"
+          onSelect={selectMethod}
+          primary
+        />
+      </SurfacePart>
+      <SurfacePart className="grid w-full grid-cols-2 gap-2.5" name="item">
         {(["email", ...OAUTH_PROVIDERS] as const).map((method) => (
           <MethodButton
             busy={active === method}
@@ -212,8 +213,13 @@ function SignInSurface({ close, data = {} }: SignInSurfaceProps) {
             onSelect={selectMethod}
           />
         ))}
-      </div>
-      <p className="px-4 pt-0.5 text-center type-label text-balance text-ink-muted">
+      </SurfacePart>
+      <SurfacePart
+        as="p"
+        className="px-4 pt-0.5 text-center type-label text-balance text-ink-muted"
+        index={2}
+        name="note"
+      >
         By continuing you agree to the{" "}
         <Link
           variant="inline"
@@ -233,8 +239,8 @@ function SignInSurface({ close, data = {} }: SignInSurfaceProps) {
           Privacy Policy
         </Link>
         .
-      </p>
-    </div>
+      </SurfacePart>
+    </SurfaceStage>
   );
 }
 
@@ -289,30 +295,35 @@ function EmailSignInSurface({ data = {} }: SignInSurfaceProps) {
   }, [openSurface, postAuthRedirect, result, toast]);
 
   return (
-    <form action={submit} className="flex flex-col gap-2.5">
-      <SurfaceAnchor />
-      <Input
-        aria-label="Email"
-        autoComplete="email"
-        className={AUTH_INPUT_CLASS}
-        disabled={pending}
-        name="email"
-        onChange={(event) => setEmail(event.target.value)}
-        placeholder="Email"
-        required
-        type="email"
-        value={email}
-      />
-      <Button
-        intent="primary"
-        width="full"
-        disabled={pending}
-        loading={pending}
-        type="submit"
-      >
-        <span className="truncate">Continue with email</span>
-      </Button>
-    </form>
+    <SurfaceStage>
+      <form action={submit} className="flex flex-col gap-2.5">
+        <SurfacePart name="item">
+          <Input
+            aria-label="Email"
+            autoComplete="email"
+            className={AUTH_INPUT_CLASS}
+            disabled={pending}
+            name="email"
+            onChange={(event) => setEmail(event.target.value)}
+            placeholder="Email"
+            required
+            type="email"
+            value={email}
+          />
+        </SurfacePart>
+        <SurfacePart name="item">
+          <Button
+            intent="primary"
+            width="full"
+            disabled={pending}
+            loading={pending}
+            type="submit"
+          >
+            <span className="truncate">Continue with email</span>
+          </Button>
+        </SurfacePart>
+      </form>
+    </SurfaceStage>
   );
 }
 

@@ -12,7 +12,8 @@ import {
   useDockActionClass,
   useDockActions,
 } from "@omerdlw/base-framework/dock";
-import { Button, SegmentedControl } from "@omerdlw/base-framework/ui";
+import { Button } from "@omerdlw/base-framework/ui";
+import { SegmentedControl } from "@/design/components/segmented-control";
 import { Icon } from "@/design/components/icon";
 import { Input } from "@/design/components/input";
 import { SURFACE_SCROLL } from "@/design/components/surface-classes";

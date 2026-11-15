@@ -1,19 +1,15 @@
 "use client";
 
 import { type JSX, type ReactNode, useEffect, useMemo, useState } from "react";
-import {
-  HighlightGroup,
-  Loader,
-  useHighlight,
-} from "@omerdlw/base-framework/ui";
+import { Loader } from "@omerdlw/base-framework/ui";
 import { report } from "@omerdlw/base-framework/utils";
 import { Icon } from "@/design/components/icon";
 import { ExternalLink } from "@/design/components/link";
 import { MediaCard } from "@/design/components/media-card";
-import { SurfaceSegmentedControl } from "@/design/components/segmented-control";
+import { SegmentedControl } from "@/design/components/segmented-control";
 import { Select } from "@/design/components/select";
-import { WELL, WELL_HOVER } from "@/design/foundations/tones";
 import {
+  SurfaceExtension,
   SurfacePart,
   SurfaceStage,
   SurfaceSwap,
@@ -22,14 +18,12 @@ import {
   SURFACE_SCROLL,
   SURFACE_STACK,
   SURFACE_TEXT,
-  SURFACE_TILE_END,
   SURFACE_TITLE,
-  tileVariants,
 } from "@/design/components/surface-classes";
 import { defineSurface } from "@/design/surface-definition";
-import { cn } from "@/design/ui";
 import { type MediaType, tmdbImageUrl } from "@/lib/tmdb/shared";
 import { getWatchProvidersAction } from "./actions";
+import { flagOf, pickRegion, regionName, useWatchRegion } from "./region";
 import type { ProviderEntry, RegionProviders } from "./movie";
 
 type WatchProvidersSource =
@@ -56,8 +50,6 @@ const PROVIDER_CATEGORIES: readonly {
   { icon: "solar:gift-bold", key: "free", label: "Free" },
 ];
 
-const FALLBACK_REGION = "US";
-
 const PROVIDER_SEARCH_URLS: readonly [RegExp, (q: string) => string][] = [
   [/netflix/i, (q) => `https://www.netflix.com/search?q=${q}`],
   [/prime|amazon/i, (q) => `https://www.primevideo.com/search?phrase=${q}`],
@@ -81,11 +73,13 @@ const PROVIDER_SEARCH_URLS: readonly [RegExp, (q: string) => string][] = [
   [/crunchyroll/i, (q) => `https://www.crunchyroll.com/search?q=${q}`],
 ];
 
-const PROVIDER_TILE_CLASS = cn(
-  tileVariants(),
-  SURFACE_TILE_END,
-  "group/tile relative isolate text-ink-body hover:text-ink focus-visible:text-ink",
-);
+// A row is a hairline ring that fills under the pointer, glowing in on the
+// surface stage's `tile` (its arrow with it), as in People you follow. The
+// arrow sits as far from the edge as from the top and foot.
+const PROVIDER_ROW =
+  "group/tile flex rounded-card ring-1 ring-edge ring-inset hover:bg-fill has-focus-visible:bg-fill";
+const PROVIDER_TILE_CLASS =
+  "flex min-w-0 flex-1 items-center gap-3 rounded-card p-1.5 pr-4.5 text-ink-body outline-none group-hover/tile:text-ink focus-visible:text-ink";
 
 function providerHref(
   provider: ProviderEntry,
@@ -100,24 +94,59 @@ function providerHref(
   return region.link;
 }
 
-const regionName = (code: string) => {
-  try {
-    return new Intl.DisplayNames(["en"], { type: "region" }).of(code) ?? code;
-  } catch {
-    return code;
-  }
+// The region, on the shelf beside the tabs: a pill as tall as the track,
+// showing its flag and code; its menu floats over the surface with the full
+// names, always below the shelf (never flipped over the page): it fills the
+// room between the trigger and the foot of the window, up to 20rem. One
+// label serves both: the trigger hides the name, the menu the code.
+const REGION_SELECT = {
+  root: "w-auto shrink-0",
+  trigger:
+    "h-control-sm w-auto gap-1.5 rounded-full px-3 type-meta font-medium text-ink-body hover:text-ink aria-expanded:text-ink [&_[data-name]]:hidden",
+  chevron: "size-3 text-[length:12px]",
+  content:
+    "w-60! [left:auto]! [right:anchor(right)]! bottom-3! h-auto! max-h-80! [position-try-fallbacks:none]! rounded-card p-1.5 [&_[data-code]]:hidden",
+  option: "rounded-inset",
 };
 
-const flagOf = (code: string) =>
-  String.fromCodePoint(
-    ...code.split("").map((char) => 127397 + char.charCodeAt(0)),
+function RegionSelect({
+  codes,
+  onChange,
+  value,
+}: {
+  codes: readonly string[];
+  onChange: (code: string) => void;
+  value: string;
+}): JSX.Element {
+  const options = useMemo(
+    () =>
+      codes.map((code) => ({
+        label: (
+          <span className="flex min-w-0 items-center gap-2">
+            <span aria-hidden="true">{flagOf(code)}</span>
+            <span className="truncate" data-name="">
+              {regionName(code)}
+            </span>
+            <span data-code="">{code}</span>
+          </span>
+        ),
+        value: code,
+      })),
+    [codes],
   );
-
-function pickRegion(codes: readonly string[]): string {
-  const language = typeof navigator === "undefined" ? "" : navigator.language;
-  const own = language.split("-")[1]?.toUpperCase();
-  if (own && codes.includes(own)) return own;
-  return codes.includes(FALLBACK_REGION) ? FALLBACK_REGION : (codes[0] ?? "");
+  return (
+    <Select
+      ariaLabel="Region"
+      className={REGION_SELECT.root}
+      classNames={REGION_SELECT}
+      disabled={codes.length === 0}
+      onChange={onChange}
+      options={options}
+      placement="popover"
+      placeholder={<Icon icon="solar:global-linear" size={14} />}
+      value={value || undefined}
+    />
+  );
 }
 
 export const watchProvidersSurface = defineSurface<{
@@ -139,14 +168,11 @@ function ProviderTile({
   href: string | null;
   provider: ProviderEntry;
 }): JSX.Element {
-  const highlight = useHighlight(String(provider.id));
-
   const content = (
     <>
-      {highlight.node}
       <MediaCard
         aspect="free"
-        className="relative z-10 shrink-0"
+        className="shrink-0"
         fallbackIcon="solar:tv-bold"
         fallbackIconSize={16}
         frameClassName="size-10"
@@ -157,29 +183,25 @@ function ProviderTile({
         }}
         radius={10}
       />
-      <div className={`${SURFACE_TEXT} relative z-10`}>
+      <div className={SURFACE_TEXT}>
         <span className={SURFACE_TITLE}>{provider.name}</span>
       </div>
     </>
   );
 
   if (!href) {
-    return (
-      <div className={PROVIDER_TILE_CLASS} {...highlight.props}>
-        {content}
-      </div>
-    );
+    return <div className={PROVIDER_TILE_CLASS}>{content}</div>;
   }
 
   return (
     <ExternalLink
       className={`${PROVIDER_TILE_CLASS} cursor-pointer`}
       href={href}
-      {...highlight.props}
     >
       {content}
       <Icon
-        className="center relative z-10 group-hover/tile:translate-x-px group-hover/tile:-translate-y-px"
+        className="center group-hover/tile:translate-x-px group-hover/tile:-translate-y-px"
+        data-slot="icon"
         icon="solar:arrow-right-up-linear"
         size={14}
       />
@@ -250,7 +272,6 @@ function WatchProvidersSurface({
 }): JSX.Element {
   const source = useWatchProviders(data.movieId, data.mediaType ?? "movie");
   const regions = source.status === "ready" ? source.regions : null;
-  const [chosenRegion, setChosenRegion] = useState<string | null>(null);
   const [chosenCategory, setChosenCategory] = useState<ProviderCategory | null>(
     null,
   );
@@ -262,7 +283,7 @@ function WatchProvidersSurface({
       ),
     [regions],
   );
-  const selectedRegion = chosenRegion ?? pickRegion(codes);
+  const selectedRegion = useWatchRegion(codes);
   const region = regions?.[selectedRegion] ?? null;
   const counts = countProviders(region);
   const visibleCategories = PROVIDER_CATEGORIES.filter(
@@ -281,18 +302,28 @@ function WatchProvidersSurface({
 
   return (
     <SurfaceStage>
-      <SurfaceSegmentedControl
-        ariaLabel="Kind of availability"
-        id="watch-providers-categories"
-        items={visibleCategories.map((category) => ({
-          count: counts[category.key],
-          icon: category.icon,
-          key: category.key,
-          label: category.label,
-        }))}
-        onChange={setChosenCategory}
-        value={activeCategory}
-      />
+      <SurfaceExtension align="center" id="watch-providers-categories">
+        <div className="flex w-full min-w-0 items-center gap-1.5">
+          <SegmentedControl
+            ariaLabel="Kind of availability"
+            className="min-w-0 flex-1"
+            items={visibleCategories.map((category) => ({
+              count: counts[category.key],
+              icon: category.icon,
+              key: category.key,
+              label: category.label,
+            }))}
+            onChange={setChosenCategory}
+            value={activeCategory}
+            width="fill"
+          />
+          <RegionSelect
+            codes={codes}
+            onChange={pickRegion}
+            value={selectedRegion}
+          />
+        </div>
+      </SurfaceExtension>
 
       <SurfaceSwap className={SURFACE_STACK} cue="items" id={status} now>
         {source.status === "error" ? (
@@ -313,46 +344,31 @@ function WatchProvidersSurface({
         ) : (
           <>
             <SurfacePart name="item">
-              <Select
-                ariaLabel="Region"
-                classNames={{
-                  content: "static mt-0 max-h-52 rounded-card p-1.5",
-                  option: "rounded-inset",
-                  trigger: `h-10 rounded-card px-4 py-0 ring-transparent ${WELL} ${WELL_HOVER}`,
-                }}
-                onChange={setChosenRegion}
-                options={codes.map((code) => ({
-                  label: `${flagOf(code)} ${regionName(code)}`,
-                  value: code,
-                }))}
-                placement="inline"
-                value={selectedRegion}
-              />
-            </SurfacePart>
-
-            <SurfacePart name="item">
               <div
                 className={`${SURFACE_SCROLL} flex max-h-[min(52dvh,24rem)] flex-col`}
                 data-scroll-native
               >
                 {activeProviders.length > 0 ? (
-                  <HighlightGroup>
-                    <SurfaceSwap
-                      className="flex flex-col gap-2.5"
-                      cue="rows"
-                      id={`${selectedRegion}-${activeCategory}`}
-                      now
-                    >
-                      {activeProviders.map((provider, index) => (
-                        <SurfacePart index={index} key={provider.id} name="row">
-                          <ProviderTile
-                            href={providerHref(provider, data.title, region)}
-                            provider={provider}
-                          />
-                        </SurfacePart>
-                      ))}
-                    </SurfaceSwap>
-                  </HighlightGroup>
+                  <SurfaceSwap
+                    className="flex flex-col gap-2.5"
+                    cue="rows"
+                    id={`${selectedRegion}-${activeCategory}`}
+                    now
+                  >
+                    {activeProviders.map((provider, index) => (
+                      <SurfacePart
+                        className={PROVIDER_ROW}
+                        index={index}
+                        key={provider.id}
+                        name="tile"
+                      >
+                        <ProviderTile
+                          href={providerHref(provider, data.title, region)}
+                          provider={provider}
+                        />
+                      </SurfacePart>
+                    ))}
+                  </SurfaceSwap>
                 ) : (
                   <p className="py-6 text-center type-meta text-ink-muted">
                     No {activeCategory} options available in this region

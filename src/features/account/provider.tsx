@@ -12,7 +12,6 @@ import {
 } from "react";
 import {
   useDockActions,
-  useDockContextActions,
   useDockRegistration,
   useDockSelector,
 } from "@omerdlw/base-framework/dock";
@@ -22,6 +21,7 @@ import { REGISTRY_SOURCES } from "@omerdlw/base-framework/kernel";
 import { getCurrentPath, report } from "@omerdlw/base-framework/utils";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import { usePathname, useRouter } from "next/navigation";
+import { useDockCommands } from "@/design/dock-commands";
 import { useSurfacePreload } from "@/design/lazy-surface";
 import { useAuth } from "@/features/auth/provider";
 import { signInSurface } from "@/features/auth/surfaces";
@@ -344,7 +344,7 @@ function AccountDockActions(): null {
     [signOut, signedIn, toggleNotifications, unreadCount],
   );
 
-  useDockContextActions(actions);
+  useDockCommands(actions);
 
   return null;
 }

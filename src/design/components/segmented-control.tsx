@@ -1,6 +1,5 @@
 "use client";
 
-import { DockSurfaceExtension } from "@omerdlw/base-framework/dock";
 import {
   type KeyboardEvent,
   type PointerEvent,
@@ -11,13 +10,16 @@ import {
   useState,
 } from "react";
 import { Icon } from "@/design/components/icon";
+import { SurfaceExtension } from "@/design/components/surface";
 import {
   clamp,
   drive,
   DRAG_SLOP,
   feel,
+  glassDepth,
   type Goal,
   spring,
+  swellBox,
   thumbTransform,
 } from "@/design/components/glass-thumb";
 import { cn } from "@/design/ui";
@@ -36,6 +38,8 @@ export interface SegmentedControlProps<K extends string> {
   items: readonly SegmentedItem<K>[];
   onChange: (key: K) => void;
   value: K;
+  /** `fill`: as wide as its row, the items sharing it equally. */
+  width?: "fit" | "fill";
 }
 
 interface Box {
@@ -73,11 +77,12 @@ function nearest(boxes: readonly Box[], centre: number) {
 }
 
 /**
- * Picks one of a few items. One indicator, made of the liquid material
- * (liquid.css): at rest it carries the chosen fill; press it and it swells
- * into clear liquid glass you can drag across the others, and it travels as
- * glass whenever the choice changes, taking the chosen fill back on arrival.
- * The labels sit above it and stay crisp.
+ * Picks one of a few items. One indicator in two layers that move as one: the
+ * chosen fill, under the labels, and a clear liquid lens over them. At rest
+ * only the fill shows and the labels read crisp on it; press it and the lens
+ * swells in, so you drag a drop of glass across the labels and they bend at
+ * its rim; it travels as glass whenever the choice changes and settles back
+ * into the fill on arrival.
  */
 export function SegmentedControl<K extends string>({
   ariaLabel,
@@ -85,9 +90,11 @@ export function SegmentedControl<K extends string>({
   items,
   onChange,
   value,
+  width = "fit",
 }: SegmentedControlProps<K>) {
   const root = useRef<HTMLDivElement>(null);
   const pill = useRef<HTMLSpanElement>(null);
+  const lens = useRef<HTMLSpanElement>(null);
   const [ready, setReady] = useState(false);
   const [lit, setLit] = useState<number | null>(null);
 
@@ -111,12 +118,15 @@ export function SegmentedControl<K extends string>({
 
   useEffect(() => {
     const list = root.current;
-    const glass = pill.current;
-    if (!list || !glass) return;
+    const chosenFill = pill.current;
+    const glass = lens.current;
+    if (!list || !chosenFill || !glass) return;
     const reduced = matchMedia(REDUCED);
 
     let boxes: Box[] = [];
     let measured = false;
+    /** The thumb's height at rest (the track's, inset). */
+    let thumbHeight = 0;
     const x = spring();
     const w = spring();
     const amount = spring();
@@ -170,15 +180,21 @@ export function SegmentedControl<K extends string>({
 
     const draw = () => {
       const g = clamp(amount.x, 0, 1);
-      // Its height never changes, so its corners (and the glint and lens
-      // drawn for them) stay put; the swell is a scale.
+      // The fill swells by a scale (it bends nothing); the glass is sized
+      // for real, so its lens bends the labels cleanly at the rim.
       const sx = 1 + SWELL_X * g + stretch.x;
       const sy = 1 + SWELL_Y * g - stretch.x * 0.6;
-      glass.style.visibility = "visible";
-      glass.style.width = `${w.x.toFixed(2)}px`;
-      glass.style.transform = thumbTransform(x.x, sx, sy);
-      // The chosen fill gives way to the glass's own tint.
-      glass.style.backgroundColor = `color-mix(in oklab, var(--chosen) ${((1 - g) * 100).toFixed(1)}%, var(--liquid-tint))`;
+      const width = `${w.x.toFixed(2)}px`;
+      const transform = thumbTransform(x.x, sx, sy);
+      chosenFill.style.visibility = "visible";
+      chosenFill.style.width = width;
+      chosenFill.style.transform = transform;
+      // The fill gives way to the glass laid over the labels.
+      chosenFill.style.opacity = (1 - g).toFixed(3);
+      glass.style.visibility = g > 0.004 ? "visible" : "hidden";
+      swellBox(glass, x.x, w.x, thumbHeight, sx, sy);
+      glass.style.opacity = clamp(g * 1.6, 0, 1).toFixed(3);
+      glass.style.setProperty("--liquid-drop", glassDepth(g));
       const next = dragging ? nearest(boxes, x.x + w.x / 2) : null;
       if (next !== shownLit) {
         shownLit = next;
@@ -193,6 +209,7 @@ export function SegmentedControl<K extends string>({
         list.querySelectorAll<HTMLElement>('[role="tab"]'),
         (tab) => ({ left: tab.offsetLeft, width: tab.offsetWidth }),
       );
+      thumbHeight = chosenFill.offsetHeight;
       const chosen = boxes[target];
       if (!chosen) return;
       if (!dragging) {
@@ -313,7 +330,8 @@ export function SegmentedControl<K extends string>({
     <div
       aria-label={ariaLabel}
       className={cn(
-        "choreo-segmented relative inline-flex h-control-sm w-fit max-w-full touch-pan-y items-stretch gap-0.5 rounded-full bg-fill p-0.5 ring-1 ring-edge ring-inset select-none",
+        "choreo-segmented liquid-control relative h-control-sm max-w-full touch-pan-y items-stretch gap-0.5 rounded-full bg-fill p-0.5 ring-1 ring-edge ring-inset select-none",
+        width === "fill" ? "flex w-full" : "inline-flex w-fit",
         className,
       )}
       onKeyDown={onKeyDown}
@@ -327,10 +345,10 @@ export function SegmentedControl<K extends string>({
       ref={root}
       role="tablist"
     >
-      {/* The indicator: the liquid material, under the labels. */}
+      {/* The indicator's fill, under the labels. */}
       <span
         aria-hidden="true"
-        className="liquid liquid-lens liquid-flat pointer-events-none absolute top-0.5 bottom-0.5 left-0 rounded-full"
+        className="pointer-events-none absolute top-0.5 bottom-0.5 left-0 rounded-full bg-chosen"
         ref={pill}
         style={{ visibility: "hidden" }}
       />
@@ -340,6 +358,7 @@ export function SegmentedControl<K extends string>({
           <button
             aria-selected={active}
             className={cn(
+              width === "fill" && "flex-1",
               "ui-fade relative inline-flex min-w-fit cursor-pointer items-center justify-center gap-1.5 rounded-full px-3.5 type-meta font-medium whitespace-nowrap outline-none focus-visible:ring-1 focus-visible:ring-edge-focus focus-visible:ring-inset disabled:cursor-not-allowed disabled:opacity-50",
               index === shown
                 ? "text-ink"
@@ -373,21 +392,33 @@ export function SegmentedControl<K extends string>({
           </button>
         );
       })}
+      {/* …and its glass, over them: clear, so the labels bend at its rim. */}
+      <span
+        aria-hidden="true"
+        className="liquid liquid-clear pointer-events-none absolute top-0.5 left-0 z-10 rounded-full [--liquid-bend:0.15] [--liquid-tint:rgb(var(--ink-rgb)/0.03)]"
+        ref={lens}
+        style={{ opacity: 0, visibility: "hidden" }}
+      />
     </div>
   );
 }
 
+/**
+ * A surface's tabs, on the dock's shelf. It spans the shelf, 6.5px in on
+ * every side, its pill concentric with the shelf's 22.5px corner.
+ */
 export function SurfaceSegmentedControl<K extends string>({
   align = "center",
   id,
+  width = "fill",
   ...props
 }: SegmentedControlProps<K> & {
   align?: "center" | "left" | "right";
   id: string;
 }) {
   return (
-    <DockSurfaceExtension align={align} id={id}>
-      <SegmentedControl {...props} />
-    </DockSurfaceExtension>
+    <SurfaceExtension align={align} id={id}>
+      <SegmentedControl width={width} {...props} />
+    </SurfaceExtension>
   );
 }

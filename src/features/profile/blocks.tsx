@@ -454,7 +454,11 @@ export function PosterStack({
   paths: readonly (string | null)[];
 }): JSX.Element {
   return (
-    <div aria-hidden="true" className={cn("flex w-full", className)}>
+    // Rounded like its posters, so the cursor's pane reads their corner.
+    <div
+      aria-hidden="true"
+      className={cn("flex w-full rounded-thumb", className)}
+    >
       {Array.from({ length: POSTER_STACK_SLOTS }, (_, index) => {
         const path = paths[index] ?? null;
         return (

@@ -16,6 +16,7 @@ import { Icon } from "@/design/components/icon";
 import { MediaCard } from "@/design/components/media-card";
 import { DockAction } from "@/design/components/surface";
 import { RADIUS } from "@/design/foundations/geometry";
+import { DOCK_WIDTH } from "@/design/theme/dock-motion";
 import {
   DirectorsPart,
   DirectorsStage,
@@ -74,8 +75,6 @@ const DIRECTORS_MIN_SLOTS = 12;
 const DIRECTORS_FACE_MIN = 0.4;
 
 const DIRECTORS_FACE_STEP = 0.05;
-
-const DIRECTORS_DOCK_WIDTH = 460;
 
 const DIRECTOR_POSTER_WIDTHS = ["w92", "w185"] as const;
 
@@ -408,7 +407,7 @@ function Directors({
     [directors.length, index, step],
   );
   const count = director.films.length;
-  const dock = useDockWidth(DIRECTORS_DOCK_WIDTH);
+  const dock = useDockWidth(DOCK_WIDTH);
   const layout = useMemo(
     () => (size ? fitDirectors(size.width, size.height, count, dock) : null),
     [count, dock, size],

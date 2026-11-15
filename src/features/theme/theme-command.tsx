@@ -1,34 +1,25 @@
 "use client";
 
-import {
-  type CSSProperties,
-  type SyntheticEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-import { useDockContextActions } from "@omerdlw/base-framework/dock";
-import {
-  Button,
-  SlidingPill,
-  useSlidingPill,
-} from "@omerdlw/base-framework/ui";
-import { createPortal } from "react-dom";
+import { useCallback, useEffect, useMemo } from "react";
+import { usePathname } from "next/navigation";
 import { Icon } from "@/design/components/icon";
-import { SHELL } from "@/design/foundations/layers";
-import { Z_INDEX } from "@/design/foundations/z-index";
-import { cn } from "@/design/ui";
 import {
-  setThemeChoice,
-  THEME_CHOICES,
-  type ThemeChoice,
-  useThemeChoice,
-} from "./store";
+  takeOverDockCommands,
+  useDockCommandOwner,
+  useDockCommands,
+} from "@/design/dock-commands";
+import { setThemeChoice, type ThemeChoice, useThemeChoice } from "./store";
+
+// The dock's theme command. Pressing it turns the whole command row into the
+// theme picker: System keeps the theme button's place on the right, Light and
+// Dark come in to its left. Picking one (or Escape, or a press anywhere else)
+// gives the row back to the page's commands.
 
 const THEME_ACTION_KEY = "theme.open";
 
 const THEME_ACTION_ORDER = -30;
+
+const OWNER = "theme";
 
 const THEME_CHOICE_COPY: Record<ThemeChoice, { icon: string; title: string }> =
   {
@@ -37,180 +28,94 @@ const THEME_CHOICE_COPY: Record<ThemeChoice, { icon: string; title: string }> =
     dark: { icon: "solar:moon-bold", title: "Dark" },
   };
 
-const GAP = 12;
-const EDGE = 12;
+// Left to right in the row (the dock sorts commands by descending order).
+const PICKER: readonly ThemeChoice[] = ["light", "dark", "system"];
 
-type Anchor = { bottom: number; right: number };
+const CHOICE_ATTR = "data-theme-choice";
 
-const BUTTON = 'button[aria-label="Theme"]';
-
-function placeOf(target: Element): Anchor {
-  const box = target.getBoundingClientRect();
-  return {
-    bottom: Math.round(window.innerHeight - box.top + GAP),
-    right: Math.max(EDGE, Math.round(window.innerWidth - box.right)),
-  };
-}
-
-function useFollow(target: Element | null): Anchor | null {
-  const [anchor, setAnchor] = useState<Anchor | null>(null);
-
-  useEffect(() => {
-    if (!target) {
-      setAnchor(null);
-      return;
-    }
-    let node: Element = target;
-    let frame = 0;
-    const tick = () => {
-      if (!node.isConnected) {
-        const next = [...document.querySelectorAll(BUTTON)].find(
-          (el) => el.getBoundingClientRect().width > 0,
-        );
-        if (next) node = next;
-      }
-      const next = placeOf(node);
-      setAnchor((now) =>
-        now && now.bottom === next.bottom && now.right === next.right
-          ? now
-          : next,
-      );
-      frame = requestAnimationFrame(tick);
-    };
-    tick();
-    return () => cancelAnimationFrame(frame);
-  }, [target]);
-
-  return anchor;
-}
-
-function Segments({
-  onClose,
-  place,
+function ChoiceIcon({
+  choice,
+  chosen,
 }: {
-  onClose: () => void;
-  place: CSSProperties | undefined;
+  choice: ThemeChoice;
+  chosen: boolean;
 }) {
-  const current = useThemeChoice();
-  const { box, ref } = useSlidingPill<HTMLDivElement>(
-    "[data-pill-target]",
-    current,
-  );
-
+  const { icon } = THEME_CHOICE_COPY[choice];
   return (
-    <div
-      aria-label="Theme"
-      className={cn(
-        "absolute flex items-stretch gap-0.5 rounded-full p-1",
-        SHELL,
-      )}
-      ref={ref}
-      role="menu"
-      style={place}
+    <span
+      {...{ [CHOICE_ATTR]: choice }}
+      className={
+        chosen
+          ? "center absolute inset-0 rounded-full bg-grade/15 text-ink"
+          : "center absolute inset-0 rounded-full"
+      }
     >
-      {box ? (
-        <SlidingPill box={box} className="inset-y-1 rounded-full bg-grade/15" />
-      ) : null}
-      {THEME_CHOICES.map((choice) => {
-        const chosen = choice === current;
-        const { icon, title } = THEME_CHOICE_COPY[choice];
-        return (
-          <Button
-            aria-checked={chosen}
-            aria-label={title}
-            className={cn(chosen && "text-ink")}
-            icon
-            intent="ghost"
-            shape="pill"
-            size="chrome"
-            data-pill-target={chosen ? "" : undefined}
-            key={choice}
-            onClick={() => {
-              setThemeChoice(choice);
-              onClose();
-            }}
-            role="menuitemradio"
-            title={title}
-          >
-            <Icon icon={icon} size={18} />
-          </Button>
-        );
-      })}
-    </div>
-  );
-}
-
-function ThemePopover({
-  onClose,
-  target,
-}: {
-  onClose: () => void;
-  target: Element | null;
-}) {
-  const anchor = useFollow(target);
-
-  useEffect(() => {
-    if (!target) return;
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") return;
-      event.stopPropagation();
-      onClose();
-    };
-    window.addEventListener("keydown", onKey, true);
-    return () => window.removeEventListener("keydown", onKey, true);
-  }, [target, onClose]);
-
-  if (typeof document === "undefined") return null;
-
-  const place: CSSProperties | undefined = anchor
-    ? { bottom: anchor.bottom, right: anchor.right }
-    : undefined;
-
-  return createPortal(
-    <>
-      {target && anchor ? (
-        <div
-          className="fixed inset-0"
-          key="theme-layer"
-          style={{ zIndex: Z_INDEX.CONTEXT_MENU }}
-        >
-          <div
-            aria-hidden="true"
-            className="absolute inset-0"
-            onPointerDown={onClose}
-          />
-          <Segments onClose={onClose} place={place} />
-        </div>
-      ) : null}
-    </>,
-    document.body,
+      <Icon icon={icon} size={16} />
+    </span>
   );
 }
 
 export function ThemeDockCommand() {
   const choice = useThemeChoice();
-  const [target, setTarget] = useState<Element | null>(null);
-  const close = useCallback(() => setTarget(null), []);
+  const picking = useDockCommandOwner() === OWNER;
+  const pathname = usePathname();
 
-  const open = useCallback((event?: SyntheticEvent) => {
-    const target = event?.currentTarget;
-    if (!(target instanceof Element)) return;
-    setTarget((current) => (current ? null : target));
-  }, []);
+  const close = useCallback(() => takeOverDockCommands(null), []);
+  const open = useCallback(() => takeOverDockCommands(OWNER), []);
 
-  const actions = useMemo(
-    () => [
-      {
-        icon: THEME_CHOICE_COPY[choice].icon,
-        key: THEME_ACTION_KEY,
-        onClick: open,
-        order: THEME_ACTION_ORDER,
-        tooltip: "Theme",
+  // A new page brings its own commands back.
+  useEffect(() => close, [close, pathname]);
+
+  useEffect(() => {
+    if (!picking) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      event.stopPropagation();
+      close();
+    };
+    const onPointer = (event: PointerEvent) => {
+      const target = event.target;
+      if (
+        target instanceof Element &&
+        target.closest("button")?.querySelector(`[${CHOICE_ATTR}]`)
+      ) {
+        return;
+      }
+      close();
+    };
+    window.addEventListener("keydown", onKey, true);
+    window.addEventListener("pointerdown", onPointer, true);
+    return () => {
+      window.removeEventListener("keydown", onKey, true);
+      window.removeEventListener("pointerdown", onPointer, true);
+    };
+  }, [close, picking]);
+
+  const actions = useMemo(() => {
+    if (!picking) {
+      return [
+        {
+          icon: THEME_CHOICE_COPY[choice].icon,
+          key: THEME_ACTION_KEY,
+          onClick: open,
+          order: THEME_ACTION_ORDER,
+          tooltip: "Theme",
+        },
+      ];
+    }
+    return PICKER.map((option, index) => ({
+      icon: <ChoiceIcon choice={option} chosen={option === choice} />,
+      // System takes over the theme button's slot, so it stays in place.
+      key: option === "system" ? THEME_ACTION_KEY : `theme.${option}`,
+      onClick: () => {
+        setThemeChoice(option);
+        close();
       },
-    ],
-    [choice, open],
-  );
+      order: THEME_ACTION_ORDER + PICKER.length - 1 - index,
+      tooltip: THEME_CHOICE_COPY[option].title,
+    }));
+  }, [choice, close, open, picking]);
 
-  useDockContextActions(actions);
-  return <ThemePopover onClose={close} target={target} />;
+  useDockCommands(actions, OWNER);
+  return null;
 }

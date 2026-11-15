@@ -33,8 +33,11 @@ export const dockThemeConfig = defineTheme(dockTheme, {
       // Every card with content is glass of its own. The collapsed cards
       // behind the front one are not drawn at all once the deck has folded
       // (dock.css): nothing to paint or filter until the stack opens.
-      "dock-card group @container absolute h-auto w-full overflow-hidden rounded-shell p-2.5 cursor-pointer liquid liquid-flat liquid-lens data-[placement=top]:[--liquid-drop:var(--liquid-shadow)]",
-      "data-[anchored=true]:cursor-default data-[shelf=true]:px-[6.5px] data-[shelf=true]:py-0",
+      "dock-card group @container absolute h-auto w-full overflow-hidden rounded-shell p-3 cursor-pointer liquid liquid-flat liquid-lens data-[placement=top]:[--liquid-drop:var(--liquid-shadow)]",
+      // A shelf's corner is concentric with the pill it holds: the 32px
+      // control (16px corner) sits 6.5px in on every side, so the shelf
+      // turns at 22.5px.
+      "data-[anchored=true]:cursor-default data-[shelf=true]:rounded-[22.5px] data-[shelf=true]:px-[6.5px] data-[shelf=true]:py-0",
       "data-[placement=top]:inset-0 data-[placement=top]:h-full data-[placement=bottom]:bottom-0 data-[placement=float]:top-0 data-[placement=float]:[#dock-card-stack[data-controls-hidden=false]_&]:h-full",
     ].join(" "),
     // Clipped for the card's height animation, but with room for the wells'
@@ -174,7 +177,9 @@ export const dockThemeConfig = defineTheme(dockTheme, {
     loadingTitle: `${SKELETON.block} h-3.5 w-36 max-w-[60%] rounded-full`,
     loadingDescription: `${SKELETON.block} h-3 w-56 max-w-[85%] rounded-full`,
 
-    action: `ui-sheen center h-control-md w-full ${INNER} gap-2 px-4 type-control font-medium cursor-pointer select-none`,
+    // dock-action: rises in on arrival (dock.css) and takes the glass
+    // touch every button on the page has (liquid-touch.ts).
+    action: `dock-action liquid-touch ui-sheen center h-control-md w-full ${INNER} gap-2 px-4 type-control font-medium cursor-pointer select-none`,
     actionActive: PRIMARY,
     actionFill: "min-w-0 flex-1 justify-center whitespace-nowrap",
     actionLabel: "truncate",

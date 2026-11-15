@@ -15,7 +15,7 @@ import {
   useDockRegistration,
 } from "@omerdlw/base-framework/dock";
 import { Button } from "@omerdlw/base-framework/ui";
-import { Icon } from "@/design/components/icon";
+import { ActionIcon, ActionLabel } from "@/design/components/action-content";
 import { DockAction } from "@/design/components/surface";
 import { Room } from "@/design/components/room";
 import { MotionConfig } from "@/motion/lib";
@@ -275,8 +275,8 @@ function Open({
         }}
         type="button"
       >
-        <Icon icon={icon} size={16} />
-        <span className="truncate">{label}</span>
+        <ActionIcon icon={icon} />
+        <ActionLabel>{label}</ActionLabel>
       </Button>
     </DockAction>
   );

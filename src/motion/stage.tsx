@@ -463,7 +463,13 @@ export function Swap({
     const element = box.current;
     if (id === shown || !element) return;
     element.setAttribute("data-leaving", "");
-    if (!getComputedStyle(element).animationName.includes(LEAVING)) {
+    // A view that shows nothing (empty, `display: none`) runs no animation,
+    // so its leave would never end: swap at once rather than wait out the
+    // limit.
+    if (
+      element.getClientRects().length === 0 ||
+      !getComputedStyle(element).animationName.includes(LEAVING)
+    ) {
       element.removeAttribute("data-leaving");
       setShown(id);
       return;

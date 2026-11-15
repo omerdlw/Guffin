@@ -24,7 +24,8 @@ export const feel = (stiffness: number, ratio: number): Feel => ({
 
 const STEP = 1 / 240;
 const MOST = 1 / 20;
-const STILL = 0.01;
+/** Rest: a scale of 1.001 is a third of a pixel on a wide row. */
+const STILL = 0.001;
 
 /**
  * Runs `goals` (read afresh every frame) until every spring rests, calling
@@ -58,11 +59,19 @@ export function drive(
         }
       }
     }
-    draw(dt);
     const resting = list.every(
       ([state, to]) =>
         Math.abs(state.v) < STILL && Math.abs(state.x - to) < STILL,
     );
+    // Stopping, each spring lands exactly on its goal, so nothing is left
+    // drawn a hair off (a press that ends at 1.005 instead of 1).
+    if (resting) {
+      for (const [state, to] of list) {
+        state.x = to;
+        state.v = 0;
+      }
+    }
+    draw(dt);
     raf = resting ? 0 : requestAnimationFrame(frame);
   };
 
@@ -93,4 +102,46 @@ export function thumbTransform(x: number, sx: number, sy: number) {
   return Math.abs(sx - 1) < 0.004 && Math.abs(sy - 1) < 0.004
     ? moved
     : `${moved} scale(${sx.toFixed(4)}, ${sy.toFixed(4)})`;
+}
+
+/**
+ * The thumb's depth as it turns to glass (`g`, 0 solid → 1 glass), written
+ * to `--liquid-drop`: over a flat track there is little to bend, so what
+ * makes the drop read as glass is its body. It lifts on a deeper shadow, its
+ * top edge catches a line of light and its foot a soft inner shade. At 0 it
+ * is the knob's resting shadow, one to one.
+ */
+export function glassDepth(g: number) {
+  const f = (n: number, digits = 2) => n.toFixed(digits);
+  return [
+    `0 ${f(1 + 5 * g)}px ${f(3 + 13 * g)}px ${f(-4 * g)}px rgb(0 0 0 / ${f(0.2 + 0.14 * g, 3)})`,
+    `inset 0 1px 0.5px rgb(255 255 255 / ${f(0.6 * g, 3)})`,
+    `inset 0 0 0 0.5px rgb(255 255 255 / ${f(0.3 * g, 3)})`,
+    `inset 0 -3px 6px -2px rgb(0 0 0 / ${f(0.14 * g, 3)})`,
+  ].join(", ");
+}
+
+/**
+ * Lays a lens thumb out swelled for real: its box grows about its middle to
+ * `sx`, `sy` times `width` × `height` and moves along by `x`. Not a scale:
+ * the lens's maps are laid out for the box the element has, and under a
+ * scale the backdrop it bends is not that box, so the rim tore what it bent.
+ * Sized, the lens, its glint and its corners follow every frame.
+ */
+export function swellBox(
+  element: HTMLElement,
+  x: number,
+  width: number,
+  height: number,
+  sx: number,
+  sy: number,
+) {
+  // A swell all but gone draws one to one (see thumbTransform).
+  const still = Math.abs(sx - 1) < 0.004 && Math.abs(sy - 1) < 0.004;
+  const w = still ? width : width * sx;
+  const h = still ? height : height * sy;
+  const f = (n: number) => n.toFixed(2);
+  element.style.width = `${f(w)}px`;
+  element.style.height = `${f(h)}px`;
+  element.style.transform = `translate(${f(x - (w - width) / 2)}px, ${f(-(h - height) / 2)}px)`;
 }

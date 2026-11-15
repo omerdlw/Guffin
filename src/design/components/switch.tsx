@@ -12,9 +12,10 @@ import {
   drive,
   DRAG_SLOP,
   feel,
+  glassDepth,
   type Goal,
   spring,
-  thumbTransform,
+  swellBox,
 } from "@/design/components/glass-thumb";
 import { cn } from "@/design/ui";
 
@@ -28,8 +29,8 @@ export interface SwitchProps extends Omit<
 
 /** Track 60 × 28, knob 34 × 24 (a capsule, wider than tall), 2px inset. */
 const TRACK_W = 60;
-const TRACK_H = 28;
 const KNOB_W = 34;
+const KNOB_H = 24;
 const TRAVEL_PX = TRACK_W - 4 - KNOB_W;
 
 const TRAVEL = feel(300, 0.82);
@@ -37,8 +38,9 @@ const FOLLOW = feel(900, 0.95);
 const GLASS_ON = feel(520, 1);
 const GLASS_OFF = feel(180, 0.85);
 const JELLY = feel(220, 0.5);
-/** At full glass the knob swells past the track (a scale: its corners, and
- * the glint and lens drawn for them, stay put). */
+/** Half the width (px) of the fill's soft leading edge as it travels. */
+const FILL_EDGE = 8;
+/** At full glass the knob swells past the track. */
 const SWELL_X = 0.32;
 const SWELL_Y = 0.36;
 
@@ -91,6 +93,13 @@ export function Switch({
     let startX = 0;
     let grab = 0;
     let pointerX = 0;
+    /**
+     * The pointer being followed. Tracked here, not read back from
+     * hasPointerCapture: once capture is lost (lostpointercapture, or a
+     * browser that drops it before pointerup) that reads false, the release
+     * was skipped and the knob stayed frozen as glass.
+     */
+    let pointer: number | null = null;
 
     const local = (clientX: number) =>
       clientX - root.getBoundingClientRect().left - 2;
@@ -114,14 +123,25 @@ export function Switch({
       const g = clamp(amount.x, 0, 1);
       const sx = 1 + SWELL_X * g + stretch.x;
       const sy = 1 + SWELL_Y * g - stretch.x * 0.5;
-      glass.style.transform = thumbTransform(x.x, sx, sy);
-      // The solid knob gives way to the glass's own tint.
+      // Sized, not scaled, so the lens bends the track cleanly at its rim.
+      swellBox(glass, x.x, KNOB_W, KNOB_H, sx, sy);
+      // The solid knob gives way to clear glass: the track and its fill
+      // show through it, bent at the rim.
       glass.style.backgroundColor = `color-mix(in oklab, var(--knob) ${((1 - g) * 100).toFixed(1)}%, var(--liquid-tint))`;
+      glass.style.setProperty("--liquid-drop", glassDepth(g));
       // The fill runs from the left end to the knob's middle, out to the
       // right end once on: half and half under the glass in mid-crossing.
       const progress = clamp(x.x / TRAVEL_PX, 0, 1);
       const reach = 2 + x.x + KNOB_W / 2 + (KNOB_W / 2 + 2) * progress;
-      paint.style.clipPath = `inset(0 ${(TRACK_W - reach).toFixed(2)}px 0 0 round ${TRACK_H / 2}px)`;
+      // Its leading edge is soft while it travels: a hard edge under the
+      // glass's rim bends into a saw.
+      const soft = FILL_EDGE * (1 - progress);
+      const mask =
+        progress >= 1
+          ? ""
+          : `linear-gradient(90deg, #000 ${(reach - soft).toFixed(2)}px, transparent ${(reach + soft).toFixed(2)}px)`;
+      paint.style.maskImage = mask;
+      paint.style.webkitMaskImage = mask;
       paint.style.opacity = clamp(progress * 4, 0, 1).toFixed(3);
     };
 
@@ -130,7 +150,8 @@ export function Switch({
 
     engine.current = {
       down(event) {
-        if (event.button !== 0) return;
+        if (event.button !== 0 || pointer !== null) return;
+        pointer = event.pointerId;
         const at = local(event.clientX);
         startX = at;
         pointerX = at;
@@ -140,7 +161,7 @@ export function Switch({
         motion.wake();
       },
       move(event) {
-        if (!root.hasPointerCapture(event.pointerId)) return;
+        if (event.pointerId !== pointer) return;
         pointerX = local(event.clientX);
         if (!dragging && Math.abs(pointerX - startX) > DRAG_SLOP) {
           dragging = true;
@@ -148,8 +169,11 @@ export function Switch({
         if (dragging) motion.wake();
       },
       up(event, cancel) {
-        if (!root.hasPointerCapture(event.pointerId)) return;
-        root.releasePointerCapture(event.pointerId);
+        if (event.pointerId !== pointer) return;
+        pointer = null;
+        if (root.hasPointerCapture(event.pointerId)) {
+          root.releasePointerCapture(event.pointerId);
+        }
         const next = cancel
           ? on
           : dragging
@@ -197,7 +221,7 @@ export function Switch({
         // keyboard's Space and Enter.
         if (event.detail === 0) onCheckedChange?.(!checked);
       }}
-      onLostPointerCapture={(event) => engine.current?.up(event, true)}
+      onLostPointerCapture={(event) => engine.current?.up(event, false)}
       onPointerCancel={(event) => engine.current?.up(event, true)}
       onPointerDown={(event) => !disabled && engine.current?.down(event)}
       onPointerMove={(event) => engine.current?.move(event)}
@@ -220,7 +244,7 @@ export function Switch({
       <span
         aria-hidden="true"
         className={cn(
-          "liquid liquid-lens pointer-events-none absolute top-0.5 left-0.5 h-6 w-[34px] rounded-full [--liquid-drop:0_1px_3px_rgb(0_0_0/0.2)]",
+          "liquid liquid-clear pointer-events-none absolute top-0.5 left-0.5 h-6 w-[34px] rounded-full [--liquid-bend:0.2] [--liquid-drop:0_1px_3px_rgb(0_0_0/0.2)] [--liquid-tint:rgb(var(--ink-rgb)/0.04)]",
           checked ? "[--knob:var(--on-primary)]" : "[--knob:var(--ink-lead)]",
         )}
         ref={knob}

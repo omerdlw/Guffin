@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  type CSSProperties,
   type RefObject,
   useCallback,
   useEffect,
@@ -15,7 +16,7 @@ import {
 import { useToast } from "@omerdlw/base-framework/notification";
 import { Loader } from "@omerdlw/base-framework/ui";
 import { Input } from "@/design/components/input";
-import { SurfaceAnchor } from "@/design/components/surface";
+import { SurfaceStage, useSurfacePart } from "@/design/components/surface";
 import { useSurfacePreload } from "@/design/lazy-surface";
 import { defineSurface } from "@/design/surface-definition";
 import { cn } from "@/design/ui";
@@ -113,6 +114,8 @@ function OtpBoxes({
   onFocusChange,
 }: OtpBoxesProps) {
   const activeIndex = Math.min(code.length, OTP_LENGTH - 1);
+  // The boxes rise one after another as the surface opens.
+  const row = useSurfacePart("row");
 
   return (
     <div className="relative" onClick={() => inputRef.current?.focus?.()}>
@@ -141,7 +144,9 @@ function OtpBoxes({
 
           return (
             <div
+              {...row}
               key={`otp-box-${index}`}
+              style={{ "--i": index } as CSSProperties}
               className={cn(
                 OTP_BOX_STYLES.BASE,
                 invalid && digit && OTP_BOX_STYLES.ERROR,
@@ -287,7 +292,6 @@ function VerificationSurface({ close, data }: VerificationSurfaceProps) {
 
   return (
     <>
-      <SurfaceAnchor />
       <DockSurfaceAction>
         <DockSurfaceHeaderButton
           disabled={Boolean(busy) || !cooldown.canResend}
@@ -297,24 +301,26 @@ function VerificationSurface({ close, data }: VerificationSurfaceProps) {
         </DockSurfaceHeaderButton>
       </DockSurfaceAction>
 
-      <form
-        aria-busy={Boolean(busy)}
-        className="flex flex-col gap-2.5"
-        onSubmit={(event) => {
-          event.preventDefault();
-          void completeVerification(otp.code);
-        }}
-      >
-        <OtpBoxes
-          {...otp}
-          disabled={Boolean(busy)}
-          inputRef={inputRef}
-          onCodeChange={changeCode}
-          onFocusChange={(focused) =>
-            setOtp((current) => ({ ...current, focused }))
-          }
-        />
-      </form>
+      <SurfaceStage>
+        <form
+          aria-busy={Boolean(busy)}
+          className="flex flex-col gap-2.5"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void completeVerification(otp.code);
+          }}
+        >
+          <OtpBoxes
+            {...otp}
+            disabled={Boolean(busy)}
+            inputRef={inputRef}
+            onCodeChange={changeCode}
+            onFocusChange={(focused) =>
+              setOtp((current) => ({ ...current, focused }))
+            }
+          />
+        </form>
+      </SurfaceStage>
     </>
   );
 }

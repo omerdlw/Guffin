@@ -2,7 +2,7 @@
 
 import { useDockActionClass } from "@omerdlw/base-framework/dock";
 import { Button } from "@omerdlw/base-framework/ui";
-import { Icon } from "@/design/components/icon";
+import { ActionIcon, ActionLabel } from "@/design/components/action-content";
 import { DockAction } from "@/design/components/surface";
 import { ACTION_TONE } from "@/design/foundations/tones";
 
@@ -28,8 +28,8 @@ export function AccountInboxAction({
             onOpen();
           }}
         >
-          <Icon icon="solar:inbox-bold" size={16} />
-          <span>Inbox {count}</span>
+          <ActionIcon icon="solar:inbox-bold" />
+          <ActionLabel className="">{`Inbox ${count}`}</ActionLabel>
         </Button>
       </div>
     </DockAction>

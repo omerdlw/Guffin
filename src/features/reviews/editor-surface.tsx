@@ -6,11 +6,10 @@ import { globalEvents } from "@omerdlw/base-framework/events";
 import { useToast } from "@omerdlw/base-framework/notification";
 import { Button, Textarea } from "@omerdlw/base-framework/ui";
 import { report, toUserMessage } from "@omerdlw/base-framework/utils";
-import { Icon } from "@/design/components/icon";
+import { ActionIcon, ActionLabel } from "@/design/components/action-content";
 import { SurfacePart, SurfaceStage } from "@/design/components/surface";
 import { SURFACE_STACK } from "@/design/components/surface-classes";
 import { defineSurface } from "@/design/surface-definition";
-import { ui } from "@/design/ui";
 import type { MediaType } from "@/lib/tmdb/shared";
 import { saveListCommentAction, saveMovieReviewAction } from "./actions";
 import { RatingSelector } from "./rating";
@@ -144,38 +143,40 @@ function ReviewEditorSurface({
             </SurfacePart>
           ) : null}
 
-          <SurfacePart className="relative w-full" name="item">
-            <Textarea
-              aria-label={isList ? "Comment" : "Review"}
-              className={ui.parts.input.field({
-                className: "min-h-[130px] w-full p-4 pb-9 type-body",
-              })}
-              disabled={saving}
-              maxHeight={260}
-              maxLength={REVIEW_MAX_LENGTH}
-              minHeight={130}
-              onChange={(event) =>
-                updateDraft({
-                  content: event.target.value,
-                  ...(event.target.value.trim() ? {} : { isSpoiler: false }),
-                })
-              }
-              placeholder={
-                isList
-                  ? `Share your thoughts on ${data.title}`
-                  : `Add your thoughts about ${data.title} (optional)`
-              }
-              value={content}
-            />
-            <div className="pointer-events-none absolute right-3.5 bottom-2.5 type-meta font-medium text-ink-muted select-none">
-              {problem && (text || rating !== null) ? (
-                <span className="font-semibold text-danger">{problem}</span>
-              ) : text ? (
-                <span>
-                  {text.length} / {REVIEW_MAX_LENGTH}
-                </span>
-              ) : null}
-            </div>
+          {/* The field is a hairline frame and nothing else: the text sets
+              its height, and the count has a line of its own beneath, so
+              nothing ever scrolls under it. */}
+          <SurfacePart className="w-full" name="item">
+            <label className="flex w-full cursor-text flex-col rounded-card ring-1 ring-edge-hover ring-inset hover:ring-edge-focus has-focus-visible:ring-edge-focus has-[textarea:focus]:ring-edge-focus has-[textarea:disabled]:opacity-50">
+              <Textarea
+                appearance="bare"
+                aria-label={isList ? "Comment" : "Review"}
+                className="field-sizing-content resize-none bg-transparent px-4 pt-3.5 pb-0 text-ink scrollbar-none placeholder:text-ink-muted"
+                disabled={saving}
+                maxHeight={240}
+                maxLength={REVIEW_MAX_LENGTH}
+                minHeight={96}
+                onChange={(event) =>
+                  updateDraft({
+                    content: event.target.value,
+                    ...(event.target.value.trim() ? {} : { isSpoiler: false }),
+                  })
+                }
+                placeholder={
+                  isList
+                    ? `Share your thoughts on ${data.title}`
+                    : `Add your thoughts about ${data.title} (optional)`
+                }
+                value={content}
+              />
+              <span className="flex h-9 items-center justify-end px-4 type-meta font-medium text-ink-muted tabular-nums select-none">
+                {problem && (text || rating !== null) ? (
+                  <span className="font-semibold text-danger">{problem}</span>
+                ) : text ? (
+                  `${text.length} / ${REVIEW_MAX_LENGTH}`
+                ) : null}
+              </span>
+            </label>
           </SurfacePart>
 
           <div className="flex w-full gap-2.5">
@@ -183,14 +184,25 @@ function ReviewEditorSurface({
               <SurfacePart className="min-w-0 flex-1" name="item">
                 <Button
                   aria-checked={isSpoiler}
-                  intent={isSpoiler && text ? "chosen" : "neutral"}
+                  intent={isSpoiler && text ? "chosen" : "outline"}
                   width="full"
                   disabled={!text || saving}
                   onClick={() => updateDraft({ isSpoiler: !isSpoiler })}
                   role="switch"
                 >
-                  <Icon icon="solar:eye-closed-linear" size={15} />
-                  {isSpoiler && text ? "Contains Spoilers" : "Mark as Spoiler"}
+                  <ActionIcon
+                    icon={
+                      isSpoiler && text
+                        ? "solar:eye-closed-linear"
+                        : "solar:eye-linear"
+                    }
+                    size={15}
+                  />
+                  <ActionLabel>
+                    {isSpoiler && text
+                      ? "Contains Spoilers"
+                      : "Mark as Spoiler"}
+                  </ActionLabel>
                 </Button>
               </SurfacePart>
             ) : null}

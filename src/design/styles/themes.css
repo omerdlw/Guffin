@@ -18,6 +18,8 @@
     --fill: rgb(var(--ink-rgb) / 0.05);
     --fill-hover: rgb(var(--ink-rgb) / 0.1);
     --fill-active: rgb(var(--ink-rgb) / 0.15);
+    /* A highlight that sits on glass (menu options). */
+    --fill-lift: var(--fill-hover);
     --edge: rgb(var(--ink-rgb) / 0.05);
     --edge-hover: rgb(var(--ink-rgb) / 0.1);
     --edge-focus: rgb(var(--ink-rgb) / 0.15);
@@ -37,8 +39,11 @@
       var(--page) 30%,
       rgb(var(--ink-rgb) / 0.1)
     );
-    /* The rim's glint adds light to what is behind it. */
-    --liquid-rim: rgb(255 255 255 / 0.7);
+    /* The rim's glint adds light to what is behind it: light in the
+       scene's own hue, not white, and soft, or the outline reads as a white
+       wire on a dark page. */
+    --liquid-rim-light: oklch(from var(--page) 0.86 min(c * 2, 0.05) h);
+    --liquid-rim: rgb(from var(--liquid-rim-light) r g b / 0.4);
     /* Just outside the edge, a dark hairline keeps the glass apart from a
        bright picture; the shadow lifts it off the page. */
     --liquid-contour: rgb(0 0 0 / 0.5);
@@ -51,6 +56,20 @@
     --liquid-rim-blend: plus-lighter;
     --liquid-frost: blur(12px) saturate(1.6) brightness(0.92);
     --liquid-lens-tone: saturate(1.5) brightness(0.9);
+
+    /* A control made of glass, lying on the page (liquid.css). Nothing to
+       bend behind it, so its glass is light: a breath of ink, a bevel lit
+       from above (bright top edge, a shade along the foot) and the dark
+       hairline that keeps it off a picture. */
+    --glass-control: rgb(var(--ink-rgb) / 0.06);
+    --glass-control-hover: rgb(var(--ink-rgb) / 0.1);
+    --glass-control-active: rgb(var(--ink-rgb) / 0.14);
+    --glass-control-bevel:
+      inset 0 1px 0 rgb(from var(--liquid-rim-light) r g b / 0.07),
+      inset 0 -1px 0 rgb(0 0 0 / 0.22),
+      inset 0 0 0 1px rgb(from var(--liquid-rim-light) r g b / 0.03);
+    --glass-control-contour: 0 0 0 0.5px rgb(0 0 0 / 0.55);
+    --glass-control-focus: inset 0 0 0 1px var(--edge-focus);
 
     --lift: 0 0 #0000;
 
@@ -72,6 +91,7 @@
     --listed: #40bcf4;
     --liked: #ff9010;
     --rated: oklch(82.8% 0.189 84.429);
+    --rated-off: rgb(var(--ink-rgb) / 0.15);
     --danger: oklch(70.4% 0.191 22.216);
     --award: #e9c46a;
 
@@ -108,6 +128,8 @@
     --fill: rgb(255 255 255 / 0.45);
     --fill-hover: rgb(255 255 255 / 0.7);
     --fill-active: rgb(255 255 255 / 0.9);
+    /* White glass is near white: the lift is solid to be seen. */
+    --fill-lift: #fff;
     --edge: rgb(var(--ink-rgb) / 0.08);
     --edge-hover: rgb(var(--ink-rgb) / 0.12);
     --edge-focus: rgb(var(--ink-rgb) / 0.2);
@@ -136,6 +158,16 @@
     --liquid-rim-blend: normal;
     --liquid-frost: blur(12px) saturate(1.25);
     --liquid-lens-tone: saturate(1.2);
+
+    --glass-control: rgb(255 255 255 / 0.5);
+    --glass-control-hover: rgb(255 255 255 / 0.72);
+    --glass-control-active: rgb(255 255 255 / 0.9);
+    --glass-control-bevel:
+      inset 0 1px 0 #fff, inset 0 -1px 0 rgb(var(--ink-rgb) / 0.05),
+      inset 0 0 0 0.5px rgb(var(--ink-rgb) / 0.07);
+    --glass-control-contour: 0 1px 2px -1px
+      oklch(from var(--page) 0.3 calc(c * 2) h / 0.14);
+    --glass-control-focus: inset 0 0 0 1px var(--edge-focus);
 
     /* Floating layers lift off paper on a shadow cut from the page's own
        hue: a tight contact edge and a long, soft fall. */
@@ -166,6 +198,8 @@
     --listed: oklch(60% 0.14 236);
     --liked: oklch(66% 0.18 52);
     --rated: oklch(70% 0.16 82);
+    /* An unlit star: a breath of ink, never white on the white wells. */
+    --rated-off: rgb(var(--ink-rgb) / 0.16);
     --danger: oklch(58% 0.21 26);
     --award: oklch(68% 0.12 85);
 
