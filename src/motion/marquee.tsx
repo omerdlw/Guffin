@@ -447,6 +447,9 @@ export function Marquee({
     const chosen = shuffled(unique).slice(0, REEL_FRAMES);
     const images = chosen.map((url) => {
       const image = new Image();
+      // The page's gallery asks for these same pictures with CORS; fetched
+      // without it first, the cached copy would then be refused there.
+      image.crossOrigin = "anonymous";
       image.decoding = "async";
       image.src = url;
       return image;

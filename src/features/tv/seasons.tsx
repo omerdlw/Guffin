@@ -55,6 +55,9 @@ function SeasonCard({
       fallbackIcon="solar:tv-bold"
       href={seasonHref(showId, season.seasonNumber)}
       image={{
+        // A season without its own still shows the show's backdrop, which
+        // the gallery and the opening's reel also load, with CORS.
+        crossOrigin: "anonymous",
         sizes: "(min-width: 1280px) 330px, (min-width: 640px) 50vw, 100vw",
         src: tmdbImageUrl("backdrop", picture, "w780"),
         srcSet:

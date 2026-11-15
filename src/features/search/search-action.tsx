@@ -194,6 +194,8 @@ export function SearchAction({ onClose }: { onClose?: () => void } = {}) {
   const drawerPart = useSearchPart("drawer");
   const listId = useId();
   const listRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const openerRef = useRef<HTMLElement | null>(null);
   const [scope, setScope] = useState<SearchScope>("all");
   const [page, setPage] = useState(0);
   const [cursor, setCursor] = useState<{
@@ -210,6 +212,17 @@ export function SearchAction({ onClose }: { onClose?: () => void } = {}) {
   const viewKey = `${scope}:${query}:${view.page}`;
   const active = cursor?.key === viewKey ? cursor.index : -1;
   const keyboardActive = cursor?.source === "keyboard" ? active : -1;
+
+  // Opening the search, by click or by key, puts the caret in its field, and
+  // Escape hands the focus back to what opened it. The dock is still
+  // unfolding, so the focus must not scroll it to the field.
+  useEffect(() => {
+    const opener = document.activeElement;
+    if (opener instanceof HTMLElement && opener !== document.body) {
+      openerRef.current = opener;
+    }
+    inputRef.current?.focus({ preventScroll: true });
+  }, []);
 
   useEffect(() => {
     if (keyboardActive < 0) return;
@@ -269,6 +282,7 @@ export function SearchAction({ onClose }: { onClose?: () => void } = {}) {
       handleClear();
     } else if (onClose) {
       event.stopPropagation();
+      openerRef.current?.focus({ preventScroll: true });
       onClose();
     }
   };
@@ -347,6 +361,7 @@ export function SearchAction({ onClose }: { onClose?: () => void } = {}) {
           onChange={(event) => handleInput(event.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Search movies, people, users, lists…"
+          ref={inputRef}
           role="combobox"
           spellCheck={false}
           type="text"
