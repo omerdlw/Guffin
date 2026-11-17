@@ -33,8 +33,8 @@
   }
 }
 
-/* `lift`: a floating layer's fall onto paper; none in the dark theme
-   (--lift). */
+/* `lift`: a floating layer's fall onto paper (--lift); none on a
+   picture. */
 @utility lift {
   --tw-shadow: var(--lift);
   box-shadow:

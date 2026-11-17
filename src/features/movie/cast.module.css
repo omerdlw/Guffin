@@ -1,50 +1,131 @@
 @layer components {
-  /* The cast card: a row with the portrait at its left and the name and
-     role beside it, and at its right edge a small fan of the person's
-     known-for posters standing in the card's foot, their lower part cut off
-     by it. Everything here is the card at rest; how the fan opens under the
-     hand is the page's choreography (the `leaf` slot of the `person` part). */
-  .card {
+  /* The cast stack: portraits standing in a row that overlaps, the lead in
+     front at the middle and the rest further back on either side. Each
+     seat's place and scale come inline from cast.tsx (--x, --s), the
+     stack's measures too (--front, --pad, --poster): a custom property
+     declared on a class here would be dropped by the build. Everything here
+     is the stack at rest and the shape it takes under the hand; how it moves
+     is the page's choreography (the `person` part and its `deck`, `folder`
+     and `leaf` slots). */
+  /* Above the credits after it: an opened frame runs down over them. */
+  .stack {
     position: relative;
-    overflow: hidden;
+    z-index: 1;
+    isolation: isolate;
+    width: 100%;
+    max-width: 44rem;
+    margin-inline: auto;
+    aspect-ratio: 100 / 50;
+    container-type: inline-size;
   }
 
-  /* The fan sits over the card's right end; the person's link runs beneath
-     it, so the posters link to their titles and the rest of the card to the
-     person. */
-  .deck {
+  /* A seat is a point: the middle of its portrait. */
+  .seat {
     position: absolute;
-    right: 0.625rem;
-    bottom: 0;
-    width: 5.5rem;
+    top: 50%;
+    left: calc(50% + var(--x));
+    width: 0;
+    height: 0;
+  }
+
+  .seat[data-at="0"] {
+    z-index: 3;
+  }
+  .seat[data-at="1"] {
+    z-index: 2;
+  }
+  .seat[data-at="2"] {
+    z-index: 1;
+  }
+
+  /* Laid out at the front's size, scaled down to the seat (--s). */
+  .holder {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--front);
+    aspect-ratio: 4 / 5;
+    translate: -50% -50%;
+    scale: var(--s);
+  }
+
+  /* The glass frame, the portrait's size and hidden behind it at rest. */
+  .frame {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 100%;
     height: 100%;
+    translate: -50% 0;
+  }
+
+  .card {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    outline-offset: 2px;
+  }
+
+  /* The portrait, its foot melting into its own colours (the page's foot
+     filter, cast.tsx). */
+  .photo {
+    position: absolute;
+    inset: 0;
+    filter: url(#cast-foot);
+  }
+
+  .photo > * {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Scaled back up against the seat's scale, so a name in the back reads
+     at its own size; its width is the seat's, so it truncates there. */
+  .caption {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: calc(100% * var(--s));
+    translate: -50% 0;
+    scale: calc(1 / var(--s));
+    transform-origin: 50% 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.125rem;
+    padding: 0 0.75rem 0.875rem;
+    text-align: center;
     pointer-events: none;
   }
 
-  /* A leaf's place in the fan. The page's choreography reads these to open
-     the fan further: --fan-x spread, --fan-y rise, --fan-r angle, --fan-s
-     size, --fan-lit how bright it comes up. */
-  .leaf {
-    --fan-x: 0rem;
-    --fan-y: 0px;
-    --fan-r: 0deg;
-    --fan-s: 1;
-    --fan-lit: 1;
+  /* The known-for posters, under the portrait on the frame's foot. */
+  .shelf {
     position: absolute;
-    bottom: -1.25rem;
+    top: calc(100% + var(--pad));
     left: 50%;
+    display: flex;
+    gap: 1cqi;
+    translate: -50% 0;
+    pointer-events: none;
+  }
+
+  .tip {
     display: block;
-    width: 2.25rem;
+  }
+
+  .leaf {
+    display: block;
+    width: var(--poster);
     aspect-ratio: 2 / 3;
     overflow: hidden;
-    border-radius: 0.3125rem;
+    border-radius: var(--radius-thumb);
     background: var(--color-fill);
     box-shadow: 0 0 0 1px var(--color-edge);
-    pointer-events: auto;
-    transform-origin: 50% 100%;
-    translate: calc(-50% + var(--fan-x)) var(--fan-y);
-    rotate: var(--fan-r);
-    scale: var(--fan-s);
+    opacity: 0;
+    translate: 0 -0.5rem;
+    scale: 0.9;
     outline: none;
   }
 
@@ -53,41 +134,122 @@
     height: 100%;
   }
 
-  .leaf[data-at="1"] {
-    z-index: 2;
-    --fan-lit: 1;
-    filter: brightness(0.9);
+  /* Under the hand (or the keyboard), the seat comes to the front at the
+     lead's size, the frame opens around it and runs down under the shelf,
+     and the posters can be reached. */
+  .seat:focus-within {
+    z-index: 4;
+  }
+  .seat:focus-within .holder {
+    scale: 1;
+  }
+  .seat:focus-within .caption {
+    width: 100%;
+    scale: 1;
+  }
+  .seat:focus-within .frame {
+    width: calc(100% + 2 * var(--pad));
+    height: calc(100% + 3 * var(--pad) + var(--poster) * 1.5);
+    translate: -50% calc(-1 * var(--pad));
+  }
+  .seat:focus-within .shelf {
+    pointer-events: auto;
   }
 
-  .leaf[data-at="2"] {
-    z-index: 1;
-    --fan-y: 4px;
-    --fan-s: 0.92;
-    --fan-lit: 0.85;
-    filter: brightness(0.7);
-  }
-
-  .leaf[data-side="l"][data-at="1"] {
-    --fan-x: -0.625rem;
-    --fan-r: -6deg;
-  }
-  .leaf[data-side="r"][data-at="1"] {
-    --fan-x: 0.625rem;
-    --fan-r: 6deg;
-  }
-  .leaf[data-side="l"][data-at="2"] {
-    --fan-x: -1.625rem;
-    --fan-r: -12deg;
-  }
-  .leaf[data-side="r"][data-at="2"] {
-    --fan-x: 1.625rem;
-    --fan-r: 12deg;
-  }
-
-  /* Opening, the inner leaves move first and the outer ones follow. */
   @media (hover: hover) {
-    .card:hover .leaf[data-at="2"] {
-      transition-delay: 55ms;
+    .seat:hover {
+      z-index: 4;
     }
+    .seat:hover .holder {
+      scale: 1;
+    }
+    .seat:hover .caption {
+      width: 100%;
+      scale: 1;
+    }
+    .seat:hover .frame {
+      width: calc(100% + 2 * var(--pad));
+      height: calc(100% + 3 * var(--pad) + var(--poster) * 1.5);
+      translate: -50% calc(-1 * var(--pad));
+    }
+    .seat:hover .shelf {
+      pointer-events: auto;
+    }
+    /* The posters surface one after another. */
+    .seat:hover .leaf {
+      transition-delay: calc(var(--leaf) * 34ms);
+    }
+  }
+
+  /* The rest of the cast: an end credit under the stack. */
+  .roll {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: center;
+    column-gap: 0.625rem;
+    row-gap: 0.25rem;
+    padding-top: 1rem;
+    font-size: var(--type-meta);
+    line-height: var(--type-meta--line-height);
+    font-weight: var(--font-weight-medium);
+    letter-spacing: var(--tracking-tagline);
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  .joiner,
+  .dot {
+    color: var(--color-ink-faint);
+    text-transform: lowercase;
+  }
+
+  .name,
+  .more {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: var(--color-ink-lead);
+    outline-offset: 4px;
+  }
+
+  .more {
+    color: var(--color-ink-muted);
+    text-transform: lowercase;
+  }
+
+  /* Its face, hidden at rest; under the hand it blooms above the name
+     (the `cameo` role's `thumb` slot): a clean round portrait, clipped as a
+     whole (the picture's own box carries a fill), on a hairline and the
+     layer's shadow. */
+  .face {
+    position: absolute;
+    bottom: calc(100% + 0.625rem);
+    left: 50%;
+    width: 2.5rem;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: 9999px;
+    box-shadow:
+      0 0 0 1px var(--color-edge),
+      var(--liquid-shadow);
+    translate: -50% 0;
+    opacity: 0;
+    scale: 0.6;
+    transform-origin: 50% 100%;
+    pointer-events: none;
+  }
+
+  /* A name under the hand rises above the stack, so its face is not
+     buried under a portrait. */
+  .name:is(:hover, :focus-visible) {
+    z-index: 2;
+  }
+
+  .face > * {
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
   }
 }

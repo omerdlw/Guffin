@@ -16,11 +16,12 @@ import { defineStage } from "@/motion/stage";
 // in a letter at a time; the one-sheet is unveiled beside it; the
 // rule is drawn under the title, and what sits at its ends (the person's
 // role and profiles, the numbers) arrives along it; the tagline and the
-// synopsis surface word by word.
+// synopsis surface word by word, and the tags pop up after them.
 //
 // Everything else plays its own entrance the moment it comes into view,
 // waiting for nothing, and only the first time: the actions pop
-// up one after another; down the sidebar each fact slides in, its label
+// up one after another; a show's "continue" card rises under them; down the
+// sidebar each fact slides in, its label
 // flickers on and its value rises out of its line, and its rule is drawn;
 // every heading lights its icon, resolves its title, draws its rule and
 // shows its tabs; tabbed views (the cast, galleries, the wall, reviews, the
@@ -29,8 +30,8 @@ import { defineStage } from "@/motion/stage";
 // Switching a tab, the shown view leaves to the left before the next is
 // dealt.
 //
-// Under the hand, a cast card's fan of posters opens wider and rises out of
-// the card's foot, lighting from the middle outwards.
+// Under the hand, a cast portrait comes to the front of its stack, a glass
+// frame opens around it and its known-for posters surface under it.
 
 const PHI = 1.618034;
 // φⁿ seconds: 0.146, 0.236, 0.382, 0.618, 1, 1.618, 2.618.
@@ -109,6 +110,7 @@ const DETAIL = defineStage({
     "tagline",
     "overview",
     "more",
+    "tag",
   ],
   scroll: { period: beat(0), gain: beat(-1) },
   glide: { duration: beat(1), ease: SWEEP },
@@ -215,6 +217,13 @@ const DETAIL = defineStage({
           },
         ),
       },
+      // The tags pop up after the synopsis, one after another.
+      tag: {
+        enter: load(
+          { opacity: 0, y: 8, scale: 0.854 },
+          { stagger: STAGGER.word, duration: beat(-1), ease: SPRING },
+        ),
+      },
       // The actions pop up out of the glass one after another: risen a
       // little and small, they overshoot by a hair and settle.
       action: {
@@ -222,6 +231,22 @@ const DETAIL = defineStage({
           { opacity: 0, y: 13, scale: 0.854 },
           { stagger: STAGGER.item, ease: SPRING },
         ),
+      },
+      // A show's "continue" card rises under the actions, its bar filling
+      // to where the viewer is.
+      resume: {
+        enter: reveal(
+          { opacity: 0, y: 13 },
+          { delay: beat(-2), ease: UNHURRIED },
+        ),
+        slots: {
+          rule: drawn(
+            reveal(
+              { scale: [0, 1] },
+              { delay: beat(-1), duration: beat(0), ease: SWEEP },
+            ),
+          ),
+        },
       },
       // Social proof under the actions surfaces after them.
       proof: {
@@ -309,30 +334,71 @@ const DETAIL = defineStage({
       control: {
         enter: reveal({ opacity: 0, x: 21 }),
       },
-      // The cast, dealt as cards across the two columns. Each arrives
-      // with its fan gathered behind its middle; the fan deals out of the
-      // card's foot. The credits follow.
+      // The cast, dealt as a stack: each portrait starts gathered behind
+      // the lead and is dealt out to its seat, the lead first. Under the
+      // hand a seat lifts, grows to the front, its glass frame opens around
+      // it and down under it, and the person's posters surface on the frame.
       person: {
         enter: reveal(
-          { opacity: 0, y: 34 },
-          { stagger: STAGGER.word, wrap: 2 },
+          { opacity: 0, x: "var(--gather)", y: 21 },
+          { stagger: STAGGER.item, ease: SETTLE },
         ),
+        hover: { y: -5, duration: beat(-1), ease: TOUCH },
+        rest: { duration: beat(0), ease: SETTLE },
+        focus: "hover",
         slots: {
+          // Grows by scale (the portrait is laid out at the front's size);
+          // its caption scales back against it on the same beat.
+          deck: {
+            follow: { of: ["scale"], duration: beat(-1), ease: SETTLE },
+          },
+          caption: {
+            follow: {
+              of: ["scale", "width"],
+              duration: beat(-1),
+              ease: SETTLE,
+            },
+          },
+          folder: {
+            follow: {
+              of: ["width", "height", "translate"],
+              duration: beat(-1),
+              ease: SETTLE,
+            },
+          },
           leaf: {
-            enter: reveal(
-              { opacity: 0, x: "-50%", y: 21, rotate: 0, scale: 0.809 },
-              { delay: beat(-3), ease: SPRING },
-            ),
             hover: {
-              x: "calc(-50% + var(--fan-x) * 1.4)",
-              y: "calc(var(--fan-y) - 13px)",
-              rotate: "calc(var(--fan-r) * 1.3)",
-              scale: "calc(var(--fan-s) * 1.02)",
-              bright: "var(--fan-lit)",
-              duration: beat(0),
+              opacity: 1,
+              y: 0,
+              scale: 1,
+              duration: beat(-1),
               ease: SPRING,
             },
-            rest: { duration: beat(0), ease: SETTLE },
+            rest: { duration: beat(-2), ease: SETTLE },
+            focus: "hover",
+          },
+        },
+      },
+      // The rest of the cast, rolled as an end credit under the stack:
+      // the names rise in turn after the portraits; under the hand a
+      // name's face blooms above it, risen out of the name.
+      cameo: {
+        enter: reveal(
+          { opacity: 0, y: 8 },
+          { stagger: STAGGER.item, duration: beat(-1) },
+        ),
+        hover: { y: -2, duration: beat(-2), ease: TOUCH },
+        rest: { duration: beat(-1), ease: SETTLE },
+        focus: "hover",
+        slots: {
+          thumb: {
+            hover: {
+              opacity: 1,
+              scale: 1,
+              duration: beat(-1),
+              ease: SPRING,
+            },
+            rest: { duration: beat(-2), ease: SETTLE },
             focus: "hover",
           },
         },
@@ -341,9 +407,8 @@ const DETAIL = defineStage({
         enter: reveal(
           { opacity: 0, y: 8 },
           {
-            delay: beat(-3),
-            stagger: STAGGER.word,
-            wrap: 2,
+            delay: beat(-2),
+            stagger: STAGGER.item,
             duration: beat(-2),
           },
         ),
@@ -494,10 +559,12 @@ const DETAIL = defineStage({
     "role",
     "overview",
     "more",
+    "tag",
     "poster",
     "stat",
     "action",
     "proof",
+    "resume",
     "row",
     "link",
     "label",
@@ -505,6 +572,7 @@ const DETAIL = defineStage({
     "line",
     "header",
     "person",
+    "cameo",
     "credit",
     "name",
     "slide",
@@ -545,6 +613,7 @@ const DETAIL = defineStage({
 
 export const DetailStageRoot = DETAIL.StageRoot;
 export const DetailPart = DETAIL.Part;
+export const detailPart = DETAIL.usePart;
 export const DetailSection = DETAIL.Section;
 export const DetailText = DETAIL.Text;
 export const DetailHeader = DETAIL.Header;

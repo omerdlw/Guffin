@@ -96,7 +96,7 @@ function lifeSpan(
 ): string | null {
   const born = person.birthday?.slice(0, 4);
   const died = person.deathday?.slice(0, 4);
-  if (born && died) return `${born} - ${died}`;
+  if (born && died) return `${born}–${died}`;
   if (born) return `Born ${born}`;
   if (died) return `Died ${died}`;
   return null;

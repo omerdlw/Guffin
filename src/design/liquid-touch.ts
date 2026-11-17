@@ -51,7 +51,7 @@ const SWELL_KICK = 0.32;
 
 /** Down fast and firm; back up loose, so it wobbles once. */
 const PRESS_IN = feel(900, 0.95);
-const PRESS_OUT = feel(260, 0.32);
+const PRESS_OUT = feel(250, 0.4);
 const PULL = feel(240, 0.6);
 const SWELL = feel(300, 0.42);
 

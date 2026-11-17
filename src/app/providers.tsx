@@ -18,7 +18,7 @@ import { ThemeProvider } from "@omerdlw/base-framework/theme";
 import { TooltipProvider, UiProvider } from "@omerdlw/base-framework/ui";
 import { ActionArrival } from "@/design/components/action-content";
 import { Logo } from "@/design/components/logo";
-import { LiquidLens } from "@/design/liquid";
+import { GlassEngine } from "@/design/glass/engine";
 import { LiquidTouch } from "@/design/liquid-touch";
 import { themes } from "@/design/theme";
 import { ui } from "@/design/ui";
@@ -31,8 +31,6 @@ import {
 import { BackdropPreloader } from "@/features/artwork/backdrop-preloader";
 import { AuthListener, AuthProvider } from "@/features/auth/provider";
 import { SearchDockCommand } from "@/features/search/search-command";
-import { ThemeSync } from "@/features/theme/store";
-import { ThemeDockCommand } from "@/features/theme/theme-command";
 import { project } from "@/lib/project";
 import { Cursor } from "@/motion/cursor";
 import { EngineProvider } from "@/motion/react";
@@ -47,7 +45,7 @@ const APP_REGISTRY_ENTRIES: readonly AppRegistryEntry[] = Object.freeze([
         description: project.description,
         icon: createElement(Logo, { size: 22 }),
         name: "home",
-        title: "Guffin - Home",
+        title: "Guffin",
         path: "/",
         stackOrder: -2,
       },
@@ -106,7 +104,6 @@ const MODULES = Object.freeze([
 export function Providers({ children }: { children: ReactNode }): JSX.Element {
   return (
     <>
-      <ThemeSync />
       <Compose
         providers={[
           AuthProvider,
@@ -129,7 +126,6 @@ export function Providers({ children }: { children: ReactNode }): JSX.Element {
         <AuthListener />
         <AccountGuard />
         <SearchDockCommand />
-        <ThemeDockCommand />
         <SocialRealtimeSync />
         <BackdropPreloader />
         <EngineProvider drive>
@@ -137,7 +133,7 @@ export function Providers({ children }: { children: ReactNode }): JSX.Element {
           <TintedFavicon />
         </EngineProvider>
         <Cursor />
-        <LiquidLens />
+        <GlassEngine />
         <LiquidTouch />
         <ActionArrival />
       </Compose>

@@ -59,17 +59,19 @@ hand except the three roles:
 
 ### Weight
 
-`font-medium`, `font-semibold`, `font-bold`; nothing else. Each theme sets
-its own value: dark ink on paper reads thinner than light ink on black, so
-light runs a step heavier.
+`font-medium`, `font-semibold`, `font-bold`, and `font-normal` only to return
+to the body weight inside a heavier line (a year after a title); nothing else.
+its own value: dark ink on paper reads thinner than its nominal weight, so
+every weight runs a step heavier.
 
-| Weight            | Dark | Light (`themes.css`) |
-| ----------------- | ---: | -------------------: |
-| normal (the body) |  400 |                  420 |
-| `font-medium`     |  500 |                  520 |
-| `font-semibold`   |  600 |                  620 |
+| Weight            | Paper (`themes.css`) | `.on-photo` |
+| ----------------- | -------------------: | ----------: |
+| normal (the body) |                  420 |         400 |
+| `font-medium`     |                  520 |         500 |
+| `font-semibold`   |                  620 |         600 |
 
-`.on-photo` resets them to the dark values.
+Light ink over a picture reads at its nominal weight, so `.on-photo` resets
+them.
 
 ### Headlines
 

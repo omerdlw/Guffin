@@ -19,6 +19,7 @@ import {
   DetailLayout,
   DetailReviewsLayout,
   DetailSidebar,
+  DetailTags,
   Heading,
   namesFact,
   textFact,
@@ -63,7 +64,7 @@ import {
   capitalizeWords,
   type FilmStats,
   artworkOf,
-  formatMoney,
+  isReportedMoney,
   getDirectors,
   getGalleryImages,
   getPosterImages,
@@ -92,7 +93,7 @@ type MoviePageKind =
   | { kind: "film"; popularLists: Promise<PopularList[]> }
   | { kind: "reviews"; reviewer: string | null; sort: MovieReviewSort };
 
-const MOVIE_TAG_LIMIT = 10;
+const MOVIE_TAG_LIMIT = 8;
 
 const MOVIE_TAG_MAX_LENGTH = 28;
 
@@ -134,8 +135,6 @@ const CREW_JOB_PRIORITY = [
 const MAX_VISIBLE_PEOPLE = 2;
 
 const MAX_VISIBLE_GENRES = 3;
-
-const MAX_VISIBLE_TAGS = 2;
 
 const COMPACT_NUMBER_FORMAT = new Intl.NumberFormat("en", {
   maximumFractionDigits: 1,
@@ -262,7 +261,7 @@ function toPersonEntries(movie: MovieDetails): {
   };
 }
 
-function MovieAwards({ awards }: { awards: AwardsRequest }): JSX.Element {
+export function MovieAwards({ awards }: { awards: AwardsRequest }): JSX.Element {
   return (
     <DetailAwards
       awards={awards}
@@ -272,7 +271,7 @@ function MovieAwards({ awards }: { awards: AwardsRequest }): JSX.Element {
   );
 }
 
-async function MovieAwardsAction({
+export async function MovieAwardsAction({
   awards,
 }: {
   awards: AwardsRequest;
@@ -285,33 +284,28 @@ function pluralLabel(count: number, one: string, many: string): string {
   return count > 1 ? many : one;
 }
 
+// The keywords sit under the synopsis as chips; the dock already carries the
+// year and the running time.
 function buildFacts(movie: MovieDetails): Fact[] {
   const directors = getDirectors(movie);
   const writers = getWriters(movie);
   const certification = getCertification(movie);
   const language = getOriginalLanguageName(movie);
   const released = formatReleaseDate(movie.releaseDate);
-  const tags = getTags(movie);
   const genres = movie.genres.map((genre) => ({ text: genre.name }));
 
   const facts: (Fact | false | null | "")[] = [
-    genres.length > 0 &&
-      namesFact(
-        pluralLabel(genres.length, "Genre", "Genres"),
-        MAX_VISIBLE_GENRES,
-        genres,
-      ),
-    tags.length > 0 &&
-      namesFact(
-        "Tags",
-        MAX_VISIBLE_TAGS,
-        tags.map((tag) => ({ text: capitalizeWords(tag) })),
-      ),
     directors.length > 0 &&
       namesFact(
         pluralLabel(directors.length, "Director", "Directors"),
         MAX_VISIBLE_PEOPLE,
         directors.map(toFactName),
+      ),
+    genres.length > 0 &&
+      namesFact(
+        pluralLabel(genres.length, "Genre", "Genres"),
+        MAX_VISIBLE_GENRES,
+        genres,
       ),
     writers.length > 0 &&
       namesFact(
@@ -322,12 +316,15 @@ function buildFacts(movie: MovieDetails): Fact[] {
     released && textFact("Released", released),
     certification && textFact("Rated", certification),
     language && textFact("Language", language),
-    movie.status !== "Unknown" && textFact("Status", movie.status),
-    formatMoney(movie.budget) && {
+    // Only a film that is not out yet (or never came out) says so.
+    movie.status !== "Unknown" &&
+      movie.status !== "Released" &&
+      textFact("Status", movie.status),
+    isReportedMoney(movie.budget) && {
       label: "Budget",
       value: (index) => <MoneyCount index={index} value={movie.budget ?? 0} />,
     },
-    formatMoney(movie.revenue) && {
+    isReportedMoney(movie.revenue) && {
       label: "Revenue",
       value: (index) => <MoneyCount index={index} value={movie.revenue ?? 0} />,
     },
@@ -477,16 +474,14 @@ function MovieHeader({
   return (
     <>
       {title}
-      {movie.tagline || movie.overview || hasFilmStats(stats) ? (
-        <div className={`${RULE_GAP} relative flex w-full items-center gap-5`}>
-          <DetailPart className="h-px flex-1 bg-grade/40" name="rule" />
-          <MovieStats stats={stats} />
-        </div>
-      ) : null}
+      <div className={`${RULE_GAP} relative flex w-full items-center gap-5`}>
+        <DetailPart className="h-px flex-1 bg-grade/40" name="rule" />
+        <MovieStats stats={stats} />
+      </div>
       {movie.tagline ? (
         <DetailText
           as="p"
-          className={`${TAGLINE_CLASS} opacity-90`}
+          className={cn(TAGLINE_CLASS, "opacity-90")}
           part="tagline"
           text={movie.tagline}
         />
@@ -503,6 +498,9 @@ function MovieHeader({
           text={movie.overview}
         />
       ) : null}
+      <DetailTags
+        tags={getTags(movie).map((tag) => capitalizeWords(tag))}
+      />
     </>
   );
 }

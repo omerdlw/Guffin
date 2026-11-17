@@ -19,7 +19,7 @@
 | A link that dims to `ink-body` on hover                           | Rest at `ink` or `ink-body`, rise to `ink`                                      |
 | A white chosen tab or a grade submit button                       | Chosen: `intent="chosen"`. Submit: `intent="primary"`                           |
 | `bg-white text-black`, `bg-black/70`                              | `bg-primary text-on-primary`, `bg-glass`                                        |
-| A light value derived from the dark one (`black/5` for `white/5`) | A role, valued per theme in `themes.css`                                        |
+| A second theme, a `data-theme` branch or a `prefers-color-scheme` query | One role, one value in `themes.css` (`.on-photo` is the only exception)   |
 | `${a} ${on ? "x" : "y"}` class strings                            | A variant: `<Button intent={on ? "chosen" : "neutral"}>`                        |
 | A component's keyframes in `globals.css`                          | A `*.module.css` beside the component                                           |
 | `h-9` / `h-11` on a control                                       | A rung of the ladder: `h-control-chrome`, `h-control-lg`                        |
@@ -38,8 +38,8 @@ Before finishing UI work:
 
 - [ ] Every colour, size, radius and duration is a role from this document.
 - [ ] Controls sit on the geometry ladder and are drawn by a recipe.
-- [ ] Both themes were looked at; a role that looks wrong in one is retuned in
-      `themes.css`, not patched at the call site.
+- [ ] Looked at on paper and over a picture; a role that looks wrong is
+      retuned in `themes.css`, not patched at the call site.
 - [ ] No arbitrary value for colour, type, radius, shadow or opacity.
 - [ ] Every `hover:` has its `focus-visible:` twin (`group-` forms included).
 - [ ] Controls rest at `ink-body` or brighter and rise to `ink`.
@@ -67,7 +67,7 @@ grep -rnE '\b(text|bg|ring|border)-(gray|zinc|slate|neutral|stone|red|orange|amb
 # Tailwind and arbitrary type sizes
 grep -rnE '\btext-(xs|sm|lg|xl|[2-9]xl|\[[0-9])' src/features src/design src/motion src/app | grep -v MARQUEE_SIZE
 # Tailwind radii, tracking and weights
-grep -rnE '\brounded(-[trbl]{1,2})?-(xs|sm|md|lg|xl|2xl|3xl|4xl)\b|tracking-(tighter|tight|normal|wide|wider|widest)|font-(thin|extralight|light|normal|extrabold|black)\b' src
+grep -rnE '\brounded(-[trbl]{1,2})?-(xs|sm|md|lg|xl|2xl|3xl|4xl)\b|tracking-(tighter|tight|normal|wide|wider|widest)|font-(thin|extralight|light|extrabold|black)\b' src
 # raw white and black (roles only)
 grep -rnE '\b(bg|text|ring|border|from|to|via)-(white|black)\b' src --include='*.ts' --include='*.tsx'
 # the old underline form

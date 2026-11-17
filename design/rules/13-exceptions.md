@@ -13,7 +13,7 @@ places the rules above bend:
 - **Pointer followers** (the cursor and reticle, glass touch in
   `liquid-touch.ts`, glass thumbs in `glass-thumb.ts`) run their own frame
   loop, because they track the pointer.
-- **The liquid glass** (`liquid.css`, `liquid.tsx`, `--liquid-*`,
+- **The liquid glass** (`liquid.css`, `glass/`, `--liquid-*`,
   `--glass-control-*`): raw white and black, off-grid alphas, real shadows and
   `plus-lighter` blending, because it imitates light in a material.
 - **The dock's geometry** (`theme/dock.ts`): the shelf's 22.5px corner and

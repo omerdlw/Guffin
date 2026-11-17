@@ -95,17 +95,17 @@ function providerHref(
 }
 
 // The region, on the shelf beside the tabs: a pill as tall as the track,
-// showing its flag and code; its menu floats over the surface with the full
-// names, always below the shelf (never flipped over the page): it fills the
-// room between the trigger and the foot of the window, up to 20rem. One
-// label serves both: the trigger hides the name, the menu the code.
+// showing its flag and code; its menu floats with the full names, always
+// above the shelf (the surface sits in the dock, at the foot of the window,
+// so there is no room below), up to 20rem tall. One label serves both: the
+// trigger hides the name, the menu the code.
 const REGION_SELECT = {
   root: "w-auto shrink-0",
   trigger:
-    "h-control-sm w-auto gap-1.5 rounded-full px-3 type-meta font-medium text-ink-body hover:text-ink aria-expanded:text-ink [&_[data-name]]:hidden",
+    "h-control-sm w-auto gap-1.5 rounded-full px-3 type-meta font-medium text-ink-body hover:text-ink focus-visible:text-ink aria-expanded:text-ink [&_[data-name]]:hidden",
   chevron: "size-3 text-[length:12px]",
   content:
-    "w-60! [left:auto]! [right:anchor(right)]! bottom-3! h-auto! max-h-80! [position-try-fallbacks:none]! rounded-card p-1.5 [&_[data-code]]:hidden",
+    "w-60! [left:auto]! [right:anchor(right)]! [top:auto]! [bottom:anchor(top)]! mt-0! mb-1.5! h-auto! max-h-[min(20rem,calc(100dvh-6rem))]! [position-try-fallbacks:none]! rounded-card p-1.5 [&_[data-code]]:hidden",
   option: "rounded-inset",
 };
 

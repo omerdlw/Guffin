@@ -329,7 +329,9 @@ export function Header({
 
   return (
     <div className={className ?? "relative z-10 mb-4"} data-part={part}>
-      <div className="flex min-h-8 w-full items-center gap-4">
+      {/* Actions too wide for the line wrap under it instead of running off
+          a narrow screen. */}
+      <div className="flex min-h-8 w-full flex-wrap items-center gap-x-4 gap-y-2">
         <div className="flex min-w-0 shrink-0 items-center gap-2.5">
           {icon ? (
             <span
@@ -381,7 +383,7 @@ export function Header({
           </div>
         </div>
         {actions ? (
-          <div className="min-w-0" data-slot="actions">
+          <div className="ml-auto min-w-0 max-w-full" data-slot="actions">
             {actions}
           </div>
         ) : null}

@@ -80,7 +80,19 @@ export const artworkOf = ({
   title,
 }: MovieArtwork): MovieArtwork => ({ backdropPath, id, posterPath, title });
 
-export const MOVIE_FEATURED_PEOPLE = 4;
+export const MOVIE_FEATURED_PEOPLE = 5;
+
+// The stack's seats, by billing: the lead in front at the middle, then
+// alternating left and right, each further back and smaller. `x` is the
+// seat's centre from the stack's middle and `w` its width, both in % of the
+// stack's width (cqi). Under the hand a seat comes to the front at `FRONT`.
+export const CAST_SEATS = [
+  { at: 0, x: 0, w: 38 },
+  { at: 1, x: -22, w: 30 },
+  { at: 1, x: 22, w: 30 },
+  { at: 2, x: -37, w: 24 },
+  { at: 2, x: 37, w: 24 },
+] as const;
 
 export const TAGLINE_TYPE = "type-body sm:type-copy";
 
@@ -113,6 +125,13 @@ export const movieTitleClass = (title: string) =>
 
 export function parseMovieId(raw: string): number | null {
   return /^[1-9]\d{0,9}$/.test(raw) ? Number(raw) : null;
+}
+
+/** TMDB carries placeholder budgets like $1 or $7; below this a figure is noise. */
+const MIN_REPORTED_MONEY = 10_000;
+
+export function isReportedMoney(amount: number | null): amount is number {
+  return amount !== null && amount >= MIN_REPORTED_MONEY;
 }
 
 export function formatMoney(amount: number | null): string | null {

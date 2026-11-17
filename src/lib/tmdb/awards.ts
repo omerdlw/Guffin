@@ -241,9 +241,13 @@ export interface AwardsApi {
     id: number,
     options?: AwardsOptions,
   ): Promise<Result<Awards, TmdbError>>;
+  forShow(
+    id: number,
+    options?: AwardsOptions,
+  ): Promise<Result<Awards, TmdbError>>;
 }
 
-const NOUNS = { movie: "Movie", person: "Person" } as const;
+const NOUNS = { movie: "Movie", person: "Person", tv: "Show" } as const;
 
 export function createAwardsApi(
   onError?: (error: TmdbError, path: string) => void,
@@ -326,5 +330,6 @@ export function createAwardsApi(
   return {
     forMovie: (id, options = {}) => load("movie", id, options),
     forPerson: (id, options = {}) => load("person", id, options),
+    forShow: (id, options = {}) => load("tv", id, options),
   };
 }

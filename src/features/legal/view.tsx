@@ -12,12 +12,12 @@ import {
 import { TONE, TONES } from "@/design/foundations/tones";
 import { cn } from "@/design/ui";
 import { TV_ENABLED } from "@/lib/env";
-import { defineStage } from "@/motion/stage";
 import {
   LEGAL_CONTACT_EMAIL,
   type LegalBlock,
   type LegalDocument,
 } from "./documents";
+import { LEGAL } from "./motion";
 
 const LEGAL_LAST_UPDATED = TV_ENABLED ? "November 7, 2026" : "October 4, 2026";
 
@@ -36,20 +36,6 @@ const LEGAL_PILL_ACTIVE_CLASS = TONES.chosen;
 const LEGAL_TOKEN_PATTERN = /(\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\))/g;
 
 const LEGAL_LINK_PATTERN = /^\[([^\]]+)\]\(([^)]+)\)$/;
-
-const LEGAL = defineStage({
-  parts: [
-    "eyebrow",
-    "title",
-    "intro",
-    "links",
-    "rule",
-    "index",
-    "heading",
-    "prose",
-  ],
-  sections: ["block"],
-});
 
 const sectionId = (title: string) =>
   title

@@ -136,7 +136,7 @@ function ConnectRow({
           Connect {PROVIDER_LABELS[provider].label}
         </span>
       </span>
-      <span className="center size-9 shrink-0 rounded-full text-ink-muted ui-fade hover:bg-fill-hover hover:text-ink">
+      <span className="center size-control-chrome shrink-0 rounded-full text-ink-muted ui-fade group-hover/connect:bg-fill-hover group-hover/connect:text-ink group-focus-visible/connect:bg-fill-hover group-focus-visible/connect:text-ink">
         <Icon className="center" icon="solar:link-linear" size={16} />
       </span>
     </Button>

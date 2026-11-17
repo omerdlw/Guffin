@@ -57,7 +57,7 @@ function TileMark({ icon }: { icon: string }): JSX.Element {
   return (
     <span
       className={cn(
-        "center relative z-10 size-10 shrink-0 bg-fill text-ink-body group-hover:bg-fill-hover group-focus-visible:bg-fill-hover group-has-focus-visible:bg-fill-hover group-hover:text-ink group-focus-visible:text-ink group-has-focus-visible:text-ink",
+        "center relative z-10 size-control-md shrink-0 bg-fill text-ink-body group-hover:bg-fill-hover group-focus-visible:bg-fill-hover group-has-focus-visible:bg-fill-hover group-hover:text-ink group-focus-visible:text-ink group-has-focus-visible:text-ink",
         SURFACE_TILE_INNER,
       )}
     >
@@ -235,7 +235,7 @@ function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
                 aria-label="List name"
                 className={cn(
                   ui.parts.input.field(),
-                  "h-10 w-full px-4 type-body",
+                  "h-control-md w-full px-4 type-body",
                 )}
                 disabled={disabled}
                 maxLength={LIST_TITLE_MAX}

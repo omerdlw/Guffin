@@ -27,30 +27,32 @@ export interface SwitchProps extends Omit<
   onCheckedChange?: (checked: boolean) => void;
 }
 
-/** Track 60 × 28, knob 34 × 24 (a capsule, wider than tall), 2px inset. */
-const TRACK_W = 60;
-const KNOB_W = 34;
+/** Track 64 × 28, knob 38 × 24 (a capsule, wider than tall), 2px inset. */
+const TRACK_W = 64;
+const KNOB_W = 38;
 const KNOB_H = 24;
 const TRAVEL_PX = TRACK_W - 4 - KNOB_W;
 
 const TRAVEL = feel(300, 0.82);
 const FOLLOW = feel(900, 0.95);
-const GLASS_ON = feel(520, 1);
+/** Pressed, the drop swells in fast and a touch past its size. */
+const GLASS_ON = feel(700, 0.72);
 const GLASS_OFF = feel(180, 0.85);
 const JELLY = feel(220, 0.5);
-/** Half the width (px) of the fill's soft leading edge as it travels. */
-const FILL_EDGE = 8;
-/** At full glass the knob swells past the track. */
-const SWELL_X = 0.32;
-const SWELL_Y = 0.36;
+/** The track's colour turns over as the knob crosses its middle. */
+const TINT = feel(420, 1);
+/** At full glass the knob swells well past the track (38 × 24 → 61 × 40). */
+const SWELL_X = 0.6;
+const SWELL_Y = 0.68;
 
 const REDUCED = "(prefers-reduced-motion: reduce)";
 
 /**
- * A two-state toggle. One knob, made of the liquid material (liquid.css):
- * solid at rest; press it and it swells into clear liquid glass that bends
- * the track under it, which you can drag across; it crosses as glass and
- * settles solid.
+ * A two-state toggle, after iOS 26's. One knob, made of the liquid material
+ * (liquid.css): solid at rest; press it and it swells well past the track
+ * into a clear drop of liquid glass that bends the track under it, which you
+ * can drag across; the track's colour turns over as it crosses the middle,
+ * and it settles solid.
  */
 export function Switch({
   checked = false,
@@ -85,6 +87,7 @@ export function Switch({
     const x = spring(latest.current.checked ? TRAVEL_PX : 0);
     const amount = spring();
     const stretch = spring();
+    const tint = spring(latest.current.checked ? 1 : 0);
     let on = latest.current.checked;
     let pressed = false;
     let dragging = false;
@@ -116,6 +119,7 @@ export function Switch({
         [x, tx, dragging ? FOLLOW : TRAVEL],
         [amount, lit ? 1 : 0, lit ? GLASS_ON : GLASS_OFF],
         [stretch, clamp(Math.abs(x.v) / 1600, 0, 0.2), JELLY],
+        [tint, x.x > TRAVEL_PX / 2 ? 1 : 0, TINT],
       ];
     };
 
@@ -129,20 +133,9 @@ export function Switch({
       // show through it, bent at the rim.
       glass.style.backgroundColor = `color-mix(in oklab, var(--knob) ${((1 - g) * 100).toFixed(1)}%, var(--liquid-tint))`;
       glass.style.setProperty("--liquid-drop", glassDepth(g));
-      // The fill runs from the left end to the knob's middle, out to the
-      // right end once on: half and half under the glass in mid-crossing.
-      const progress = clamp(x.x / TRAVEL_PX, 0, 1);
-      const reach = 2 + x.x + KNOB_W / 2 + (KNOB_W / 2 + 2) * progress;
-      // Its leading edge is soft while it travels: a hard edge under the
-      // glass's rim bends into a saw.
-      const soft = FILL_EDGE * (1 - progress);
-      const mask =
-        progress >= 1
-          ? ""
-          : `linear-gradient(90deg, #000 ${(reach - soft).toFixed(2)}px, transparent ${(reach + soft).toFixed(2)}px)`;
-      paint.style.maskImage = mask;
-      paint.style.webkitMaskImage = mask;
-      paint.style.opacity = clamp(progress * 4, 0, 1).toFixed(3);
+      // The whole track turns over as the knob crosses its middle, held or
+      // not: no fill sweeps along under the glass.
+      paint.style.opacity = clamp(tint.x, 0, 1).toFixed(3);
     };
 
     const motion = drive(goals, draw, () => reduced.matches);
@@ -210,7 +203,7 @@ export function Switch({
       {...props}
       aria-checked={checked}
       className={cn(
-        "group relative inline-flex h-7 w-[60px] shrink-0 cursor-pointer touch-pan-y rounded-full select-none disabled:cursor-not-allowed disabled:opacity-50",
+        "group relative inline-flex h-7 w-[64px] shrink-0 cursor-pointer touch-pan-y rounded-full select-none disabled:cursor-not-allowed disabled:opacity-50",
         className,
       )}
       data-cursor="point"
@@ -244,7 +237,7 @@ export function Switch({
       <span
         aria-hidden="true"
         className={cn(
-          "liquid liquid-clear pointer-events-none absolute top-0.5 left-0.5 h-6 w-[34px] rounded-full [--liquid-bend:0.2] [--liquid-drop:0_1px_3px_rgb(0_0_0/0.2)] [--liquid-tint:rgb(var(--ink-rgb)/0.04)]",
+          "liquid liquid-clear pointer-events-none absolute top-0.5 left-0.5 h-6 w-[38px] rounded-full [--liquid-bend:0.18] [--liquid-drop:0_1px_3px_rgb(0_0_0/0.2)] [--liquid-tint:rgb(var(--ink-rgb)/0.04)]",
           checked ? "[--knob:var(--on-primary)]" : "[--knob:var(--ink-lead)]",
         )}
         ref={knob}

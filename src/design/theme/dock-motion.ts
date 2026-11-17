@@ -3,6 +3,20 @@ import type {
   DockSurfacePhaseMotion,
 } from "@omerdlw/base-framework/dock";
 import { gpuTransform } from "@omerdlw/base-framework/utils";
+import {
+  DEVELOP,
+  LEAVE,
+  SETTLE,
+  STAGGER,
+  TOUCH,
+  TRAVEL,
+  at,
+  away,
+  beat,
+  here,
+  spring,
+  tween,
+} from "./motion";
 
 /** The dock's resting width in px; the framework clamps it to the viewport. */
 export const DOCK_WIDTH = 520;
@@ -34,45 +48,6 @@ export const DOCK_PADDING = 12;
 // Nothing blurs, glass or words: a blurring animation cannot run on the
 // compositor, so it repaints on every frame it plays, and on frosted glass it
 // smears the frost.
-
-const PHI = 1.618034;
-// φⁿ seconds: 0.146, 0.236, 0.382, 0.618, 1, 1.618.
-const beat = (n: number) => Math.round(PHI ** n * 1000) / 1000;
-// Fibonacci: staggers in seconds, travel in px.
-const STAGGER = { item: 0.034, line: 0.055, step: 0.089 };
-const TRAVEL = { hair: 3, nudge: 5, step: 8, rise: 13 };
-
-type Ease = [number, number, number, number];
-
-// Settle: arrives quickly and spends its long tail coming to rest.
-const SETTLE: Ease = [0.236, 1, 0.382, 1];
-// Develop: a slow start and a long, even resolve, for pictures and shade.
-const DEVELOP: Ease = [0.382, 0, 0.146, 1];
-// Leave: gathers, then goes.
-const LEAVE: Ease = [0.618, 0, 0.854, 0.382];
-// Touch: answers at once and eases into place.
-const TOUCH: Ease = [0.146, 1, 0.382, 1];
-
-const tween = (duration: number, ease: Ease, delay = 0) => ({
-  type: "tween" as const,
-  duration,
-  ease,
-  delay,
-});
-
-// visualDuration: the time the eye reads as the move; bounce 0 is critically
-// damped (no overshoot). Only small things that pop get a little bounce.
-const spring = (visualDuration: number, bounce = 0) => ({
-  type: "spring" as const,
-  visualDuration,
-  bounce,
-});
-
-const at = (y = 0, scale = 1) => gpuTransform(y, scale);
-
-// Offset and gone; and in place.
-const away = (y = 0, scale = 1) => ({ opacity: 0, transform: at(y, scale) });
-const here = (opacity = 1) => ({ opacity, transform: at() });
 
 // The glass travels on these.
 const GLIDE = spring(beat(-1));

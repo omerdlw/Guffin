@@ -255,7 +255,7 @@ export function AccountSectionTabs({
         ref={navRef}
       >
         <ul
-          className="relative grid w-full grid-cols-60 items-stretch gap-y-0.5 rounded-panel bg-veil p-1 lg:flex lg:h-10 lg:w-max lg:shrink-0 lg:gap-0.5 lg:rounded-full ring-1 ring-edge-hover in-data-backdrop:backdrop-saturate-150 ring-inset select-none"
+          className="relative grid w-full grid-cols-60 items-stretch gap-y-0.5 rounded-panel bg-veil p-1 lg:flex lg:h-control-md lg:w-max lg:shrink-0 lg:gap-0.5 lg:rounded-full ring-1 ring-edge-hover in-data-backdrop:backdrop-saturate-150 ring-inset select-none"
           ref={listRef}
         >
           {pill ? (
@@ -269,7 +269,7 @@ export function AccountSectionTabs({
                 : section.label;
             return (
               <li
-                className="flex h-8 lg:flex-none"
+                className="flex h-control-sm lg:flex-none"
                 data-chosen={isChosen ? "" : undefined}
                 key={section.key ?? "profile"}
                 onClick={choose(section.key)}

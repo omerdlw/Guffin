@@ -77,6 +77,11 @@ const ACTIVITY_ICONS: Record<string, string> = {
   WATCHLIST_ADDED: "solar:bookmark-bold",
 };
 
+function activityKind(item: ActivityItem): string {
+  if (item.type === "REVIEW_LIKED" && !item.tmdbId) return "Comment like";
+  return ACTIVITY_KINDS[item.type] ?? "Activity";
+}
+
 function episodeSummary(item: ActivityItem): string {
   const count = item.episodes?.count ?? 1;
   if (count > 1) return `${count} episodes`;
@@ -303,7 +308,10 @@ export function ActivityRow({
           label={item.title ?? "Movie"}
           radius={RADIUS.thumb}
         />
-      ) : null}
+      ) : (
+        // Keeps the text column on one line with the rows that carry a poster.
+        <span aria-hidden="true" className="w-fib-6 shrink-0" />
+      )}
 
       <div className="flex min-w-0 flex-1 flex-col gap-fib-1">
         <p className="type-body leading-6 text-ink-body">
@@ -313,7 +321,7 @@ export function ActivityRow({
           {describeActivity(item, actor.username)}
         </p>
         <p className="type-meta text-ink-muted">
-          {ACTIVITY_KINDS[item.type] ?? "Activity"}
+          {activityKind(item)}
           <span aria-hidden="true" className="mx-fib-2 text-ink-faint">
             •
           </span>
@@ -406,7 +414,7 @@ export function ActivityRhythm({
 }): JSX.Element {
   return (
     <AccountSection as="div" className="w-full" cue="activity">
-      <ActivityCalendar days={summary.days} period="the last 2 years" />
+      <ActivityCalendar days={summary.days} period="the last 104 weeks" />
     </AccountSection>
   );
 }

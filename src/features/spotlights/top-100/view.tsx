@@ -277,7 +277,7 @@ function Canon({
     paint();
     const watching = new MutationObserver(paint);
     watching.observe(document.documentElement, {
-      attributeFilter: ["class", "data-theme", "style"],
+      attributeFilter: ["class", "style"],
       attributes: true,
     });
     return () => watching.disconnect();

@@ -443,7 +443,7 @@ function ListPickerSurface({ data }: { data: ListPickerData }): JSX.Element {
             <Input
               aria-label="New list name"
               className={ui.parts.input.field({
-                className: "h-10 min-w-0 flex-1 px-4 type-body",
+                className: "h-control-md min-w-0 flex-1 px-4 type-body",
               })}
               disabled={creating}
               maxLength={LIST_TITLE_MAX}

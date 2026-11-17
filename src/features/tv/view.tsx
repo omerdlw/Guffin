@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { JSX } from "react";
+import { type JSX, Suspense } from "react";
 import { notFound } from "next/navigation";
 import { Carousel } from "@/design/components/carousel";
 import { Icon } from "@/design/components/icon";
@@ -20,6 +20,7 @@ import {
   DetailLayout,
   DetailReviewsLayout,
   DetailSidebar,
+  DetailTags,
   Heading,
   namesFact,
   textFact,
@@ -31,7 +32,8 @@ import {
   DetailText,
 } from "@/features/detail/motion";
 import { MediaReviewsHeader } from "@/features/detail/reviews-header";
-import { DetailViews } from "@/features/detail/stage";
+import { MoviePopularLists } from "@/features/lists/popular";
+import { getMoviePopularLists } from "@/features/lists/server";
 import { MediaTypeProvider } from "@/features/media/media-type";
 import { MoviePeople } from "@/features/movie/cast";
 import { MovieCollectionActions } from "@/features/movie/collection";
@@ -63,24 +65,35 @@ import {
 import { MovieReviewDigest, MovieReviews } from "@/features/movie/reviews";
 import { getFilmStats, getPeopleKnownFor } from "@/features/movie/server";
 import { MoviePosterLink, MovieStage } from "@/features/movie/stage";
-import { MovieStats } from "@/features/movie/view";
-import { MovieViewProvider, ReelProvider } from "@/features/movie/views";
+import {
+  MovieAwards,
+  MovieAwardsAction,
+  MovieStats,
+} from "@/features/movie/view";
+import {
+  MovieViewProvider,
+  MovieViews,
+  ReelProvider,
+} from "@/features/movie/views";
 import type { MovieReviewSort } from "@/features/reviews/review";
 import { MovieSocialProof } from "@/features/social/proof";
-import { tvHref } from "@/lib/project";
-import { getAmbientPalette, getShowDetails } from "@/lib/tmdb/server";
+import { personHref, tvHref } from "@/lib/project";
+import {
+  getAmbientPalette,
+  getShowAwards,
+  getShowDetails,
+} from "@/lib/tmdb/server";
 import {
   type SeasonSummary,
   type ShowDetails,
   tmdbImageUrl,
 } from "@/lib/tmdb/shared";
-import { SeasonShelf, type ShelfProgress } from "./seasons";
+import { SeasonShelf, type ShelfProgress, ShowResume } from "./seasons";
 import { getSeasonStills, getShowTracking } from "./server";
 import {
   daysUntil,
   formatEpisodeCode,
   formatEpisodeDate,
-  formatShowYears,
   isAired,
   showChrome,
   type ShowTracking,
@@ -98,8 +111,6 @@ type ShowReviewSort = MovieReviewSort;
 const SHOW_CERTIFICATION_REGION = "US";
 
 const SHOW_RECOMMENDATION_LIMIT = 18;
-
-const MAX_VISIBLE_CREATORS = 3;
 
 const MAX_VISIBLE_NETWORKS = 3;
 
@@ -254,45 +265,33 @@ function NextEpisodeStat({ show }: { show: ShowDetails }): JSX.Element | null {
   );
 }
 
+const SHOW_TAG_LIMIT = 8;
+
+const MAX_VISIBLE_CREATORS = 3;
+
+// The dock already carries the years, the run and the network, the seasons
+// have their own shelf and the keywords sit under the synopsis as chips.
 function buildShowFacts(show: ShowDetails): Fact[] {
   const genres = show.genres.map((genre) => ({ text: genre.name }));
-  const tags = show.keywords.slice(0, 8);
   const certification = getShowCertification(show);
   const status = showStatusText(show.status);
-  const years = formatShowYears(
-    show.releaseYear,
-    show.endYear,
-    isAiring(show.status),
-  );
   return facts([
-    genres.length > 0 &&
-      namesFact(plural(genres.length, "Genre", "Genres"), 3, genres),
     show.creators.length > 0 &&
       namesFact(
         plural(show.creators.length, "Creator", "Creators"),
         MAX_VISIBLE_CREATORS,
         show.creators.map((person) => ({
-          href: `/person/${person.id}`,
+          href: personHref(person.id),
           text: person.name,
         })),
       ),
+    genres.length > 0 &&
+      namesFact(plural(genres.length, "Genre", "Genres"), 3, genres),
     show.networks.length > 0 &&
       namesFact(
         plural(show.networks.length, "Network", "Networks"),
         MAX_VISIBLE_NETWORKS,
         show.networks.map((network) => ({ text: network.name })),
-      ),
-    tags.length > 0 &&
-      namesFact(
-        "Tags",
-        5,
-        tags.map((tag) => ({ text: capitalizeWords(tag.name) })),
-      ),
-    years && textFact("Aired", years),
-    show.seasonsCount > 0 &&
-      textFact(
-        "Seasons",
-        `${show.seasonsCount} · ${show.episodesCount} episodes`,
       ),
     show.runtimeMinutes
       ? textFact("Episode", `${show.runtimeMinutes} min`)
@@ -330,7 +329,7 @@ function ShowHeader({
       {show.tagline ? (
         <DetailText
           as="p"
-          className={`${TAGLINE_CLASS} opacity-90`}
+          className={cn(TAGLINE_CLASS, "opacity-90")}
           part="tagline"
           text={show.tagline}
         />
@@ -347,6 +346,11 @@ function ShowHeader({
           text={show.overview}
         />
       ) : null}
+      <DetailTags
+        tags={show.keywords
+          .slice(0, SHOW_TAG_LIMIT)
+          .map((tag) => capitalizeWords(tag.name))}
+      />
     </>
   );
 }
@@ -467,6 +471,7 @@ export async function ShowPageContent({
   const gallery = { backdrops: pathsOf(backdrops), posters: pathsOf(posters) };
   const { regular, seasons, watchedBySeason } = seasonShelf(show, tracking);
   const stills = await getSeasonStills(show.id, seasons, isAiring(show.status));
+  const progress = shelfProgress(show, tracking, regular);
 
   if (page.kind === "reviews") {
     return (
@@ -507,6 +512,10 @@ export async function ShowPageContent({
     );
   }
 
+  const awards = getShowAwards(show.id).then((outcome) =>
+    outcome.success ? outcome.data : null,
+  );
+
   return (
     <MediaTypeProvider mediaType="tv">
       <MovieViewProvider>
@@ -514,7 +523,16 @@ export async function ShowPageContent({
         <ReelProvider>
           <MovieStage movie={art}>
             <DetailLayout
-              after={<MovieReviewDigest movieId={show.id} title={show.title} />}
+              after={
+                <>
+                  <MovieReviewDigest movieId={show.id} title={show.title} />
+                  <Suspense fallback={null}>
+                    <MoviePopularLists
+                      lists={getMoviePopularLists(show.id, "tv")}
+                    />
+                  </Suspense>
+                </>
+              }
               backdrop={
                 backdrop ? (
                   <MovieBackdropHero frames={frames} movie={art} />
@@ -524,15 +542,19 @@ export async function ShowPageContent({
               header={<ShowHeader show={show} stats={stats} />}
               intermission={<MovieProjection movie={art} />}
               main={
-                <DetailViews
-                  shown="overview"
+                <MovieViews
                   views={{
+                    awards: (
+                      <Suspense fallback={null}>
+                        <MovieAwards awards={awards} />
+                      </Suspense>
+                    ),
                     overview: (
                       <>
                         <SeasonShelf
                           backdropFallback={show.backdropPath}
                           now
-                          progress={shelfProgress(show, tracking, regular)}
+                          progress={progress}
                           seasons={seasons}
                           showId={show.id}
                           stills={stills}
@@ -560,7 +582,7 @@ export async function ShowPageContent({
               }
               sidebar={
                 <DetailSidebar facts={buildShowFacts(show)}>
-                  <MoviePoster movie={art} />
+                  <MoviePoster awards={awards} movie={art} />
                   <MovieCollectionActions mediaType="tv" movieId={show.id}>
                     <ShowStatusAction
                       index={3}
@@ -568,9 +590,18 @@ export async function ShowPageContent({
                       showId={show.id}
                       title={show.title}
                     />
+                    <Suspense fallback={null}>
+                      <MovieAwardsAction awards={awards} />
+                    </Suspense>
                   </MovieCollectionActions>
+                  <ShowResume
+                    fallback={show.backdropPath}
+                    progress={progress}
+                    showId={show.id}
+                    stills={stills}
+                  />
                   <MovieSocialProof
-                    index={4}
+                    index={5}
                     movieId={show.id}
                     title={show.title}
                   />

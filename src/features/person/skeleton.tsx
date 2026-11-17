@@ -49,8 +49,8 @@ function Sidebar(): JSX.Element {
           <SkeletonBlock className="aspect-[2/3] w-full rounded-sheet" />
         </div>
         <div className="flex gap-3">
-          <SkeletonBlock className="h-12 min-w-0 flex-1 rounded-full" />
-          <SkeletonBlock className="h-12 min-w-0 flex-1 rounded-full" />
+          <SkeletonBlock className="h-control-lg min-w-0 flex-1 rounded-full" />
+          <SkeletonBlock className="h-control-lg min-w-0 flex-1 rounded-full" />
         </div>
       </div>
 

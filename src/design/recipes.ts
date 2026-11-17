@@ -241,7 +241,7 @@ const selectPlaceholder = defineRecipe({ base: "truncate text-ink-muted" });
 
 const selectChevron = defineRecipe({
   base: [
-    "shrink-0 text-ink-muted group-aria-expanded:rotate-180 group-aria-expanded:text-ink",
+    "shrink-0 text-ink-muted group-hover:text-ink-body group-focus-visible:text-ink-body group-aria-expanded:text-ink",
     glyph16,
     "",
   ],
@@ -266,13 +266,15 @@ const selectMenu = defineRecipe({
 
 const selectOption = defineRecipe({
   base: [
+    // The chosen option is marked by a check in a gutter before every
+    // label (iOS 26's menus), not by weight: the labels line up either way.
     "relative isolate flex cursor-pointer items-center justify-between gap-2.5 text-ink-body select-none",
-    "data-[highlighted]:text-ink aria-selected:font-medium aria-selected:text-ink aria-disabled:cursor-not-allowed aria-disabled:opacity-50",
+    "data-[highlighted]:text-ink aria-selected:text-ink aria-disabled:cursor-not-allowed aria-disabled:opacity-50",
   ],
   variants: {
     size: {
-      sm: "px-2.5 py-1.5 type-meta",
-      md: "px-3 py-2 type-body",
+      sm: "py-1.5 pr-2.5 pl-7.5 type-meta",
+      md: "py-2 pr-3 pl-8.5 type-body",
     },
     shape: { card: "", pill: "" },
   },
@@ -302,7 +304,10 @@ const selectIcon = defineRecipe({
 });
 
 const selectCheck = defineRecipe({
-  base: ["relative z-10 shrink-0 text-ink", glyph16],
+  base: [
+    "absolute top-1/2 left-2 z-10 shrink-0 -translate-y-1/2 text-ink",
+    glyph16,
+  ],
 });
 
 const selectEmpty = defineRecipe({

@@ -2,6 +2,7 @@ import "server-only";
 
 import { report } from "@omerdlw/base-framework/utils";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import type { MediaType } from "@/lib/tmdb/shared";
 import type { ListsClient, PopularList } from "./list";
 
 interface PopularListRow {
@@ -77,6 +78,7 @@ export async function readListPreviews(
 
 export async function getMoviePopularLists(
   tmdbId: number,
+  mediaType: MediaType = "movie",
 ): Promise<PopularList[]> {
   try {
     const client = await createServerSupabaseClient();
@@ -86,6 +88,7 @@ export async function getMoviePopularLists(
         "id, slug, title, description, items_count, likes_count, reviews_count, owner:accounts!lists_account_id_fkey!inner(username, display_name, avatar_url), list_items!inner(tmdb_id)",
       )
       .eq("list_items.tmdb_id", tmdbId)
+      .eq("list_items.media_type", mediaType)
       .eq("is_private", false)
       .order("likes_count", { ascending: false })
       .order("items_count", { ascending: false })

@@ -153,7 +153,7 @@ fills them with `defineTheme(moduleTheme, { slots, styles, motion })`, and
   `TIP`, `WELL`, `TONES`, `TOOLTIP`, `SKELETON`), never raw values.
 - **`styles`** carry what classes cannot: `zIndex` from `Z_INDEX`, padding
   the framework measures.
-- **`motion`** is the module's choreography (`dock-motion.ts`) or `INSTANT`.
+- **`motion`** is the module's choreography (`dock-motion.ts`, `modal.ts`, `context-menu.ts`, `notification.ts`), on the shared vocabulary of `theme/motion.ts`.
 - State reaches the slots as data attributes (`data-placement`,
   `data-shelf`, `data-anchored`, `data-ghost`, `data-active`), styled with
   `data-[…]:` variants in the slot string.

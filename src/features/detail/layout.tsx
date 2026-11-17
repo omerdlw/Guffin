@@ -30,7 +30,7 @@ import {
   DetailSection,
   DetailWallStage,
 } from "./motion";
-import { StickyAside } from "./stage";
+import { FactsFold, StickyAside } from "./stage";
 
 const STAGE_LOOK: AwardsLook = {
   button: "rounded-full",
@@ -148,14 +148,38 @@ export const textFact = (label: string, text: string): Fact => ({
 function DetailFacts({ facts }: { facts: readonly Fact[] }) {
   return (
     <div className={SIDEBAR_FACTS_CLASS}>
-      <dl className="flex flex-col sm:max-lg:flex-1">
+      <FactsFold count={facts.length}>
         {facts.map((fact, index) => (
           <FactRow index={index} key={fact.label} label={fact.label}>
             {fact.value(index)}
           </FactRow>
         ))}
-      </dl>
+      </FactsFold>
     </div>
+  );
+}
+
+/** The film's or show's keywords, as quiet chips under its synopsis. */
+export function DetailTags({
+  tags,
+}: {
+  tags: readonly string[];
+}): JSX.Element | null {
+  if (tags.length === 0) return null;
+  return (
+    <ul aria-label="Tags" className="mt-6 flex flex-wrap gap-2">
+      {tags.map((tag, index) => (
+        <DetailPart
+          as="li"
+          className="center h-control-xs rounded-full bg-fill px-3 type-meta text-ink-body ring-1 ring-edge ring-inset"
+          index={index}
+          key={tag}
+          name="tag"
+        >
+          {tag}
+        </DetailPart>
+      ))}
+    </ul>
   );
 }
 

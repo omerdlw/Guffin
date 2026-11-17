@@ -6,42 +6,62 @@ import { defineTheme } from "@omerdlw/base-framework/theme";
 import { SHELL } from "@/design/foundations/layers";
 import { TONE } from "@/design/foundations/tones";
 import { Z_INDEX } from "@/design/foundations/z-index";
-import { INSTANT } from "./motion";
+import {
+  LEAVE,
+  SETTLE,
+  STAGGER,
+  TRAVEL,
+  TOUCH,
+  at,
+  beat,
+  spring,
+  tween,
+} from "./motion";
+
+// The context menu blooms from the point it was opened at: the glass (the
+// menu element itself, never an ancestor of it) comes up from a little small
+// on a short spring, its rows rise in one after another, 34ms apart. It goes
+// quicker than it came. A row pressed gives a hair and comes back.
 
 const ORIGIN = "top left";
 
-const AT_REST = "translate3d(0px, 0px, 0) scale(1)";
-
 const contextMenuMotion: ContextMenuMotion = {
   pop: {
-    hidden: {
-      opacity: 0,
-      transform: AT_REST,
-      transformOrigin: ORIGIN,
-    },
+    hidden: { opacity: 0, transform: at(0, 0.94), transformOrigin: ORIGIN },
     visible: {
       opacity: 1,
-      transform: AT_REST,
+      transform: at(),
       transformOrigin: ORIGIN,
-      transition: INSTANT,
+      transition: {
+        transform: spring(beat(-2), 0.12),
+        opacity: tween(beat(-4), SETTLE),
+      },
     },
     exit: {
       opacity: 0,
-      transform: AT_REST,
+      transform: at(0, 0.97),
       transformOrigin: ORIGIN,
-      transition: INSTANT,
+      transition: tween(beat(-4), LEAVE),
     },
   },
   content: {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: INSTANT },
+    hidden: { opacity: 0, transform: at(TRAVEL.nudge) },
+    visible: {
+      opacity: 1,
+      transform: at(),
+      transition: tween(beat(-2), SETTLE, beat(-5)),
+    },
   },
   item: {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: INSTANT },
+    hidden: { opacity: 0, transform: at(TRAVEL.nudge) },
+    visible: (index: number) => ({
+      opacity: 1,
+      transform: at(),
+      transition: tween(beat(-2), SETTLE, beat(-5) + index * STAGGER.item),
+    }),
   },
-  itemTap: { transform: AT_REST },
-  itemTransition: INSTANT,
+  itemTap: { transform: at(0, 0.98) },
+  itemTransition: tween(beat(-3), TOUCH),
 };
 
 export const contextMenuThemeConfig = defineTheme(contextMenuTheme, {

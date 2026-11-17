@@ -266,7 +266,7 @@ function PosterCalendar({
         aria-hidden="true"
         className={cn(
           DIARY_CALENDAR_GRID,
-          "type-micro font-semibold text-ink-faint",
+          "type-micro font-semibold text-ink-muted",
         )}
       >
         {DIARY_WEEKDAYS.map((weekday, index) => (
@@ -289,7 +289,7 @@ function PosterCalendar({
             return (
               <li
                 className={cn(
-                  "flex aspect-[2/3] items-start justify-start rounded-thumb p-1 type-micro text-ink-faint tabular-nums ring-1 ring-rule ring-inset",
+                  "flex aspect-[2/3] items-start justify-start rounded-thumb p-1 type-micro text-ink-muted tabular-nums ring-1 ring-edge ring-inset",
                   date > today && "opacity-40",
                   date === today && "text-ink-body ring-edge-focus",
                 )}
@@ -311,26 +311,26 @@ function PosterCalendar({
                   .join(", ")}`}
                 onClick={() => onPick(date)}
                 overlay={
-                  <>
+                  <span className="on-photo contents">
                     <span
                       aria-hidden="true"
-                      className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/70 via-black/0 to-black/0"
+                      className="pointer-events-none absolute inset-0 bg-linear-to-t from-page/70 via-transparent to-transparent"
                     />
                     <span
                       aria-hidden="true"
-                      className="pointer-events-none absolute bottom-1 left-1.5 type-micro font-semibold text-white tabular-nums"
+                      className="pointer-events-none absolute bottom-1 left-1.5 type-micro font-semibold text-ink tabular-nums"
                     >
                       {day}
                     </span>
                     {rows.length > 1 ? (
                       <span
                         aria-hidden="true"
-                        className="pointer-events-none absolute top-1 right-1 rounded-full bg-black/60 px-1 type-micro leading-4 font-semibold text-white tabular-nums backdrop-blur-sm"
+                        className="pointer-events-none absolute top-1 right-1 rounded-full bg-page/60 px-1 type-micro leading-4 font-semibold text-ink tabular-nums backdrop-blur-sm"
                       >
                         {rows.length}
                       </span>
                     ) : null}
-                  </>
+                  </span>
                 }
                 radius={RADIUS.thumb}
                 tooltip={rows.length > 1 ? `${rows.length} films` : cover.title}
@@ -456,7 +456,7 @@ function Entry({
             </DockLink>
           ) : null}
           {!isRated(row.rating) && !row.isRewatch && !row.hasReview ? (
-            <span className="type-meta text-ink-faint">Logged</span>
+            <span className="type-meta text-ink-muted">Logged</span>
           ) : null}
         </div>
       </div>

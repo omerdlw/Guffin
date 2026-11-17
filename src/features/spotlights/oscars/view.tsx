@@ -307,7 +307,7 @@ function Oscars({
             <div className="flex h-full w-full items-center justify-center">
               <Link
                 aria-label={`${seen.title}, Best Picture at the ${ordinal(seen.ceremony)} Academy Awards (${seen.ceremonyYear})`}
-                className="pointer-events-auto relative aspect-[2/3] h-full shrink-0 overflow-hidden rounded-md shadow-lg"
+                className="pointer-events-auto relative aspect-[2/3] h-full shrink-0 overflow-hidden"
                 href={movieHref(seen.id)}
               >
                 <Image

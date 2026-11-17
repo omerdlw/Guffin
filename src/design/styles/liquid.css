@@ -1,31 +1,27 @@
 /* Liquid glass. One material for everything that floats: the dock, modals,
    menus, tooltips, toasts and the controls laid over a picture.
 
-   .liquid        the material: a thin tint, a crisp glint where the curved
-                  rim catches the light, a hairline contour just outside the
-                  edge and the layer's shadow. In Chromium the lens adds the
-                  edge light: the scene behind, caught in the bezel and
+   .liquid        the material: a thin tint, a hairline contour just outside
+                  the edge and the layer's shadow. In Chromium the lens adds
+                  the edge light: the scene behind, caught in the bezel and
                   brightened, so the rim glows in the colours it sits on.
    .liquid-frost  what it does to the scene behind it: blur, saturation and
                   tone (every browser).
    .liquid-lens   refraction at the bezel, then frost, then the edge light,
                   all in one SVG filter (Chromium; maps drawn per corner by
-                  src/design/liquid.tsx); elsewhere the full frost.
+                  src/design/glass/); elsewhere the full frost.
    .liquid-clear  the lens without frost, and nothing at all outside
                   Chromium: clear glass, a drop of water (the cursor).
    .liquid-prism  on clear glass laid over a picture: the colours split at
                   the rim. --liquid-bezel (px) and --liquid-bend (× the full
                   lens) tune any lens's rim width and strength.
-   .liquid-fluid  no maps drawn per size: a surface that morphs every frame
-                  (the cursor's pane) keeps the gradient rim, which fits any
-                  size.
+   .liquid-fluid  no lens drawn per size: a surface that morphs every frame
+                  (the cursor's pane).
    .liquid-flat   no shadow (the contour stays): a control laid on a page or
                   a picture, or sitting inside another layer.
 
-   The glint's shape is a mask drawn per corner radius (--liquid-specular),
-   laid out in nine slices where the browser can (Chromium, WebKit); its colour
-   and blend come from the theme (--liquid-rim, --liquid-rim-blend). Until
-   the mask is drawn (first paint), a gradient rim stands in.
+   No white glint on the rim: it tired the eye on every edge. The rim reads
+   by its bend and by the scene's own colours caught in it.
 
    Values per theme live in themes.css (--liquid-*). Components drop their
    bg-*, ring-* and backdrop-* classes when they take the material: a ring
@@ -38,48 +34,6 @@
     box-shadow:
       0 0 0 0.5px var(--liquid-contour),
       var(--liquid-drop, var(--liquid-shadow));
-  }
-
-  .liquid::after {
-    background: linear-gradient(
-      135deg,
-      var(--liquid-rim),
-      transparent 30%,
-      transparent 70%,
-      var(--liquid-rim)
-    );
-    border-radius: inherit;
-    content: "";
-    inset: 0;
-    mix-blend-mode: var(--liquid-rim-blend, normal);
-    -webkit-mask:
-      linear-gradient(#000 0 0) content-box,
-      linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask:
-      linear-gradient(#000 0 0) content-box exclude,
-      linear-gradient(#000 0 0);
-    opacity: 0.5;
-    padding: 1px;
-    pointer-events: none;
-    position: absolute;
-  }
-
-  /* The glint, laid out in nine slices (liquid.tsx): its corners keep their
-     shape at any size, so a surface that resizes never stretches them. */
-  /* Longhands only: the build moves shorthands after the longhands, and in
-     WebKit the mask shorthand resets mask-border (the -webkit-mask-box-image
-     below), which left the rim colour washing the whole surface in Safari. */
-  .liquid[data-liquid]::after {
-    background: var(--liquid-rim);
-    -webkit-mask-image: none;
-    mask-image: none;
-    -webkit-mask-box-image-source: var(--liquid-specular);
-    -webkit-mask-box-image-slice: var(--liquid-specular-slice);
-    -webkit-mask-box-image-width: var(--liquid-specular-width);
-    -webkit-mask-box-image-repeat: stretch;
-    opacity: 1;
-    padding: 0;
   }
 
   @media (hover: hover) {

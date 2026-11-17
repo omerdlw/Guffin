@@ -9,9 +9,12 @@ import { type ContinueItem, formatEpisodeCode, progressRatio } from "./show";
 export function ProgressBar({
   className,
   ratio,
+  slot,
 }: {
   className?: string;
   ratio: number;
+  /** Names the fill for the page's choreography (it draws the bar in). */
+  slot?: "rule";
 }): JSX.Element {
   return (
     <div
@@ -26,6 +29,7 @@ export function ProgressBar({
     >
       <div
         className="h-full rounded-full bg-ink-body"
+        data-slot={slot}
         style={{ width: `${Math.round(ratio * 100)}%` }}
       />
     </div>

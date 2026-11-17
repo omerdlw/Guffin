@@ -22,14 +22,16 @@ its own time.
   `prefers-reduced-motion: reduce` every role keeps opacity only and an
   entrance lasts at most 0.3s.
 
-| Stage scope | File                                      | Carries                                             |
-| ----------- | ----------------------------------------- | --------------------------------------------------- |
-| `home`      | `src/features/home/motion.tsx`            | The home page; the template for the others          |
-| `detail`    | `src/features/detail/motion.tsx`          | Movie, TV, season, reviews; person shares its roles |
-| `account`   | `src/features/profile/motion.tsx`         | The profile and every tab                           |
-| `search`    | `src/features/search/motion.tsx`          | The search surface and results                      |
-| `surface`   | `src/design/components/surface.tsx`       | Every dock surface (`SurfaceStage`)                 |
-| —           | `spotlights/motion.tsx`, `legal/view.tsx` | Stages with roles but no choreography yet (still)   |
+| Stage scope | File                                 | Carries                                             |
+| ----------- | ------------------------------------ | --------------------------------------------------- |
+| `home`      | `src/features/home/motion.tsx`       | The home page; the template for the others          |
+| `detail`    | `src/features/detail/motion.tsx`     | Movie, TV, season, reviews; person shares its roles |
+| `account`   | `src/features/profile/motion.tsx`    | The profile and every tab                           |
+| `search`    | `src/features/search/motion.tsx`     | The search surface and results                      |
+| `surface`   | `src/design/components/surface.tsx`  | Every dock surface (`SurfaceStage`)                 |
+| `legal`     | `src/features/legal/motion.tsx`      | Privacy and terms                                   |
+| `directors` | `src/features/spotlights/motion.tsx` | The directors wall                                  |
+| `salon`     | `src/features/spotlights/shell.tsx`  | Oscars and top-100: the chrome around the scene     |
 
 ### 6.2 `defineStage`
 
@@ -94,7 +96,8 @@ entering finishes its entrance first, so the hover eases instead of snapping.
 
 `follow.of` may be `color`, `background-color`, `transform`, `translate`,
 `scale`, `opacity`, `width`, `height`, `grid-template-rows`. Framework motion
-in Guffin is instant (`ui.ts` motion), so framework components move only
+in Guffin is instant (`ui.ts` `motion.follow`; only the select's menu and
+options move there), so framework components move only
 through `follow`.
 
 ### 6.4 Kinds and slots
@@ -114,7 +117,7 @@ through `follow`.
 | `pill`, `tab`                    | `[data-pill]`, `[role="tab"]`                            | A tab bar's sliding pill and tabs                        |
 | `rule`, `icon`, `actions`        | `[data-slot=…]`                                          | A heading's rule, icon and actions                       |
 | `thumb`                          | `[data-slot="thumb"]`                                    | A result row's thumbnail                                 |
-| `folder`, `deck`, `leaf`, `flap` | `[data-slot=…]`                                          | The cast card folder (detail)                            |
+| `folder`, `deck`, `leaf`, `flap` | `[data-slot=…]`                                          | The cast stack (detail): seat, glass frame, posters      |
 
 A new slot or kind is added to `KINDS` / `SLOTS` in `choreo.ts`.
 
@@ -197,15 +200,22 @@ distance per notch (1 = native). Home and account use `{ period: 1, gain: 0.618 
 
 ### 6.8 Modules
 
-| Module                     | Motion                                                                                                                                                                                                |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Dock                       | Done: `src/design/theme/dock-motion.ts` (springs for glass, credits-roll for words) + `styles/dock.css` (arrival rise, deck fold, control warmth 0.236s)                                              |
-| Dock surfaces              | Done: the `surface` stage — blocks rise 8px after the glass blooms (0.236s, then 0.618s), 55ms apart by their place; rows by `index`, restarting every 8; a swapped view lifts 5px and fades (0.146s) |
-| Dock actions               | Done: `action-content.tsx` (section 4.1)                                                                                                                                                              |
-| Modal, context menu, toast | Not yet: `INSTANT` (`theme/motion.ts`), they open and close in one cut                                                                                                                                |
+| Module        | Motion                                                                                                                                                                                                                                                                            |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Dock          | Done: `src/design/theme/dock-motion.ts` (springs for glass, credits-roll for words) + `styles/dock.css` (arrival rise, deck fold, control warmth 0.236s)                                                                                                                          |
+| Dock surfaces | Done: the `surface` stage — blocks rise 8px after the glass blooms (0.236s, then 0.618s), 55ms apart by their place; rows by `index`, restarting every 8; a swapped view lifts 5px and fades (0.146s)                                                                             |
+| Dock actions  | Done: `action-content.tsx` (section 4.1)                                                                                                                                                                                                                                          |
+| Modal         | Done: `theme/modal.ts` — the frame travels (center: 13px up from 0.96; edges 21px, sides 34px) on a 0.618s spring and never fades; its visibility goes down as `--modal-glass` to the panel (`styles/modules.css`); header, body, footer rise 8px a beat behind; leaves in 0.236s |
+| Context menu  | Done: `theme/context-menu.ts` — blooms from its corner (0.94 → 1, 0.382s spring, a little bounce), rows rise 5px 34ms apart; a pressed row gives to 0.98                                                                                                                          |
+| Toast         | Done: `theme/notification.ts` — rises 13px from under the dock on a 0.618s spring, leaves lifting 5px in 0.236s                                                                                                                                                                   |
+| Select menu   | Done: `ui.ts` `motion.menu`/`option` — unfolds 5px out of its trigger's edge (up or down), options fade in 34ms apart (the first 8)                                                                                                                                               |
 
 `moduleMotion` follows the visitor's reduced-motion setting (`reducedMotion:
-"user"`): reduced, every module transition is instant.
+"user"`): reduced, every module transition is instant. The shared values
+(`beat`, `STAGGER`, `TRAVEL`, the curves, `tween`, `spring`, `away`, `here`)
+live in `theme/motion.ts`; every module imports them from there. A module's
+glass is the element that moves: never fade or scale an ancestor of it (the
+modal's frame is one, hence `--modal-glass`).
 
 ### 6.9 Pieces with their own time
 

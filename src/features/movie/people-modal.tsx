@@ -101,7 +101,7 @@ export function PersonCard({
           {text(
             person.name,
             dense
-              ? "truncate type-body font-medium tracking-tight text-ink"
+              ? "truncate type-body font-medium text-ink"
               : "truncate type-body font-semibold text-ink",
           )}
           {text(

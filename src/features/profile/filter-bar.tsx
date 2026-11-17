@@ -29,7 +29,7 @@ const FILTER_BAR_LOOK = {
   form: "relative col-span-full min-w-0 md:flex-1",
   input: cn(
     ui.parts.input.field(),
-    "h-10 w-full rounded-full pr-3 pl-10 type-body",
+    "h-control-md w-full rounded-full pr-3 pl-10 type-body",
   ),
   reset: "col-span-full px-3 font-semibold uppercase md:justify-start",
   root: "mb-5 grid grid-cols-2 gap-2 md:flex md:flex-wrap md:items-center",

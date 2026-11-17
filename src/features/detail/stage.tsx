@@ -13,6 +13,7 @@ import {
 } from "react";
 import { useOptionalDockState } from "@omerdlw/base-framework/dock";
 import { ActionButton } from "@/design/components/action-button";
+import { TextButton } from "@/design/components/link";
 import { BOTTOM_COVER, SIDE_COVER } from "@/design/components/backdrop";
 import { MAIN_COLUMN_CLASS, VIEW_CLASS } from "@/design/foundations/layout";
 import { cn } from "@/design/ui";
@@ -43,9 +44,9 @@ const INTERMISSION_EASE = [0.5, 0.05, 0.1, 1] as const;
 
 const SCROLL_TOP_MARGIN = 24;
 
-const DETAIL_ACTION_SIZE = "h-12 px-4 py-0 disabled:cursor-wait";
+const DETAIL_ACTION_SIZE = "h-control-lg px-4 py-0 disabled:cursor-wait";
 
-const DETAIL_ACTION_SECONDARY_SIZE = "h-11 gap-2 px-3";
+const DETAIL_ACTION_SECONDARY_SIZE = "h-control-md gap-2 px-3";
 
 const BACKDROP_DEFOCUS_FROM = 24;
 
@@ -360,5 +361,43 @@ export function StickyAside({
     >
       {children}
     </aside>
+  );
+}
+
+// On a phone the facts come before the page's sections, so a long list is
+// folded to its first few rows behind one "all details" toggle. From `sm`
+// the list sits beside or under the poster and is shown whole.
+const FOLDED_FACTS = 4;
+
+export function FactsFold({
+  children,
+  count,
+}: {
+  children: ReactNode;
+  count: number;
+}): JSX.Element {
+  const [open, setOpen] = useState(false);
+  const foldable = count > FOLDED_FACTS + 1;
+  const folded = foldable && !open;
+
+  return (
+    <>
+      <dl
+        className="flex flex-col max-sm:data-folded:[&>:nth-child(n+5)]:hidden sm:max-lg:flex-1"
+        data-folded={folded ? "" : undefined}
+      >
+        {children}
+      </dl>
+      {foldable ? (
+        <TextButton
+          aria-expanded={open}
+          className="self-start sm:hidden"
+          onClick={() => setOpen((value) => !value)}
+          variant="label"
+        >
+          {open ? "Fewer details" : `All details · ${count}`}
+        </TextButton>
+      ) : null}
+    </>
   );
 }

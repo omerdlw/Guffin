@@ -25,14 +25,14 @@ export const FILL =
   "bg-fill ring-1 ring-edge ring-inset hover:bg-fill-hover hover:ring-edge-hover focus-visible:bg-fill-hover focus-visible:ring-edge-focus";
 
 // A control inside a glass layer (the dock and its surfaces): a fill, never
-// glass on glass. White on paper, a white tint in the dark.
+// glass on glass. A white pill on paper, a white tint over a picture.
 export const WELL = "bg-(--liquid-well) shadow-(--liquid-well-shadow)";
 export const WELL_HOVER =
   "hover:bg-(--liquid-well-hover) focus-visible:bg-(--liquid-well-hover)";
 
 export const LAYER = {
   shell: "liquid liquid-lens",
-  tip: "liquid liquid-frost text-ink-lead",
+  tip: "liquid liquid-lens liquid-tip text-ink-lead",
   veil: "bg-veil",
   dim: "bg-dim",
 } as const;
@@ -56,4 +56,4 @@ export const INLINE_LINK =
   "underline decoration-ink-faint underline-offset-2 hover:text-ink focus-visible:text-ink hover:decoration-ink-muted focus-visible:decoration-ink-muted";
 
 export const ACTION_TONE =
-  "bg-primary/10 text-primary hover:bg-primary hover:text-black";
+  "bg-primary/10 text-primary hover:bg-primary hover:text-on-primary focus-visible:bg-primary focus-visible:text-on-primary";

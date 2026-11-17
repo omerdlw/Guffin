@@ -64,7 +64,7 @@ switch, a list's lock) uses `ActionLabel` / `ActionIcon` too.
 | Hover    | Text `ink`; surface `fill-hover`, ring `edge-hover`                                          |
 | Focus    | The hover treatment via `focus-visible` (ring at `edge-focus`), plus the global outline      |
 | Active   | The active fill                                                                              |
-| Chosen   | `TONE.chosen`: dark grade 15% fill, 25% ring, grade ink (hover 20 / 30); light a white sheet |
+| Chosen   | `TONE.chosen`: a white sheet on an ink hairline; in `.on-photo` grade 15% fill, 25% ring     |
 | Disabled | `STATE.disabled`: `opacity-50`, no pointer, no press                                         |
 | Busy     | `STATE.busy`: keeps its colour, wait cursor, the loader over the label                       |
 | Submit   | `<Button intent="primary">`. Grade marks a chosen state, never a submit                      |
@@ -97,14 +97,14 @@ complete answer to rest, hover and focus-visible, written against roles only.
 `ink-muted` to `ink-body`, through `group-hover`. Nothing else steps by one.
 
 **Focus outline** comes from `src/design/styles/system/interaction.css`:
-1.5px (`--focus-width`) in `--focus-ring` (45% ink in dark, 55% in light: 4:1
+1.5px (`--focus-width`) in `--focus-ring` (55% ink; 45% in `.on-photo`: 4:1
 or better against the page, as WCAG 1.4.11 asks), 2px off the element
 (`--focus-offset`), resting transparent 5px out so it closes in as it
 appears. It applies inside `.ui-motion` and `.ui-scene`, and skips fields,
 `contenteditable` and anything marked `data-own-focus`. On the page scopes
 `.home-page`, `.movie-page`, `.person-page` and `.account-page` it takes
-`--focus-ring-grade` (`styles/interaction.css`; 70% grade in dark; in light
-the grade is as light as the paper, so the ink ring stays). Components do not set their own. What a component may
+`--focus-ring-grade` (`styles/interaction.css`): on paper the grade is as
+light as the page, so the ink ring stays; in `.on-photo` it is 70% grade. Components do not set their own. What a component may
 add is the state's own step: `focus-visible:ring-edge-focus` on a button or
 tab, `focus:bg-fill-hover focus:ring-edge-focus` on a field. Fields are
 `<Input>` (or `ui.parts.input.field()`), never a copy of it.

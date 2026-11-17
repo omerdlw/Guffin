@@ -5,7 +5,7 @@ const layerVariants = variants("", {
     kind: {
       shell: "liquid liquid-lens",
       float: "liquid liquid-flat liquid-lens",
-      tip: "liquid liquid-frost text-ink-lead",
+      tip: "liquid liquid-lens liquid-tip text-ink-lead",
       veil: "bg-veil",
       dim: "bg-dim",
     },
@@ -17,4 +17,4 @@ export const FLOAT = layerVariants({ kind: "float" });
 export const TIP = layerVariants({ kind: "tip" });
 export const BACKDROP = layerVariants({ kind: "veil" });
 export const DIM = layerVariants({ kind: "dim" });
-export const GLASS = "liquid liquid-flat";
+export const GLASS = "liquid liquid-flat liquid-lens";

@@ -1,9 +1,8 @@
-import type { JSX } from "react";
+import type { CSSProperties, JSX } from "react";
 import { BackdropHeroSkeleton } from "@/design/components/backdrop";
 import {
   CarouselSkeleton,
   SectionHeaderSkeleton,
-  SKELETON,
   SkeletonBlock,
   SkeletonLines,
   TabsSkeleton,
@@ -28,7 +27,8 @@ import {
 } from "@/design/foundations/layout";
 import { cn } from "@/design/ui";
 import { SIDEBAR_FACTS_CLASS } from "@/features/detail/detail";
-import { AFTER_TAGLINE, TAGLINE_TYPE } from "./movie";
+import cast from "./cast.module.css";
+import { AFTER_TAGLINE, CAST_SEATS, TAGLINE_TYPE } from "./movie";
 
 const SKELETON_FACT_WIDTHS = [
   ["3.5rem", "7rem"],
@@ -60,18 +60,22 @@ function Sidebar(): JSX.Element {
         </div>
         <div className="grid grid-cols-2 gap-3">
           {Array.from({ length: 2 }, (_, index) => (
-            <SkeletonBlock className="h-12 rounded-full" key={index} />
+            <SkeletonBlock className="h-control-lg rounded-full" key={index} />
           ))}
           <div className="col-span-2 flex gap-3">
             {Array.from({ length: 2 }, (_, index) => (
-              <SkeletonBlock className="h-11 flex-1 rounded-full" key={index} />
+              <SkeletonBlock
+                className="h-control-md flex-1 rounded-full"
+                key={index}
+              />
             ))}
           </div>
         </div>
       </div>
 
       <div className={SIDEBAR_FACTS_CLASS}>
-        <div className="flex flex-col sm:max-lg:flex-1">
+        {/* Folded on a phone like the page's facts (detail/stage FactsFold). */}
+        <div className="flex flex-col max-sm:[&>:nth-child(n+5)]:hidden sm:max-lg:flex-1">
           {SKELETON_FACT_WIDTHS.map(([label, value], index) => (
             <div
               className="group/row relative flex py-3 first:pt-0 last:pb-0 sm:max-lg:grow-2 sm:max-lg:items-center sm:max-lg:first:grow sm:max-lg:first:items-start sm:max-lg:last:grow sm:max-lg:last:items-end"
@@ -98,33 +102,6 @@ function Sidebar(): JSX.Element {
   );
 }
 
-function PersonCardSkeleton({ compact = false }: { compact?: boolean }) {
-  return compact ? (
-    <div
-      className={cn(
-        SKELETON.block,
-        "flex h-10 min-w-0 items-center gap-3 rounded-panel p-1 pr-2",
-      )}
-    >
-      <SkeletonBlock className="size-8 shrink-0 rounded-full" />
-      <SkeletonLines className="type-meta" widths={["4.5rem"]} />
-    </div>
-  ) : (
-    <div
-      className={cn(
-        SKELETON.block,
-        "flex h-[84px] items-center gap-3 rounded-panel p-1 pr-4",
-      )}
-    >
-      <SkeletonBlock className="h-[76px] w-14 shrink-0 rounded-card" />
-      <div className="flex min-w-0 flex-col">
-        <SkeletonLines className="type-body" widths={["7.5rem"]} />
-        <SkeletonLines className="type-label" widths={["5rem"]} />
-      </div>
-    </div>
-  );
-}
-
 function People(): JSX.Element {
   return (
     <section className="flex w-full flex-col">
@@ -133,19 +110,25 @@ function People(): JSX.Element {
         title="5.75rem"
       />
       <div className="flex flex-col gap-3">
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {Array.from({ length: 8 }, (_, index) => (
-            <SkeletonBlock className="aspect-[3/4] rounded-sheet" key={index} />
-          ))}
-        </div>
-        <div className="grid h-10 grid-cols-[repeat(2,minmax(0,1fr))_2.5rem] gap-3 sm:grid-cols-[repeat(var(--cells),minmax(0,1fr))] sm:[--cells:4]">
-          {Array.from({ length: 3 }, (_, index) => (
-            <div className={index > 1 ? "hidden sm:block" : ""} key={index}>
-              <PersonCardSkeleton compact />
+        <div className={cast.stack}>
+          {CAST_SEATS.map((seat, index) => (
+            <div
+              className={cast.seat}
+              data-at={seat.at}
+              key={index}
+              style={
+                {
+                  "--x": `${seat.x}cqi`,
+                  "--front": `${CAST_SEATS[0]!.w}cqi`,
+                  "--s": seat.w / CAST_SEATS[0]!.w,
+                } as CSSProperties
+              }
+            >
+              <SkeletonBlock className={cn(cast.holder, "rounded-sheet")} />
             </div>
           ))}
-          <SkeletonBlock className="h-10 w-full rounded-full" />
         </div>
+        <SkeletonBlock className="mx-auto mt-4 h-4 w-2/3 rounded-full" />
       </div>
     </section>
   );

@@ -23,9 +23,8 @@ const TINT_LIGHTNESS = 0.74;
 
 const TINT_CHROMA = 0.1;
 
-const TINT_WHITE = 0.985;
-
-const TINT_WHITE_PAPER = 0.22;
+// Ungraded, the grade falls back to ink: dark enough to read on paper.
+const TINT_INK = 0.22;
 
 const TINT_HUES = 24;
 
@@ -183,18 +182,14 @@ export function rgbOf({ l, c, h }: Tint): [number, number, number] {
 
 function write(tint: Tint | null) {
   if (typeof document === "undefined") return;
-  const root = document.documentElement;
-  const { style } = root;
-  const paper = root.dataset.theme === "light";
-  const white = paper ? TINT_WHITE_PAPER : TINT_WHITE;
+  const { style } = document.documentElement;
   const presence = tint ? 1 : 0;
+  // A picture's tint is darkened and saturated so it reads on paper.
   const seen: Tint = tint
-    ? paper
-      ? { l: tint.l - 0.24, c: tint.c * 1.3, h: tint.h }
-      : tint
+    ? { l: tint.l - 0.24, c: tint.c * 1.3, h: tint.h }
     : { l: TINT_LIGHTNESS, c: TINT_CHROMA, h: 0 };
   const light = {
-    l: white + (seen.l - white) * presence,
+    l: TINT_INK + (seen.l - TINT_INK) * presence,
     c: seen.c * presence,
     h: seen.h,
   };
@@ -207,12 +202,6 @@ function write(tint: Tint | null) {
 export const grade = new Signal<Tint | null>(null);
 
 grade.subscribe(write);
-
-if (typeof document !== "undefined")
-  new MutationObserver(() => write(grade.get())).observe(
-    document.documentElement,
-    { attributeFilter: ["data-theme"], attributes: true },
-  );
 
 export function useGrade(value: Grading | undefined) {
   const key = typeof value === "object" && value ? value.h : value;

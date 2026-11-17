@@ -79,7 +79,7 @@ export function PanelSkeleton({ detailed = false }: { detailed?: boolean }) {
           <div
             className={cn(
               "shrink-0 rounded-inset bg-fill-hover",
-              detailed ? "h-10 w-20" : "size-10",
+              detailed ? "h-control-md w-20" : "size-control-md",
             )}
           />
         </div>

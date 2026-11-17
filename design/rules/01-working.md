@@ -2,7 +2,7 @@
 
 ### 1.1 The one idea
 
-**Every visual value has a role, and every role has one value per theme.** A
+**Every visual value has a role, and every role has one value.** A
 colour is not "white at 6%"; it is `fill`. A radius is not "14px"; it is
 `card`. A duration is not a shared token; it is written by the page or module
 that moves. Components name roles, never raw values, so changing the system
@@ -13,7 +13,7 @@ means changing one line.
 ```
 src/app/globals.css        imports Tailwind, the system CSS, the theme CSS; the reset
 src/app/layout.tsx         fonts (Geist → --font-geist, Zuume → --font-zuume), theme script
-src/app/providers.tsx      mounts UiProvider(ui), themes, LiquidLens, LiquidTouch,
+src/app/providers.tsx      mounts UiProvider(ui), themes, GlassEngine, LiquidTouch,
                            ActionArrival, Cursor, EngineProvider, the dock registry
 
 src/design/
@@ -22,19 +22,18 @@ src/design/
       tokens.css             @theme: type scale, radii, control heights; Tailwind
                              palette, sizes, radii, shadows, easings switched off;
                              every colour token mapped to a CSS variable
-      palette.css            :where() fallbacks for the variables (zero
-                             specificity; themes.css overrides every one)
       utilities.css          center, type-* utilities, scrollbar-none
       interaction.css        the global focus outline (--focus-*)
       effects.css            ui-sheen, ui-skeleton(-soft), ui-dots/ui-dot
     tokens.css             Guffin's @theme additions: fonts, leading-crop,
                            tracking-*, grade/semantic colours, spacing-fib-*,
                            spacing-dock-shelf
-    themes.css             THE values: dark (:root) and light ([data-theme=light]),
-                           .on-photo, liquid glass and room tokens, weights
+    themes.css             THE values: paper (:root) and .on-photo,
+                           liquid glass and room tokens, weights
     utilities.css          φ (--phi, --cut), plan/plan-main/plan-aside, lift
     liquid.css             the glass material (section 10)
     dock.css               the dock's arrival, fold, touch transitions
+    modules.css            what module motion cannot reach (--modal-glass)
     interaction.css        ui-iris; grade focus ring on page scopes
     cinematic.css          [data-cinematic] selection, cine-afterglow
   foundations/             no React
@@ -50,7 +49,7 @@ src/design/
   theme.ts                 the module themes, one file per module in theme/
   theme/                   dock.ts, dock-motion.ts, modal.ts, context-menu.ts,
                            notification.ts, controls.ts, error.ts, ambient.ts, motion.ts
-  liquid.tsx               the lens engine: specular + refraction maps (section 10)
+  glass/                   the glass engine: optics, materials, maps (section 10)
   liquid-touch.ts          press and lean for .liquid-touch controls (section 4.1)
   grade.ts                 the colour taken from the picture (section 3.1)
   action-text.ts           how a dock action's label changes (words vs digits)
@@ -120,7 +119,7 @@ set Guffin's defaults. When a wrapper exists, import the wrapper.
    family, so a later `type-meta` replaces `type-body` and `rounded-full`
    replaces `rounded-card`. A `cn` that does not know them keeps both.
 5. **Movement goes in the page's `motion.tsx`**, never in the component.
-6. **Look at both themes** and **run the checklist** (section 9).
+6. **Look at it on paper and over a picture** and **run the checklist** (section 9).
 
 ### 1.5 The ten rules
 
@@ -128,7 +127,7 @@ set Guffin's defaults. When a wrapper exists, import the wrapper.
 2. Opacity moves in steps of 5%. No `/[0.07]`.
 3. Type is `type-*`, never `text-*` sizes (`text-*` is colour only).
 4. Radius is a named token. Frames nested inside frames use `nested()`.
-5. No shadows. Depth is glass, ring, `lit` and (on paper) `lift`.
+5. No shadows. Depth is glass, ring, `lit` and `lift`.
 6. Hover and focus are one event: every `hover:` has a `focus-visible:` twin.
 7. A control rests at `ink-body` or brighter and rises to `ink` when pointed
    at or focused.

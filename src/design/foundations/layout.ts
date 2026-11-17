@@ -11,7 +11,7 @@ export const OVERLAP = "-mt-32 sm:-mt-48 lg:-mt-64 xl:-mt-72";
 const overlapClass = (hasBackdrop: boolean) =>
   hasBackdrop ? OVERLAP : "pt-6 sm:pt-8 lg:pt-10";
 
-export const COLUMNS_CLASS = `grid w-full grid-cols-1 items-start gap-x-8 ${RHYTHM_GAP_Y} lg:grid-cols-[20rem_minmax(0,1fr)] lg:grid-rows-[auto_1fr] xl:grid-cols-[24rem_minmax(0,1fr)]`;
+export const COLUMNS_CLASS = `grid w-full grid-cols-1 items-start gap-x-8 ${RHYTHM_GAP_Y} lg:grid-cols-[18rem_minmax(0,1fr)] lg:grid-rows-[auto_1fr] xl:grid-cols-[24rem_minmax(0,1fr)]`;
 
 export const bodyClass = (hasBackdrop: boolean) =>
   `relative ${COLUMNS_CLASS} ${overlapClass(hasBackdrop)}`;

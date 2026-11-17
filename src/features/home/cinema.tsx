@@ -22,11 +22,12 @@ function Ticket({
   const date = film.releaseDate ? formatReleaseDay(film.releaseDate) : null;
   const waiting = film.waiting > 0 ? formatCompact(film.waiting) : null;
   const big = date ?? waiting ?? "Now";
-  const small = waiting
-    ? `${waiting} want to see`
-    : shelf === "soon"
-      ? "Release day"
-      : "In theatres";
+  const small =
+    shelf === "theatres"
+      ? "In theatres"
+      : waiting
+        ? `${waiting} want to see`
+        : "Release day";
 
   return (
     <span className="mt-1 flex min-w-0 flex-col gap-1.5 border-t border-dashed border-line pt-3">

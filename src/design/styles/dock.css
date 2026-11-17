@@ -106,3 +106,16 @@
     visibility: hidden;
   }
 }
+
+/* A shelf over a surface is glass only where it shows: its bar. Below the
+   bar the card runs on under the surface's card, and that hidden glass
+   (its frost, its tint, its rim bending the page) showed through the
+   surface's clear glass as a pale slab. A ghost shelf folding home keeps
+   its full height (above). */
+@layer components {
+  .dock-card[data-shelf="true"]:not([data-ghost="true"]) {
+    clip-path: inset(
+      0 0 calc(100% - var(--spacing-dock-shelf-bar)) 0 round 22.5px
+    );
+  }
+}

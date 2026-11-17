@@ -194,7 +194,7 @@ function UrlInput({
       <Input
         className={cn(
           ui.parts.input.field(),
-          "h-10 w-full pl-4 type-body",
+          "h-control-md w-full pl-4 type-body",
           value ? "pr-9" : "pr-4",
         )}
         disabled={disabled}

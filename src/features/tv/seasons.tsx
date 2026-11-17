@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { Image } from "@omerdlw/base-framework/ui";
 import { Carousel } from "@/design/components/carousel";
 import { Icon } from "@/design/components/icon";
 import { DockLink } from "@/design/components/link";
@@ -8,14 +9,15 @@ import { CAROUSEL_WIDE_ITEM } from "@/design/foundations/layout";
 import { TONE } from "@/design/foundations/tones";
 import { cn } from "@/design/ui";
 import { Heading } from "@/features/detail/layout";
-import { DetailSection } from "@/features/detail/motion";
+import { DetailPart, DetailSection } from "@/features/detail/motion";
 import { seasonHref } from "@/lib/project";
 import {
   type SeasonSummary,
   tmdbImageSrcSet,
   tmdbImageUrl,
 } from "@/lib/tmdb/shared";
-import { formatEpisodeCode } from "./show";
+import { ProgressBar } from "./progress";
+import { formatEpisodeCode, progressRatio } from "./show";
 
 export interface ShelfProgress {
   aired: number;
@@ -82,32 +84,82 @@ function SeasonCard({
   );
 }
 
+// The shelf's readout: how far along the viewer is. The next episode has its
+// own card under the actions (ShowResume).
 function ShelfReadout({
   progress,
-  showId,
 }: {
   progress: ShelfProgress;
-  showId: number;
 }): JSX.Element {
-  const next = progress.next;
-  const code = next ? formatEpisodeCode(next.season, next.episode) : null;
   return (
-    <span className="flex items-center gap-4">
-      <span
-        className={`hidden ${TONE.label} text-ink-muted tabular-nums sm:inline`}
-      >
-        {progress.watched} / {progress.aired}
-      </span>
-      {next && code ? (
-        <DockLink
-          className={`flex items-center gap-1.5 ${TONE.link}`}
-          href={seasonHref(showId, next.season)}
-        >
-          Next {code}
-          <Icon icon="solar:alt-arrow-right-linear" size={14} />
-        </DockLink>
-      ) : null}
+    <span className={`${TONE.label} text-ink-muted tabular-nums`}>
+      {progress.watched} / {progress.aired}
     </span>
+  );
+}
+
+/**
+ * Where the viewer is in a show they are watching: the next episode, the
+ * season's still, how far along they are. Sits under the actions, so on a
+ * wide screen it rides along with the sidebar.
+ */
+export function ShowResume({
+  fallback,
+  progress,
+  showId,
+  stills,
+}: {
+  fallback: string | null;
+  progress: ShelfProgress | null;
+  showId: number;
+  stills: Readonly<Record<number, string | null>>;
+}): JSX.Element | null {
+  const next = progress?.next;
+  const code = next ? formatEpisodeCode(next.season, next.episode) : null;
+  if (!progress || !next || !code) return null;
+  const picture = stills[next.season] ?? fallback;
+
+  return (
+    <DetailPart name="resume">
+      <DockLink
+        aria-label={`Continue with ${code}, ${progress.watched} of ${progress.aired} episodes watched`}
+        className={cn(
+          "flex items-center gap-3 rounded-card p-2 pr-4",
+          TONE.surface,
+        )}
+        href={seasonHref(showId, next.season)}
+      >
+        <span className="relative aspect-video w-24 shrink-0 overflow-hidden rounded-thumb bg-fill">
+          {picture ? (
+            <Image
+              alt=""
+              className="object-cover"
+              sizes="96px"
+              src={tmdbImageUrl("backdrop", picture, "w300")}
+            />
+          ) : null}
+        </span>
+        <span className="flex min-w-0 flex-1 flex-col gap-1">
+          <span className={`${TONE.label} text-ink-muted`}>Continue</span>
+          <span className="flex items-baseline justify-between gap-3 type-body font-semibold text-ink tabular-nums">
+            {code}
+            <span className="type-meta font-medium text-ink-muted">
+              {progress.watched} / {progress.aired}
+            </span>
+          </span>
+          <ProgressBar
+            className="mt-1"
+            ratio={progressRatio(progress.watched, progress.aired)}
+            slot="rule"
+          />
+        </span>
+        <Icon
+          className="shrink-0 text-ink-muted"
+          icon="solar:alt-arrow-right-linear"
+          size={16}
+        />
+      </DockLink>
+    </DetailPart>
   );
 }
 
@@ -138,7 +190,7 @@ export function SeasonShelf({
       <Heading
         actions={
           progress && progress.watched > 0 ? (
-            <ShelfReadout progress={progress} showId={showId} />
+            <ShelfReadout progress={progress} />
           ) : null
         }
         icon="solar:layers-bold"

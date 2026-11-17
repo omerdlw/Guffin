@@ -360,8 +360,9 @@ export function SegmentedControl<K extends string>({
             className={cn(
               width === "fill" && "flex-1",
               "ui-fade relative inline-flex min-w-fit cursor-pointer items-center justify-center gap-1.5 rounded-full px-3.5 type-meta font-medium whitespace-nowrap outline-none focus-visible:ring-1 focus-visible:ring-edge-focus focus-visible:ring-inset disabled:cursor-not-allowed disabled:opacity-50",
+              // The item under the indicator reads a weight heavier.
               index === shown
-                ? "text-ink"
+                ? "font-semibold text-ink"
                 : "text-ink-body hover:text-ink focus-visible:text-ink",
               active && !ready && "bg-chosen",
             )}
@@ -385,9 +386,21 @@ export function SegmentedControl<K extends string>({
                 size={12}
               />
             ) : null}
-            <span>{item.label}</span>
+            {/* Sized for its heavier weight, so the row never shifts as the
+                indicator passes. */}
+            <span className="grid">
+              <span
+                aria-hidden="true"
+                className="invisible col-start-1 row-start-1 font-semibold"
+              >
+                {item.label}
+              </span>
+              <span className="col-start-1 row-start-1">{item.label}</span>
+            </span>
             {item.count !== undefined && item.count > 0 ? (
-              <span className="-ml-0.5 tabular-nums">{item.count}</span>
+              <span className="-ml-0.5 font-medium tabular-nums">
+                {item.count}
+              </span>
             ) : null}
           </button>
         );
@@ -395,7 +408,7 @@ export function SegmentedControl<K extends string>({
       {/* …and its glass, over them: clear, so the labels bend at its rim. */}
       <span
         aria-hidden="true"
-        className="liquid liquid-clear pointer-events-none absolute top-0.5 left-0 z-10 rounded-full [--liquid-bend:0.15] [--liquid-tint:rgb(var(--ink-rgb)/0.03)]"
+        className="liquid liquid-clear pointer-events-none absolute top-0.5 left-0 z-10 rounded-full [--liquid-bend:0.08] [--liquid-tint:rgb(var(--ink-rgb)/0.03)]"
         ref={lens}
         style={{ opacity: 0, visibility: "hidden" }}
       />

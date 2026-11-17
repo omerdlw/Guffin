@@ -952,7 +952,7 @@ function Reticle() {
             so it gets a real lens: the picture bends at the rim and most
             at the corners, and stays still in the middle. */}
         <span
-          className="liquid liquid-clear liquid-prism liquid-flat absolute inset-0 [--liquid-bend:1.6] [--liquid-bezel:10] [--liquid-lens-tone:saturate(1)] [--liquid-tint:transparent]"
+          className="liquid liquid-clear liquid-prism liquid-flat absolute inset-0 [--liquid-bend:0.32] [--liquid-bezel:10] [--liquid-lens-tone:saturate(1)] [--liquid-tint:transparent]"
           ref={lensSheet}
           style={{ opacity: 0 }}
         />

@@ -4,6 +4,7 @@ import { useModal } from "@omerdlw/base-framework/modal";
 import { Button } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
 import { TONE } from "@/design/foundations/tones";
+import { cn } from "@/design/ui";
 import { ArtworkPrint, useArtworkPath } from "@/features/artwork/artwork";
 import { ImageModal } from "@/features/detail/image-modal";
 import { DetailCount } from "@/features/detail/motion";
@@ -51,9 +52,12 @@ function Slate({ title }: { title: string }) {
   if (!reel) return null;
   return (
     <div
-      className={`absolute top-6 right-4 z-20 flex items-center gap-1 p-1 sm:right-6 lg:right-8 ${TONE.glass}`}
+      className={cn(
+        "absolute top-6 right-4 z-20 flex items-center gap-1 p-1 sm:right-6 lg:right-8",
+        TONE.glass,
+      )}
     >
-      <span className={`px-3 ${TONE.label} text-ink-muted`}>Still</span>
+      <span className={cn("px-3 text-ink-muted", TONE.label)}>Still</span>
       <Button
         aria-label="View this still"
         icon

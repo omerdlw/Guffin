@@ -339,7 +339,8 @@ function pickShowing(
         releasedBy(movie) <= today,
     )
     .sort(byPopularity)
-    .slice(0, SHOWING_LIMIT);
+    .slice(0, SHOWING_LIMIT)
+    .sort((a, b) => releasedBy(b).localeCompare(releasedBy(a)));
   const soon = uniqueMovies(upcoming)
     .filter((movie) => movie.posterPath && releasedBy(movie) > today)
     .sort(byPopularity)
@@ -447,6 +448,7 @@ function toPulseShelves(pulse: PulseRow): PulseShelves {
     rated: pulse.top_rated
       .filter((row) => row.poster_path)
       .slice(0, ROW_LIMIT)
+      .sort((a, b) => b.rating - a.rating || b.ratings - a.ratings)
       .map((row) => ({
         ...toFilm(row),
         rating: row.rating,

@@ -280,7 +280,7 @@ function AccountHero({
                 text={displayName}
               />
 
-              <div className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 type-control text-ink-muted sm:type-body">
+              <div className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 type-control text-ink-body sm:type-body">
                 {meta.map((item, index) => (
                   <AccountPart
                     as="div"
@@ -290,7 +290,7 @@ function AccountHero({
                     name="meta"
                   >
                     {index > 0 ? (
-                      <span className="text-ink-faint">•</span>
+                      <span className="text-ink-muted">•</span>
                     ) : null}
                     {item.node}
                   </AccountPart>

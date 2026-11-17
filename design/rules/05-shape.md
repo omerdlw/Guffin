@@ -77,7 +77,7 @@ property declared on a class inside `@layer components` while keeping its
 | `PAGE_CLASS`                                                     | Full height, bottom padding = dock height + 2rem             |
 | `CONTAINER_CLASS`                                                | `max-w-6xl`, gutters 16 / 24 / 32px, no scroll anchoring     |
 | `OVERLAP`                                                        | Pulls the body up over the hero: −128 / −192 / −256 / −288px |
-| `bodyClass(hasBackdrop)`                                         | The detail grid: one column, then `20rem                     | 1fr`(lg),`24rem | 1fr` (xl) |
+| `bodyClass(hasBackdrop)`                                         | The detail grid: one column, then `18rem                     | 1fr`(lg),`24rem | 1fr` (xl) |
 | `pageBodyClass(hasBackdrop)`                                     | A single stacked column with the page rhythm                 |
 | `HEADER_CLASS`, `ASIDE_CLASS`, `MAIN_COLUMN_CLASS`, `VIEW_CLASS` | Grid placement of header, sidebar, main                      |
 | `SIDEBAR_CLASS`, `FACT_ROW_TYPE`                                 | The facts sidebar                                            |
@@ -98,13 +98,13 @@ Tailwind's shadows are switched off. Depth has these cues and nothing else:
 
 | Cue               | What it draws                                                 | On                                                                             |
 | ----------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| Glass             | The liquid material: tint, glint, contour, frost (section 10) | Everything that floats                                                         |
+| Glass             | The liquid material: tint, contour, bend, frost (section 10) | Everything that floats                                                         |
 | Ring              | `ring-1 ring-inset ring-edge*`                                | Fills, fields, buttons                                                         |
-| `lift`            | A layer's fall onto paper, tinted by the page; none in dark   | Floating layers in light only (`--lift` also feeds `--liquid-shadow` in light) |
-| `--liquid-shadow` | Dark: a tight and a long black shadow under glass             | Layers that are not `liquid-flat`                                              |
+| `lift`            | A layer's fall onto paper, tinted by the page                 | Floating layers (`--lift` also feeds `--liquid-shadow`)                        |
+| `--liquid-shadow` | `--lift`; in `.on-photo` a tight and a long black shadow      | Layers that are not `liquid-flat`                                              |
 
-Cards, tiles, pictures and marks never lift. In dark a layer is told from the
-page by its glass, its contour and its frost alone.
+Cards, tiles, pictures and marks never lift. Over a picture (`.on-photo`)
+`lift` is none: a layer is told from it by its glass, contour and frost.
 
 **Stacking** uses `Z_INDEX` (`foundations/z-index.ts`) only. An ESLint rule
 rejects `z-30` and above and `z-[…]` in class strings; `z-0/10/20` are free

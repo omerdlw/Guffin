@@ -1,0 +1,11 @@
+/* What the modules' motion (src/design/theme/*.ts) cannot reach by itself.
+
+   The modal's frame carries --modal-glass (0 → 1) instead of fading: an
+   ancestor at partial opacity would cut the glass panel's frost off from
+   the page behind it. The panel, the glass itself, takes it as its own
+   opacity, which fades frost and all together. */
+@layer components {
+  .modal-panel {
+    opacity: var(--modal-glass, 1);
+  }
+}

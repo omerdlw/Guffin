@@ -5,14 +5,33 @@ import {
 import { defineTheme } from "@omerdlw/base-framework/theme";
 import { SHELL } from "@/design/foundations/layers";
 import { Z_INDEX } from "@/design/foundations/z-index";
-import { INSTANT } from "./motion";
+import {
+  LEAVE,
+  SETTLE,
+  TRAVEL,
+  away,
+  beat,
+  here,
+  spring,
+  tween,
+} from "./motion";
+
+// A toast rises 13px out from under the dock and settles on a critically
+// damped spring while its glass (the toast itself) comes up; it leaves by
+// lifting a little and going. One toast at a time: the next waits for it.
 
 const notificationMotion: NotificationMotion = {
-  transition: INSTANT,
+  transition: {
+    transform: spring(beat(-1)),
+    opacity: tween(beat(-3), SETTLE),
+  },
   toast: {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: INSTANT },
-    exit: { opacity: 0, transition: INSTANT },
+    hidden: away(TRAVEL.rise),
+    visible: here(),
+    exit: {
+      ...away(-TRAVEL.nudge),
+      transition: tween(beat(-3), LEAVE),
+    },
   },
 };
 

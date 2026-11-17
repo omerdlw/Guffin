@@ -68,6 +68,10 @@ export const getMovieAwards = cache((id: number) =>
   getTmdb().awards.forMovie(id),
 );
 
+export const getShowAwards = cache((id: number) =>
+  getTmdb().awards.forShow(id),
+);
+
 export function searchPeople(query: string, options?: PersonSearchOptions) {
   return getTmdb().people.search(query, options);
 }

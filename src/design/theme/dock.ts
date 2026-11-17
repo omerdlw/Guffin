@@ -33,11 +33,15 @@ export const dockThemeConfig = defineTheme(dockTheme, {
       // Every card with content is glass of its own. The collapsed cards
       // behind the front one are not drawn at all once the deck has folded
       // (dock.css): nothing to paint or filter until the stack opens.
-      "dock-card group @container absolute h-auto w-full overflow-hidden rounded-shell p-3 cursor-pointer liquid liquid-flat liquid-lens data-[placement=top]:[--liquid-drop:var(--liquid-shadow)]",
+      "dock-card group @container absolute h-auto w-full overflow-hidden rounded-shell p-3 cursor-pointer liquid liquid-flat liquid-lens [--liquid-tint:var(--liquid-tint-dock)] data-[placement=top]:[--liquid-drop:var(--liquid-shadow)]",
       // A shelf's corner is concentric with the pill it holds: the 32px
       // control (16px corner) sits 6.5px in on every side, so the shelf
       // turns at 22.5px.
       "data-[anchored=true]:cursor-default data-[shelf=true]:rounded-[22.5px] data-[shelf=true]:px-[6.5px] data-[shelf=true]:py-0",
+      // A shelf is a strip of controls whose foot hides under the card in
+      // front: a thin rim, or the strip turns into one lens bending the page
+      // behind its pills, and its lower rim shows through the front card.
+      "data-[shelf=true]:[--liquid-bezel:14]",
       "data-[placement=top]:inset-0 data-[placement=top]:h-full data-[placement=bottom]:bottom-0 data-[placement=float]:top-0 data-[placement=float]:[#dock-card-stack[data-controls-hidden=false]_&]:h-full",
     ].join(" "),
     // Clipped for the card's height animation, but with room for the wells'
@@ -47,7 +51,8 @@ export const dockThemeConfig = defineTheme(dockTheme, {
     cardContent:
       "flow-root w-full overflow-clip [overflow-clip-margin:4px] data-[shelf=true]:min-h-dock-shelf",
     cardSurface: `w-full overflow-hidden ${INNER}`,
-    cardShelf: "relative flex h-[45px] w-full items-center justify-between",
+    cardShelf:
+      "relative flex h-dock-shelf-bar w-full items-center justify-between",
     cardStandard: "w-full",
     cardHud: "relative flex w-full items-center justify-between",
     cardBody: "relative flex h-auto w-full flex-col gap-2.5",

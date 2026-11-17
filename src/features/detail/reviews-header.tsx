@@ -17,7 +17,8 @@ export function MediaReviewsHeader({
   return (
     <>
       {poster ? (
-        <div className="mb-8 w-40 sm:w-48 lg:w-56">
+        // Kept small so the title lands above the dock on the first screen.
+        <div className="mb-6 w-28 sm:w-32 lg:w-36">
           <MoviePoster movie={media} />
         </div>
       ) : null}

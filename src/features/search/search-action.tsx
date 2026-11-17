@@ -426,7 +426,7 @@ export function SearchAction({ onClose }: { onClose?: () => void } = {}) {
               {failure.code !== "invalid_query" ? (
                 <Button
                   className={actionClass({
-                    className: "h-10",
+                    className: "h-control-md",
                     variant: ACTION_TONE,
                   })}
                   onClick={retry}

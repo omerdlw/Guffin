@@ -7,39 +7,74 @@ import { defineTheme } from "@omerdlw/base-framework/theme";
 import { BACKDROP, DIM, SHELL } from "@/design/foundations/layers";
 import { FILL } from "@/design/foundations/tones";
 import { Z_INDEX } from "@/design/foundations/z-index";
-import { INSTANT } from "./motion";
+import {
+  DEVELOP,
+  LEAVE,
+  SETTLE,
+  STAGGER,
+  TRAVEL,
+  away,
+  beat,
+  here,
+  spring,
+  tween,
+} from "./motion";
 
-const REST = "translate3d(0px, 0px, 0) scale(1)";
+// The modal's choreography, on the modules' φ vocabulary (./motion.ts).
+//
+// The glass blooms into place: it travels a short way on a critically damped
+// spring while its pane comes up, then the body rises into it a beat behind,
+// like a dock surface. Leaving, it gathers and goes, quicker than it came.
+//
+// The framework animates the frame, an ancestor of the glass panel. An
+// ancestor at partial opacity cuts the panel's frost off from the page
+// behind it (it would show bare, then pop frosted at the end), so the frame
+// only ever moves; its visibility travels down as --modal-glass, which the
+// panel, the glass itself, takes as its own opacity (styles/modules.css).
 
-const still: ModalPositionMotion = {
+const shift = (x: number, y: number, scale = 1) =>
+  `translate3d(${x}px, ${y}px, 0) scale(${scale})`;
+const REST = shift(0, 0);
+
+const BLOOM = spring(beat(-1));
+const GATHER = tween(beat(-3), LEAVE);
+
+const position = (from: string): ModalPositionMotion => ({
   variants: {
-    hidden: { opacity: 0, transform: REST },
-    visible: { opacity: 1, transform: REST, transition: INSTANT },
-    exit: { opacity: 0, transform: REST, transition: INSTANT },
+    hidden: { "--modal-glass": 0, transform: from },
+    visible: {
+      "--modal-glass": 1,
+      transform: REST,
+      transition: {
+        transform: BLOOM,
+        "--modal-glass": tween(beat(-3), SETTLE),
+      },
+    },
+    exit: { "--modal-glass": 0, transform: from, transition: GATHER },
   },
-  transition: INSTANT,
-};
+});
 
-const focusing = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: INSTANT },
-};
+// Words and blocks inside: in from below, out at once with the glass.
+const rise = (delay: number) => ({
+  hidden: away(TRAVEL.step),
+  visible: { ...here(), transition: tween(beat(-1), SETTLE, delay) },
+});
 
 const modalMotion: ModalMotion = {
   backdrop: {
     hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: INSTANT },
-    exit: { opacity: 0, transition: INSTANT },
+    visible: { opacity: 1, transition: tween(beat(-1), DEVELOP) },
+    exit: { opacity: 0, transition: tween(beat(-2), LEAVE) },
   },
-  content: focusing,
-  header: focusing,
-  footer: focusing,
+  header: rise(beat(-4)),
+  content: rise(beat(-4) + STAGGER.line),
+  footer: rise(beat(-4) + STAGGER.step),
   positions: {
-    center: still,
-    top: still,
-    right: still,
-    bottom: still,
-    left: still,
+    center: position(shift(0, TRAVEL.rise, 0.96)),
+    top: position(shift(0, -TRAVEL.reach)),
+    bottom: position(shift(0, TRAVEL.reach)),
+    left: position(shift(-TRAVEL.stride, 0)),
+    right: position(shift(TRAVEL.stride, 0)),
   },
 };
 

@@ -2,11 +2,9 @@ import type { JSX, ReactNode } from "react";
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import localFont from "next/font/local";
-import { headers } from "next/headers";
 import { connection } from "next/server";
 import { Z_INDEX } from "@/design/foundations/z-index";
 import { project } from "@/lib/project";
-import { THEME_SCRIPT } from "@/features/theme/script";
 import "./globals.css";
 import { Providers } from "./providers";
 
@@ -41,16 +39,9 @@ export default async function RootLayout({
   children: ReactNode;
 }): Promise<JSX.Element> {
   await connection();
-  const nonce = (await headers()).get("x-nonce") ?? undefined;
 
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <script
-          dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }}
-          nonce={nonce}
-        />
-      </head>
+    <html lang="en">
       <body
         className={`${geist.variable} ${geist.className} ${zuume.variable} bg-page text-ink antialiased`}
         suppressHydrationWarning

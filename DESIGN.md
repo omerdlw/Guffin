@@ -1,7 +1,7 @@
 # Guffin Design System
 
-Guffin is a film and TV diary with a cinematic interface in a dark and a light
-theme. This file is the map; the contract itself lives in
+Guffin is a film and TV diary with a cinematic interface on one theme:
+paper. This file is the map; the contract itself lives in
 [`design/rules/`](design/rules), split by topic. It is written for
 contributors and for AI agents that generate or review UI here: follow it
 literally, and when it is silent, extend the system (add a role, a variant, a
@@ -13,7 +13,7 @@ same change.
 
 ## The one idea
 
-**Every visual value has a role, and every role has one value per theme.** A
+**Every visual value has a role, and every role has one value.** A
 colour is not "white at 6%", it is `fill`. A radius is not "14px", it is
 `card`. A page does not say "rise 24px over 0.8s"; it names its title as a
 part and its own `motion.tsx` says how that part moves. Components name roles,
@@ -29,10 +29,10 @@ Each layer only reads from the layers above it.
    Tailwind's palette, sizes, radii, shadows and easings switched off.
         ↓ every colour token points at a CSS variable
 2. Themes (CSS)           src/design/styles/themes.css
-   :root (dark) and :root[data-theme="light"] give every variable its value:
-   ink steps, fills, edges, chosen, glass (--liquid-*), primary, semantic,
-   room atmosphere. Both derive from the page colour, which follows the
-   picture (--ambient-shadow).
+   :root gives every variable its one value: ink steps, fills, edges,
+   chosen, glass (--liquid-*), primary, semantic, room atmosphere, all
+   derived from the paper colour, which follows the picture
+   (--ambient-shadow). .on-photo re-values them for text over a picture.
         ↓
 3. Foundations (TS)       src/design/foundations/
    tones.ts  TONES, STATE, FILL, WELL, LAYER, TONE: complete state answers
@@ -53,7 +53,7 @@ Each layer only reads from the layers above it.
                           toast, controls, error, ambient): framework slots
                           filled from foundations
         ↓
-7. Material + touch       liquid.css + liquid.tsx (glass), liquid-touch.ts,
+7. Material + touch       liquid.css + glass/ (engine), liquid-touch.ts,
                           glass-thumb.ts, the cursor (src/motion/cursor.tsx)
         ↓
 8. Page choreography      src/features/<page>/motion.tsx → defineStage()
@@ -73,7 +73,7 @@ same text.
 | ----------------------------------------------------------------- | ---------- | --------------------------------------------------------------------- |
 | [01-working.md](design/rules/01-working.md)                       | 1          | Always first: where things live, which component, workflow, ten rules |
 | [02-principles.md](design/rules/02-principles.md)                 | 2          | You need the why behind a choice                                      |
-| [03-colour.md](design/rules/03-colour.md)                         | 3.1, 3.2   | Any colour or opacity; the grade; both themes' values                 |
+| [03-colour.md](design/rules/03-colour.md)                         | 3.1, 3.2   | Any colour or opacity; the grade; the paper and `.on-photo` values     |
 | [04-type.md](design/rules/04-type.md)                             | 3.3        | Any text: scale, faces, weights, headlines, labels                    |
 | [05-shape.md](design/rules/05-shape.md)                           | 3.4 to 3.8 | Radius, control ladder, spacing, page layout, depth, stacking         |
 | [06-motion.md](design/rules/06-motion.md)                         | 6          | Anything that moves: the stage API, triggers, φ timing, modules       |
@@ -89,7 +89,7 @@ same text.
 | --------------------- | ---------------------------------------------------------------------- |
 | Text colour           | `text-ink` · `-lead` · `-body` · `-muted` · `-faint`                   |
 | A surface at rest     | `bg-fill ring-1 ring-edge ring-inset` or `FILL` / `TONES.neutral`      |
-| Chosen                | `TONE.chosen` / `intent="chosen"` (grade in dark, white in light)      |
+| Chosen                | `TONE.chosen` / `intent="chosen"` (a white sheet; grade over a picture) |
 | The one submit action | `<Button intent="primary">`                                            |
 | Floating chrome       | `SHELL` (layer), `FLOAT` (dock control), `TIP` (tooltip): liquid glass |
 | A control in the dock | `WELL` + `WELL_HOVER`: a fill, never glass on glass                    |
