@@ -143,7 +143,7 @@ export function SurfaceExtension({
   );
 }
 
-export function SurfaceAnchor() {
+function SurfaceAnchor() {
   return (
     <span
       className="sr-only"

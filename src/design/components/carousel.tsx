@@ -79,7 +79,7 @@ function useArrowLine(box: { current: HTMLElement | null }) {
   }, [box]);
 }
 
-export interface CarouselProps {
+interface CarouselProps {
   part: string;
   children: ReactNode;
   arrowClassName?: string;

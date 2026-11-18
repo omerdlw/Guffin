@@ -50,7 +50,7 @@ interface MarqueeCard {
   image: HTMLImageElement;
 }
 
-export interface MarqueeProps {
+interface MarqueeProps {
   text: string;
   src: string;
   focus?: readonly [number, number];

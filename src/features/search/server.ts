@@ -754,7 +754,7 @@ export async function searchPersonHits(
   return ok({ hits, page, totalPages, totalResults });
 }
 
-export type SearchBatch = Partial<
+type SearchBatch = Partial<
   Record<SearchType, { hits: unknown[] } | { failure: SearchFailure }>
 >;
 

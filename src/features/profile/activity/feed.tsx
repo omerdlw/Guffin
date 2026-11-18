@@ -270,7 +270,7 @@ function groupByDay(items: readonly ActivityItem[]) {
   return groups;
 }
 
-export function ActivityRow({
+function ActivityRow({
   actor,
   index = 0,
   item,

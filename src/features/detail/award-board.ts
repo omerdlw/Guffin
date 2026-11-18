@@ -3,7 +3,7 @@
 // Feature Film", "Best Director – Motion Picture"). The board folds them into
 // one craft per row, so a sweep reads across a single line.
 
-export interface Craft {
+interface Craft {
   key: string;
   label: string;
 }
@@ -84,7 +84,7 @@ const WORK =
 
 const LABELS = new Map(CATEGORY_RULES.map(([key, label]) => [key, label]));
 
-export const OTHER: Craft = { key: "other", label: "Other honors" };
+const OTHER: Craft = { key: "other", label: "Other honors" };
 
 export function craftOf(
   category: string,

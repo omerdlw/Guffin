@@ -18,7 +18,7 @@ interface Renderer {
   dispose?(): void;
 }
 
-export type SceneSetup = (
+type SceneSetup = (
   canvas: HTMLCanvasElement,
   wake: () => void,
 ) => Renderer | null;

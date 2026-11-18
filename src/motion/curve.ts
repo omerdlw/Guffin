@@ -40,14 +40,3 @@ export function bezier(x1: number, y1: number, x2: number, y2: number): Curve {
 
   return (v) => (v <= 0 ? 0 : v >= 1 ? 1 : y(solve(v)));
 }
-
-export function elapsed(curve: Curve, eased: number) {
-  let lo = 0;
-  let hi = 1;
-  for (let i = 0; i < 18; i++) {
-    const mid = (lo + hi) / 2;
-    if (curve(mid) < eased) lo = mid;
-    else hi = mid;
-  }
-  return (lo + hi) / 2;
-}

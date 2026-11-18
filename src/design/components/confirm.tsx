@@ -11,7 +11,7 @@ import { report, toUserMessage } from "@omerdlw/base-framework/utils";
 import { cn } from "@/design/ui";
 import { Icon } from "./icon";
 
-export interface ConfirmOptions {
+interface ConfirmOptions {
   action?: string;
   description?: string;
   icon?: string;

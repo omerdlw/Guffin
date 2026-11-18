@@ -11,7 +11,7 @@ import type { Surface } from "./surface-definition";
 type Opener = DockActions["openSurface"];
 
 /** A surface whose module loads on first intent (hover, focus, touch) or first open. */
-export interface LazySurface<P extends object> {
+interface LazySurface<P extends object> {
   preload(): Promise<Surface<P>>;
   open(
     openSurface: Opener,

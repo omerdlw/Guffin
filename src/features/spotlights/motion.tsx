@@ -22,7 +22,7 @@ export const beat = (n: number) => Math.round(PHI ** n * 1000) / 1000;
 const STAGGER = { char: 0.034 };
 
 // Settle: gathers softly, never with a jolt, and spends its long tail coming to rest.
-export const SETTLE: Curve = [0.236, 0.382, 0.146, 1];
+const SETTLE: Curve = [0.236, 0.382, 0.146, 1];
 // Develop: a slow start and a long, even resolve, for pictures.
 export const DEVELOP: Curve = [0.382, 0, 0.146, 1];
 // Leave: gathers, then goes.

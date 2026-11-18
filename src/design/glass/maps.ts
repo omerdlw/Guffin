@@ -17,7 +17,7 @@ const SUPERSAMPLE_LARGE = 2;
 const LARGE_MASK = 96;
 
 /** A map's pixels: `size` × `size`, RGBA, every pixel opaque. */
-export type Bitmap = { size: number; data: Uint8ClampedArray };
+type Bitmap = { size: number; data: Uint8ClampedArray };
 
 /**
  * Measures a rounded rectangle at a point (css px from its centre) into
@@ -61,7 +61,7 @@ function prober(width: number, height: number, radius: number): Probe {
  * straight run between them, so each side's run is the rim as it is along
  * any straight side, however long.
  */
-export const sideOf = (slice: number) => slice * 2 + 2;
+const sideOf = (slice: number) => slice * 2 + 2;
 
 /**
  * A mask around the outline of the square, at `density`. `shade` gets the

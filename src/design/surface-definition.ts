@@ -10,7 +10,7 @@ import {
 
 type FromProps<P, T> = T | ((props: P) => T);
 
-export type SurfaceDefinition<P extends object> = Omit<
+type SurfaceDefinition<P extends object> = Omit<
   SurfaceBuilderDefinition,
   "description" | "icon" | "title"
 > & {

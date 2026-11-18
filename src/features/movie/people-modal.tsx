@@ -23,7 +23,7 @@ import {
   type PersonEntry,
 } from "./movie";
 
-export function PersonCard({
+function PersonCard({
   compact = false,
   index,
   onNavigated,

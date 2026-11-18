@@ -19,7 +19,7 @@ import {
 } from "@/design/components/glass-thumb";
 import { cn } from "@/design/ui";
 
-export interface SwitchProps extends Omit<
+interface SwitchProps extends Omit<
   ButtonHTMLAttributes<HTMLButtonElement>,
   "onChange" | "role" | "type"
 > {

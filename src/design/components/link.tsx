@@ -30,7 +30,7 @@ export const linkVariants = variants("cursor-pointer outline-none", {
   defaultVariants: { variant: "inline" },
 });
 
-export type LinkVariants = VariantProps<typeof linkVariants>;
+type LinkVariants = VariantProps<typeof linkVariants>;
 
 function useDockLinkClick(href: string, onNavigated?: () => void) {
   const { navigate } = useDockActions();
@@ -49,7 +49,7 @@ type NextLinkProps = Omit<ComponentProps<typeof NextLink>, "href"> & {
   href: string;
 };
 
-export type LinkProps = NextLinkProps & LinkVariants;
+type LinkProps = NextLinkProps & LinkVariants;
 
 export function Link({ className, variant, ...props }: LinkProps): JSX.Element {
   return (
@@ -60,7 +60,7 @@ export function Link({ className, variant, ...props }: LinkProps): JSX.Element {
   );
 }
 
-export type DockLinkProps = Omit<NextLinkProps, "onClick" | "prefetch"> &
+type DockLinkProps = Omit<NextLinkProps, "onClick" | "prefetch"> &
   LinkVariants & {
     /**
      * Unavailable for now (a step past the last page): the same element, so
@@ -99,7 +99,7 @@ export function DockLink({
   );
 }
 
-export interface ExternalLinkProps
+interface ExternalLinkProps
   extends AnchorHTMLAttributes<HTMLAnchorElement>, LinkVariants {
   href: string;
   ref?: Ref<HTMLAnchorElement>;
@@ -122,7 +122,7 @@ export function ExternalLink({
   );
 }
 
-export interface TextButtonProps
+interface TextButtonProps
   extends ButtonHTMLAttributes<HTMLButtonElement>, LinkVariants {
   ref?: Ref<HTMLButtonElement>;
 }

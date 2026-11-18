@@ -53,7 +53,7 @@ interface StageRoles<P extends string, S extends string> {
   reach?: number;
 }
 
-export interface Glide {
+interface Glide {
   duration: number;
   ease: Curve;
 }
@@ -166,17 +166,6 @@ export const useWall = () => useContext(WallContext);
 const dialogOpen = () =>
   Boolean(document.querySelector("[role='dialog'], [aria-modal='true']"));
 
-export function StageRoot({
-  light,
-  children,
-}: {
-  light?: StageLight;
-  children: ReactNode;
-}) {
-  useStageLight(light);
-  return <>{children}</>;
-}
-
 export function Part({
   name,
   as: Tag = "div",
@@ -287,7 +276,7 @@ function split(text: string, moves: TextMoves) {
   });
 }
 
-export function Text({
+function Text({
   part,
   text,
   index,
@@ -391,7 +380,7 @@ export function Header({
   );
 }
 
-export function Expose({
+function Expose({
   part,
   text,
   index,
@@ -422,7 +411,7 @@ export function Expose({
 
 // A number among the facts: it enters as the text around it does, in its
 // place in the order.
-export function Count({
+function Count({
   part,
   value,
   format,
@@ -445,7 +434,7 @@ export function Count({
 // Without a leave it swaps at once.
 const LEAVE_LIMIT_MS = 3000;
 
-export function Swap({
+function Swap({
   id,
   cue,
   as: Tag = "div",
@@ -499,7 +488,7 @@ export function Swap({
   );
 }
 
-export function Deck<K extends string>({
+function Deck<K extends string>({
   views,
   shown,
   className,
@@ -535,7 +524,7 @@ export function Deck<K extends string>({
   );
 }
 
-export function WallStage({ wall, children }: WallStageProps<string>) {
+function WallStage({ wall, children }: WallStageProps<string>) {
   const driver = useScrollDriver();
   const [phase, setPhase] = useState<WallPhase>("page");
   const anchor = useRef<HTMLElement | null>(null);

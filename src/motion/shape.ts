@@ -23,7 +23,7 @@ export interface ShapeProbe<T> {
   rect(node: T): ShapeBox;
 }
 
-export interface Shape<T> {
+interface Shape<T> {
   box: ShapeBox;
   node: T;
   radius: number;
@@ -87,7 +87,7 @@ const PICTURES = new Set(["CANVAS", "IMG", "PICTURE", "SVG", "VIDEO"]);
 const clear = (colour: string) =>
   colour === "transparent" || /rgba?\(.*,\s*0\)$|\/\s*0\)$/.test(colour);
 
-export const DOM_PROBE: ShapeProbe<Element> = {
+const DOM_PROBE: ShapeProbe<Element> = {
   children: (node) => Array.from(node.children),
   painted: (node) => {
     if (PICTURES.has(node.tagName.toUpperCase())) return true;

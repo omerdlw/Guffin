@@ -202,16 +202,6 @@ export function Stage({
   );
 }
 
-export function Panel({
-  children,
-  className,
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
-  return <div className={cn(PANEL, "p-fib-4", className)}>{children}</div>;
-}
-
 export function Code({ children }: { children: ReactNode }) {
   return (
     <code className="rounded-mark bg-fill px-1 py-px [font-family:ui-monospace,monospace] text-[0.92em] text-ink-lead ring-1 ring-edge ring-inset">

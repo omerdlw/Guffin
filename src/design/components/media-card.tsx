@@ -37,7 +37,7 @@ export type MediaCardVariants = VariantProps<typeof mediaCardVariants>;
 
 export type MediaCardAspect = NonNullable<MediaCardVariants["aspect"]>;
 
-export interface MediaCardImage {
+interface MediaCardImage {
   crossOrigin?: "anonymous";
   priority?: boolean;
   sizes?: string;
@@ -47,7 +47,7 @@ export interface MediaCardImage {
 
 type DataAttributes = { [key: `data-${string}`]: string | undefined };
 
-export interface MediaCardProps extends DataAttributes {
+interface MediaCardProps extends DataAttributes {
   aspect?: MediaCardAspect;
   caption?: ReactNode;
   className?: string;

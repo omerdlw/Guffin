@@ -3,8 +3,6 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { AUTH_COOKIE_NAME, requireSupabasePublicConfig } from "@/lib/env";
 import type { Database } from "./database.types";
 
-export type { Database };
-
 let browserClient: SupabaseClient<Database> | null = null;
 
 export function createBrowserSupabaseClient(): SupabaseClient<Database> {

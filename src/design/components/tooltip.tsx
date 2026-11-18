@@ -27,7 +27,7 @@ function Slate({ text }: { text: ReactNode }) {
   );
 }
 
-export interface TooltipProps {
+interface TooltipProps {
   children: ReactNode;
   "data-cursor-owned"?: string;
   position?: "top" | "right" | "bottom" | "left";

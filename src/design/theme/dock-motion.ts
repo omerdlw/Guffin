@@ -22,7 +22,7 @@ import {
 export const DOCK_WIDTH = 520;
 
 /** The dock card's padding in px (p-3 in theme/dock.ts). */
-export const DOCK_PADDING = 12;
+const DOCK_PADDING = 12;
 
 // The dock's choreography. Everything the dock does on screen is timed here;
 // the dock's CSS (styles/dock.css) adds only what motion tokens can't reach:

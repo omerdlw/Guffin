@@ -123,7 +123,7 @@ export function progressRatio(
   return Math.max(0, Math.min(1, watched / aired));
 }
 
-export function formatShowYears(
+function formatShowYears(
   start: number | null,
   end: number | null,
   airing: boolean,

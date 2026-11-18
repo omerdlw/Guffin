@@ -6,7 +6,7 @@ import { cn } from "@/design/ui";
 import { Magnet } from "@/motion/tilt";
 import { Icon } from "./icon";
 
-export interface ActionButtonProps {
+interface ActionButtonProps {
   active: boolean;
   ariaLabel?: string;
   className?: string;

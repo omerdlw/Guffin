@@ -545,7 +545,7 @@ export function compile<P extends string, S extends string>(
 // lengthens the distance an entrance travels (its px offsets): φ moves each
 // Fibonacci step one up (8 → 13, 13 → 21…). Touch, drift and follow are the
 // hand's and keep their own time.
-export interface Pace {
+interface Pace {
   tempo?: number;
   reach?: number;
 }

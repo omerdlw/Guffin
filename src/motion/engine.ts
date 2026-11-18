@@ -1,6 +1,6 @@
 export type Curve = (t: number) => number;
 
-export interface TimeSpring {
+interface TimeSpring {
   period: number;
   damping: number;
   mass: number;
@@ -11,7 +11,7 @@ interface Source<T> {
   subscribe(listener: (value: T) => void): () => void;
 }
 
-export type Phase = "read" | "update" | "render";
+type Phase = "read" | "update" | "render";
 
 export interface Frame {
   time: number;

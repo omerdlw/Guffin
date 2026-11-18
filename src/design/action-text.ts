@@ -3,7 +3,7 @@
 // only the digits that changed roll; when the words change ("Add Review" →
 // "Edit Review") the whole label does. Pure, for ActionLabel.
 
-export interface Piece {
+interface Piece {
   digit: boolean;
   /**
    * Stable across changes of the same label: words by their order, a digit

@@ -5,7 +5,31 @@ import type {
   LoopFactory,
 } from "@/features/spotlights/spotlights";
 import { tmdbImageUrl } from "@/lib/tmdb/shared";
-import { loadBitmap } from "./bloom";
+import { readable } from "@/motion/gl";
+
+async function loadBitmap(
+  src: string,
+  options: { height?: number; signal?: AbortSignal; width?: number } = {},
+): Promise<ImageBitmap | null> {
+  if (typeof createImageBitmap !== "function") return null;
+  try {
+    const response = await fetch(readable(src), {
+      mode: "cors",
+      signal: options.signal,
+    });
+    if (!response.ok) return null;
+    const blob = await response.blob();
+    return options.width && options.height
+      ? await createImageBitmap(blob, {
+          resizeHeight: options.height,
+          resizeQuality: "high",
+          resizeWidth: options.width,
+        })
+      : await createImageBitmap(blob);
+  } catch {
+    return null;
+  }
+}
 
 interface TunnelEvents {
   hovered(index: number): void;

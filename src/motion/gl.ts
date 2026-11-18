@@ -96,13 +96,3 @@ export function sampleClamped(
   gl.texParameteri(target, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 }
 
-export function createTexture(
-  gl: WebGL2RenderingContext,
-  min: number = gl.LINEAR,
-  target: number = gl.TEXTURE_2D,
-): WebGLTexture {
-  const texture = gl.createTexture();
-  gl.bindTexture(target, texture);
-  sampleClamped(gl, min, target);
-  return texture;
-}

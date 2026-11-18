@@ -24,7 +24,7 @@ import {
 } from "@/design/components/glass-thumb";
 import { cn } from "@/design/ui";
 
-export interface SegmentedItem<K extends string> {
+interface SegmentedItem<K extends string> {
   count?: number;
   disabled?: boolean;
   icon?: string;
@@ -32,7 +32,7 @@ export interface SegmentedItem<K extends string> {
   label: ReactNode;
 }
 
-export interface SegmentedControlProps<K extends string> {
+interface SegmentedControlProps<K extends string> {
   ariaLabel?: string;
   className?: string;
   items: readonly SegmentedItem<K>[];
