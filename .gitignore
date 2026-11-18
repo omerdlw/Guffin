@@ -39,3 +39,4 @@ graphify-out/
 # local database and seed tooling
 /scripts/
 /supabase/
+.netlify
