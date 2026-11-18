@@ -28,7 +28,7 @@ Tarayıcıda henüz bakılmadı.
 - Detail kuralı: yalnızca hero açılışı sıralı; diğer her rol görününce kendi
   girişini oynar, aşağıdan çıkınca geri sarılır, yukarı scroll'da tekrar oynamaz
 - Framework 3.2.0: tasarımsız; tüm tasarım Guffin'de
-- Dokümantasyon: `CLAUDE.md` (proje haritası), `DESIGN.md` + `design/rules/`
+- Dokümantasyon: `CLAUDE.md` (proje haritası), `docs/design/README.md` + `docs/design/`
   koddan doğrulanarak yeniden yazıldı, yeni `09-glass.md`
 - `/tahoe`: parlak duvar kağıdı üstünde cam test sayfası
 - Movie/TV düzeni: tag'ler özet altında chip (`DetailTags`), künye

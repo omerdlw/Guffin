@@ -2,11 +2,6 @@
 /node_modules
 /.pnp
 .pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
 
 # build output
 /.next/
@@ -19,16 +14,11 @@ next-env.d.ts
 # environment
 .env*
 !.env.example
-.dev.vars
 .vercel
 *.pem
 
 # logs
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
 
 # os / editor
 .DS_Store
@@ -41,17 +31,11 @@ yarn-error.log*
 /AGENTS.md
 /.remember
 /.playwright-mcp
-
-# seed data cache (TMDB catalog, generated login sheet)
-/scripts/
-/supabase/
-
-# code index tools
+/.agentsroom/
 graphify-out/
 .codebase-memory/
 .mcp.json
-.agentsroom/handoff-transcript-*.txt
-.agentsroom/handoff-summary-*.md
-.agentsroom/fork-context-*.txt
-.agentsroom/transfer-context-*.txt
-.agentsroom/handoff-context-*.txt
+
+# local database and seed tooling
+/scripts/
+/supabase/

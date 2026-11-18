@@ -3,6 +3,12 @@ import { withSentryConfig } from "@sentry/nextjs/config";
 const nextConfig = {
   poweredByHeader: false,
   reactStrictMode: false,
+  compiler: {
+    removeConsole:
+      process.env.NODE_ENV === "production"
+        ? { exclude: ["error", "warn"] }
+        : false,
+  },
   async headers() {
     return [
       {
@@ -45,4 +51,10 @@ export default withSentryConfig(nextConfig, {
   silent: !process.env.CI,
   sourcemaps: { disable: !process.env.SENTRY_AUTH_TOKEN },
   telemetry: false,
+  bundleSizeOptimizations: {
+    excludeDebugStatements: true,
+    excludeReplayIframe: true,
+    excludeReplayShadowDom: true,
+    excludeReplayWorker: true,
+  },
 });

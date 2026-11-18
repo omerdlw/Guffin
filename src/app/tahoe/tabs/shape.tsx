@@ -75,7 +75,7 @@ export function ShapeTab() {
     <Page
       eyebrow="3.4 – 3.8 Şekil"
       lead="Radius bir rol, piksel değil. Kontroller bir merdivende durur, boşluk Fibonacci'yi izler, derinlik gölgeden ve cam kontürden gelir, katman sırası tek bir tablodadır."
-      source="foundations/geometry.ts · foundations/z-index.ts · design/rules/05-shape.md"
+      source="foundations/geometry.ts · foundations/z-index.ts · docs/design/05-shape.md"
       title="Şekil ve boşluk"
     >
       <Section

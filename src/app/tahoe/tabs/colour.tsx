@@ -141,7 +141,7 @@ export function ColourTab() {
           an boyadığı değerlerdir; grade&apos;i değiştir, hepsi değişir.
         </>
       }
-      source="styles/themes.css · design/rules/03-colour.md"
+      source="styles/themes.css · docs/design/03-colour.md"
       title="Renk"
     >
       <Section

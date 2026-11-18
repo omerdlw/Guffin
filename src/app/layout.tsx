@@ -16,7 +16,7 @@ const geist = Geist({
 const zuume = localFont({
   src: [
     {
-      path: "./zuume-bold.woff2",
+      path: "../design/fonts/zuume-bold.woff2",
       style: "normal",
       weight: "700",
     },

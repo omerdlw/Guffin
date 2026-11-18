@@ -85,7 +85,7 @@ export function TypeTab() {
     <Page
       eyebrow="3.3 Tipografi"
       lead="Geist metin için, Zuume manşet için. Her boyut kendi satır yüksekliği ve harf aralığıyla gelir: bir sınıf, üç değer. Her ağırlık bir basamak ağırdır: kağıttaki koyu mürekkep ince okunur. Görsel üstünde (on-photo) ağırlıklar nominal değerine döner."
-      source="styles/system/tokens.css · foundations/layout.ts · design/rules/04-type.md"
+      source="styles/system/tokens.css · foundations/layout.ts · docs/design/04-type.md"
       title="Tipografi"
     >
       <Section

@@ -112,7 +112,7 @@ export function OverviewTab() {
     <Page
       eyebrow="Guffin Design System"
       lead="Sinematik, kağıt temalı bir film ve dizi günlüğünün tasarım sistemi: token'lardan liquid glass'a, sekiz katman. Bu lab her katmanı kaynak koddan, canlı olarak gösterir; grade değiştikçe değerler de değişir."
-      source="DESIGN.md · design/rules/"
+      source="docs/design/"
       title="UI Lab"
     >
       <div className="grid gap-fib-3 sm:grid-cols-2">

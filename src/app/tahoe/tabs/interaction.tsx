@@ -50,7 +50,7 @@ export function InteractionTab() {
     <Page
       eyebrow="4 Etkileşim"
       lead="Kontroller hover, odak ve basmaya durum değişimiyle cevap verir. Cam kontroller bir de dokunuşla cevap verir: eğilir, basılır, salınır. Thumb'lar basıldığında ya da kaydırıldığında cama döner."
-      source="design/liquid-touch.ts · components/glass-thumb.ts · design/rules/07-interaction.md"
+      source="design/liquid-touch.ts · components/glass-thumb.ts · docs/design/07-interaction.md"
       title="Etkileşim"
     >
       <Section

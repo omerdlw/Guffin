@@ -2,7 +2,7 @@
 
 Guffin is a film and TV diary with a cinematic interface on one theme:
 paper. This file is the map; the contract itself lives in
-[`design/rules/`](design/rules), split by topic. It is written for
+this folder, split by topic. It is written for
 contributors and for AI agents that generate or review UI here: follow it
 literally, and when it is silent, extend the system (add a role, a variant, a
 token) instead of working around it.
@@ -69,19 +69,19 @@ and lives in `src/design`.
 Section numbers are stable across files, so "section 3.4" always points at the
 same text.
 
-| File                                                              | Sections   | Read it when                                                          |
-| ----------------------------------------------------------------- | ---------- | --------------------------------------------------------------------- |
-| [01-working.md](design/rules/01-working.md)                       | 1          | Always first: where things live, which component, workflow, ten rules |
-| [02-principles.md](design/rules/02-principles.md)                 | 2          | You need the why behind a choice                                      |
-| [03-colour.md](design/rules/03-colour.md)                         | 3.1, 3.2   | Any colour or opacity; the grade; the paper and `.on-photo` values    |
-| [04-type.md](design/rules/04-type.md)                             | 3.3        | Any text: scale, faces, weights, headlines, labels                    |
-| [05-shape.md](design/rules/05-shape.md)                           | 3.4 to 3.8 | Radius, control ladder, spacing, page layout, depth, stacking         |
-| [06-motion.md](design/rules/06-motion.md)                         | 6          | Anything that moves: the stage API, triggers, φ timing, modules       |
-| [07-interaction.md](design/rules/07-interaction.md)               | 4          | Hover, focus, press, touch, links, scroll lock                        |
-| [08-components.md](design/rules/08-components.md)                 | 5          | Picking a component, layers, surfaces, variant API, module themes     |
-| [09-glass.md](design/rules/09-glass.md)                           | 10         | The liquid glass material: classes, tokens, lens engine, thumbs       |
-| [13-exceptions.md](design/rules/13-exceptions.md)                 | 7          | The few places the rules bend                                         |
-| [14-mistakes-checklist.md](design/rules/14-mistakes-checklist.md) | 8, 9       | Before finishing: mistakes, checklist, grep audits                    |
+| File                                                 | Sections   | Read it when                                                          |
+| ---------------------------------------------------- | ---------- | --------------------------------------------------------------------- |
+| [01-working.md](01-working.md)                       | 1          | Always first: where things live, which component, workflow, ten rules |
+| [02-principles.md](02-principles.md)                 | 2          | You need the why behind a choice                                      |
+| [03-colour.md](03-colour.md)                         | 3.1, 3.2   | Any colour or opacity; the grade; the paper and `.on-photo` values    |
+| [04-type.md](04-type.md)                             | 3.3        | Any text: scale, faces, weights, headlines, labels                    |
+| [05-shape.md](05-shape.md)                           | 3.4 to 3.8 | Radius, control ladder, spacing, page layout, depth, stacking         |
+| [06-motion.md](06-motion.md)                         | 6          | Anything that moves: the stage API, triggers, φ timing, modules       |
+| [07-interaction.md](07-interaction.md)               | 4          | Hover, focus, press, touch, links, scroll lock                        |
+| [08-components.md](08-components.md)                 | 5          | Picking a component, layers, surfaces, variant API, module themes     |
+| [09-glass.md](09-glass.md)                           | 10         | The liquid glass material: classes, tokens, lens engine, thumbs       |
+| [10-exceptions.md](10-exceptions.md)                 | 7          | The few places the rules bend                                         |
+| [11-mistakes-checklist.md](11-mistakes-checklist.md) | 8, 9       | Before finishing: mistakes, checklist, grep audits                    |
 
 ## Quick reference
 

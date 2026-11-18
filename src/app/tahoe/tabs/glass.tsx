@@ -439,7 +439,7 @@ export function GlassTab({ wallpaper }: { wallpaper: string }) {
     <Page
       eyebrow="10 Liquid glass"
       lead="Yüzen her şey için tek malzeme. Her .liquid yüzey dar kenarlı bir cam levhadır (iOS 26.5 tarifi): kenarda sahneyi güçlüce içeri çeken bir lens ve sol üst ile sağ alttan yanan, sahnenin kendi rengindeki kenar ışığı. İkisi de yalnız köşe yarıçapı ve kenar genişliğine bağlıdır; dokuz dilim olarak bir kez çizilir."
-      source="styles/liquid.css · design/glass/ · design/rules/09-glass.md"
+      source="styles/liquid.css · design/glass/ · docs/design/09-glass.md"
       title="Liquid Glass"
     >
       <Section

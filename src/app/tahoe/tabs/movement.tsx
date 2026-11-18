@@ -289,7 +289,7 @@ export function MovementTab() {
     <Page
       eyebrow="6 Hareket"
       lead="Altın oran: süreler φ'nin kuvvetleri (saniye), gecikmeler Fibonacci milisaniye, mesafeler Fibonacci piksel, eğriler φ'nin kesirlerinden. Hiçbir şey blur'lanmaz. Component'ler rolünü söyler, sayfa kendi motion.tsx'inde koreografisini yazar; CSS'e derlenir."
-      source="design/theme/motion.ts · motion/stage.tsx · design/rules/06-motion.md"
+      source="design/theme/motion.ts · motion/stage.tsx · docs/design/06-motion.md"
       title="Hareket"
     >
       <Section
