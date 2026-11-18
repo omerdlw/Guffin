@@ -18,7 +18,6 @@ export const flagOf = (code: string): string =>
     ...code.split("").map((char) => 127397 + char.charCodeAt(0)),
   );
 
-// The region a reader picked, kept in the browser across films.
 let picked: string | null | undefined;
 const listeners = new Set<() => void>();
 
@@ -37,9 +36,7 @@ export function pickRegion(code: string): void {
   picked = code;
   try {
     localStorage.setItem(REGION_KEY, code);
-  } catch {
-    // Kept for this visit only.
-  }
+  } catch {}
   for (const listener of listeners) listener();
 }
 
@@ -48,7 +45,6 @@ function subscribe(listener: () => void): () => void {
   return () => listeners.delete(listener);
 }
 
-/** The region to show among `codes`: the one picked, else the reader's own. */
 export function useWatchRegion(codes: readonly string[]): string {
   const chosen = useSyncExternalStore(subscribe, readPicked, () => null);
   if (chosen && codes.includes(chosen)) return chosen;

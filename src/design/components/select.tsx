@@ -8,8 +8,6 @@ import {
 
 const FLOATING = { "data-cinematic": "" } as const;
 
-// Like any select box, a menu opens on its chosen option, centred in view,
-// not at the top of a long list.
 function revealChosen(event: KeyboardEvent | MouseEvent) {
   const trigger = (event.target as Element).closest('[role="combobox"]');
   if (!trigger || trigger.getAttribute("aria-expanded") === "true") return;

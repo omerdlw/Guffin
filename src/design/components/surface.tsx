@@ -14,24 +14,13 @@ import { defineStage } from "@/motion/stage";
 import { Icon } from "./icon";
 import { Input } from "./input";
 
-// A surface's choreography: what it shows rises into the glass as the dock
-// opens it, from below, one block after another and its rows in turn; what a
-// tab or a state replaces lifts away before the next is dealt. It speaks the
-// dock's proportion (design/theme/dock-motion.ts): φ beats, Fibonacci
-// staggers and travel. Blocks need no index: their turn is their place among
-// their siblings (dock.css). Nothing blurs.
-
 const PHI = 1.618034;
 const beat = (n: number) => Math.round(PHI ** n * 1000) / 1000;
 const SETTLE: Curve = [0.236, 0.382, 0.146, 1];
 const LEAVE: Curve = [0.618, 0, 0.854, 0.382];
-/** Between blocks and between rows (s). */
 const LINE = 0.055;
-/** The glass blooms to its new size first (dock-motion: SURFACE_IN). */
 const AFTER_GLASS = beat(-3);
 
-// The surface mounts as the dock opens it, and every swapped view mounts
-// fresh, so `load` plays each time something new is shown.
 const rise = (from: Look, more: Partial<Enter> = {}): Enter => ({
   on: "load",
   from,
@@ -42,8 +31,6 @@ const rise = (from: Look, more: Partial<Enter> = {}): Enter => ({
   ...more,
 });
 
-// A hover that eases in on a slow, even curve (φ⁻¹ s) and lets go slower
-// still (1 s): light coming up on a screen, not a switch.
 const GLIDE: Curve = [0.382, 0, 0.382, 1];
 const glow = (of: Followed[]) => ({
   follow: { of, duration: beat(0), ease: GLIDE },
@@ -55,18 +42,12 @@ const lift = { to: { opacity: 0, y: -5 }, duration: beat(-4), ease: LEAVE };
 
 const SURFACE = defineStage({
   scope: "surface",
-  // The hand's pace: slower than a click, quicker than a page.
   tempo: 1.236,
   reach: 1.272,
   motion: {
     parts: {
       item: { enter: rise({ opacity: 0, y: 8 }) },
-      // A long list restarts its count every eight rows, so a page loaded
-      // by scrolling arrives at once instead of a second late.
       row: { enter: rise({ opacity: 0, y: 8 }, { wrap: 8 }) },
-      // A row drawn as a hairline ring that fills under the pointer itself
-      // (no sliding highlight): it rises like a row, and its fill, its
-      // caption and its icons glow in together and fade out slower still.
       tile: {
         enter: rise({ opacity: 0, y: 8 }, { wrap: 8 }),
         ...glow(["background-color"]),
@@ -85,10 +66,6 @@ const SURFACE = defineStage({
 
 const SurfaceRoot = SURFACE.SurfaceRoot;
 
-/**
- * The surfaces' stylesheet, put in ahead of the first surface that opens
- * (see useAheadOfOpen). Mounted once, by the app's providers.
- */
 export function SurfaceStyle() {
   return useAheadOfOpen() ? <SURFACE.Style /> : null;
 }
@@ -116,12 +93,6 @@ export function SurfaceStage({
   );
 }
 
-/**
- * Content for the dock's shelf, shown only while its surface is the one in
- * front. A surface opened over another (a picker, a sub-step) keeps the one
- * below mounted, and the dock would otherwise shelve both surfaces' pieces
- * side by side.
- */
 export function SurfaceExtension({
   align = "center",
   children,
@@ -154,11 +125,6 @@ function SurfaceAnchor() {
   );
 }
 
-/**
- * A dock card's action. Not a surface block: its buttons rise on their own
- * (dock.css, `dock-action`), and rising with the block too they would rise
- * twice.
- */
 export function DockAction({ children }: { children: ReactNode }) {
   return <SurfaceStage>{children}</SurfaceStage>;
 }

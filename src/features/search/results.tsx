@@ -352,8 +352,6 @@ export function ResultSheet({
       el.style.transform = `translate(${x - inset}px, ${y - inset}px)`;
     };
 
-    // Appearing, the sheet is set down where it lands; only a move from
-    // one option to the next glides.
     if (el.style.opacity !== "1") {
       el.style.transition = "none";
       place();

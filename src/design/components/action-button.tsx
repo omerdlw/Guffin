@@ -16,7 +16,6 @@ interface ActionButtonProps {
   iconSize?: number;
   label: ReactNode;
   loading?: boolean;
-  /** The meaning colour the icon takes once the action is on (`text-liked`). */
   mark?: string;
   onClick: () => void;
 }
@@ -57,8 +56,6 @@ export function ActionButton({
         >
           <Icon icon={active ? icon.on : icon.off} size={iconSize} />
         </span>
-        {/* Both labels share one cell, so it is as wide as the longer:
-            the hover label never wraps in the shorter one's box. */}
         <span className="grid justify-items-center whitespace-nowrap">
           <span
             className={cn(

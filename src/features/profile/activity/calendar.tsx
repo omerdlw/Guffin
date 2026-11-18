@@ -74,7 +74,6 @@ function buildCalendar(days: ActivityDays) {
 
 export function ActivityCalendar({
   days,
-  // The grid counts whole weeks, so it reaches a few days past a calendar year.
   period = "the last 52 weeks",
 }: {
   days: ActivityDays;

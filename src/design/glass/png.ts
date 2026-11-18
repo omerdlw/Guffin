@@ -1,11 +1,4 @@
-// A minimal PNG encoder for the lens maps: 8-bit RGBA, no filtering, the
-// image data in stored (uncompressed) deflate blocks. Lossless like a
-// canvas's `toDataURL`, but without a canvas, a GPU readback or a
-// compressor: a lens map is a few kB, and encoding it here costs
-// microseconds where the canvas spent a millisecond per slice.
-
 const SIGNATURE = [137, 80, 78, 71, 13, 10, 26, 10];
-/** The most a stored deflate block can hold. */
 const BLOCK = 0xffff;
 
 let table: Uint32Array | null = null;
@@ -38,14 +31,12 @@ function adler32(bytes: Uint8Array) {
   return ((b << 16) | a) >>> 0;
 }
 
-/** Encodes `rgba` (width × height × 4 bytes) as PNG file bytes. */
 export function encodePng(
   width: number,
   height: number,
   rgba: ArrayLike<number>,
 ): Uint8Array {
   const stride = width * 4;
-  // Each row behind a filter byte (0, none).
   const raw = new Uint8Array((stride + 1) * height);
   for (let y = 0; y < height; y++) {
     const row = y * (stride + 1);
@@ -77,8 +68,8 @@ export function encodePng(
   const view = new DataView(header.buffer);
   view.setUint32(0, width);
   view.setUint32(4, height);
-  header[8] = 8; // bit depth
-  header[9] = 6; // RGBA
+  header[8] = 8;
+  header[9] = 6;
   const chunks: [string, Uint8Array][] = [
     ["IHDR", header],
     ["IDAT", zlib],
@@ -102,7 +93,6 @@ export function encodePng(
   return out;
 }
 
-/** The PNG as a `data:` URL. */
 export function pngDataUrl(
   width: number,
   height: number,
@@ -138,26 +128,19 @@ function chunk(type: string, data: Uint8Array) {
   return out;
 }
 
-/**
- * The same PNG, its data deflated (the browser's own compressor, off the
- * main thread): a few times smaller, for keeping maps in storage. The pixels
- * are untouched. A PNG this encoder did not write comes back as it was.
- */
 export async function compactPng(url: string): Promise<string> {
   if (!url.startsWith(BASE64) || typeof CompressionStream === "undefined") {
     return url;
   }
   const png = bytesOf(url);
   const view = new DataView(png.buffer);
-  // IHDR is first: 8 signature + 8 length/type + 13 data + 4 crc.
   const header = png.subarray(16, 29);
   let at = 33;
   const length = view.getUint32(at);
   const type = String.fromCharCode(...png.subarray(at + 4, at + 8));
   if (type !== "IDAT") return url;
   const zlib = png.subarray(at + 8, at + 8 + length);
-  if (zlib[1] !== 0x01) return url; // already compressed
-  // Unwrap the stored blocks back into the raw rows.
+  if (zlib[1] !== 0x01) return url;
   const parts: Uint8Array[] = [];
   at = 2;
   for (;;) {

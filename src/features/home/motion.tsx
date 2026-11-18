@@ -7,53 +7,15 @@ import type { Curve, Enter, Look, Moves } from "@/motion/choreo";
 import { defineStage } from "@/motion/stage";
 import { ambientImage } from "./feed";
 
-// The home page's choreography. Everything on the page that moves is written
-// here; a role left out renders still.
-//
-// One proportion runs the page: the golden ratio. Every duration and every
-// cue is a power of φ seconds, every stagger a Fibonacci number of
-// milliseconds, every travel a Fibonacci number of pixels, every curve
-// drawn from φ's fractions. Moves of one rank
-// share one value, and each rank is φ times the one below, so nothing on the
-// page fights for the eye at the same weight.
-//
-// The page is paced like a film, not a feed: the wheel travels φ⁻¹ of a
-// notch and glides for a beat, and things arrive a little large and faint
-// and settle. Nothing blurs: a blurring animation cannot run on the
-// compositor, so it would repaint the page on every frame it plays.
-//
-// The opening is a title sequence on φ cues. The picture develops out of the
-// dark like a print in the bath over 4.2s. At 0.6s the eyebrow flickers in
-// letter by letter; at 1s the headline settles in a letter at a time,
-// its second line 0.4s behind; at 2.6s the copy arrives word by word like a
-// subtitle; the actions at 3.2s, the credit at 3.6s. Scrolling, the picture
-// sinks, shrinks and fades while the titles lift away.
-//
-// Below, every block plays its entrance as it comes well into view: headings
-// resolve from their middle outwards and draw their rule, rows deal their
-// posters in from the right with their arrows and tabs after, grids cascade
-// across a row, a review's words surface in reading order, and the credits
-// roll at the foot. Switching a tab, the row leaves before the next is dealt.
-// Touch is unhurried: a lift, a slow push into the picture, a firm press.
-
 const PHI = 1.618034;
-// φⁿ seconds: 0.146, 0.236, 0.382, 0.618, 1, 1.618, 2.618, 4.236.
 const beat = (n: number) => Math.round(PHI ** n * 1000) / 1000;
-// Fibonacci: staggers in ms, travel in px.
 const STAGGER = { char: 0.034, word: 0.055, item: 0.089, row: 0.144 };
 
-// Curves from φ's fractions (0.146, 0.236, 0.382, 0.618, 0.854).
-// Settle: gathers softly, never with a jolt, and spends its long tail coming to rest.
 const SETTLE: Curve = [0.236, 0.382, 0.146, 1];
-// Develop: a slow start and a long, even resolve, for pictures.
 const DEVELOP: Curve = [0.382, 0, 0.146, 1];
-// Sweep: in and out on the same breath, for travel the eye follows.
 const SWEEP: Curve = [0.618, 0, 0.382, 1];
-// Leave: gathers, then goes.
 const LEAVE: Curve = [0.618, 0, 0.854, 0.382];
-// Touch: eased at both ends, so a touch never starts with a jolt (the same curve as --soft-ease).
 const TOUCH: Curve = [0.382, 0.236, 0.146, 1];
-// Press: direct.
 const PRESS: Curve = [0.382, 0, 0.236, 1];
 
 const load = (from: Look, delay: number, duration = beat(1)): Enter => ({
@@ -95,7 +57,6 @@ const draw: Moves = {
   ),
 };
 
-// A text that settles letter by letter from a little large and faint.
 const titling = (
   enter: (from: Look) => Enter,
   order: "forward" | "center" = "forward",
@@ -106,14 +67,12 @@ const titling = (
   enter: enter({ opacity: 0, y: "0.236em", scale: 1.146 }),
 });
 
-// A text that surfaces word by word, like a subtitle.
 const subtitle = (enter: (from: Look) => Enter) => ({
   by: "word" as const,
   stagger: STAGGER.word,
   enter: enter({ opacity: 0, y: 8 }),
 });
 
-// A short label that flickers in letter by letter, scattered.
 const flicker = (enter: (from: Look) => Enter) => ({
   by: "char" as const,
   order: "random" as const,
@@ -123,8 +82,6 @@ const flicker = (enter: (from: Look) => Enter) => ({
 
 const HOME = defineStage({
   scope: "home",
-  // Cinematic: every entrance half a beat slower (√φ) and a Fibonacci step
-  // farther (φ), so it is felt, not glimpsed.
   tempo: 1.272,
   reach: 1.618,
   scroll: { period: beat(0), gain: beat(-1) },
@@ -134,9 +91,6 @@ const HOME = defineStage({
       backdrop: {
         scroll: { to: { y: "21%", opacity: 0.146 }, range: ["0px", "100vh"] },
         slots: {
-          // Size moves on the clipping box, so its edges grow with it; on the
-          // picture inside, a large picture would show the box's hard edges
-          // until it settled.
           screen: {
             enter: {
               on: "ready",
@@ -259,8 +213,6 @@ const HOME = defineStage({
         enter: reveal({ opacity: 0, y: 34 }, { stagger: STAGGER.row, wrap: 3 }),
       },
       rule: draw,
-      // The credits roll: the tag, the title, then the pitch and the action,
-      // each a φ step behind the last.
       tag: { text: flicker((from) => reveal(from, { duration: beat(0) })) },
       finale: {
         text: titling((from) =>
@@ -284,8 +236,6 @@ const HOME = defineStage({
           range: ["5vh", "80vh"],
         },
       },
-      // Switching tabs, the shown row drifts off to the left and fades
-      // before the next one is dealt in from the right.
       slides: {
         enter: load({ opacity: 0, x: 55 }, beat(-3)),
         leave: {
@@ -312,8 +262,6 @@ const HOME = defineStage({
         rest: { duration: beat(-1), ease: SETTLE },
         press,
       },
-      // A section's tabs surface after its title. Choosing a tab, the labels
-      // cross-fade; the indicator travels on the control's own spring.
       segmented: {
         enter: reveal(
           { opacity: 0, x: 21 },
@@ -326,8 +274,6 @@ const HOME = defineStage({
           },
         },
       },
-      // A carousel's arrows wait for its posters to be dealt, then surface.
-      // Showing and hiding as the row scrolls fades rather than pops.
       arrow: {
         enter: reveal(
           { opacity: 0, scale: 0.618 },

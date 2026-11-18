@@ -20,18 +20,6 @@ import {
   tween,
 } from "./motion";
 
-// The modal's choreography, on the modules' φ vocabulary (./motion.ts).
-//
-// The glass blooms into place: it travels a short way on a critically damped
-// spring while its pane comes up, then the body rises into it a beat behind,
-// like a dock surface. Leaving, it gathers and goes, quicker than it came.
-//
-// The framework animates the frame, an ancestor of the glass panel. An
-// ancestor at partial opacity cuts the panel's frost off from the page
-// behind it (it would show bare, then pop frosted at the end), so the frame
-// only ever moves; its visibility travels down as --modal-glass, which the
-// panel, the glass itself, takes as its own opacity (styles/modules.css).
-
 const shift = (x: number, y: number, scale = 1) =>
   `translate3d(${x}px, ${y}px, 0) scale(${scale})`;
 const REST = shift(0, 0);
@@ -54,7 +42,6 @@ const position = (from: string): ModalPositionMotion => ({
   },
 });
 
-// Words and blocks inside: in from below, out at once with the glass.
 const rise = (delay: number) => ({
   hidden: away(TRAVEL.rise),
   visible: { ...here(), transition: tween(beat(0), SETTLE, delay) },

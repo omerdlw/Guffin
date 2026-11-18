@@ -51,7 +51,6 @@ const MOVIE_FALLBACK_ICON = "solar:clapperboard-play-bold";
 
 const POSTER_LINK_WIDTHS = ["w185", "w342"] as const;
 
-/** A picture chosen from the gallery lights the page while it is shown. */
 export function MovieStage({ children }: { children: ReactNode }) {
   const { reel } = useReel();
   const light = reel ? tmdbImageUrl("backdrop", reel, "w300") : undefined;
@@ -66,7 +65,6 @@ export function MoviePageChrome({
   palette = null,
   reviews = false,
 }: {
-  /** The dock's line under the title (who made it, when, how long). */
   description: string;
   hasProviders: boolean;
   movie: MovieArtwork;

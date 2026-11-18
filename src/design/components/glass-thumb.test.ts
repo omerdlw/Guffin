@@ -14,7 +14,6 @@ describe("drive", () => {
     });
     vi.stubGlobal("cancelAnimationFrame", () => {});
 
-    // A press letting go: from 0.98 back to 1 on a bouncy spring.
     const press = spring(0.98);
     const drawn: number[] = [];
     const loop = drive(

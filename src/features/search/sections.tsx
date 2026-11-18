@@ -146,7 +146,6 @@ export const Section = memo(function Section({
   titled,
   total,
 }: {
-  // The highlighted option within this section, or -1.
   active: number;
   lead: number;
   onNavigated: () => void;
@@ -273,9 +272,6 @@ function SkeletonPosters({ count }: { count: number }) {
   );
 }
 
-// The skeleton is laid out as the results will be: the same padding, the
-// same group headers in the overview, the same rows and grid, so nothing
-// moves when the answer lands.
 export function ResultsSkeleton({ scope }: { scope: SearchScope }) {
   if (scope === "all") {
     return (

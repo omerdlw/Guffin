@@ -181,9 +181,6 @@ export function HomeOpening({
 
       <div className={cn(pageBodyClass(Boolean(src)), src && HERO_LIFT)}>
         {src ? (
-          // The scrim fades out at its foot instead of stopping: the picture
-          // drifts down under it while scrolling, and a hard stop would show
-          // as a band of tone above the first section.
           <div
             aria-hidden="true"
             className="pointer-events-none absolute -top-40 -bottom-24 left-1/2 z-0 w-screen -translate-x-1/2 bg-linear-to-t from-page/85 via-page/40 to-transparent [mask-image:linear-gradient(to_bottom,#000_55%,transparent)]"

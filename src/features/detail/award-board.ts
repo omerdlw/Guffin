@@ -1,8 +1,3 @@
-// The awards board: every organization names its categories its own way
-// ("Best Director", "Outstanding Directorial Achievement in Theatrical
-// Feature Film", "Best Director – Motion Picture"). The board folds them into
-// one craft per row, so a sweep reads across a single line.
-
 interface Craft {
   key: string;
   label: string;
@@ -20,9 +15,6 @@ const FEMALE = /actress|female|\bwomen\b/;
 const MALE = /\bactor\b|\bmale\b/;
 const SUPPORT = /support/;
 
-// Read in order: the first that matches wins. The specific crafts come
-// before the general ones ("Sound (Editing and Mixing)" is sound, not
-// editing; "Best Edited Feature Film" is editing, not the picture).
 const CATEGORY_RULES: readonly Rule[] = [
   ["ensemble", "Ensemble", has(/ensemble|\bcast\b/)],
   [
@@ -63,8 +55,6 @@ const CATEGORY_RULES: readonly Rule[] = [
   ["debut", "Debut", has(/first feature|debut|breakthrough|newcomer/)],
 ];
 
-// Guilds name the craft in their own name and the work in the category
-// ("Period Feature Film" from the art directors).
 const ORGANIZATION_RULES: readonly (readonly [string, RegExp])[] = [
   ["production-design", /art director|\badg\b|set decorat|\bsdsa\b/],
   ["costume", /costume/],
@@ -106,7 +96,6 @@ export function craftOf(
   return OTHER;
 }
 
-// Crafts in the order a ceremony reads them; ties on the board fall back to it.
 export const CRAFT_ORDER = [
   "work",
   "director",
@@ -137,8 +126,6 @@ export const CRAFT_ORDER = [
   "other",
 ];
 
-// The ceremonies the season is measured by, in standing; everything else
-// follows by how much it gave.
 const PRESTIGE = [
   /academy awards|\boscars?\b/,
   /bafta/,
@@ -178,7 +165,6 @@ const SHORT_NAMES: readonly (readonly [RegExp, string])[] = [
 
 const NAME_LIMIT = 15;
 
-/** A name short enough for a tag: "National Board of Review Awards" → "NBR". */
 export function shortName(organization: string): string {
   for (const [pattern, name] of SHORT_NAMES)
     if (pattern.test(organization)) return name;

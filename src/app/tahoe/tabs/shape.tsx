@@ -56,7 +56,6 @@ const FIB_WIDTH: Record<(typeof FIB)[number]["name"], string> = {
   "fib-7": "w-fib-7",
 };
 
-/** The page-level stack, top first (Z_INDEX; the dock card's own are local). */
 const STACK = Object.entries(Z_INDEX)
   .filter(([, value]) => value >= 100)
   .sort((a, b) => b[1] - a[1]);

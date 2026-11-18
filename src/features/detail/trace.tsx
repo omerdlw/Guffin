@@ -9,11 +9,6 @@ import {
 } from "react";
 import { detailPart } from "./motion";
 
-// One highlight for a whole list: it glides from row to row under the hand
-// (the stage's `trace` follow eases it), lands in place and fades in where it
-// first appears, and fades out when the hand leaves the list. The list is
-// `relative`; each row spreads `TRACE_ROW`.
-
 export const TRACE_ROW = { "data-trace-row": "" } as const;
 
 const ROW = "[data-trace-row]";
@@ -49,8 +44,6 @@ export function useTrace(list: HTMLElement | null) {
     element.style.opacity = "1";
   };
 
-  // A row that grows or shrinks under the highlight (one opened) takes it
-  // along.
   useEffect(() => {
     if (!list) return;
     const observer = new ResizeObserver(() => {

@@ -12,11 +12,6 @@
     display: none;
   }
 
-  /* A tooltip grows out of its trigger and is gone sooner than it came, on
-     the dock's φ beats: in on Settle (0.236s), out on Leave (0.146s); the
-     instant one (moving between triggers) only fades. Glass never blurs,
-     so only offset, scale and fade move. The framework waits for the
-     closing animation before it removes the tooltip. */
   @media (prefers-reduced-motion: no-preference) {
     :global(.ui-tooltip) {
       --tip-x: 0px;

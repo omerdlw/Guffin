@@ -18,17 +18,17 @@ material covers controls lying on the page. Sources:
 
 Combine a material class with what it does to the scene behind it.
 
-| Class                  | Effect                                                                                                                        |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `liquid`               | The material: `--liquid-tint` fill, a 0.5px `--liquid-contour` just outside the edge, the layer shadow and the lit rim (10.5) |
-| `liquid-flat`          | No shadow (contour stays): a control on a page or picture, or a card inside another layer                                     |
-| `liquid-frost`         | Backdrop: `--liquid-frost` (blur, saturate, tone) in every browser                                                            |
-| `liquid-lens`          | Backdrop: refraction at the bezel, then frost, then edge light, as one SVG filter (Chromium); elsewhere the frost             |
+| Class                  | Effect                                                                                                                                                                  |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `liquid`               | The material: `--liquid-tint` fill, a 0.5px `--liquid-contour` just outside the edge, the layer shadow and the lit rim (10.5)                                           |
+| `liquid-flat`          | No shadow (contour stays): a control on a page or picture, or a card inside another layer                                                                               |
+| `liquid-frost`         | Backdrop: `--liquid-frost` (blur, saturate, tone) in every browser                                                                                                      |
+| `liquid-lens`          | Backdrop: refraction at the bezel, then frost, then edge light, as one SVG filter (Chromium); elsewhere the frost                                                       |
 | `liquid-clear`         | The lens without frost or `--liquid-lens-tone` (the ink under it stays ink); nothing at all outside Chromium (a drop of water: the cursor, a segmented or switch thumb) |
-| `liquid-prism`         | On clear glass over a picture: the colour channels split at the rim                                                           |
-| `liquid-fluid`         | No per-size maps; keeps the gradient rim (a surface that morphs every frame)                                                  |
-| `liquid-control`       | The page-control material (section 10.4)                                                                                      |
-| `liquid-control-clear` | The page-control material with no tint until touched (`outline` buttons)                                                      |
+| `liquid-prism`         | On clear glass over a picture: the colour channels split at the rim                                                                                                     |
+| `liquid-fluid`         | No per-size maps; keeps the gradient rim (a surface that morphs every frame)                                                                                            |
+| `liquid-control`       | The page-control material (section 10.4)                                                                                                                                |
+| `liquid-control-clear` | The page-control material with no tint until touched (`outline` buttons)                                                                                                |
 
 Variables a surface may set: `--liquid-bezel` (rim width, px), `--liquid-bend`
 (× the full lens strength), `--liquid-drop` (its own shadow; `liquid-flat`
@@ -56,17 +56,17 @@ gets its shadow back (`--liquid-drop: var(--liquid-shadow)`).
 
 ### 10.3 Tokens
 
-| Token                      | Paper                                                        | `.on-photo`                                                |
-| -------------------------- | ------------------------------------------------------------ | ---------------------------------------------------------- |
-| `--liquid-stain`          | 1: the lens takes the page's hue, keeps its light (not on clear glass) | 0 |
-| `--liquid-tint` / `-hover` | page 30% / white 38%                                         | page 16% / page 20% + ink 10%                              |
-| `--liquid-tint-dock`       | `--liquid-tint`                                              | page 6% (the picture shows through the dock)               |
-| `--liquid-contour`         | ink 9%                                                       | black 50%                                                  |
-| `--liquid-shadow`          | `var(--lift)`                                                | `0 2px 6px -2px` black 35% + `0 12px 32px -12px` black 55% |
-| `--liquid-frost`           | `blur(12px) saturate(1.25)`                                  | `blur(12px) saturate(1.6) brightness(0.92)`                |
+| Token                      | Paper                                                                          | `.on-photo`                                                |
+| -------------------------- | ------------------------------------------------------------------------------ | ---------------------------------------------------------- |
+| `--liquid-stain`           | 1: the lens takes the page's hue, keeps its light (not on clear glass)         | 0                                                          |
+| `--liquid-tint` / `-hover` | page 30% / white 38%                                                           | page 16% / page 20% + ink 10%                              |
+| `--liquid-tint-dock`       | `--liquid-tint`                                                                | page 6% (the picture shows through the dock)               |
+| `--liquid-contour`         | ink 9%                                                                         | black 50%                                                  |
+| `--liquid-shadow`          | `var(--lift)`                                                                  | `0 2px 6px -2px` black 35% + `0 12px 32px -12px` black 55% |
+| `--liquid-frost`           | `blur(12px) saturate(1.25)`                                                    | `blur(12px) saturate(1.6) brightness(0.92)`                |
 | `--liquid-lens-tone`       | levels 0.4–0.95, paper → paper: `saturate(1.7) contrast(.42) brightness(1.38)` | highlights to 0.72: `saturate(1.3) brightness(.72)`        |
-| `--liquid-well` / `-hover` | white 50% / 72%                                              | white 7% / 11%                                             |
-| `--liquid-well-shadow`     | ink 6% hairline + 1px ink 5% fall                            | none                                                       |
+| `--liquid-well` / `-hover` | white 50% / 72%                                                                | white 7% / 11%                                             |
+| `--liquid-well-shadow`     | ink 6% hairline + 1px ink 5% fall                                              | none                                                       |
 
 Under `prefers-reduced-transparency: reduce`, `.liquid` is `--plate` (solid).
 

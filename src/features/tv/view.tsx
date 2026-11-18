@@ -269,8 +269,6 @@ const SHOW_TAG_LIMIT = 8;
 
 const MAX_VISIBLE_CREATORS = 3;
 
-// The dock already carries the years, the run and the network, the seasons
-// have their own shelf and the keywords sit under the synopsis as chips.
 function buildShowFacts(show: ShowDetails): Fact[] {
   const genres = show.genres.map((genre) => ({ text: genre.name }));
   const certification = getShowCertification(show);
@@ -462,12 +460,10 @@ export async function ShowPageContent({
     { id: show.id, mediaType: "tv" },
   );
   const backdrops = getGalleryImages(show.images);
-  // The opening's reel: text-free stills only, so no title fights the name.
   const frames = backdrops
     .filter((image) => !image.language)
     .map((image) => image.filePath);
   const posters = getPosterImages(show.images);
-  // Sent once, shared by the gallery and its wall.
   const gallery = { backdrops: pathsOf(backdrops), posters: pathsOf(posters) };
   const { regular, seasons, watchedBySeason } = seasonShelf(show, tracking);
   const stills = await getSeasonStills(show.id, seasons, isAiring(show.status));

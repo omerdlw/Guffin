@@ -68,11 +68,6 @@ export type MovieArtwork = Pick<
   "backdropPath" | "id" | "posterPath" | "title"
 >;
 
-/**
- * What a title's client parts are handed: its pictures and its name. Passing
- * the whole record across instead would send all of it to the browser (every
- * credit, every image, the providers of every region), used or not.
- */
 export const artworkOf = ({
   backdropPath,
   id,
@@ -82,10 +77,6 @@ export const artworkOf = ({
 
 export const MOVIE_FEATURED_PEOPLE = 5;
 
-// The strip's seats, by billing: the lead in the middle, then alternating
-// left and right. `order` is the seat's place in the strip from the left,
-// `x` its rough centre from the strip's middle (cqi), where its portrait is
-// dealt out from behind the lead.
 export const CAST_SEATS = [
   { order: 2, x: 0 },
   { order: 1, x: -27 },
@@ -108,7 +99,6 @@ const MOVIE_MONEY_FORMAT = new Intl.NumberFormat("en-US", {
   style: "currency",
 });
 
-// The meaning colour each collection state lights its icon with.
 export const COLLECTION_MARKS = {
   like: "text-liked",
   watched: "text-watched",
@@ -134,7 +124,6 @@ export function parseMovieId(raw: string): number | null {
   return /^[1-9]\d{0,9}$/.test(raw) ? Number(raw) : null;
 }
 
-/** TMDB carries placeholder budgets like $1 or $7; below this a figure is noise. */
 const MIN_REPORTED_MONEY = 10_000;
 
 export function isReportedMoney(amount: number | null): amount is number {
@@ -167,7 +156,6 @@ export function getPosterImages(images: MovieImages) {
   return [...images.posters].sort(byVotes);
 }
 
-/** A gallery's pictures as the client draws them: their paths alone. */
 export const pathsOf = (images: readonly MovieImage[]) =>
   images.map((image) => image.filePath);
 

@@ -61,16 +61,16 @@ page.
 
 #### Page, layers and the primary action
 
-| Token              | Value                     | Role                                      |
-| ------------------ | ------------------------- | ----------------------------------------- |
-| `bg-page`          | `--ambient-page` (L 0.955) | The page; a curtain over it              |
-| `bg-glass`         | white 35% in page (oklab) | A solid stand-in for glass                |
-| `bg-veil`          | page 60%                  | A control or backdrop laid over a picture |
-| `bg-dim`           | ink 20%                   | What sits behind a modal                  |
-| `bg-primary`       | ink                       | The one action a surface exists for       |
-| `bg-primary-hover` | ink 86% mixed with white  |                                           |
-| `text-on-primary`  | `#fff`                    | Ink on the primary action                 |
-| `text-on-accent`   | `#fff`                    | Ink on a solid grade or danger fill       |
+| Token              | Value                      | Role                                      |
+| ------------------ | -------------------------- | ----------------------------------------- |
+| `bg-page`          | `--ambient-page` (L 0.955) | The page; a curtain over it               |
+| `bg-glass`         | white 35% in page (oklab)  | A solid stand-in for glass                |
+| `bg-veil`          | page 60%                   | A control or backdrop laid over a picture |
+| `bg-dim`           | ink 20%                    | What sits behind a modal                  |
+| `bg-primary`       | ink                        | The one action a surface exists for       |
+| `bg-primary-hover` | ink 86% mixed with white   |                                           |
+| `text-on-primary`  | `#fff`                     | Ink on the primary action                 |
+| `text-on-accent`   | `#fff`                     | Ink on a solid grade or danger fill       |
 
 Floating chrome is not `bg-glass`; it is the liquid material (section 10),
 valued by the `--liquid-*` tokens.

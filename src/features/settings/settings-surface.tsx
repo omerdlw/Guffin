@@ -74,8 +74,6 @@ const SETTINGS_OVERVIEW = {
   title: "Account settings",
 };
 
-// The overview reads like a settings app: who you are, how you sign in, and
-// the one way out, each on its own sheet under a small caps name.
 const OVERVIEW_GROUPS: readonly {
   label: string;
   sections: readonly SettingsSection[];

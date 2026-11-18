@@ -9,7 +9,6 @@ describe("optics", () => {
   });
 
   it("gathers the bend at the outline", () => {
-    // A sphere's cap: most of the pull is gone a quarter of the way in.
     expect(rimShift(0.25)).toBeLessThan(0.4);
     expect(rimShift(0.1)).toBeGreaterThan(rimShift(0.25));
   });

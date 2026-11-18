@@ -25,30 +25,15 @@ import {
 import { useScrollDriver } from "./react";
 import type { ScrollFeel } from "./scroll";
 
-// A page's stage: the parts and sections it renders, by name. The names are
-// where the page's choreography attaches; until a page writes one, every
-// part renders still.
-
 interface StageRoles<P extends string, S extends string> {
   parts: readonly P[];
   sections?: readonly S[];
-  // The page's name and choreography; without them every role renders still.
   scope?: string;
   motion?: Choreography<P, S>;
-  // How scrolling feels while the page is mounted.
   scroll?: ScrollFeel;
-  // How a carousel pans when its arrows are pressed; without it, it jumps.
   glide?: Glide;
-  // Seconds the opening plays before anything already in view on arrival
-  // may enter, so the page reads from the top down: the opening first, the
-  // blocks under it after. Roles reached by scrolling later play at once.
   opening?: number;
-  // How far up from the viewport's foot a role must come before it counts
-  // as in view (a fraction of the viewport's height; default 0.16). Lower
-  // plays it sooner, as it comes onto the screen.
   inset?: number;
-  // How slow and how far the entrances are (choreo.ts `paced`): `tempo`
-  // stretches their time (and the opening's hold), `reach` their travel.
   tempo?: number;
   reach?: number;
 }
@@ -193,8 +178,6 @@ export function Section({
   );
 }
 
-// The order units play in. "center" spreads from the middle of the text
-// outwards; "random" scatters them, the same way on server and client.
 function sequence(count: number, moves: TextMoves, seed: string): number[] {
   const order = moves.order ?? "forward";
   const at = Array.from({ length: count }, (_, i) => i);
@@ -219,7 +202,6 @@ function sequence(count: number, moves: TextMoves, seed: string): number[] {
   return at;
 }
 
-// How many units a text splits into, for a budgeted stagger (`--n`).
 function units(text: string, moves: TextMoves) {
   const solid = text.split(/\s+/).filter(Boolean);
   return moves.by === "word"
@@ -317,8 +299,6 @@ export function Header({
 
   return (
     <div className={className ?? "relative z-10 mb-4"} data-part={part}>
-      {/* Actions too wide for the line wrap under it instead of running off
-          a narrow screen. */}
       <div className="flex min-h-8 w-full flex-wrap items-center gap-x-4 gap-y-2">
         <div className="flex min-w-0 shrink-0 items-center gap-2.5">
           {icon ? (
@@ -409,15 +389,7 @@ function Expose({
   );
 }
 
-// A number among the facts: it enters as the text around it does, in its
-// place in the order.
-function Count({
-  part,
-  value,
-  format,
-  index,
-  className,
-}: CountProps<string>) {
+function Count({ part, value, format, index, className }: CountProps<string>) {
   return (
     <Expose
       className={className}
@@ -428,10 +400,6 @@ function Count({
   );
 }
 
-// Swapped content leaves before the new content enters: the old view stays,
-// marked `data-leaving`, until its leave animation ends (the page's
-// choreography gives it one), then the new one mounts and plays its entrance.
-// Without a leave it swaps at once.
 const LEAVE_LIMIT_MS = 3000;
 
 function Swap({
@@ -453,9 +421,6 @@ function Swap({
     const element = box.current;
     if (id === shown || !element) return;
     element.setAttribute("data-leaving", "");
-    // A view that shows nothing (empty, `display: none`) runs no animation,
-    // so its leave would never end: swap at once rather than wait out the
-    // limit.
     if (
       element.getClientRects().length === 0 ||
       !getComputedStyle(element).animationName.includes(LEAVING)
@@ -573,19 +538,8 @@ function WallStage({ wall, children }: WallStageProps<string>) {
   );
 }
 
-// The stage's cues. The opening waits for the page to be hydrated and two
-// frames painted, then `data-play` releases it. Every part and section is
-// marked `data-seen` the first time it comes into view, which releases its
-// entrance; roles added later (a swapped shelf, more rows) are watched too.
-// Roles in view during the opening are held until it has played.
 const ROLES = "[data-part], [data-section]";
 
-/**
- * A scroll handler that reads the page's height runs once the frame is
- * drawn: inside the scroll event the scroll-linked styles are stale, and
- * reading scrollY there makes the browser restyle and lay out the whole page
- * ahead of the frame. Calls before then share one run.
- */
 function afterFrame(task: () => void) {
   let pending: ReturnType<typeof setTimeout> | undefined;
   const schedule = () => {
@@ -650,8 +604,6 @@ function useCue(
       },
       { rootMargin: `0px 0px -${inset * 100}% 0px` },
     );
-    // A role in the page's last screen may never clear the line above: once
-    // the page can scroll no further, whatever is on screen is seen.
     const showing = new Set<Element>();
     const atEnd = () =>
       window.scrollY + window.innerHeight >=
@@ -698,9 +650,6 @@ function useCue(
   }, [root, on, opening, inset]);
 }
 
-// Calls `start` once no curtain (a title card playing over the page) is down
-// and two frames have painted; a stuck curtain gives way after
-// CURTAIN_LIMIT_MS. Returns the cleanup.
 function whenLifted(element: HTMLElement, start: () => void) {
   let frame = 0;
   const play = () => {
@@ -729,10 +678,6 @@ function whenLifted(element: HTMLElement, start: () => void) {
   };
 }
 
-// Touching a role hands it to its touch states at once: an entrance still
-// playing on something that answers the hand (its long tail can look done)
-// is finished, since while it runs it holds the very properties the hover
-// would ease, and the hover would snap instead.
 function useTouch(root: { current: HTMLElement | null }, on: boolean) {
   useEffect(() => {
     const element = root.current;
@@ -764,8 +709,6 @@ function useTouch(root: { current: HTMLElement | null }, on: boolean) {
           .split(",")
           .some((duration) => parseFloat(duration) > 0);
         if (!eases) continue;
-        // Hold where the entrance has got to, end it, and let go: the touch
-        // state then eases on from there.
         const held = [
           ...new Set(
             effect!
@@ -840,9 +783,6 @@ export function defineStage<
     );
   }
 
-  // A surface or action inside the dock: the same choreography root, without
-  // the page's grade, scroll feel or opening hold. It mounts when the dock
-  // opens it, so its `load` entrances play as it opens.
   function SurfaceRoot({ children }: { children: ReactNode }) {
     const root = useRef<HTMLDivElement>(null);
     useCue(root, Boolean(scope && css), 0);
@@ -859,11 +799,6 @@ export function defineStage<
     );
   }
 
-  // The stage's stylesheet alone, for a surface that opens later: inserting
-  // a sheet with keyframes restyles every animated element on the page, so a
-  // surface puts it in ahead of time, while nothing is moving, instead of in
-  // the frame it opens. React keeps one sheet per href, so the root that
-  // renders it again later adds nothing.
   function Style() {
     if (!scope || !css) return null;
     return (

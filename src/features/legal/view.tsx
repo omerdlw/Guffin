@@ -196,8 +196,6 @@ export function LegalPage({
 }: {
   document: LegalDocument;
 }): JSX.Element {
-  // The page's own dock card, so the dock's actions (search) have a card
-  // that owns this path to show on.
   usePage({
     dock: {
       description: document.description,

@@ -12,11 +12,6 @@ import {
 } from "./theme/motion";
 import { PARTS } from "./recipes";
 
-/**
- * A select menu's clip: a capsule at the trigger's edge (the side it opens
- * from), and open, well past every edge so the layer's shadow is whole. Every
- * stop names the same units, so the clip interpolates.
- */
 const MENU_CLIP = {
   above: "inset(80% 12% 0% 12% round 24px)",
   below: "inset(0% 12% 80% 12% round 24px)",
@@ -76,12 +71,6 @@ export const ui = defineUi({
       ].map((name) => `type-${name}`),
     },
   },
-  // A select's menu grows out of its trigger like iOS 26's (custom: 1 below
-  // it, -1 above): a capsule at the trigger's edge opens to the whole glass
-  // with a little give, and its options settle in behind it, 34ms apart.
-  // The glass is clipped, never scaled hard: its lens stays laid out for its
-  // box. The clip runs well past the edge at rest, so the shadow stays whole. `follow` stays instant: it drives every HighlightGroup and
-  // SlidingPill, which the pages glide through their own `follow` (06-motion).
   motion: {
     follow: INSTANT,
     menu: {

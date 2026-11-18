@@ -137,8 +137,8 @@ export function ColourTab() {
           Mürekkep tek renktir, siyaha yakın: her basamak aynı siyahın daha
           düşük opaklığıdır, ayrı bir gri değil. Etiket altındakini geçirir;
           dolguya, cama ya da görsele baskı gibi oturur. Sayfa rengi görseli
-          izler (<Code>--ambient-page</Code>). Aşağıdaki değerler tarayıcının
-          şu an boyadığı değerlerdir; grade&apos;i değiştir, hepsi değişir.
+          izler (<Code>--ambient-page</Code>). Aşağıdaki değerler tarayıcının şu
+          an boyadığı değerlerdir; grade&apos;i değiştir, hepsi değişir.
         </>
       }
       source="styles/themes.css · design/rules/03-colour.md"

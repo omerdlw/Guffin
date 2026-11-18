@@ -6,30 +6,14 @@ import { MotionConfig } from "@/motion/lib";
 import { Room } from "@/design/components/room";
 import { defineStage } from "@/motion/stage";
 
-// The spotlights' choreography. Each spotlight is a scene first (a WebGL
-// tunnel, a ring of laureates, a wall of posters), so the page moves little
-// of its own and never blurs.
-//
-// Directors: the wall is the director. Their portrait develops out of the
-// dark at the centre and the films they made are hung around it from the
-// nearest outwards, 34ms apart, each a little small and faint and settling.
-// Choosing another director, the wall fades a beat before the next is hung.
-
 const PHI = 1.618034;
-// φⁿ seconds: 0.146, 0.236, 0.382, 0.618, 1, 1.618.
 export const beat = (n: number) => Math.round(PHI ** n * 1000) / 1000;
-// Fibonacci: stagger in ms.
 const STAGGER = { char: 0.034 };
 
-// Settle: gathers softly, never with a jolt, and spends its long tail coming to rest.
 const SETTLE: Curve = [0.236, 0.382, 0.146, 1];
-// Develop: a slow start and a long, even resolve, for pictures.
 export const DEVELOP: Curve = [0.382, 0, 0.146, 1];
-// Leave: gathers, then goes.
 const LEAVE: Curve = [0.618, 0, 0.854, 0.382];
-// Touch: eased at both ends, so a touch never starts with a jolt (the same curve as --soft-ease).
 const TOUCH: Curve = [0.382, 0.236, 0.146, 1];
-// Press: direct.
 const PRESS: Curve = [0.382, 0, 0.236, 1];
 
 const media: Moves = {

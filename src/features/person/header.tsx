@@ -254,7 +254,6 @@ export function PersonBackdropHero({
   person,
 }: {
   fallback: string | null;
-  // Backdrops of the person's best-known titles, for the opening's reel.
   frames?: readonly string[];
   person: Pick<PersonDetails, "id" | "name">;
 }) {

@@ -38,7 +38,6 @@ interface SegmentedControlProps<K extends string> {
   items: readonly SegmentedItem<K>[];
   onChange: (key: K) => void;
   value: K;
-  /** `fill`: as wide as its row, the items sharing it equally. */
   width?: "fit" | "fill";
 }
 
@@ -47,17 +46,11 @@ interface Box {
   width: number;
 }
 
-/**
- * The indicator travels with the faintest overshoot (well under a pixel: it
- * lands centred on its item), and follows a drag tight.
- */
 const TRAVEL = feel(260, 0.82);
 const FOLLOW = feel(900, 0.95);
 const GLASS_ON = feel(520, 1);
 const GLASS_OFF = feel(190, 0.9);
-/** Stretch along the travel: a single soft wobble as the glass lands. */
 const JELLY = feel(200, 0.5);
-/** At full glass the indicator swells past the track. */
 const SWELL_X = 0.12;
 const SWELL_Y = 0.36;
 
@@ -76,14 +69,6 @@ function nearest(boxes: readonly Box[], centre: number) {
   return best;
 }
 
-/**
- * Picks one of a few items. One indicator in two layers that move as one: the
- * chosen fill, under the labels, and a clear liquid lens over them. At rest
- * only the fill shows and the labels read crisp on it; press it and the lens
- * swells in, so you drag a drop of glass across the labels and they bend at
- * its rim; it travels as glass whenever the choice changes and settles back
- * into the fill on arrival.
- */
 export function SegmentedControl<K extends string>({
   ariaLabel,
   className,
@@ -103,7 +88,6 @@ export function SegmentedControl<K extends string>({
     items.findIndex((item) => item.key === value),
   );
 
-  // Latest props for the pointer handlers and the frame loop.
   const latest = useRef({ chosenIndex, items, onChange });
   useLayoutEffect(() => {
     latest.current = { chosenIndex, items, onChange };
@@ -125,7 +109,6 @@ export function SegmentedControl<K extends string>({
 
     let boxes: Box[] = [];
     let measured = false;
-    /** The thumb's height at rest (the track's, inset). */
     let thumbHeight = 0;
     const x = spring();
     const w = spring();
@@ -135,23 +118,12 @@ export function SegmentedControl<K extends string>({
     let target = latest.current.chosenIndex;
     let pressed = false;
     let dragging = false;
-    /**
-     * On its way to a new item: glass from the moment the choice changes
-     * until it first arrives, then solid for good, so the spring settling
-     * round its mark never turns it back to glass.
-     */
     let trip = false;
     let grab = 0;
     let startX = 0;
     let pointerX = 0;
     let tapped = -1;
     let shownLit: number | null = null;
-    /**
-     * The pointer being followed. Tracked here, not read back from
-     * hasPointerCapture: once capture is lost (lostpointercapture, or a
-     * browser that drops it before pointerup) that reads false, and the
-     * release would be skipped, leaving the glass frozen mid-drag.
-     */
     let pointer: number | null = null;
 
     const local = (clientX: number) =>
@@ -180,8 +152,6 @@ export function SegmentedControl<K extends string>({
 
     const draw = () => {
       const g = clamp(amount.x, 0, 1);
-      // The fill swells by a scale (it bends nothing); the glass is sized
-      // for real, so its lens bends the labels cleanly at the rim.
       const sx = 1 + SWELL_X * g + stretch.x;
       const sy = 1 + SWELL_Y * g - stretch.x * 0.6;
       const width = `${w.x.toFixed(2)}px`;
@@ -189,7 +159,6 @@ export function SegmentedControl<K extends string>({
       chosenFill.style.visibility = "visible";
       chosenFill.style.width = width;
       chosenFill.style.transform = transform;
-      // The fill gives way to the glass laid over the labels.
       chosenFill.style.opacity = (1 - g).toFixed(3);
       glass.style.visibility = g > 0.004 ? "visible" : "hidden";
       swellBox(glass, x.x, w.x, thumbHeight, sx, sy);
@@ -213,7 +182,6 @@ export function SegmentedControl<K extends string>({
       const chosen = boxes[target];
       if (!chosen) return;
       if (!dragging) {
-        // Layout moved (a font loaded, the page resized): follow at once.
         x.x = chosen.left;
         w.x = chosen.width;
         x.v = w.v = 0;
@@ -269,7 +237,6 @@ export function SegmentedControl<K extends string>({
           : dragging
             ? nearest(boxes, x.x + w.x / 2)
             : tapped;
-        // A drag released goes on as glass to the item it lands on.
         trip = dragging;
         pressed = false;
         dragging = false;
@@ -335,8 +302,6 @@ export function SegmentedControl<K extends string>({
         className,
       )}
       onKeyDown={onKeyDown}
-      // Capture lost before the release (it is ours to release otherwise):
-      // settle as a release, on the item the glass is over.
       onLostPointerCapture={(event) => engine.current?.up(event, false)}
       onPointerCancel={(event) => engine.current?.up(event, true)}
       onPointerDown={(event) => engine.current?.down(event)}
@@ -345,7 +310,6 @@ export function SegmentedControl<K extends string>({
       ref={root}
       role="tablist"
     >
-      {/* The indicator's fill, under the labels. */}
       <span
         aria-hidden="true"
         className="pointer-events-none absolute top-0.5 bottom-0.5 left-0 rounded-full bg-chosen shadow-(--liquid-well-shadow) ring-1 ring-chosen-edge ring-inset"
@@ -360,7 +324,6 @@ export function SegmentedControl<K extends string>({
             className={cn(
               width === "fill" && "flex-1",
               "ui-fade relative inline-flex min-w-fit cursor-pointer items-center justify-center gap-1.5 rounded-full px-3.5 type-meta font-medium whitespace-nowrap outline-none focus-visible:ring-1 focus-visible:ring-edge-focus focus-visible:ring-inset disabled:cursor-not-allowed disabled:opacity-50",
-              // The item under the indicator reads a weight heavier.
               index === shown
                 ? "font-semibold text-ink"
                 : "text-ink-body focus-visible:text-ink",
@@ -368,12 +331,9 @@ export function SegmentedControl<K extends string>({
                 !ready &&
                 "bg-chosen shadow-(--liquid-well-shadow) ring-1 ring-chosen-edge ring-inset",
             )}
-            // Only the cursor's dot here: the indicator is the glass.
             data-cursor="point"
             disabled={item.disabled}
             key={item.key}
-            // Pointer presses resolve on release (tap or drag); this is the
-            // keyboard's Enter and Space.
             onClick={(event) => {
               if (event.detail === 0) select(index);
             }}
@@ -388,8 +348,6 @@ export function SegmentedControl<K extends string>({
                 size={12}
               />
             ) : null}
-            {/* Sized for its heavier weight, so the row never shifts as the
-                indicator passes. */}
             <span className="grid">
               <span
                 aria-hidden="true"
@@ -412,7 +370,6 @@ export function SegmentedControl<K extends string>({
           </button>
         );
       })}
-      {/* …and its glass, over them: clear, so the labels bend at its rim. */}
       <span
         aria-hidden="true"
         className="liquid liquid-clear pointer-events-none absolute top-0.5 left-0 z-10 rounded-full [--liquid-tint:rgb(var(--ink-rgb)/0.03)]"
@@ -423,10 +380,6 @@ export function SegmentedControl<K extends string>({
   );
 }
 
-/**
- * A surface's tabs, on the dock's shelf. It spans the shelf, 6.5px in on
- * every side, its pill concentric with the shelf's 22.5px corner.
- */
 export function SurfaceSegmentedControl<K extends string>({
   align = "center",
   id,

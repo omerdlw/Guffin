@@ -13,7 +13,6 @@ export function ProgressBar({
 }: {
   className?: string;
   ratio: number;
-  /** Names the fill for the page's choreography (it draws the bar in). */
   slot?: "rule";
 }): JSX.Element {
   return (

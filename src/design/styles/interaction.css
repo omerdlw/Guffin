@@ -3,17 +3,6 @@
   outline-color: var(--focus-ring-grade, var(--focus-ring));
 }
 
-/* Softness. Nothing a visitor touches changes in one frame: colour, fill,
-   ring, shadow and a hover's opacity swap glide in and glide back, slower
-   going than coming. One curve, eased at both ends, so a change never starts
-   with a jolt.
-
-   It reaches what changes on touch: the controls themselves, and anything
-   that carries a hover or focus class (a group's title, an icon, a label
-   swap). Transforms are the stages' (choreo); opacity glides only where a
-   class swaps it, so nothing a script drives per frame (the motion library,
-   a spring) is held back. A spring-driven piece opts out with
-   `data-spring`. */
 @layer base {
   :root {
     --soft-ease: cubic-bezier(0.382, 0.236, 0.146, 1);
@@ -51,7 +40,6 @@
     transition-property: var(--soft-props), opacity;
   }
 
-  /* Coming in is quicker than going back. */
   :where(
       button,
       a[href],
@@ -93,7 +81,6 @@
 }
 
 @layer components {
-  /* A clear control's fill (ui-iris) blooms in at the same pace. */
   .ui-iris::before {
     transition: opacity var(--soft-out) var(--soft-ease);
   }

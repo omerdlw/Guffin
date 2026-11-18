@@ -2,19 +2,6 @@
 
 import { useEffect, useRef, useState, type JSX } from "react";
 
-// A WebGL liquid-glass prototype, beside the SVG lens, for comparing them.
-//
-// The browser will not hand a shader the pixels behind a DOM element, so
-// this draws the wallpaper itself: the picture is laid into a framebuffer
-// (cover-fitted, once per resize) and blurred into a second one. Each frame
-// is then a single pass: every glass shape is a rounded box in a signed
-// distance field, merged with a smooth minimum (two shapes melt into one
-// when they meet). Inside the field, the rim's surface normal comes from
-// the field's gradient; a ray meets a convex squircle profile and refracts
-// by Snell's law (n 1.5), the same profile the SVG lens uses, so the scene
-// is read a little inward at the rim. Each colour channel bends a little
-// differently, then the frost, the edge light and the glint go on top.
-
 type Shape = { x: number; y: number; w: number; h: number; r: number };
 type Mode = 0 | 1 | 2;
 
@@ -36,7 +23,6 @@ void main() {
   gl_Position = vec4(p * 2.0 - 1.0, 0.0, 1.0);
 }`;
 
-// The picture, cover-fitted to the target (bottom-origin rows, like GL).
 const SCENE = `#version 300 es
 precision highp float;
 uniform sampler2D uImg;
@@ -50,7 +36,6 @@ void main() {
   o = texture(uImg, uv);
 }`;
 
-// One axis of a 9-tap gaussian.
 const BLUR = `#version 300 es
 precision highp float;
 uniform sampler2D uTex;
@@ -107,7 +92,6 @@ float field(vec2 p) {
 
 float squircle(float t) { return pow(1.0 - pow(1.0 - t, 4.0), 0.25); }
 
-// Displacement (device px) at depth t across the bezel: 0 edge, 1 inside.
 float bendAt(float t) {
   float th = 1.9 * uBezel;
   float e = 0.001;
@@ -118,7 +102,6 @@ float bendAt(float t) {
   return th * squircle(t) * tan(inc - ref);
 }
 
-// The refraction grid: lines every 24 css px instead of the picture.
 vec3 grid(vec2 p) {
   vec2 g = abs(fract(p / (24.0 * uDpr) - 0.5) - 0.5) * 24.0 * uDpr;
   float line = 1.0 - smoothstep(0.0, 1.2 * uDpr, min(g.x, g.y));
@@ -143,7 +126,6 @@ void main() {
   }
 
   vec3 bg = sharpAt(p);
-  // The drop shadow: the field moved down, softened.
   float ds = field(p + vec2(0.0, 8.0 * uDpr));
   float shadow = (1.0 - smoothstep(-6.0 * uDpr, 30.0 * uDpr, ds)) * 0.2;
   vec3 outside = bg * (1.0 - shadow);
@@ -165,16 +147,13 @@ void main() {
   vec3 soft = vec3(blurAt(pr).r, blurAt(pg).g, blurAt(pb).b);
   vec3 c = mix(sharp, soft, uFrost);
 
-  // Tone: a little richer, a touch of white.
   float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
   c = mix(vec3(l), c, 1.2);
   c = mix(c, vec3(1.0), 0.06);
 
-  // Edge light: the scene in the bezel, brightened.
   float rim = pow(1.0 - t, 3.0);
   c += c * rim * 0.35;
 
-  // The glint: light from the top left, and its opposite corner.
   vec2 light = normalize(vec2(-1.0, 1.0));
   float facing = max(dot(n, light), 0.0) + 0.55 * max(dot(n, -light), 0.0);
   float hair = 1.0 - smoothstep(0.0, 1.5 * uDpr, -d);
@@ -353,7 +332,6 @@ export function GlassLab({ src }: { src: string }): JSX.Element {
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     };
 
-    // The picture and its frost: once per size.
     const prepare = () => {
       if (!image || !width) return;
       const w = Math.round(width * dpr);
@@ -465,7 +443,6 @@ export function GlassLab({ src }: { src: string }): JSX.Element {
     img.onerror = () => setFailed("Duvar kağıdı yüklenemedi");
     img.src = src;
 
-    // Dragging: the shape under the pointer follows it.
     let dragging = -1;
     let grab = [0, 0];
     const down = (e: PointerEvent) => {
@@ -510,7 +487,6 @@ export function GlassLab({ src }: { src: string }): JSX.Element {
     };
   }, [src]);
 
-  // The SVG lens, for comparison: dragged by hand.
   useEffect(() => {
     const el = domLensRef.current!;
     let grab: [number, number] | null = null;

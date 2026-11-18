@@ -64,7 +64,6 @@ const BACKDROP_FOCUS = [0.5, 0.2] as const;
 
 const CARD_IMAGE_PATH = "/t/p/w1280/";
 
-// The opening's reel flicks past at a glance: a mid size loads fast.
 const FRAME_IMAGE_SIZE = "w780";
 
 const defocusAt = (y: number) =>
@@ -89,11 +88,6 @@ const WallSetContext = createContext<StageWallSet>({
 
 export const useWallSet = () => use(WallSetContext);
 
-/**
- * The page's light comes from its chrome (the film's, show's or person's own
- * picture, served with its palette). `light` lays another picture's light
- * over it while it is set, e.g. a gallery picture, and drops it at once.
- */
 export function DetailStage({
   children,
   light,
@@ -183,7 +177,6 @@ export function DetailAction({
   "ariaLabel" | "className" | "iconSize" | "label"
 > & {
   grow?: boolean;
-  // Its place in the action group, so the group surfaces one at a time.
   index?: number;
   label: string;
   secondary?: boolean;
@@ -259,7 +252,6 @@ export function DetailBackdrop({
   title,
 }: {
   children?: ReactNode;
-  // Gallery pictures (TMDB paths) for the opening's reel behind the name.
   frames?: readonly string[];
   src: string;
   still?: string | null;
@@ -273,12 +265,8 @@ export function DetailBackdrop({
     [frames],
   );
   const [ready, setReady] = useState(false);
-  // The name plays first, as a curtain: the page's opening waits for it to
-  // start leaving (the stage holds `data-play` while a curtain is down).
   const [lifted, lift] = useState(!title);
 
-  // The picture's entrance waits for it to load; a picture that never reports
-  // still enters after a moment.
   useEffect(() => {
     const late = setTimeout(() => setReady(true), 2500);
     return () => clearTimeout(late);
@@ -339,9 +327,6 @@ export function StickyAside({
     return () => observer.disconnect();
   }, []);
 
-  // The aside keeps clear of the dock at rest; while a surface or action
-  // is open it holds where it was. The height comes from the dock's state,
-  // not a variable on <html> (see DockClear).
   const dockHeight = useOptionalDockState((state) => state.dockHeight) ?? 0;
   useEffect(() => {
     const element = ref.current;
@@ -363,9 +348,6 @@ export function StickyAside({
   );
 }
 
-// On a phone the facts come before the page's sections, so a long list is
-// folded to its first few rows behind one "all details" toggle. From `sm`
-// the list sits beside or under the poster and is shown whole.
 const FOLDED_FACTS = 4;
 
 export function FactsFold({

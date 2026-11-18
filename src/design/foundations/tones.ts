@@ -24,8 +24,6 @@ export const STATE = {
 export const FILL =
   "bg-fill ring-1 ring-edge ring-inset hover:bg-fill-hover hover:ring-edge-hover focus-visible:bg-fill-hover focus-visible:ring-edge-focus";
 
-// A control inside a glass layer (the dock and its surfaces): a fill, never
-// glass on glass. A white pill on paper, a white tint over a picture.
 export const WELL =
   "bg-(--liquid-well) ring-1 ring-(color:--liquid-well-edge) ring-inset shadow-(--liquid-well-shadow)";
 export const WELL_HOVER =

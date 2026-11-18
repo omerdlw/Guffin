@@ -158,8 +158,6 @@ function useSocialFollowSync(
 }
 
 function AccountBackdropHero({ image }: AccountBackdropHeroProps) {
-  // The cover's entrance waits for its picture; one that never reports still
-  // enters after a moment.
   const [ready, setReady] = useState(false);
   useEffect(() => {
     const late = setTimeout(() => setReady(true), 2500);

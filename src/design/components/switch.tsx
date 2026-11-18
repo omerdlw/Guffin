@@ -27,7 +27,6 @@ interface SwitchProps extends Omit<
   onCheckedChange?: (checked: boolean) => void;
 }
 
-/** Track 64 × 28, knob 38 × 24 (a capsule, wider than tall), 2px inset. */
 const TRACK_W = 64;
 const KNOB_W = 38;
 const KNOB_H = 24;
@@ -35,25 +34,15 @@ const TRAVEL_PX = TRACK_W - 4 - KNOB_W;
 
 const TRAVEL = feel(300, 0.82);
 const FOLLOW = feel(900, 0.95);
-/** Pressed, the drop swells in fast and a touch past its size. */
 const GLASS_ON = feel(700, 0.72);
 const GLASS_OFF = feel(180, 0.85);
 const JELLY = feel(220, 0.5);
-/** The track's colour turns over as the knob crosses its middle. */
 const TINT = feel(420, 1);
-/** At full glass the knob swells well past the track (38 × 24 → 61 × 40). */
 const SWELL_X = 0.6;
 const SWELL_Y = 0.68;
 
 const REDUCED = "(prefers-reduced-motion: reduce)";
 
-/**
- * A two-state toggle, after iOS 26's. One knob, made of the liquid material
- * (liquid.css): solid at rest; press it and it swells well past the track
- * into a clear drop of liquid glass that bends the track under it, which you
- * can drag across; the track's colour turns over as it crosses the middle,
- * and it settles solid.
- */
 export function Switch({
   checked = false,
   className,
@@ -91,17 +80,10 @@ export function Switch({
     let on = latest.current.checked;
     let pressed = false;
     let dragging = false;
-    /** Crossing: glass until it first arrives, then solid for good. */
     let trip = false;
     let startX = 0;
     let grab = 0;
     let pointerX = 0;
-    /**
-     * The pointer being followed. Tracked here, not read back from
-     * hasPointerCapture: once capture is lost (lostpointercapture, or a
-     * browser that drops it before pointerup) that reads false, the release
-     * was skipped and the knob stayed frozen as glass.
-     */
     let pointer: number | null = null;
 
     const local = (clientX: number) =>
@@ -127,14 +109,9 @@ export function Switch({
       const g = clamp(amount.x, 0, 1);
       const sx = 1 + SWELL_X * g + stretch.x;
       const sy = 1 + SWELL_Y * g - stretch.x * 0.5;
-      // Sized, not scaled, so the lens bends the track cleanly at its rim.
       swellBox(glass, x.x, KNOB_W, KNOB_H, sx, sy);
-      // The solid knob gives way to clear glass: the track and its fill
-      // show through it, bent at the rim.
       glass.style.backgroundColor = `color-mix(in oklab, var(--knob) ${((1 - g) * 100).toFixed(1)}%, var(--liquid-tint))`;
       glass.style.setProperty("--liquid-drop", glassDepth(g));
-      // The whole track turns over as the knob crosses its middle, held or
-      // not: no fill sweeps along under the glass.
       paint.style.opacity = clamp(tint.x, 0, 1).toFixed(3);
     };
 
@@ -210,8 +187,6 @@ export function Switch({
       data-state={checked ? "checked" : "unchecked"}
       disabled={disabled}
       onClick={(event) => {
-        // Pointer presses resolve on release (tap or drag); this is the
-        // keyboard's Space and Enter.
         if (event.detail === 0) onCheckedChange?.(!checked);
       }}
       onLostPointerCapture={(event) => engine.current?.up(event, false)}
@@ -233,7 +208,6 @@ export function Switch({
           style={{ opacity: checked ? 1 : 0 }}
         />
       </span>
-      {/* The knob: the liquid material, solid at rest. */}
       <span
         aria-hidden="true"
         className={cn(

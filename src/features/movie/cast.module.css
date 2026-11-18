@@ -1,24 +1,9 @@
 @layer components {
-  /* The cast strip: portraits standing side by side, the lead in the
-     middle and open, the rest narrow on either side. Under the hand a
-     portrait opens and the others make room; the lead closes while another
-     is open. The measures come inline from cast.tsx (--photo, --grow,
-     --pad, --poster): a custom property declared on a class here would be
-     dropped by the build. Everything here is the strip at rest and the
-     shape it takes under the hand; how it moves is the page's choreography
-     (the `person` part and its `caption`, `spine`, `folder` and `leaf`
-     slots). */
-  /* Above the sections after it: a credit's portrait opens below its name
-     and runs down over the next section's heading. A heading (the stage's
-     Header) stands at z-index 10 so its tabs' glass can swell past them,
-     and a section does not isolate it: the raise is the section's, one
-     step above that. Still inside the page column, so under the dock. */
   .section {
     position: relative;
     z-index: 11;
   }
 
-  /* Above the credits after it: an opened frame runs down over them. */
   .stack {
     position: relative;
     z-index: 1;
@@ -31,10 +16,6 @@
     container-type: inline-size;
   }
 
-  /* A seat takes its share of the strip; open, it takes --grow shares (its
-     portrait at 4:5). Seats touch and keep their breathing room inside, so
-     the hand never falls in a gap between them and lets the strip spring
-     back to the lead. */
   .seat {
     position: relative;
     flex: 1 1 0;
@@ -54,10 +35,6 @@
     height: 100%;
   }
 
-  /* The glass frame, the portrait's size and hidden behind it at rest. Only
-     an open seat's frame is drawn: closed, five lenses would refilter the
-     page behind them on every frame the strip moves, unseen. Its
-     choreography holds it shown while it folds back. */
   .frame {
     visibility: hidden;
     position: absolute;
@@ -75,10 +52,6 @@
     outline-offset: 2px;
   }
 
-  /* The portrait. Always as wide as an open seat and centred, so a narrow
-     seat crops it to the face and opening only uncovers it: the picture is
-     never resized as the strip moves. Closed, it sits a step closer and
-     opening draws it back, as a camera pulling out. */
   .photo {
     position: absolute;
     top: 0;
@@ -102,8 +75,6 @@
     place-items: center;
   }
 
-  /* A closed seat is dimmed a step (the page over a photo is near black),
-     so the open one is the lit one. */
   .shade {
     position: absolute;
     inset: 0;
@@ -112,10 +83,6 @@
     pointer-events: none;
   }
 
-  /* The name and role across the foot, while the seat is open. As wide as
-     an open seat whatever the seat's width, so it never rewraps or
-     re-truncates as the seat opens. Its lines rise into it from below the
-     edge it clips at, and sink back out of it. */
   .caption {
     position: absolute;
     bottom: 0.875rem;
@@ -136,9 +103,6 @@
     translate: 0 100%;
   }
 
-  /* Closed, the name runs up the seat's spine, as on a shelf: it rises
-     into the spine from below and drops back out of it. The spine is
-     turned half round, so its own "up" is the screen's down. */
   .spine {
     position: absolute;
     top: 0.875rem;
@@ -159,7 +123,6 @@
     white-space: nowrap;
   }
 
-  /* Open: the lead while no other seat is in hand, or the seat in hand. */
   .stack:not(:has(> .seat:focus-within)) > .seat[data-lead],
   .seat:focus-within {
     flex-grow: var(--grow);
@@ -205,7 +168,6 @@
         translate: 0 0;
       }
     }
-    /* Another seat in hand closes the lead. */
     .stack:has(> .seat:hover) > .seat[data-lead]:not(:hover) {
       flex-grow: 1;
       z-index: auto;
@@ -225,7 +187,6 @@
     }
   }
 
-  /* The known-for posters, under the portrait on the frame's foot. */
   .shelf {
     position: absolute;
     top: calc(100% + var(--pad));
@@ -259,9 +220,6 @@
     height: 100%;
   }
 
-  /* Under the hand (or the keyboard) the frame opens around the open
-     portrait and runs down under the shelf, and the posters can be
-     reached. */
   .seat:focus-within .frame {
     visibility: visible;
     width: calc(100% + 2 * var(--pad));
@@ -282,13 +240,11 @@
     .seat:hover .shelf {
       pointer-events: auto;
     }
-    /* The posters surface one after another. */
     .seat:hover .leaf {
       transition-delay: calc(var(--leaf) * 34ms);
     }
   }
 
-  /* The rest of the cast: an end credit under the stack. */
   .roll {
     display: flex;
     flex-wrap: wrap;
@@ -326,10 +282,6 @@
     text-transform: lowercase;
   }
 
-  /* Its portrait, hidden at rest; under the hand it opens below the name
-     (the `cameo` role's `thumb` slot), out of the name's foot: a poster-
-     sized picture, clipped as a whole (the picture's own box carries a
-     fill), on a hairline and the layer's shadow. */
   .face {
     position: absolute;
     top: calc(100% + 0.625rem);
@@ -348,8 +300,6 @@
     pointer-events: none;
   }
 
-  /* A name under the hand rises above what follows the strip, so its
-     portrait is not buried under the next section. */
   .name:is(:hover, :focus-visible) {
     z-index: 2;
   }

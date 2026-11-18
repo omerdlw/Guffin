@@ -36,9 +36,6 @@ export function AccountAvatarImage({
   );
 }
 
-// An empty or failed list is a quiet note, not a row: the glyph in a soft
-// ring, a line, and a lighter line under it, centred in the space the rows
-// would take.
 export function StatusTile({
   description,
   icon,

@@ -18,12 +18,6 @@ import { usePathname } from "next/navigation";
 import { useDockCommands } from "@/design/dock-commands";
 import { preloadOnIntent, useAheadOfOpen } from "@/design/lazy-surface";
 
-// The dock's search button, on every page. The search itself (its drawer,
-// results and their stages) loads on the first sign of a person at the page,
-// as the dock surfaces do, so a page that is only read never downloads it.
-// Its stylesheet goes in once it has loaded, in an idle moment: put in as the
-// search opens, it would restyle every animated element in that frame.
-
 type SearchActionComponent = ComponentType<{ onClose?: () => void }>;
 
 interface SearchModule {
@@ -75,13 +69,11 @@ export function SearchDockCommand(): ReactNode {
     [],
   );
 
-
   const toggle = useCallback(() => {
     if (openPath === pathname) {
       setOpenPath(null);
       return;
     }
-    // Opens once the search has loaded; on intent it already has.
     loadSearchAction().then(
       (module) => {
         setLoaded(module);

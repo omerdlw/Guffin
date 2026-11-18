@@ -143,9 +143,6 @@ function ReviewEditorSurface({
             </SurfacePart>
           ) : null}
 
-          {/* The field is a hairline frame and nothing else: the text sets
-              its height, and the count has a line of its own beneath, so
-              nothing ever scrolls under it. */}
           <SurfacePart className="w-full" name="item">
             <label className="flex w-full cursor-text flex-col rounded-card ring-1 ring-edge-hover ring-inset hover:ring-edge-focus has-focus-visible:ring-edge-focus has-[textarea:focus]:ring-edge-focus has-[textarea:disabled]:opacity-50">
               <Textarea

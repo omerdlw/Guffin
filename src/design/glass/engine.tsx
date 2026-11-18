@@ -21,29 +21,13 @@ import {
 } from "./materials";
 import { channelSpread, rimShift } from "./optics";
 
-// The glass engine. Every `.liquid` surface is a slab of glass made of a
-// material (materials.ts); on `liquid-lens` surfaces in Chromium (the only
-// engine that runs SVG filters inside backdrop-filter) the engine fits it
-// with a lens drawn from the optics (optics.ts, maps.ts) and keeps it fitted
-// as it resizes: the scene behind refracts through the rim, each colour
-// channel by its own index, then frosts, then the light caught in the bezel
-// glows back out of it in the scene's own colours. One SVG filter per
-// surface, its slices moved (never redrawn) as it resizes. Elsewhere the
-// surface keeps its CSS frost.
-
 const SVG_NS = "http://www.w3.org/2000/svg";
 const SELECTOR = ".liquid";
-/**
- * A surface that morphs every frame (the cursor's pane): its corners change
- * with its size, so it keeps the size-free CSS rim instead.
- */
 const FLUID = "liquid-fluid";
 const MIN_SIDE = 16;
-/** The edge light fades out over this many px at least. */
 const EDGE_REACH = 12;
 const HYDRATION_RETRY_MS = 250;
 
-/** React marks every DOM node it owns with a `__reactFiber$…` key. */
 const hydrated = (element: Element) =>
   Object.keys(element).some((key) => key.startsWith("__reactFiber$"));
 
@@ -69,7 +53,6 @@ function set(
   return node;
 }
 
-/** Keeps one colour channel of `input` (0 r, 1 g, 2 b). */
 const CHANNEL = [
   "1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0",
   "0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0",
@@ -78,7 +61,6 @@ const CHANNEL = [
 
 type LensMaps = { slice: number; map: Pieces };
 
-/** One surface's own lens: a filter whose slices follow its size. */
 type Lens = {
   key: string;
   filter: SVGFilterElement;
@@ -86,19 +68,13 @@ type Lens = {
   margin: number;
   map: Record<Piece, SVGElement>;
   flat: SVGElement;
-  /** The page's colour the glass is stained with, sized like `flat`. */
   paper: SVGElement | null;
-  /** The frost, set to the surface's size as it resizes. */
   frost: SVGElement | null;
   material: Material;
   width: number;
   height: number;
 };
 
-/**
- * What a surface's lens is fitted from, read in one pass over its computed
- * style: its corner, its material and that surface's own overrides.
- */
 type Reading = {
   width: number;
   height: number;
@@ -106,7 +82,6 @@ type Reading = {
   name: MaterialName;
   material: Material;
   bezel: number | null;
-  /** How far the glass takes the page's colour (0–1), `--liquid-stain`. */
   stain: number;
 };
 
@@ -143,11 +118,6 @@ function readSurface(
   };
 }
 
-/**
- * Drawn maps outlive the page: kept in storage under a key that changes
- * whenever the drawing code does (its own source, hashed), so a reload or a
- * new tab lays out lenses without drawing any.
- */
 const STORE = "guffin:glass-maps";
 const STORE_LIMIT = 64;
 
@@ -159,10 +129,6 @@ function hash(text: string) {
   return (h >>> 0).toString(36);
 }
 
-/**
- * The drawing code's fingerprint: its sources, and one small map drawn
- * through all of it (helpers a source does not show still change the map).
- */
 function mapsVersion(density: number) {
   const probe = fold(
     drawRefraction(12, 8, 6, density),
@@ -189,13 +155,10 @@ function loadMaps(version: string): Map<string, LensMaps> {
       }
       return new Map(Object.entries(stored.maps));
     }
-  } catch {
-    // Storage blocked or the entry unreadable: draw afresh.
-  }
+  } catch {}
   return new Map();
 }
 
-/** Each drawn piece, deflated for storage (pixels untouched). */
 const compacted = new Map<string, string>();
 
 async function saveMaps(version: string, maps: Map<string, LensMaps>) {
@@ -220,9 +183,7 @@ async function saveMaps(version: string, maps: Map<string, LensMaps>) {
       STORE,
       JSON.stringify({ version, maps: kept } satisfies Stored),
     );
-  } catch {
-    // Full or blocked: the maps are drawn again next time.
-  }
+  } catch {}
 }
 
 const idle = (task: () => void) => {
@@ -254,7 +215,6 @@ function startGlass(lensing: boolean) {
   }
   const lenses = new Map<Element, Lens>();
   const sizes = new WeakMap<Element, { width: number; height: number }>();
-  // Pending hydration retries, cancelled with the rest on teardown.
   const timers = new Map<Element, number>();
   let count = 0;
 
@@ -278,13 +238,7 @@ function startGlass(lensing: boolean) {
   ): Lens {
     const id = `liquid-lens-${++count}`;
     const clear = material.frost.large === 0;
-    // The filter reads the scene this far past the edge: the frost's reach
-    // (3σ). Cut at the edge, the blur would fade to transparent within that
-    // reach and the sharp scene would show round the rim. The browser still
-    // clips to the surface.
     const margin = Math.max(Math.ceil(material.frost.large * 3), 4);
-    // Pixel units: inside backdrop-filter, Chromium resolves percentages
-    // against a box other than the element, which misaligns the map.
     const filter = set(defs, "filter", {
       id,
       filterUnits: "userSpaceOnUse",
@@ -293,8 +247,6 @@ function startGlass(lensing: boolean) {
       y: -margin,
       "color-interpolation-filters": "sRGB",
     }) as SVGFilterElement;
-    // The middle of the map does not bend (neutral red and green) and
-    // carries no edge light (no blue).
     const flat = set(filter, "feFlood", {
       "flood-color": "rgb(128 128 0)",
       "flood-opacity": 1,
@@ -316,11 +268,8 @@ function startGlass(lensing: boolean) {
       set(merged, "feMergeNode", { in: `map-${piece}` });
     }
 
-    // The full pull at the outline (px); the map holds its share per pixel
-    // and feDisplacementMap moves by scale × (value − ½).
     const scale = 2 * material.reach * bezel * material.bend;
     if (material.abbe > 0) {
-      // Each channel through its own index (the Abbe number), recombined.
       const spread = channelSpread(material.ior, material.abbe);
       spread.forEach((factor, channel) => {
         set(filter, "feDisplacementMap", {
@@ -360,10 +309,6 @@ function startGlass(lensing: boolean) {
         result: "bent",
       });
     }
-    // The frost, after the bending so the bend stays legible even where the
-    // scene behind is smooth (blurring first would bend a scene with nothing
-    // left in it to bend).
-    // Its depth follows the surface's size (`place`).
     const frost = clear
       ? null
       : set(filter, "feGaussianBlur", {
@@ -372,8 +317,6 @@ function startGlass(lensing: boolean) {
           edgeMode: "duplicate",
           result: "frosted",
         });
-    // The edge light: the bent scene, softened a touch, kept only in the
-    // band at the rim, richer and brightened, laid over the frost.
     set(filter, "feColorMatrix", {
       in: "map",
       type: "matrix",
@@ -417,13 +360,7 @@ function startGlass(lensing: boolean) {
       operator: "over",
       result: "glass",
     });
-    // The stain: the glass takes the page's hue and chroma ("color" blend)
-    // and keeps its own lightness, so every bend, the frost and the edge
-    // light stay while the slab reads as the page's colour. A tint laid on
-    // top would get there only by covering them. Partial: what lies behind
-    // keeps a share of its own colour.
     let paper: SVGElement | null = null;
-    // Clear glass (a drop of water) stays clear.
     if (stain > 0 && !clear) {
       paper = set(filter, "feFlood", {
         x: -margin,
@@ -462,7 +399,6 @@ function startGlass(lensing: boolean) {
     };
   }
 
-  /** Moves a lens's slices to a new size: attributes only, nothing redrawn. */
   function place(lens: Lens, width: number, height: number) {
     if (lens.width === width && lens.height === height) return;
     lens.width = width;
@@ -502,13 +438,7 @@ function startGlass(lensing: boolean) {
     element.style.removeProperty("--liquid-lens");
   }
 
-  /**
-   * Reads what a surface's lens needs, or why it has none: no DOM writes, so
-   * every surface in a batch is read against one style and layout pass.
-   */
   function read(element: HTMLElement): Reading | "drop" | "skip" {
-    // Server-rendered markup React has not hydrated yet must stay as sent,
-    // or hydration reports a mismatch; try again shortly.
     if (!hydrated(element)) {
       window.clearTimeout(timers.get(element));
       timers.set(
@@ -538,8 +468,6 @@ function startGlass(lensing: boolean) {
         ? Math.min(asked, Math.min(width, height) / 2)
         : bezelFor(material, width, height),
     );
-    // Deep enough for the bezel and the edge light, but never past the
-    // middle of a small surface.
     const slice = Math.max(
       Math.min(
         Math.ceil(Math.max(radius, bezel, EDGE_REACH)),
@@ -559,9 +487,6 @@ function startGlass(lensing: boolean) {
       if (lens) lens.filter.remove();
       lens = buildLens(found, material, bezel, stain, key);
       lenses.set(element, lens);
-      // Tone first (saturation, brightness); the lens bends, frosts and
-      // lights the edge itself. Clear glass takes no tone: it lies over
-      // text, and the lifted levels would wash the ink under it to grey.
       element.style.setProperty(
         "--liquid-lens",
         material.frost.large === 0
@@ -572,7 +497,6 @@ function startGlass(lensing: boolean) {
     place(lens, width, height);
   }
 
-  /** Fits a batch of surfaces: every read first, then every write. */
   function fit(elements: Iterable<HTMLElement>) {
     const readings: [HTMLElement, Reading | "drop"][] = [];
     for (const element of elements) {
@@ -585,8 +509,6 @@ function startGlass(lensing: boolean) {
     }
   }
 
-  // Fires after layout and before paint, on every frame a surface resizes:
-  // the lens follows the size in the frame it changes.
   const observer = new ResizeObserver((entries) => {
     const resized: HTMLElement[] = [];
     for (const entry of entries) {
@@ -601,11 +523,6 @@ function startGlass(lensing: boolean) {
     fit(resized);
   });
 
-  /**
-   * Fits a surface again in the coming frame, after its layout and before
-   * its paint: observed anew, the ResizeObserver reports it there, where its
-   * style is read for free instead of forced mid-task.
-   */
   function refit(element: Element) {
     if (!watched.has(element)) return;
     observer.unobserve(element);
@@ -651,7 +568,6 @@ function startGlass(lensing: boolean) {
       if (record.type === "attributes" && target instanceof HTMLElement) {
         if (target.matches(SELECTOR)) {
           observe(target);
-          // A class or material change can turn the lens on or off.
           changed.add(target);
         }
       }
@@ -659,9 +575,6 @@ function startGlass(lensing: boolean) {
     for (const element of changed) refit(element);
   });
   additions.observe(document.body, {
-    // What can change a surface's glass without resizing it: its classes,
-    // its material, and the attributes the dock's styles key a card's rim
-    // on (a card turning into a shelf keeps its size).
     attributeFilter: ["class", "data-glass", "data-shelf", "data-placement"],
     attributes: true,
     childList: true,
@@ -677,7 +590,6 @@ function startGlass(lensing: boolean) {
   };
 }
 
-/** Mounted once (providers.tsx). */
 export function GlassEngine(): null {
   useEffect(() => startGlass(refracts()), []);
   return null;

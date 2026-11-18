@@ -57,8 +57,6 @@ function SeasonCard({
       fallbackIcon="solar:tv-bold"
       href={seasonHref(showId, season.seasonNumber)}
       image={{
-        // A season without its own still shows the show's backdrop, which
-        // the gallery and the opening's reel also load, with CORS.
         crossOrigin: "anonymous",
         sizes: "(min-width: 1280px) 330px, (min-width: 640px) 50vw, 100vw",
         src: tmdbImageUrl("backdrop", picture, "w780"),
@@ -84,13 +82,7 @@ function SeasonCard({
   );
 }
 
-// The shelf's readout: how far along the viewer is. The next episode has its
-// own card under the actions (ShowResume).
-function ShelfReadout({
-  progress,
-}: {
-  progress: ShelfProgress;
-}): JSX.Element {
+function ShelfReadout({ progress }: { progress: ShelfProgress }): JSX.Element {
   return (
     <span className={`${TONE.label} text-ink-muted tabular-nums`}>
       {progress.watched} / {progress.aired}
@@ -98,11 +90,6 @@ function ShelfReadout({
   );
 }
 
-/**
- * Where the viewer is in a show they are watching: the next episode, the
- * season's still, how far along they are. Sits under the actions, so on a
- * wide screen it rides along with the sidebar.
- */
 export function ShowResume({
   fallback,
   progress,

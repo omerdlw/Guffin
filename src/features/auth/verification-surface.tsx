@@ -114,7 +114,6 @@ function OtpBoxes({
   onFocusChange,
 }: OtpBoxesProps) {
   const activeIndex = Math.min(code.length, OTP_LENGTH - 1);
-  // The boxes rise one after another as the surface opens.
   const row = useSurfacePart("row");
 
   return (

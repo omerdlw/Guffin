@@ -758,9 +758,6 @@ type SearchBatch = Partial<
   Record<SearchType, { hits: unknown[] } | { failure: SearchFailure }>
 >;
 
-// One request answers every kind the search asks for: one rate-limit check
-// and one round trip per query instead of one per kind. A kind that fails
-// comes back as its failure; the request fails only when every kind did.
 export function createSearchBatchHandler(
   runners: Readonly<Partial<Record<SearchType, SearchRunner>>>,
 ) {

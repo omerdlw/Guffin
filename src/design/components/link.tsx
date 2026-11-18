@@ -62,10 +62,6 @@ export function Link({ className, variant, ...props }: LinkProps): JSX.Element {
 
 type DockLinkProps = Omit<NextLinkProps, "onClick" | "prefetch"> &
   LinkVariants & {
-    /**
-     * Unavailable for now (a step past the last page): the same element, so
-     * a link that comes and goes keeps its node and does not arrive again.
-     */
     disabled?: boolean;
     onNavigated?: () => void;
   };

@@ -33,8 +33,6 @@ function ReviewText({ review }: { review: ActivityReview }) {
   }
   return (
     <p className="line-clamp-6 type-body leading-6 whitespace-pre-line text-pretty text-ink-body">
-      {/* A blank line between paragraphs could fall on the clamp and leave
-          the ellipsis on a line of its own. */}
       {review.content.replace(/\n\s*\n+/g, "\n")}
     </p>
   );

@@ -21,7 +21,6 @@
   --color-rated-off: var(--rated-off);
   --color-fill-lift: var(--fill-lift);
   --color-award: var(--award);
-
 }
 
 @theme static {
@@ -33,8 +32,6 @@
   --spacing-fib-6: 3.4375rem;
   --spacing-fib-7: 5.5625rem;
 
-  /* The dock's extension shelf (theme/dock.ts; styles/dock.css). */
   --spacing-dock-shelf: 96px;
-  /* The shelf's visible bar: the strip of pills above a surface. */
   --spacing-dock-shelf-bar: 45px;
 }

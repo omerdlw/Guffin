@@ -54,9 +54,6 @@ const COVER_POSTERS = 3;
 
 const LIST_GRID = "grid grid-cols-2 gap-2.5";
 
-// A list is shown by its cover: its first three posters side by side under
-// one radius, its name and count below. A chosen list wears the grade ring
-// and a check on its cover.
 const listCardVariants = variants(
   "group relative isolate flex h-auto w-full cursor-pointer flex-col items-stretch justify-start gap-2 rounded-card p-1.5 pb-2.5 text-left select-none outline-none disabled:cursor-wait",
   {

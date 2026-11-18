@@ -103,7 +103,6 @@ export function MovieGallery({
   posters,
   title,
 }: {
-  /** TMDB file paths, best first. */
   backdrops: readonly string[];
   now?: boolean;
   posters: readonly string[];
@@ -208,7 +207,6 @@ export function MovieGalleryWall({
   posters,
   title,
 }: {
-  /** TMDB file paths, best first. */
   backdrops: readonly string[];
   posters: readonly string[];
   title: string;

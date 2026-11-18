@@ -18,11 +18,6 @@ import {
   tween,
 } from "./motion";
 
-// The context menu blooms from the point it was opened at: the glass (the
-// menu element itself, never an ancestor of it) comes up from a little small
-// on a soft spring, its rows rise in one after another, 55ms apart. It goes
-// quicker than it came. A row pressed gives a hair and comes back.
-
 const ORIGIN = "top left";
 
 const contextMenuMotion: ContextMenuMotion = {

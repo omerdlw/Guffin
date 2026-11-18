@@ -499,7 +499,6 @@ function NotificationList({
       data-scroll-native
     >
       <HighlightGroup className={SURFACE_GROUP}>
-        {/* A new filter lifts the old rows away and deals its own. */}
         <SurfaceSwap
           className="flex min-h-[48px] w-full flex-col justify-center overflow-visible"
           cue="rows"
@@ -542,7 +541,6 @@ function AccountNotificationsSurface({ close }: { close?: () => void }) {
 
   const search = useSurfaceSearch(visible, notificationText, feed.items.length);
   const query = search.searching ? search.query.trim() : "";
-  // What the list shows: a state change lifts the old view before the next.
   const view =
     feed.status !== "ready"
       ? feed.status

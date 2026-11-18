@@ -75,7 +75,6 @@ function Sidebar(): JSX.Element {
       </div>
 
       <div className={SIDEBAR_FACTS_CLASS}>
-        {/* Folded on a phone like the page's facts (detail/stage FactsFold). */}
         <div className="flex flex-col max-sm:[&>:nth-child(n+5)]:hidden sm:max-lg:flex-1">
           {SKELETON_FACT_WIDTHS.map(([label, value], index) => (
             <div

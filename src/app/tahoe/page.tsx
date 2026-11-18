@@ -10,8 +10,6 @@ export const metadata: Metadata = {
   title: "UI Lab",
 };
 
-// The UI lab (a test page, out of the index): the whole design system over
-// Apple's Tahoe wallpaper, where liquid glass looks its best.
 export default function TahoePage(): JSX.Element {
   return (
     <div className="relative min-h-dvh">

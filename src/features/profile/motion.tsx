@@ -3,28 +3,7 @@
 import type { Curve, Enter, Look, Moves } from "@/motion/choreo";
 import { defineStage } from "@/motion/stage";
 
-// The account page's choreography (the profile and every tab under it).
-// Everything on the page that moves is written here; a role left out renders
-// still.
-//
-// It runs on home's proportion, the golden ratio: durations and cues are φⁿ
-// seconds, staggers Fibonacci milliseconds, travel Fibonacci pixels, curves
-// from φ's fractions.
-//
-// Detail is a film's one-sheet; this page is a member's card being handed
-// over. The cover picture develops out of the dark, the tabs settle in at the
-// top, the portrait swells into place, the name settles in a letter at a
-// time from its middle, and the handle and join date are read off after it.
-// The counts arrive along the right, one after another.
-//
-// Below, each block plays as it comes into view: its label slides in and its
-// rule is drawn, posters are dealt across the row, rows surface one after
-// another, the rating bars open out of their baseline, the year of activity
-// sweeps in week by week up to today, and the faces pop in. Choosing a tab,
-// the pill glides to it and the new tab's page slides in from the right.
-
 const PHI = 1.618034;
-// φⁿ seconds: 0.146, 0.236, 0.382, 0.618, 1, 1.618, 2.618, 4.236.
 const beat = (n: number) => Math.round(PHI ** n * 1000) / 1000;
 const STAGGER = {
   tick: 0.013,
@@ -39,10 +18,7 @@ const DEVELOP: Curve = [0.382, 0, 0.146, 1];
 const SWEEP: Curve = [0.618, 0, 0.382, 1];
 const TOUCH: Curve = [0.382, 0.236, 0.146, 1];
 const PRESS: Curve = [0.382, 0, 0.236, 1];
-// Unhurried: an even arrival, without Settle's rush at the start, for lines
-// read a piece at a time.
 const UNHURRIED: Curve = [0.236, 0.382, 0.146, 1];
-// Spring: overshoots by a hair and settles.
 const SPRING: Curve = [0.382, 0.618, 0.236, 1.146];
 
 const load = (from: Look, delay: number, more: Partial<Enter> = {}): Enter => ({
@@ -71,7 +47,6 @@ const nudge: Moves = {
   press,
 };
 
-// Opening cues, in seconds after the page is painted.
 const CUE = {
   tabs: beat(-2),
   avatar: beat(-1),
@@ -83,18 +58,12 @@ const CUE = {
 
 const ACCOUNT = defineStage({
   scope: "account",
-  // Cinematic: every entrance half a beat slower (√φ) and a Fibonacci step
-  // farther (φ), so it is felt, not glimpsed.
   tempo: 1.272,
   reach: 1.618,
-  // What is in view on arrival below the hero waits until the counts have
-  // begun along the right, so the card reads from the top down.
   opening: beat(2),
   scroll: { period: beat(0), gain: beat(-1) },
   motion: {
     parts: {
-      // The cover develops out of the dark: large, it settles once its
-      // picture has loaded.
       backdrop: {
         slots: {
           screen: {
@@ -115,7 +84,6 @@ const ACCOUNT = defineStage({
           },
         },
       },
-      // The tabs settle down from above the page.
       tabs: {
         enter: load({ opacity: 0, y: -21 }, CUE.tabs),
         slots: {
@@ -128,13 +96,11 @@ const ACCOUNT = defineStage({
           },
         },
       },
-      // The portrait swells into place and overshoots by a hair.
       avatar: {
         enter: load({ opacity: 0, scale: 0.618 }, CUE.avatar, {
           ease: SPRING,
         }),
       },
-      // The name settles in a letter at a time, from its middle out.
       name: {
         text: {
           by: "char",
@@ -143,7 +109,6 @@ const ACCOUNT = defineStage({
           enter: load({ opacity: 0, y: "0.382em", scale: 1.236 }, CUE.name),
         },
       },
-      // The handle, the join date and the lock are read off after it.
       meta: {
         enter: load({ opacity: 0, x: -13 }, CUE.meta, {
           stagger: STAGGER.row,
@@ -153,14 +118,12 @@ const ACCOUNT = defineStage({
       proof: {
         enter: load({ opacity: 0, y: 8 }, CUE.proof),
       },
-      // The counts arrive along the right, one after another.
       stat: {
         ...nudge,
         enter: load({ opacity: 0, y: 13 }, CUE.stat, {
           stagger: STAGGER.item,
         }),
       },
-      // A block's label slides in and its rule is drawn under it.
       label: {
         enter: reveal({ opacity: 0, x: -13 }),
       },
@@ -171,21 +134,18 @@ const ACCOUNT = defineStage({
           { delay: beat(-2), duration: beat(2), ease: SWEEP },
         ),
       },
-      // Posters are dealt across the row.
       tile: {
         enter: reveal(
           { opacity: 0, y: 34, scale: 0.944 },
           { stagger: STAGGER.word, wrap: 6 },
         ),
       },
-      // Rows surface one after another.
       row: {
         enter: reveal(
           { opacity: 0, y: 21 },
           { delay: beat(-3), stagger: STAGGER.item, wrap: 6 },
         ),
       },
-      // The rating bars open out of their baseline, low ratings first.
       bar: {
         enter: reveal(
           { clip: "inset(100% 0 0 0)" },
@@ -197,7 +157,6 @@ const ACCOUNT = defineStage({
           },
         ),
       },
-      // The year of activity sweeps in week by week, up to today.
       week: {
         origin: "center bottom",
         enter: reveal(
@@ -210,7 +169,6 @@ const ACCOUNT = defineStage({
           },
         ),
       },
-      // The faces pop in.
       face: {
         ...nudge,
         enter: reveal(
@@ -226,7 +184,6 @@ const ACCOUNT = defineStage({
       },
     },
     sections: {
-      // Choosing a tab, its page slides in from the right and resolves.
       page: {
         enter: load({ opacity: 0, x: 34 }, 0, {
           duration: beat(0),

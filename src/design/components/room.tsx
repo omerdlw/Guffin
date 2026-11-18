@@ -10,8 +10,6 @@ interface RoomProps {
   grainClassName?: string;
 }
 
-// The picture's regions, as pale light on the paper (the framework makes
-// them for a light ground). The wash shows as much as the picture has colour.
 const WASH = [
   "radial-gradient(65% 50% at 15% 0%, color-mix(in oklab, var(--ambient-top, transparent) var(--wash-top), transparent), transparent 72%)",
   "radial-gradient(60% 55% at 100% 20%, color-mix(in oklab, var(--ambient-right, transparent) var(--wash-right), transparent), transparent 72%)",

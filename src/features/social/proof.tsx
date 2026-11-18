@@ -203,11 +203,6 @@ const socialProofSurface = defineSurface<{ data: SocialProofSurfaceData }>({
   title: "People you follow",
 });
 
-// The surface sorts the people you follow by their verdict: who loved it,
-// who liked it, who was mixed, who didn't, then who saw it without a
-// rating and who means to. Each verdict is one sheet under a small caps
-// name, so the mood of the room reads from the headings before the names.
-
 interface Verdict {
   key: string;
   label: string;
@@ -366,8 +361,6 @@ function SocialProofSurface({
 
   return (
     <SurfaceStage className={SURFACE_STACK}>
-      {/* On the shelf, not in the stack: a part around it would stay
-          behind empty and take the stack's gap above the list. */}
       {tabs.length > 2 ? (
         <SurfaceSegmentedControl
           ariaLabel="Filter by what they did"
@@ -427,9 +420,6 @@ function SocialProofSurface({
 const PROOF_PILL =
   "cine-card liquid-control group relative flex h-14 w-full items-center overflow-hidden rounded-full bg-fill px-3.5 text-left ring-1 ring-edge ring-inset";
 
-// Friends' activity on a film, the last of the sidebar's actions: it joins
-// the action group's entrance at its `index`, showing a loader in place while
-// the activity loads, and gives way when no friend has logged the film.
 export function MovieSocialProof({
   index,
   movieId,

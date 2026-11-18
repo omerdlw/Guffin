@@ -41,9 +41,6 @@ function fade(at: (cover: number) => string): string[] {
 
 const MASK = fade((cover) => `rgb(0 0 0 / ${(100 - cover) / 100})`).join(", ");
 
-// One tile, not repeated: a repeat would start the mask's opaque top again
-// at the picture's foot, a one-pixel seam whenever the box lands on a whole
-// pixel and the picture is scaled past it.
 export const BACKDROP_HERO_MASK = {
   maskComposite: "intersect",
   maskImage: MASK,

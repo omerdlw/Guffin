@@ -35,15 +35,21 @@ function decode(bytes: Uint8Array) {
       y * width * 4,
     );
   }
-  return { width, height, out, types: [header!.type, ...rest.map((c) => c.type)] };
+  return {
+    width,
+    height,
+    out,
+    types: [header!.type, ...rest.map((c) => c.type)],
+  };
 }
 
 describe("png", () => {
   it("round-trips pixels exactly", () => {
     const width = 7;
     const height = 5;
-    const rgba = Uint8Array.from({ length: width * height * 4 }, (_, i) =>
-      (i * 37 + 11) % 256,
+    const rgba = Uint8Array.from(
+      { length: width * height * 4 },
+      (_, i) => (i * 37 + 11) % 256,
     );
     const png = encodePng(width, height, rgba);
     expect([...png.subarray(0, 8)]).toEqual([137, 80, 78, 71, 13, 10, 26, 10]);
@@ -56,9 +62,10 @@ describe("png", () => {
 
   it("splits data larger than one stored block", () => {
     const width = 200;
-    const height = 120; // ~96 kB raw: two stored blocks
-    const rgba = Uint8Array.from({ length: width * height * 4 }, (_, i) =>
-      (i * 13) % 251,
+    const height = 120;
+    const rgba = Uint8Array.from(
+      { length: width * height * 4 },
+      (_, i) => (i * 13) % 251,
     );
     expect([...decode(encodePng(width, height, rgba)).out]).toEqual([...rgba]);
   });

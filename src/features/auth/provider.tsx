@@ -69,9 +69,6 @@ export function AuthProvider({ children }: { children?: ReactNode }) {
     isConfigured: configured,
     isReady: !configured,
   }));
-  // The Supabase client (auth, realtime) is a large module no page needs to
-  // paint: it loads once the page has hydrated. Until then `client` is null,
-  // as every caller already allows, and the session is not ready yet.
   const [client, setClient] = useState<AuthClient | null>(null);
   useEffect(() => {
     if (!configured) return;

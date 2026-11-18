@@ -31,7 +31,6 @@ interface CursorReading {
   corner?: number;
   label: string;
   mode: CursorMode;
-  /** What the glass is fitted to, when that is not the target itself. */
   shape?: HTMLElement;
   target: HTMLElement | null;
 }
@@ -43,11 +42,9 @@ interface CursorShape {
   glass: number;
   h: number;
   label: number;
-  /** Clear glass that refracts at its rim, fitted to a card's own shape. */
   lens: number;
   r: number;
   solid: number;
-  /** The drop swells (a large target: it stays a drop, a little fuller). */
   swell: number;
   w: number;
 }
@@ -86,8 +83,6 @@ const CURSOR_SHAPES: Record<Exclude<CursorMode, "none">, CursorShape> = {
     swell: 0,
     w: 0,
   },
-  // Over a card: no frame drawn round it; a sheet of clear glass laid
-  // exactly on it, edge to edge, that bends the picture at its corners.
   card: {
     bracket: 0,
     caption: 1,
@@ -140,8 +135,6 @@ const CURSOR_SHAPES: Record<Exclude<CursorMode, "none">, CursorShape> = {
     swell: 0,
     w: 34,
   },
-  // Over something you can press that is too large to wrap (a wide row, a
-  // big card): the drop stays with the pointer, a little fuller.
   inside: {
     bracket: 0,
     caption: 0,
@@ -155,7 +148,6 @@ const CURSOR_SHAPES: Record<Exclude<CursorMode, "none">, CursorShape> = {
     swell: 1,
     w: 34,
   },
-  // Only the dot: over a control whose own thumb is the glass.
   point: {
     bracket: 0,
     caption: 0,
@@ -207,18 +199,14 @@ const CURSOR_TEXT_INPUT =
 
 const CURSOR_OWNER = `[data-cursor], [data-dragging], ${CURSOR_TEXT_INPUT}, a[href], button, summary, select, label, [role='button'], [role='link'], [role='tab'], [role='switch'], [role='menuitem'], [role='menuitemradio'], [role='menuitemcheckbox'], [role='option'], [role='checkbox'], [role='radio'], [role='combobox'], [role='slider'], [aria-haspopup]:not([aria-haspopup='false'])`;
 
-/** How much fuller the drop is over a large target. */
 const CURSOR_SWELL = 0.32;
 
 const CURSOR_WRAP = 7;
 
 const CURSOR_FRAMING = 14;
 
-/** Over a card, the glass reaches a hair past the picture's edge (px). */
 const CURSOR_CARD_FRAMING = 1;
 
-/** A snug target (`data-cursor-fit="snug"`, e.g. a poster stack): the pane
- * keeps an even, close margin all round and does not lean to the pointer. */
 const CURSOR_SNUG_FRAMING = 4;
 
 const CURSOR_SLATE = /^(.*\S)\s+\((\d{4})\)(?:,\s*(.+))?$/;
@@ -272,7 +260,6 @@ function pullSpring(
 
 const unitClamp = (n: number) => Math.max(0, Math.min(n, 1));
 
-/** How long a node's "raised above the dock" answer is trusted before re-reading its style. */
 const LAYER_MEMORY_MS = 750;
 
 const raised = new WeakMap<Element, { at: number; layer: boolean }>();
@@ -296,22 +283,14 @@ function layerOf(from: Element): HTMLElement | null {
   return null;
 }
 
-// Travel never overshoots: an underdamped spring overshoots by a share of the
-// distance, so a pane landing on (or leaving) a wide row would lurch tens of
-// px. The wobble comes from the stretch alone, which is bounded in px.
 const FOLLOW = tune(210, 0.92);
 const GRIP = tune(340, 1);
 const HUNT = tune(130, 0.78);
 const FADE = tune(170, 1);
 const PRESS = tune(380, 0.38);
-/** The drop's stretch: loose, so it wobbles once it stops. */
 const JELLY = tune(170, 0.2);
-/** The drop is absorbed into a pane (and condenses out of one) quickly. */
 const ABSORB = tune(520, 1);
-/** How hard a pane wobbles when it lands on a control. */
 const LANDING_KICK = 1.4;
-/** The stretch at full strength fits a drop this size (px); larger shapes
- * stretch the same few px, not the same share of their size. */
 const CURSOR_GIVE = 40;
 
 const inks = new WeakMap<HTMLElement, CursorInk>();
@@ -417,14 +396,12 @@ function read(x: number, y: number): CursorReading {
     } else if (named && named in CURSOR_SHAPES) {
       let corner = Number.parseFloat(own.dataset.cursorCorner ?? "");
       if (!Number.isFinite(corner) && named === "card") {
-        // The glass takes the picture's own corners, not a guess.
         corner = shapeOf(
           own.querySelector<HTMLElement>("[data-cursor-frame]") ?? own,
         ).radius;
       }
       return {
         corner: Number.isFinite(corner) ? corner : undefined,
-        // An empty label is a choice: the glass alone, no caption.
         label: own.dataset.cursorLabel ?? CURSOR_LABELS[named] ?? "",
         mode: named,
         target: own,
@@ -439,7 +416,6 @@ function read(x: number, y: number): CursorReading {
     const fits = (limit: readonly [number, number]) =>
       box.width <= limit[0] && box.height <= limit[1];
     if (fits(CURSOR_SNAP_MAX) || fits(CURSOR_ROW_MAX)) {
-      // Fitted to what is painted: a round avatar in a bare link is a circle.
       const shape = shapeOf(own);
       return {
         corner: shape.radius,
@@ -685,8 +661,6 @@ function Reticle() {
           held = { at: now, box, target };
         }
         const box = held!.box;
-        // A card is fitted: a hair of margin and no lean towards the
-        // pointer, so the glass lies on the picture edge to edge.
         const fitted = mode === "card";
         const snug = mode === "action" && target.dataset.cursorFit === "snug";
         const pad = fitted
@@ -714,9 +688,6 @@ function Reticle() {
           (Number.isFinite(corner) ? corner : 12) + pad,
           Math.min(tw, th) / 2,
         );
-        // The lens keeps the card's corner while the pane grows into it:
-        // its refraction maps are drawn per corner radius, so a radius
-        // that morphed every frame would redraw them every frame.
         if (fitted) put(prism, "prism-radius", "borderRadius", `${tr}px`);
       } else if (mode === "frame") {
         held = null;
@@ -767,7 +738,6 @@ function Reticle() {
         unitClamp(flowing / 1800) * 0.62 * unitClamp(weights.bead.x);
       if (landing) {
         landing = false;
-        // A big pane wobbles less than a small one.
         stretch.v += LANDING_KICK * unitClamp(80 / Math.max(tw, th, 1));
       }
 
@@ -835,8 +805,6 @@ function Reticle() {
         "transform",
         `translate3d(${edge.l.x.toFixed(2)}px, ${edge.t.x.toFixed(2)}px, 0) rotate(${fine(angle)}rad) scale(${fine(along * scale)}, ${fine(across * scale)}) rotate(${fine(-angle)}rad)`,
       );
-      // Absorbed, not faded: the drop shrinks into the pane as it goes, so
-      // it never lies over the label it points at.
       put(drop, "drop", "opacity", fine(beaded * beaded));
       put(
         drop,
@@ -936,22 +904,16 @@ function Reticle() {
         className="absolute top-0 left-0 flex items-center justify-center will-change-transform"
         ref={body}
       >
-        {/* Pure glass throughout: no tint, no tone, only the bend and the rim. */}
-        {/* Idle: a drop of clear glass that bends what lies under it. */}
         <span
           className="liquid liquid-clear absolute top-1/2 left-1/2 size-[34px] rounded-full"
           ref={bead}
           style={{ transform: "translate(-50%, -50%)" }}
         />
-        {/* Over a control: the drop spreads into a pane hugging it. */}
         <span
           className="liquid liquid-fluid absolute inset-0 rounded-[inherit]"
           ref={sheet}
           style={{ opacity: 0 }}
         />
-        {/* Over a card: clear glass cut to the card's own shape. Not fluid,
-            so it gets a real lens: the picture bends at the rim and most
-            at the corners, and stays still in the middle. */}
         <span
           className="liquid liquid-clear liquid-prism liquid-flat absolute inset-0 [--liquid-bend:0.32] [--liquid-bezel:10]"
           ref={lensSheet}

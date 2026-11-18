@@ -1,24 +1,5 @@
 "use client";
 
-// Touch for controls made of glass. Every `.liquid-touch` element answers the
-// pointer like a drop of liquid glass would:
-//
-// - press: it gives under the finger, squeezed towards the point pressed,
-//   and comes back with a single soft wobble;
-// - pull: under a mouse it leans a hair towards the pointer.
-//
-// Kinds, by class:
-//   .liquid-touch        both (buttons, a select's trigger)
-//   .liquid-touch-field  one soft swell as it takes focus, nothing else:
-//                        text that is being read or typed never moves
-//
-// One listener set and one frame loop for the whole document; only touched
-// controls are in the loop, and it stops once they rest. Nothing in the dock
-// takes part (it has its own touch) but its action buttons (`.dock-action`)
-// and what a surface shows (`.dock-surface`), which press like every other
-// button; a surface's row links press too. A surface clips its content, so
-// nothing in one leans. The cursor still wraps every control.
-
 import { useEffect } from "react";
 import {
   clamp,
@@ -31,37 +12,28 @@ import {
 
 const SELECTOR = ".liquid-touch";
 const OUTSIDE = ".dock-root";
-/** …except these, inside it. */
 const ACTION = "dock-action";
 const SURFACE = ".dock-surface";
-/** In a surface, its row links take the touch as well. */
 const SURFACE_SELECTOR = `${SELECTOR}, ${SURFACE} a[href]`;
 const OFF = ":disabled, [aria-disabled='true']";
 
 type Kind = "field" | "full";
 
-/** The press gives this many px on the long side, whatever the size. */
 const GIVE_PX = 4;
-/** …but never more than this share of the control. */
 const MOST_GIVE = 0.06;
-/** The lean towards the pointer (px). */
 const PULL_PX = 2;
-/** A field's swell as it takes focus: one soft beat, then rest. */
 const SWELL_KICK = 0.32;
 
-/** Down fast and firm; back up loose, so it wobbles once. */
 const PRESS_IN = feel(900, 0.95);
 const PRESS_OUT = feel(250, 0.4);
 const PULL = feel(240, 0.6);
 const SWELL = feel(300, 0.42);
 
-/** How far a control of this size scales down under a press. */
 export function squeeze(width: number, height: number) {
   const long = Math.max(width, height, 1);
   return 1 - Math.min((GIVE_PX * 2) / long, MOST_GIVE);
 }
 
-/** The point pressed, inside the control (px from its top left). */
 export function pressOrigin(
   rect: { height: number; left: number; top: number; width: number },
   x: number,
@@ -78,7 +50,6 @@ interface Touch {
   el: HTMLElement;
   hover: boolean;
   kind: Kind;
-  /** Leans towards the pointer (not where its container clips it). */
   leans: boolean;
   press: Spring;
   rect: DOMRect;
@@ -314,7 +285,6 @@ function startLiquidTouch() {
   };
 }
 
-/** Mounted once, next to the lens: gives every `.liquid-touch` its touch. */
 export function LiquidTouch(): null {
   useEffect(() => startLiquidTouch(), []);
   return null;

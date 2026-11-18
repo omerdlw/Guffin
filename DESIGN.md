@@ -73,7 +73,7 @@ same text.
 | ----------------------------------------------------------------- | ---------- | --------------------------------------------------------------------- |
 | [01-working.md](design/rules/01-working.md)                       | 1          | Always first: where things live, which component, workflow, ten rules |
 | [02-principles.md](design/rules/02-principles.md)                 | 2          | You need the why behind a choice                                      |
-| [03-colour.md](design/rules/03-colour.md)                         | 3.1, 3.2   | Any colour or opacity; the grade; the paper and `.on-photo` values     |
+| [03-colour.md](design/rules/03-colour.md)                         | 3.1, 3.2   | Any colour or opacity; the grade; the paper and `.on-photo` values    |
 | [04-type.md](design/rules/04-type.md)                             | 3.3        | Any text: scale, faces, weights, headlines, labels                    |
 | [05-shape.md](design/rules/05-shape.md)                           | 3.4 to 3.8 | Radius, control ladder, spacing, page layout, depth, stacking         |
 | [06-motion.md](design/rules/06-motion.md)                         | 6          | Anything that moves: the stage API, triggers, φ timing, modules       |
@@ -85,17 +85,17 @@ same text.
 
 ## Quick reference
 
-| Need                  | Use                                                                    |
-| --------------------- | ---------------------------------------------------------------------- |
-| Text colour           | `text-ink` · `-lead` · `-body` · `-muted` · `-faint`                   |
-| A surface at rest     | `bg-fill ring-1 ring-edge ring-inset` or `FILL` / `TONES.neutral`      |
+| Need                  | Use                                                                     |
+| --------------------- | ----------------------------------------------------------------------- |
+| Text colour           | `text-ink` · `-lead` · `-body` · `-muted` · `-faint`                    |
+| A surface at rest     | `bg-fill ring-1 ring-edge ring-inset` or `FILL` / `TONES.neutral`       |
 | Chosen                | `TONE.chosen` / `intent="chosen"` (a white sheet; grade over a picture) |
-| The one submit action | `<Button intent="primary">`                                            |
-| Floating chrome       | `SHELL` (layer), `FLOAT` (dock control), `TIP` (tooltip): liquid glass |
-| A control in the dock | `WELL` + `WELL_HOVER`: a fill, never glass on glass                    |
-| Type                  | `type-micro` … `type-heading`, `type-display-*`, `headlineClass()`     |
-| Radius                | `rounded-mark/thumb/inset/tile/card/panel/sheet/shell/full`            |
-| Control height        | `h-control-xs/sm/chrome/md/lg` (24/32/36/40/48)                        |
-| Stacking              | `Z_INDEX` from `@/design/foundations/z-index`                          |
-| Merge classes         | `cn` from `@/design/ui`                                                |
-| Motion                | The page's `motion.tsx` (`defineStage`); components only name roles    |
+| The one submit action | `<Button intent="primary">`                                             |
+| Floating chrome       | `SHELL` (layer), `FLOAT` (dock control), `TIP` (tooltip): liquid glass  |
+| A control in the dock | `WELL` + `WELL_HOVER`: a fill, never glass on glass                     |
+| Type                  | `type-micro` … `type-heading`, `type-display-*`, `headlineClass()`      |
+| Radius                | `rounded-mark/thumb/inset/tile/card/panel/sheet/shell/full`             |
+| Control height        | `h-control-xs/sm/chrome/md/lg` (24/32/36/40/48)                         |
+| Stacking              | `Z_INDEX` from `@/design/foundations/z-index`                           |
+| Merge classes         | `cn` from `@/design/ui`                                                 |
+| Motion                | The page's `motion.tsx` (`defineStage`); components only name roles     |

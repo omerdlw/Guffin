@@ -1,12 +1,3 @@
-// Where the cursor's glass should lie on a target, and with what corners.
-//
-// The element that owns a pointer (a link, a button) is often not the thing
-// you see: a link wrapping a round avatar is a square box with no corners, so
-// fitting the glass to it drew a square round a circle. The shape is read
-// from what is painted instead: the target itself when it has a surface or
-// corners of its own, otherwise the one child that fills it (an avatar, a
-// poster, a pill), a few levels down at most.
-
 export interface ShapeBox {
   bottom: number;
   left: number;
@@ -16,9 +7,7 @@ export interface ShapeBox {
 
 export interface ShapeProbe<T> {
   children(node: T): readonly T[];
-  /** A surface of its own: a fill, a ring, a border or a picture. */
   painted(node: T): boolean;
-  /** The computed `border-top-left-radius`. */
   radius(node: T): string;
   rect(node: T): ShapeBox;
 }
@@ -29,19 +18,13 @@ interface Shape<T> {
   radius: number;
 }
 
-/** A child stands for its parent when it covers this share of it (or more). */
 const FILLS = 0.85;
-/** …and is not much larger than it (an overlay hanging outside). */
 const OVERFLOWS = 1.2;
 const DEPTH = 3;
 
 const area = (box: ShapeBox) =>
   Math.max(box.right - box.left, 0) * Math.max(box.bottom - box.top, 0);
 
-/**
- * A computed corner in px: lengths, percentages of the box, the first of an
- * elliptical pair; capped at half the short side (a pill or a circle).
- */
 export function radiusPx(value: string, width: number, height: number) {
   const first = value.trim().split(/\s+/)[0] ?? "";
   const n = Number.parseFloat(first);
@@ -103,17 +86,12 @@ const DOM_PROBE: ShapeProbe<Element> = {
   rect: (node) => node.getBoundingClientRect(),
 };
 
-/** How long a target's shape is trusted before it is read again (ms). */
 const SHAPE_MEMORY_MS = 600;
 const known = new WeakMap<
   Element,
   { at: number; node: Element; radius: number }
 >();
 
-/**
- * The element whose box the glass takes and its corner, for a target. An
- * author can name it: `data-cursor-shape` holds a selector inside the target.
- */
 export function shapeOf(target: HTMLElement, now = performance.now()) {
   const memo = known.get(target);
   if (memo && now - memo.at < SHAPE_MEMORY_MS && memo.node.isConnected) {

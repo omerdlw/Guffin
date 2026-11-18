@@ -434,7 +434,6 @@ function AccountSocialSurface({
     [setQuery],
   );
 
-  // What the body shows; a new tab or state lifts the old view first.
   let view: string;
   let body: ReactNode;
   if (active.loading) {

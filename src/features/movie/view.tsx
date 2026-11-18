@@ -161,7 +161,6 @@ function getCast(movie: MovieDetails) {
   return uniqueById([...movie.credits.cast].sort((a, b) => a.order - b.order));
 }
 
-/** One entry per person, their jobs joined, the most senior job first. */
 function getCrew(movie: MovieDetails): PersonEntry[] {
   const people = new Map<number, PersonEntry & { rank: number }>();
   const rankOf = (job: string | null) => {
@@ -288,8 +287,6 @@ function pluralLabel(count: number, one: string, many: string): string {
   return count > 1 ? many : one;
 }
 
-// The keywords sit under the synopsis as chips; the dock already carries the
-// year and the running time.
 function buildFacts(movie: MovieDetails): Fact[] {
   const directors = getDirectors(movie);
   const writers = getWriters(movie);
@@ -320,7 +317,6 @@ function buildFacts(movie: MovieDetails): Fact[] {
     released && textFact("Released", released),
     certification && textFact("Rated", certification),
     language && textFact("Language", language),
-    // Only a film that is not out yet (or never came out) says so.
     movie.status !== "Unknown" &&
       movie.status !== "Released" &&
       textFact("Status", movie.status),
@@ -529,9 +525,7 @@ function MovieView({
   );
   const backdrops = getGalleryImages(images);
   const posters = getPosterImages(images);
-  // Sent once, shared by the gallery and its wall.
   const gallery = { backdrops: pathsOf(backdrops), posters: pathsOf(posters) };
-  // The opening's reel: text-free stills only, so no title fights the name.
   const frames = backdrops
     .filter((image) => !image.language)
     .map((image) => image.filePath);

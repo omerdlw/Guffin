@@ -188,5 +188,4 @@ function createArtworkStore(): ArtworkStore {
   };
 }
 
-/** The artwork a person chose per title, kept in localStorage. */
 export const artworkStore = createArtworkStore();

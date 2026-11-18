@@ -23,7 +23,6 @@ type Args<P extends object> = object extends P
   ? [props?: P, overrides?: Partial<SurfaceDescriptor>]
   : [props: P, overrides?: Partial<SurfaceDescriptor>];
 
-/** A `defineSurface` result whose props are checked against `P`. */
 export interface Surface<P extends object> {
   (...args: Args<P>): SurfaceDescriptor;
   open(
@@ -34,7 +33,6 @@ export interface Surface<P extends object> {
   readonly config: { component?: unknown };
 }
 
-/** The framework's `defineSurface`, typed by the props its component takes. */
 export function defineSurface<P extends object = Record<never, never>>(
   definition: SurfaceDefinition<P>,
 ): Surface<P> {

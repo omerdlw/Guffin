@@ -1,16 +1,3 @@
-// A page's choreography, compiled to CSS. The page's motion.tsx writes what
-// every role does (entering, hover, focus, press, its text) and this file
-// turns it into one stylesheet scoped to the page root.
-//
-// Entrances are timed CSS animations that wait, paused on their first frame,
-// for a trigger the stage sets:
-// - "load": the page is hydrated and painted (`data-play` on the root), so the
-//   opening plays where the reader can see it, never behind a busy first load;
-// - "view": the element, or its section, has come into view (`data-seen`);
-// - "ready": the nearest picture has loaded (`data-ready`).
-// Drift is the one scrubbed motion: a move tied directly to scrolling.
-// Touch states are transitions on translate, scale, rotate, opacity, filter.
-
 export type Curve = readonly [number, number, number, number];
 
 type Offset = number | string;
@@ -18,25 +5,17 @@ type Offset = number | string;
 export interface Look {
   x?: Offset;
   y?: Offset;
-  // Numbers are px / deg / factors; strings are CSS expressions, e.g.
-  // `calc(var(--fan-r) * 1.3)`.
   scale?: number | string | readonly [number, number];
   rotate?: number | string;
-  // Rotation about the horizontal axis, for a panel that tips toward or away
-  // from the reader. Shares the `rotate` property with `rotate`; tilt wins.
   tilt?: number | string;
   opacity?: number;
   bright?: number | string;
-  // A mask, as a `clip-path` (e.g. `inset(100% 0 0 0)`: shut from the top,
-  // so it opens upwards). Entrances open it to `inset(0)`.
   clip?: string;
 }
 
 export interface Beat extends Look {
   duration: number;
   ease?: Curve;
-  // Seconds the move waits before it starts (one thing after another:
-  // a label that appears once its box has opened).
   delay?: number;
 }
 
@@ -46,21 +25,12 @@ export interface Enter {
   duration: number;
   delay?: number;
   ease?: Curve;
-  // Seconds between items by their `index`; `wrap` restarts the count every
-  // n items so a grid cascades across a row, not down the page.
   stagger?: number;
   wrap?: number;
-  // For "view": wait for the element itself or for its section. Items in a
-  // horizontal scroller follow their section.
   along?: "self" | "section";
-  // For a text: the most seconds its units may spread over, however many
-  // there are. The stagger shrinks to fit a long text.
   budget?: number;
 }
 
-// A continuous move tied to scrolling: from rest to `to` across the range.
-// `page` reads the document's scroll (ranges in lengths, e.g. ["0px",
-// "100vh"]); `view` reads the element's view timeline.
 export interface Drift {
   to: Look;
   range: readonly [string, string];
@@ -70,34 +40,22 @@ export interface Drift {
 
 export interface TextMoves {
   by: "word" | "char";
-  // Each word or letter rises out of its own clip.
   mask?: boolean;
-  // Which unit plays first: in reading order, from the middle outwards, or
-  // scattered.
   order?: "forward" | "center" | "random";
-  // Seconds between words or letters.
   stagger: number;
-  // Seconds between two texts of the same part (their `index`).
   line?: number;
-  // The most seconds the units may spread over (see Enter.budget).
   budget?: number;
   enter: Enter;
 }
 
-// How a role leaves when a `Swap` replaces it: from rest to `to`, then the
-// new content enters.
 export interface Leave {
   to: Look;
   duration: number;
   ease?: Curve;
 }
 
-// Animations that play as a swapped-out role leaves end in this suffix; the
-// Swap waits for one of them before showing the new content.
 export const LEAVING = "-x";
 
-// Properties something else sets (a class swap, a framework writing a box)
-// that should glide to their new value instead of jumping.
 export type Followed =
   | "color"
   | "background-color"
@@ -126,16 +84,12 @@ export interface Moves {
   hover?: Beat;
   focus?: Beat | "hover";
   press?: Beat;
-  // How the role returns to rest; defaults to the hover's curve, 1.5× slower.
   rest?: { duration: number; ease?: Curve; delay?: number };
   origin?: string;
   text?: TextMoves;
   slots?: Partial<Record<Slot, Omit<Moves, "slots" | "text">>>;
 }
 
-// Shared components mark themselves with a kind; their inner pieces with a
-// slot. The framework's Button takes no data attributes, so its recipe
-// carries a marker class instead.
 const KINDS = {
   media: '[data-kind="media"]',
   button: ".choreo-button",
@@ -148,28 +102,17 @@ const SLOTS = {
   image: '[data-slot="frame"] img',
   caption: '[data-slot="caption"]',
   picture: '[data-slot="picture"]',
-  // The hero's clipping box around the picture. Blur and scale the picture
-  // here: the mask and the blur then share one surface. On the canvas inside
-  // they split into layers and a pixel row seams at the foot.
   screen: '[data-slot="screen"]',
-  // A tab bar's CSS-driven sliding pill (the framework Tabs) and tabs. The
-  // segmented control's indicator moves on its own spring: no pill here.
   pill: "[data-pill]",
   tab: '[role="tab"]',
   rule: '[data-slot="rule"]',
-  // A result row's thumbnail (poster, portrait, avatar).
   thumb: '[data-slot="thumb"]',
-  // A heading's actions (its tabs, a progress readout), and its icon.
   actions: '[data-slot="actions"]',
   icon: '[data-slot="icon"]',
-  // A folder: its back panel, the deck of leaves inside it (held upright
-  // while the panel tips), each leaf, and the front flap.
   folder: '[data-slot="folder"]',
   deck: '[data-slot="deck"]',
   leaf: '[data-slot="leaf"]',
   flap: '[data-slot="flap"]',
-  // A closed seat's name, run up its side, and the shade that dims a closed
-  // seat (the cast strip).
   spine: '[data-slot="spine"]',
   shade: '[data-slot="shade"]',
 } as const;
@@ -221,7 +164,6 @@ function properties(looks: (Look | undefined)[], reduced: boolean) {
 const rule = (selector: string, lines: string[]) =>
   lines.length ? `${selector}{${lines.join(";")}}` : "";
 
-// Where a target sits: the page root, the role that owns it, and the target.
 interface Place {
   root: string;
   host: string;
@@ -230,8 +172,6 @@ interface Place {
 
 const below = (outer: string, inner: string) => inner.slice(outer.length + 1);
 
-// Every gate waits for the opening (`data-play`): a part already in view
-// under a curtain plays once the curtain lifts, not behind it.
 function gate(place: Place, enter: Enter): string {
   const { root, host, target } = place;
   const played = `${root}[data-play]`;
@@ -274,7 +214,6 @@ function enterTrack(
   else if (enter.stagger) parts.push(`${at} * ${seconds(enter.stagger)}`);
   if (line) parts.push(`var(--i, 0) * ${seconds(line)}`);
   const delay = parts.length > 1 ? `calc(${parts.join(" + ")})` : parts[0];
-  // A mask has no neutral value to ease towards: open it explicitly.
   const open = enter.from.clip !== undefined && !reduced;
   return {
     keyframes: `@keyframes ${name}{from{${from.join(";")}}${open ? "to{clip-path: inset(0 0 0 0)}" : ""}}`,
@@ -302,8 +241,6 @@ function driftTrack(
 function trackRules(selector: string, tracks: (Track | null)[]): string {
   const all = tracks.filter((t): t is Track => t !== null);
   if (!all.length) return "";
-  // A gated animation waits paused on its first frame; its gate releases it.
-  // Ungated ones (drift) always run.
   const emit = (list: Track[], extra: string[] = []) => {
     const states = (open?: Track) =>
       list
@@ -332,7 +269,6 @@ function trackRules(selector: string, tracks: (Track | null)[]): string {
   ])}}`;
 }
 
-// The properties every touch glides (interaction.css `--soft-props`).
 const SOFT = [
   "color",
   "background-color",
@@ -361,13 +297,9 @@ function stateRules(
   if (!props.length) return "";
 
   const lead = moves.hover ?? focus ?? moves.press;
-  // Back at rest, a followed property keeps its own pace.
   const rest = moves.rest ??
     moves.follow ?? { duration: lead!.duration * 1.5, ease: lead!.ease };
-  // The site's softness (interaction.css) rides along: a role's colour,
-  // fill and shadow still glide, at the soft pace, beside its own moves.
   const soft = SOFT.filter((p) => !props.includes(p));
-  // A delay on one state is undone explicitly on the others.
   const delayed =
     !reduced &&
     [rest, moves.hover, focus, moves.press].some((beat) => beat?.delay);
@@ -540,11 +472,6 @@ export function compile<P extends string, S extends string>(
   return `@media (prefers-reduced-motion: no-preference){${build(false)}}@media (prefers-reduced-motion: reduce){${build(true)}}`;
 }
 
-// A stage's pace. `tempo` stretches every entrance and leave (duration,
-// delay, stagger, budget): √φ moves each beat half a step slower. `reach`
-// lengthens the distance an entrance travels (its px offsets): φ moves each
-// Fibonacci step one up (8 → 13, 13 → 21…). Touch, drift and follow are the
-// hand's and keep their own time.
 interface Pace {
   tempo?: number;
   reach?: number;

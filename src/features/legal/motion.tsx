@@ -1,23 +1,11 @@
 import type { Curve, Enter, Look } from "@/motion/choreo";
 import { defineStage } from "@/motion/stage";
 
-// The legal pages' choreography: a document, so it reads rather than
-// performs. The header is a short title card on φ cues (the eyebrow flickers
-// in, the title settles a letter at a time, the intro surfaces word by word,
-// the pills after it) and the rule draws across under it. Below, the index
-// slides in from the margin and each section arrives as it comes into view:
-// its heading first, its paragraphs rising one after another behind it.
-// Nothing blurs.
-
 const PHI = 1.618034;
-// φⁿ seconds: 0.146, 0.236, 0.382, 0.618, 1, 1.618, 2.618.
 const beat = (n: number) => Math.round(PHI ** n * 1000) / 1000;
-// Fibonacci: staggers in ms, travel in px.
 const STAGGER = { char: 0.034, word: 0.055, item: 0.089 };
 
-// Settle: gathers softly, never with a jolt, and spends its long tail coming to rest.
 const SETTLE: Curve = [0.236, 0.382, 0.146, 1];
-// Sweep: in and out on the same breath, for travel the eye follows.
 const SWEEP: Curve = [0.618, 0, 0.382, 1];
 
 const load = (from: Look, delay: number, duration = beat(1)): Enter => ({

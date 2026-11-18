@@ -92,7 +92,6 @@ const TOOLTIP_SKIP_DELAY = 150;
 
 const FILM_PAGE = /^\/(?:movie|person)\/[^/]+$/;
 
-// Every palette is made for paper; the server asks for the same ground.
 configureAmbient({ analysis: AMBIENT_ANALYSIS });
 
 configureNavigation({

@@ -223,15 +223,10 @@ export function SearchAction({ onClose }: { onClose?: () => void } = {}) {
   const view = arrange(scope, results, page);
   const hrefs = view.sections.flatMap(hrefsOf);
   const hitCount = hrefs.length;
-  // Keyed by the query the results answer, not the one being typed: stale
-  // results stay mounted while the next answer loads.
   const viewKey = `${scope}:${answered}:${view.page}`;
   const active = cursor?.key === viewKey ? cursor.index : -1;
   const keyboardActive = cursor?.source === "keyboard" ? active : -1;
 
-  // Opening the search, by click or by key, puts the caret in its field, and
-  // Escape hands the focus back to what opened it. The dock is still
-  // unfolding, so the focus must not scroll it to the field.
   useEffect(() => {
     const opener = document.activeElement;
     if (opener instanceof HTMLElement && opener !== document.body) {
@@ -323,8 +318,7 @@ export function SearchAction({ onClose }: { onClose?: () => void } = {}) {
   const sections = view.sections.map((section, index) => (
     <Section
       active={
-        active >= starts[index] &&
-        active < starts[index] + section.hits.length
+        active >= starts[index] && active < starts[index] + section.hits.length
           ? active - starts[index]
           : -1
       }
@@ -417,11 +411,6 @@ export function SearchAction({ onClose }: { onClose?: () => void } = {}) {
         )}
         inert={!query}
       >
-        {/* The clip is only for the unfold. The room around it (cancelled by
-            the margins, so nothing moves) holds the scope indicator swelled
-            past its track and the whole of its drop shadow (0 6px 16px -4px
-            at full glass): a clip any closer cuts the shadow off straight,
-            a grey box round the drop. */}
         <div className="-mx-4 -mt-2 -mb-6 min-h-0 overflow-hidden px-4 pt-2 pb-6">
           <SearchPart
             className={cn("pt-2.5", !query && "-translate-y-3 scale-95")}

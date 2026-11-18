@@ -78,9 +78,6 @@ function locked(now: number) {
   return lock.held;
 }
 
-// How the wheel feels: the spring's period in seconds and how far one notch
-// travels (1 = the wheel's own distance). A page may ask for its own while it
-// is mounted; the last one released restores the default.
 export interface ScrollFeel {
   period: number;
   gain: number;
@@ -92,11 +89,6 @@ class ScrollDriver {
   private feel: ScrollFeel = DEFAULT_FEEL;
   private position: Value;
   private written = 0;
-  /**
-   * The driver scrolled the page in the last frame: the scroll event that
-   * follows is its own echo, already known, and is checked after the frame
-   * (when reading the offset costs nothing) instead of in the event.
-   */
   private echo = false;
   private verifying = false;
   private started = false;
@@ -131,7 +123,6 @@ class ScrollDriver {
     return { period: this.feel.period, damping: 1, mass: 1 };
   }
 
-  // Takes the page's feel; the returned function gives it back.
   tune(feel: ScrollFeel) {
     this.feel = feel;
     return () => {
@@ -274,8 +265,6 @@ class ScrollDriver {
 
   private echoed() {
     this.echo = true;
-    // No scroll event comes if the offset did not move: the flag lasts one
-    // frame at most.
     this.engine.clock.once("read", () => {
       this.echo = false;
     });
@@ -284,8 +273,6 @@ class ScrollDriver {
   private adopt = () => {
     if (this.echo) {
       this.echo = false;
-      // Anything else that moved the page in the same frame (a navigation's
-      // scroll, a script) is still adopted, a frame later.
       if (!this.verifying) {
         this.verifying = true;
         setTimeout(() => {

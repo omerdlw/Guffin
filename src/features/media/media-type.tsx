@@ -33,8 +33,6 @@ export function useVitrin(remembered: MediaType): {
   const raw = params.get("v");
   const asked: MediaType | null =
     raw === "tv" ? "tv" : raw === "movie" ? "movie" : null;
-  // The cookie is read on the server and passed in; reading document.cookie
-  // during render made SSR and hydration disagree.
   const value: MediaType = asked ?? remembered;
 
   const choose = (next: MediaType, to?: string) => {

@@ -18,10 +18,6 @@ import {
 import { cn } from "@/design/ui";
 import { Code, Label, Page, PANEL, Section, Table } from "../kit";
 
-// The lab plays the system's own values with motion's animate(): the beats,
-// curves, springs, staggers and travel of src/design/theme/motion.ts. Pages
-// never animate like this; they name roles and compile a stage (06-motion).
-
 const BEATS = [-4, -3, -2, -1, 0, 1] as const;
 
 const EASES: { name: string; ease: Ease; note: string }[] = [
@@ -75,7 +71,6 @@ const SCOPES = [
 const curve = ([x1, y1, x2, y2]: Ease) =>
   `M0,100 C${x1 * 100},${100 - y1 * 100} ${x2 * 100},${100 - y2 * 100} 100,0`;
 
-/** Moves every `[data-ball]` inside across its track. */
 function useRun() {
   const ref = useRef<HTMLDivElement>(null);
   const run = (

@@ -1,7 +1,3 @@
-// The physics shared by the controls whose thumb turns to liquid glass (the
-// segmented control's indicator, the switch's knob): springs stepped at a
-// fixed rate on one animation frame loop that stops when everything rests.
-
 export interface Spring {
   v: number;
   x: number;
@@ -12,7 +8,6 @@ export interface Feel {
   stiffness: number;
 }
 
-/** A goal for one frame: pull `spring` towards `to` with `feel`. */
 export type Goal = readonly [spring: Spring, to: number, feel: Feel];
 
 export const spring = (x = 0): Spring => ({ v: 0, x });
@@ -24,13 +19,8 @@ export const feel = (stiffness: number, ratio: number): Feel => ({
 
 const STEP = 1 / 240;
 const MOST = 1 / 20;
-/** Rest: a scale of 1.001 is a third of a pixel on a wide row. */
 const STILL = 0.001;
 
-/**
- * Runs `goals` (read afresh every frame) until every spring rests, calling
- * `draw` after each frame. `instant` snaps the springs (reduced motion).
- */
 export function drive(
   goals: () => readonly Goal[],
   draw: (dt: number) => void,
@@ -63,8 +53,6 @@ export function drive(
       ([state, to]) =>
         Math.abs(state.v) < STILL && Math.abs(state.x - to) < STILL,
     );
-    // Stopping, each spring lands exactly on its goal, so nothing is left
-    // drawn a hair off (a press that ends at 1.005 instead of 1).
     if (resting) {
       for (const [state, to] of list) {
         state.x = to;
@@ -89,14 +77,8 @@ export function drive(
 export const clamp = (n: number, low: number, high: number) =>
   Math.max(low, Math.min(n, high));
 
-/** Pointer travel (px) before a press becomes a drag. */
 export const DRAG_SLOP = 3;
 
-/**
- * The thumb's transform: moved along by `x`, swelled by `sx`, `sy`. A swell
- * all but gone (the springs stop within a hair of rest) is dropped, so the
- * thumb at rest draws one to one.
- */
 export function thumbTransform(x: number, sx: number, sy: number) {
   const moved = `translateX(${x.toFixed(2)}px)`;
   return Math.abs(sx - 1) < 0.004 && Math.abs(sy - 1) < 0.004
@@ -104,13 +86,6 @@ export function thumbTransform(x: number, sx: number, sy: number) {
     : `${moved} scale(${sx.toFixed(4)}, ${sy.toFixed(4)})`;
 }
 
-/**
- * The thumb's depth as it turns to glass (`g`, 0 solid → 1 glass), written
- * to `--liquid-drop`: over a flat track there is little to bend, so what
- * makes the drop read as glass is its body. It lifts on a deeper shadow, its
- * top edge catches a line of light and its foot a soft inner shade. At 0 it
- * is the knob's resting shadow, one to one.
- */
 export function glassDepth(g: number) {
   const f = (n: number, digits = 2) => n.toFixed(digits);
   return [
@@ -121,13 +96,6 @@ export function glassDepth(g: number) {
   ].join(", ");
 }
 
-/**
- * Lays a lens thumb out swelled for real: its box grows about its middle to
- * `sx`, `sy` times `width` × `height` and moves along by `x`. Not a scale:
- * the lens's maps are laid out for the box the element has, and under a
- * scale the backdrop it bends is not that box, so the rim tore what it bent.
- * Sized, the lens, its glint and its corners follow every frame.
- */
 export function swellBox(
   element: HTMLElement,
   x: number,
@@ -136,7 +104,6 @@ export function swellBox(
   sx: number,
   sy: number,
 ) {
-  // A swell all but gone draws one to one (see thumbTransform).
   const still = Math.abs(sx - 1) < 0.004 && Math.abs(sy - 1) < 0.004;
   const w = still ? width : width * sx;
   const h = still ? height : height * sy;

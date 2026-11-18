@@ -16,8 +16,6 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Account" };
 
-// Signed out, the dock opens the sign-in card; the page says what it is for so
-// the card does not sit alone on an empty screen.
 function SignedOut(): JSX.Element {
   return (
     <main className={cn("ui-scene", PAGE_CLASS)}>

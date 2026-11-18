@@ -6,9 +6,6 @@ import { tmdbImageUrl } from "@/lib/tmdb/shared";
 import { readable } from "@/motion/gl";
 import { artworkKey, type ArtworkKind, artworkStore } from "./store";
 
-// Warms the backdrop of the page a link points at, on intent, so it is
-// decoded before the page that shows it mounts. Mounted once, app-wide.
-
 const ARTWORK_PAGE_PATTERN = /^\/(movie|person|tv)\/([1-9]\d{0,9})$/;
 
 const PRELOADED_BACKDROP_LIMIT = 6;

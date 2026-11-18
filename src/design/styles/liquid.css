@@ -1,39 +1,3 @@
-/* Liquid glass. One material for everything that floats: the dock, modals,
-   menus, tooltips, toasts and the controls laid over a picture.
-
-   .liquid        the material: a thin tint, a hairline contour just outside
-                  the edge and the layer's shadow. In Chromium the lens adds
-                  the edge light: the scene behind, caught in the bezel and
-                  brightened, so the rim glows in the colours it sits on.
-   .liquid-frost  what it does to the scene behind it: blur, saturation and
-                  tone (every browser).
-   .liquid-lens   refraction at the bezel, then frost, then the edge light,
-                  all in one SVG filter (Chromium; maps drawn per corner by
-                  src/design/glass/); elsewhere the full frost.
-   .liquid-clear  the lens without frost, and nothing at all outside
-                  Chromium: clear glass, a drop of water (the cursor).
-   .liquid-prism  on clear glass laid over a picture: the colours split at
-                  the rim. --liquid-bezel (px) and --liquid-bend (× the full
-                  lens) tune any lens's rim width and strength.
-   .liquid-fluid  no lens drawn per size: a surface that morphs every frame
-                  (the cursor's pane).
-   .liquid-flat   no shadow (the contour stays): a control laid on a page or
-                  a picture, or sitting inside another layer.
-
-   Light (.liquid, a control on the page, .rim): a key light up and to the
-   left, a weaker fill back from the lower right. The rim is lit by where
-   each stretch of edge faces: the conic below runs round the shape from the
-   upper left (key) through the upper right (shade) to the lower right
-   (fill) and the lower left (shade). A field cannot carry the pseudo-element
-   and takes the same two lights as offset inset shadows.
-
-   Values per theme live in themes.css (--liquid-*). Components drop their
-   bg-*, ring-* and backdrop-* classes when they take the material: a ring
-   utility would replace the material's box-shadow. */
-
-/* A lens's rim and strength belong to that one surface: a thumb inside the
-   dock's shelf must not take the shelf's wide rim. Unset reads 0 (the
-   material's own). */
 @property --liquid-bezel {
   syntax: "<number>";
   inherits: false;
@@ -67,9 +31,6 @@
     --liquid-drop: 0 0 #0000;
   }
 
-  /* The rim. A ring as wide as --rim-width, cut out of a conic laid round
-     the shape, so the light runs along the edge the way it would round a
-     lit glass bead. */
   :is(.liquid, .rim)::after,
   .liquid-control:not(
       input,
@@ -109,7 +70,6 @@
   }
 }
 
-/* Utilities, so a variant can switch them (the dock blurs its front card only). */
 @utility liquid-frost {
   -webkit-backdrop-filter: var(--liquid-frost);
   backdrop-filter: var(--liquid-frost);
@@ -124,14 +84,6 @@
   backdrop-filter: var(--liquid-lens, none);
 }
 
-/* Controls made of glass (buttons, a select's trigger, a field, a segmented
-   control's track) lying on the page. There is nothing to bend behind them,
-   so they take no lens and no frost: a light glass, the lit rim and the
-   contour. Inside a glass layer (the dock, a modal, a menu) they keep
-   their fill: never glass on glass.
-
-   Unlayered on purpose: the material replaces the fill and ring utilities a
-   tone carries, and those stay in force inside a layer. */
 .liquid-control:not(:where(.dock-root, .liquid, [role="dialog"]) *) {
   background-color: var(--glass-control);
   box-shadow: var(--glass-control-contour), var(--glass-control-bevel);
@@ -139,12 +91,10 @@
   &.liquid-control-clear {
     background-color: transparent;
   }
-  /* The tone's own hover fill would lie under the glass's. */
   &.ui-iris::before {
     display: none;
   }
 
-  /* A segmented track stays put under the pointer: its indicator answers. */
   @media (hover: hover) {
     &:hover:not([role="tablist"]) {
       background-color: var(--glass-control-hover);

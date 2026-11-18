@@ -99,7 +99,6 @@ const TOKENS = [
   "--glass-control-contour",
 ] as const;
 
-/** Something with contrast for the glass to bend. */
 function Pattern({ className }: { className?: string }) {
   return (
     <div
@@ -158,7 +157,6 @@ function Tuner() {
     "--liquid-bezel": `${bezel}px`,
     "--liquid-bend": String(bend),
   } as CSSProperties;
-  // Maps are drawn per surface on mount: a new key redraws them.
   const key = `${kind}-${bezel}-${bend}`;
   return (
     <div className="flex flex-col gap-fib-3">

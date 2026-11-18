@@ -39,10 +39,6 @@ const GESTURE_END_MS = 220;
 
 const URL_SYNC_DELAY_MS = 500;
 
-// Oscars and top-100: the scene is the opening, so the chrome (the ring,
-// the rail, the facts) only comes up out of the dark around it. Opacity
-// alone: the chrome holds fixed-position children, which a transform on it
-// would pin to it instead of the screen.
 const SALON = defineStage({
   scope: "salon",
   tempo: 1.272,

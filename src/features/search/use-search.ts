@@ -26,8 +26,6 @@ interface SearchState {
   input: string;
   isLoading: boolean;
   query: string;
-  // The query the shown results answer: while a new one loads, the last
-  // answer stays up, so it is not always `query`.
   answered: string;
   results: SearchResults | null;
   retry: () => void;
@@ -92,7 +90,6 @@ function collectAnswers(
   return results;
 }
 
-// Scores arrive as numbers or not at all; a hit without one ranks last.
 function withScores(hits: unknown[]): SearchHits {
   return hits.map((hit) => {
     const { match, score } = hit as { match?: unknown; score?: unknown };
@@ -104,7 +101,6 @@ function withScores(hits: unknown[]): SearchHits {
   }) as SearchHits;
 }
 
-// Every kind the view still lacks, in one request.
 async function fetchSearch(
   kinds: readonly SearchType[],
   query: string,
@@ -206,8 +202,6 @@ export function useSearch(scope: SearchScope): SearchState {
     );
     void fetchSearch(kinds, ready, signal).then((outcome) => {
       if (signal.aborted) return;
-      // A kind already known still shows when the rest fail: the rest are
-      // left out instead of the search failing.
       if (!outcome.success && kinds.length < kindsOf(scope).length) {
         const lost = kinds.map((kind) => answerKey(kind, ready));
         setHoles((current) => new Set([...current, ...lost]));

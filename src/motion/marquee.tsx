@@ -58,12 +58,7 @@ interface MarqueeProps {
   target?: string;
   quiet?: boolean;
   className?: string;
-  // Other pictures of the same title (the gallery). While the name develops
-  // they flick past behind it, a few at random, slowing down until the
-  // name's own picture settles in for the dive.
   frames?: readonly string[];
-  // Called once when the name starts to leave (its dive begins to fade), or
-  // at once when it will not play: the page behind it may begin.
   onLift?: () => void;
 }
 
@@ -147,12 +142,6 @@ const MARQUEE_GLOW = `radial-gradient(58% 46% at 50% 48%, color-mix(in oklch, va
 
 const MARQUEE_LIGHT_EVERY = 250;
 
-// The reel behind the name: how many frames pass, the first one's hold and
-// how much each next one lingers longer, how much of each hold dissolves in
-// from the frame before, how long the name's own picture takes to dissolve
-// in at the end, how bright the reel shows (under the name, which stays the
-// brightest thing on screen) and when it gives way in the dive. The name is
-// cut from the same reel, as if it were clear glass over it.
 const REEL_FRAMES = 6;
 
 const REEL_FIRST_HOLD = 0.13;
@@ -165,7 +154,6 @@ const REEL_SETTLE = 0.3;
 
 const REEL_YIELD = [0, 0.12] as const;
 
-// How long the name waits for the reel's frames before it develops anyway.
 const REEL_PATIENCE = 0.7;
 
 const REEL_LEVEL = 0.28;
@@ -186,12 +174,10 @@ const REEL_HOLDS = Array.from(
   (_, k) => REEL_FIRST_HOLD * REEL_SLOWING ** k,
 );
 
-// Seconds into the reel at which each frame gives way to the next.
 const REEL_CUTS = REEL_HOLDS.map((_, i) =>
   REEL_HOLDS.slice(0, i + 1).reduce((sum, hold) => sum + hold, 0),
 );
 
-// The picture file a TMDB URL names, whatever its size.
 const pictureFile = (url: string) => url.slice(url.lastIndexOf("/"));
 
 const MARQUEE_LAYER = Z_INDEX.DOCK_BACKDROP - 20;
@@ -375,8 +361,6 @@ export function Marquee({
   const [card, setCard] = useState<MarqueeCard | null>(null);
   const [held, hold] = useState(false);
   const [gone, setGone] = useState(false);
-  // The name develops once the reel's frames are in (or after a moment), so
-  // the reel plays whole instead of skipping frames still on their way.
   const [reelIn, setReelIn] = useState(() => !frames?.length);
 
   const live = useRef({ gone: false });
@@ -395,11 +379,7 @@ export function Marquee({
   const card$ = useRef<MarqueeCard | null>(null);
   const draw$ = useRef<() => void>(() => {});
   const edges$ = useRef(edges);
-  // The reel's frames, chosen at random once mounted (never on the server,
-  // so the markup matches) and drawn only once decoded.
   const reel$ = useRef<HTMLImageElement[]>([]);
-  // The first slot whose frame was not ready when its turn came: from there
-  // on the name's own picture holds, so no picture shows twice.
   const reelEnd$ = useRef(Infinity);
   const framesKey = frames?.join("|") ?? "";
 
@@ -416,8 +396,6 @@ export function Marquee({
     const chosen = shuffled(unique).slice(0, REEL_FRAMES);
     const images = chosen.map((url) => {
       const image = new Image();
-      // The page's gallery asks for these same pictures with CORS; fetched
-      // without it first, the cached copy would then be refused there.
       image.crossOrigin = "anonymous";
       image.decoding = "async";
       image.src = url;
@@ -471,7 +449,6 @@ export function Marquee({
   useEffect(() => {
     if (!held || skipped) return;
     void values.enter.to(1, { tween: MARQUEE_DIVE_TIME, curve: linear });
-    // The dive is linear in time, so its fade starts at a known moment.
     const at = setTimeout(lift, MARQUEE_FADE[0] * MARQUEE_DIVE_TIME * 1000);
     return () => clearTimeout(at);
   }, [held, skipped, values, lift]);
@@ -722,9 +699,6 @@ export function Marquee({
         sampled = now;
       }
 
-      // The reel: which picture is up, the one it dissolves from, and how far
-      // along. The drift has run since the name began to develop, so it is
-      // the reel's clock; the dive dissolves to the name's own picture.
       const clock = values.drift.current * MARQUEE_DRIFT_TIME;
       const reel = reel$.current;
       const frameAt = (slot: number) => {
@@ -822,8 +796,6 @@ export function Marquee({
       }
 
       c.globalCompositeOperation = "source-over";
-      // The rim stays lit through the dive: a thin line of light running
-      // along each letter's edge as it sweeps past, like a mirror's edge.
       const rim = MARQUEE_RIM_LEVEL;
       if (rim > MARQUEE_UNSEEN) {
         c.save();
@@ -850,16 +822,10 @@ export function Marquee({
         c.globalCompositeOperation = "source-over";
       }
 
-      // The glare: the picture inside the letters flares as they sweep past
-      // (brightness lifts its lights, unlike a flat white wash), then dims
-      // as they leave.
       const level = (1 + glare * MARQUEE_GLARE_GAIN) * (1 - away * (1 - dark));
       const flare =
         Math.abs(level - 1) > 0.005 ? `brightness(${level.toFixed(3)})` : "";
       if (canvas.style.filter !== flare) canvas.style.filter = flare;
-      // The reel behind the name: frames dissolve one into the next, slowing,
-      // until the name's own picture holds. It comes up with the name and
-      // clears as the dive begins.
       const o = out;
       o.setTransform(1, 0, 0, 1, 0, 0);
       o.clearRect(0, 0, canvas.width, canvas.height);
@@ -874,7 +840,6 @@ export function Marquee({
         o.globalAlpha = backing;
         paint(o, from ?? to);
         if (blending) {
-          // Over what is there, so the two pictures share one level.
           o.globalCompositeOperation = "source-atop";
           o.globalAlpha = mix;
           paint(o, to);
@@ -889,8 +854,6 @@ export function Marquee({
         o.setTransform(1, 0, 0, 1, 0, 0);
       }
 
-      // The name over it, kept to the picture's frame, whose foot the edge
-      // fade brings to nothing.
       o.save();
       o.beginPath();
       o.rect(

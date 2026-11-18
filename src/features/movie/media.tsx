@@ -89,7 +89,6 @@ export function MovieBackdropHero({
   frames,
   movie,
 }: {
-  // Gallery backdrops (TMDB paths) for the opening's reel.
   frames?: readonly string[];
   movie: MovieArtwork;
 }) {

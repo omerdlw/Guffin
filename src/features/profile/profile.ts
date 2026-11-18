@@ -514,8 +514,7 @@ export function toActivityItem(
     id: row.id,
     list: slug
       ? { slug, title: textOrNull(payload.title) ?? "a list" }
-      : // A liked list comment records the list's title but not its slug.
-        row.type === "REVIEW_LIKED" && !row.tmdb_id && textOrNull(payload.title)
+      : row.type === "REVIEW_LIKED" && !row.tmdb_id && textOrNull(payload.title)
         ? { slug: "", title: textOrNull(payload.title) ?? "a list" }
         : null,
     listOwner: slug

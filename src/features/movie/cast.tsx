@@ -41,11 +41,8 @@ interface MoviePeopleProps {
 const MOVIE_COMPACT_PEOPLE = 3;
 
 const STACK = {
-  // An open seat's portrait (4:5 of the strip's height) and how many
-  // shares of the strip it takes beside the closed ones.
   "--photo": "40cqi",
   "--grow": "2.86",
-  // The frame's margin around the picture, and a known-for poster's width.
   "--pad": "0.375rem",
   "--poster": "7.5cqi",
 } as CSSProperties;
@@ -90,10 +87,6 @@ function KnownForLeaves({
   ));
 }
 
-// A person in the strip: their portrait, its foot darkened so a name reads
-// on it. Open, their name and role lie across the foot; closed, the name runs up the seat's spine. Under the hand the seat opens, a glass
-// frame opens around the portrait and runs down under it, and the person's
-// known-for posters surface on it.
 function CastCard({
   index,
   knownFor,
@@ -213,10 +206,6 @@ function CastCard({
   );
 }
 
-// The rest of the cast, rolled as an end credit under the strip: one
-// centred line, no boxes. Under the hand a name's portrait opens below it,
-// poster-sized; the line ends on how many more there are, which opens the
-// whole cast.
 function CreditRoll({
   compact,
   first,

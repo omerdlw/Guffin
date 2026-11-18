@@ -32,7 +32,6 @@ export function ShowPageChrome({
   reviews = false,
   show,
 }: {
-  /** The dock's line under the title (years, seasons, network). */
   description: string;
   hasProviders: boolean;
   palette?: AmbientPalette | null;

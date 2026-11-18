@@ -73,9 +73,6 @@ const PROVIDER_SEARCH_URLS: readonly [RegExp, (q: string) => string][] = [
   [/crunchyroll/i, (q) => `https://www.crunchyroll.com/search?q=${q}`],
 ];
 
-// A row is a hairline ring that fills under the pointer, glowing in on the
-// surface stage's `tile` (its arrow with it), as in People you follow. The
-// arrow sits as far from the edge as from the top and foot.
 const PROVIDER_ROW =
   "group/tile flex rounded-card ring-1 ring-edge ring-inset hover:bg-fill has-focus-visible:bg-fill";
 const PROVIDER_TILE_CLASS =
@@ -94,11 +91,6 @@ function providerHref(
   return region.link;
 }
 
-// The region, on the shelf beside the tabs: a pill as tall as the track,
-// showing its flag and code; its menu floats with the full names, always
-// above the shelf (the surface sits in the dock, at the foot of the window,
-// so there is no room below), up to 20rem tall. One label serves both: the
-// trigger hides the name, the menu the code.
 const REGION_SELECT = {
   root: "w-auto shrink-0",
   trigger:

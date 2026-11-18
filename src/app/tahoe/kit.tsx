@@ -11,16 +11,8 @@ import {
 import { TONE } from "@/design/foundations/tones";
 import { cn } from "@/design/ui";
 
-// The lab's own pieces: a tab's page, its sections, the stages specimens sit
-// on and the frosted panels the reference text sits in. Specimens lie on the
-// wallpaper itself (a stage has no material), so page controls stay page
-// controls; reading matter sits on frost, so it reads over any part of the
-// picture.
-
-/** A frosted panel for reading matter. Never holds glass controls. */
 export const PANEL = "liquid liquid-flat liquid-frost rounded-sheet";
 
-/** Re-renders when the page's grade changes, so live readings follow it. */
 function subscribeGrade(notify: () => void) {
   const observer = new MutationObserver(notify);
   observer.observe(document.documentElement, {
@@ -41,7 +33,6 @@ export function useGradeKey(): string {
   );
 }
 
-/** Reads what a colour role resolves to now, as the browser paints it. */
 export function useColour(name: string): string {
   const grade = useGradeKey();
   const [value, setValue] = useState("");
@@ -56,7 +47,6 @@ export function useColour(name: string): string {
   return value;
 }
 
-/** Reads a custom property's text (shadows, filters, sizes). */
 export function useVar(name: string): string {
   const grade = useGradeKey();
   const [value, setValue] = useState("");
@@ -68,14 +58,12 @@ export function useVar(name: string): string {
   return value;
 }
 
-/** Shortens `oklch(0.9852 0.0041 247.8)` / `rgba(…)` for a caption. */
 export function shortColour(value: string): string {
   return value
     .replace(/(\d+\.\d{3})\d+/g, "$1")
     .replace(/^color\(srgb /, "srgb(");
 }
 
-/** Lets a piece of glass be dragged by hand, anywhere over the page. */
 export function useDrag<T extends HTMLElement>() {
   const ref = useRef<T>(null);
   useEffect(() => {
@@ -170,7 +158,6 @@ export function Section({
   );
 }
 
-/** Where specimens lie: the wallpaper itself, framed by a hairline. */
 export function Stage({
   children,
   className,
@@ -210,7 +197,6 @@ export function Code({ children }: { children: ReactNode }) {
   );
 }
 
-/** A specimen's label: the name, and the class or value it stands for. */
 export function Label({
   name,
   value,
@@ -230,7 +216,6 @@ export function Label({
   );
 }
 
-/** A reference table on frost. */
 export function Table({
   head,
   rows,
@@ -278,7 +263,6 @@ export function Table({
   );
 }
 
-/** Bold shapes for glass to bend: refraction reads best on contrast. */
 export const PATTERN_ICONS = [
   "solar:home-2-bold",
   "solar:magnifer-linear",

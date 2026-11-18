@@ -18,8 +18,6 @@ const jump: CarouselGlide = (track, target) => {
   track.scrollLeft = target;
 };
 
-// The page decides how a carousel pans (its stage's `glide`); a page without
-// one jumps.
 function usePan(): CarouselGlide {
   const spec = useGlide();
   const reduced = useHydratedReducedMotion();
@@ -42,8 +40,6 @@ function usePan(): CarouselGlide {
   }, [spec, reduced]);
 }
 
-// Arrows sit on the middle of the pictures, not of the whole slide with its
-// caption. Layout offsets, so an entering slide's scale does not move them.
 function useArrowLine(box: { current: HTMLElement | null }) {
   useEffect(() => {
     const holder = box.current;

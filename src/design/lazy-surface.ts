@@ -10,7 +10,6 @@ import type { Surface } from "./surface-definition";
 
 type Opener = DockActions["openSurface"];
 
-/** A surface whose module loads on first intent (hover, focus, touch) or first open. */
 interface LazySurface<P extends object> {
   preload(): Promise<Surface<P>>;
   open(
@@ -18,11 +17,6 @@ interface LazySurface<P extends object> {
     props?: P,
     overrides?: Partial<SurfaceDescriptor>,
   ): Promise<SurfaceResult>;
-  /**
-   * Whether `component` is this surface's own: tells it apart in the dock's
-   * state without importing it. False until it has loaded (nothing of it can
-   * be open before).
-   */
   shows(component: unknown): boolean;
 }
 
@@ -67,10 +61,6 @@ const INTENT_EVENTS = [
   "focusin",
 ] as const;
 
-/**
- * Preloads `surfaces` on the first interaction with `target`; returns a cancel function.
- * Pointer movement, a touch or a key always comes before the click that opens a surface.
- */
 export function preloadOnIntent(
   surfaces: readonly { preload(): Promise<unknown> }[],
   target: EventTarget,
@@ -89,7 +79,6 @@ export function preloadOnIntent(
   return stop;
 }
 
-/** Loads these lazy surfaces as soon as the person starts interacting with the page. */
 export function useSurfacePreload(
   ...surfaces: Pick<LazySurface<never>, "preload">[]
 ): void {
@@ -109,12 +98,6 @@ function whenIdle(run: () => void): () => void {
   return () => clearTimeout(id);
 }
 
-/**
- * True from an idle moment after the person first interacts with the page.
- * A stage's stylesheet waits for it before it goes in: a sheet with keyframes
- * restyles every animated element on the page (~15ms on home), so it goes in
- * ahead of time instead of in the frame its surface opens.
- */
 export function useAheadOfOpen(): boolean {
   const [ahead, setAhead] = useState(false);
   useEffect(() => {

@@ -61,16 +61,12 @@ function dayOf(value: string) {
 }
 
 interface MonthLinks {
-  /** The month on show: where an unavailable step points. */
   current: string;
   latest: string | null;
   next: string | null;
   previous: string | null;
 }
 
-// Every control is always a DockLink, only disabled when it leads nowhere: a
-// link that turned into a span (and back) would remount, and the action
-// would rise into the dock again on each month.
 function Step({
   current,
   direction,

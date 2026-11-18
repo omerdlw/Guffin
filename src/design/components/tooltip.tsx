@@ -32,12 +32,6 @@ interface TooltipProps {
   "data-cursor-owned"?: string;
   position?: "top" | "right" | "bottom" | "left";
   text: ReactNode;
-  /**
-   * Renders the trigger span here, on the client. Server components must use
-   * this instead of passing their own element: during SSR such a child can be
-   * a lazy reference, so the UI Tooltip wraps it in an extra span and
-   * hydration mismatches.
-   */
   triggerClassName?: string;
 }
 

@@ -28,7 +28,6 @@ import type {
 } from "./person";
 import { PersonMediumControl, usePersonMedium, usePersonView } from "./views";
 
-/** Document top from the offset chain: unlike a bounding box, untouched by transforms in flight. */
 function layoutTop(element: HTMLElement): number {
   let top = 0;
   let node: HTMLElement | null = element;

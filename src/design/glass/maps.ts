@@ -1,30 +1,12 @@
-// The lens maps a glass surface is drawn with, from the optics (optics.ts) and
-// its material (materials.ts). Pure pixels: no canvas, no DOM.
-//
-// No map depends on the surface's size, only its corner radius and bezel:
-// along a straight side the rim is the same everywhere. So each is drawn
-// once, for a small square with the same corners, and laid out as nine
-// slices (four corners, four stretched sides, an empty middle). A surface
-// that resizes keeps the exact lens on every frame.
-
 import { rimShift } from "./optics";
 import { pngDataUrl } from "./png";
 
-/** Points read across each pixel of a mask, per axis, on small masks… */
 const SUPERSAMPLE = 4;
-/** …and on large ones, where the cost grows with the square. */
 const SUPERSAMPLE_LARGE = 2;
 const LARGE_MASK = 96;
 
-/** A map's pixels: `size` × `size`, RGBA, every pixel opaque. */
 type Bitmap = { size: number; data: Uint8ClampedArray };
 
-/**
- * Measures a rounded rectangle at a point (css px from its centre) into
- * `out`: the depth inside the outline (≤ 0 outside) and the outward normal
- * of the nearest edge. Written in place: it runs for every sample of every
- * pixel of every map.
- */
 type Probe = (px: number, py: number, out: Float64Array) => void;
 
 function prober(width: number, height: number, radius: number): Probe {
@@ -56,25 +38,8 @@ function prober(width: number, height: number, radius: number): Probe {
   };
 }
 
-/**
- * The square every map is drawn for: corners of `slice` css px with a 2px
- * straight run between them, so each side's run is the rim as it is along
- * any straight side, however long.
- */
 const sideOf = (slice: number) => slice * 2 + 2;
 
-/**
- * A mask around the outline of the square, at `density`. `shade` gets the
- * depth inside the outline (css px) and the outward normal of the nearest
- * edge, and returns the value there (0–1). Drawn as grey on black (the
- * value in the colour, full alpha): slices of it laid over one another then
- * replace each other where they meet instead of adding up into a bright
- * seam.
- *
- * Each pixel is the average of several points across it: a line about a
- * pixel wide, read only at pixel centres, flickers along a curve and the
- * outline reads as steps.
- */
 function drawMask(
   slice: number,
   radius: number,
@@ -101,7 +66,6 @@ function drawMask(
           sum += Math.min(1, Math.max(0, shade(at[0]!, at[1]!, at[2]!)));
         }
       }
-      // Float32, as the mask was always kept, so the grey rounds the same.
       const value = Math.round(Math.fround(sum / (samples * samples)) * 255);
       const index = (y * size + x) * 4;
       data[index] = value;
@@ -113,33 +77,13 @@ function drawMask(
   return { size, data };
 }
 
-/**
- * Where light caught in the bezel comes back out: a band a few px deep that
- * the lens fills with the scene behind, brightened, so the edge glows in the
- * colours it sits on. Lit as iOS lights its rim: a key light from the top
- * left and a fill from the bottom right, each across ±90° of the outline's
- * normal, so the straight sides glow, the top-left and bottom-right corners
- * most, and the other two corners go dark. Grey on black (see `drawMask`).
- */
 export const drawEdgeLight = (slice: number, radius: number, density: number) =>
-  drawMask(
-    slice,
-    radius,
-    density,
-    (depth, nx, ny) => {
-      const band = Math.exp(-depth / 0.9) + 0.25 * Math.exp(-depth / 2.6);
-      // |n · (−1, −1)/√2|: the key (top left) and the fill (bottom right).
-      const lit = Math.abs(nx + ny) / Math.SQRT2;
-      return band * lit;
-    },
-  );
+  drawMask(slice, radius, density, (depth, nx, ny) => {
+    const band = Math.exp(-depth / 0.9) + 0.25 * Math.exp(-depth / 2.6);
+    const lit = Math.abs(nx + ny) / Math.SQRT2;
+    return band * lit;
+  });
 
-/**
- * The bend: per pixel, where in the scene the glass shows (as an offset
- * inward along the edge's normal, a share of the full pull), encoded in red
- * and green around 128. The engine sets the pull itself as the filter's
- * scale, so one map serves every material and strength.
- */
 export function drawRefraction(
   slice: number,
   radius: number,
@@ -159,11 +103,8 @@ export function drawRefraction(
       let sy = 0;
       probe((x + 0.5) / density - side / 2, py, at);
       const depth = at[0]!;
-      // The outline's own pixel (centre just outside) bends as the rim does.
       if (depth > -0.5 / density && depth < bezel) {
         const magnitude = rimShift(Math.max(depth, 0) / bezel);
-        // Sample inward of the pixel: the rim shows what lies further in.
-        // Float32, as the shift was always kept, so the bytes round the same.
         sx = Math.fround(-at[1]! * magnitude);
         sy = Math.fround(-at[2]! * magnitude);
       }
@@ -176,12 +117,10 @@ export function drawRefraction(
   return { size, data };
 }
 
-/** The nine slices' order: four sides first, the corners laid over them. */
 export const PIECES = ["t", "b", "l", "r", "tl", "tr", "bl", "br"] as const;
 export type Piece = (typeof PIECES)[number];
 export type Pieces = Record<Piece, string>;
 
-/** Cuts a map drawn for the square into its eight rim pieces. */
 function cut({ size, data }: Bitmap, slice: number): Pieces {
   const k = size / sideOf(slice);
   const corner = Math.round(slice * k);
@@ -210,12 +149,6 @@ function cut({ size, data }: Bitmap, slice: number): Pieces {
   return pieces;
 }
 
-/**
- * Both lens maps in one set of slices: the bend in red and green (all the
- * displacement reads) and the edge light in blue. The filter then lays out
- * eight slices instead of sixteen; on the GPU every slice is a pass on
- * every frame the scene behind moves.
- */
 export function fold(
   refraction: Bitmap,
   edge: Bitmap | null,
@@ -229,10 +162,6 @@ export function fold(
   return cut(refraction, slice);
 }
 
-/**
- * Where each piece goes on a `width` × `height` surface. The sides reach 1px
- * under the corners, so no seam opens where they meet at a fractional size.
- */
 export function layout(slice: number, width: number, height: number) {
   const s = slice;
   const across = Math.max(width - s * 2 + 2, 0);

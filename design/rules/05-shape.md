@@ -96,12 +96,12 @@ CSS.
 
 Tailwind's shadows are switched off. Depth has these cues and nothing else:
 
-| Cue               | What it draws                                                 | On                                                                             |
-| ----------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| Glass             | The liquid material: tint, contour, bend, frost (section 10) | Everything that floats                                                         |
-| Ring              | `ring-1 ring-inset ring-edge*`                                | Fills, fields, buttons                                                         |
-| `lift`            | A layer's fall onto paper, tinted by the page                 | Floating layers (`--lift` also feeds `--liquid-shadow`)                        |
-| `--liquid-shadow` | `--lift`; in `.on-photo` a tight and a long black shadow      | Layers that are not `liquid-flat`                                              |
+| Cue               | What it draws                                                | On                                                      |
+| ----------------- | ------------------------------------------------------------ | ------------------------------------------------------- |
+| Glass             | The liquid material: tint, contour, bend, frost (section 10) | Everything that floats                                  |
+| Ring              | `ring-1 ring-inset ring-edge*`                               | Fills, fields, buttons                                  |
+| `lift`            | A layer's fall onto paper, tinted by the page                | Floating layers (`--lift` also feeds `--liquid-shadow`) |
+| `--liquid-shadow` | `--lift`; in `.on-photo` a tight and a long black shadow     | Layers that are not `liquid-flat`                       |
 
 Cards, tiles, pictures and marks never lift. Over a picture (`.on-photo`)
 `lift` is none: a layer is told from it by its glass, contour and frost.

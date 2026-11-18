@@ -56,11 +56,11 @@ text budgets all stretch together. They touch entrances and leaves only;
 touch, drift and follow keep their own time. A page writes its moves on the
 φ ladder and sets its pace here:
 
-| Stages                                         | `tempo`    | `reach` | Feel                                                                        |
-| ---------------------------------------------- | ---------- | ------- | --------------------------------------------------------------------------- |
-| home, account, legal, directors, salon         | 1.272 (√φ) | 1.618 φ | Cinematic: half a beat slower, one Fibonacci step farther (8 → 13, 13 → 21) |
-| detail                                         | 1          | 1       | Quick: the hero in about a second, reveals in ~0.4–0.6s over 8–21px          |
-| surface, search                                | 1.236      | 1.272   | The hand's pace                                                             |
+| Stages                                 | `tempo`    | `reach` | Feel                                                                        |
+| -------------------------------------- | ---------- | ------- | --------------------------------------------------------------------------- |
+| home, account, legal, directors, salon | 1.272 (√φ) | 1.618 φ | Cinematic: half a beat slower, one Fibonacci step farther (8 → 13, 13 → 21) |
+| detail                                 | 1          | 1       | Quick: the hero in about a second, reveals in ~0.4–0.6s over 8–21px         |
+| surface, search                        | 1.236      | 1.272   | The hand's pace                                                             |
 
 Modules (modal, context menu, toast) are timed in `design/theme/*.ts`: their
 entrances sit one beat slower than they did (modal bloom `beat(0)`, menu

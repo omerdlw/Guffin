@@ -221,9 +221,6 @@ const FULL_DATE_FORMAT = new Intl.DateTimeFormat("en-US", {
   year: "numeric",
 });
 
-// Relative labels depend on the clock, which differs between the server render
-// and hydration. Hydration renders the absolute date (server snapshot null),
-// then the client switches to the live clock and refreshes it every minute.
 let clock: number | null = null;
 
 function subscribeClock(change: () => void) {
@@ -309,7 +306,6 @@ function ActivityRow({
           radius={RADIUS.thumb}
         />
       ) : (
-        // Keeps the text column on one line with the rows that carry a poster.
         <span aria-hidden="true" className="w-fib-6 shrink-0" />
       )}
 

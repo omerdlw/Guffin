@@ -153,9 +153,6 @@ function groupAwards(
   );
 }
 
-// The board: one row per craft (a title's page) or per title (a person's),
-// each row a strip of the organizations that named it, the ceremonies of
-// the season first. A filled tag is a win, an outlined one a nomination.
 interface BoardCell {
   count: number;
   key: string;
@@ -290,8 +287,6 @@ function ProjectName({
   );
 }
 
-// Wins out of every nomination (a win was a nomination first), drawn as one
-// line under the count.
 function Summary({ awards }: { awards: Awards }) {
   const total = awards.wins + awards.nominations;
   const organizations = awards.organizations.length;
@@ -734,7 +729,6 @@ export function AwardsView({
     return <AwardsNotice>No awards or nominations on record</AwardsNotice>;
   }
 
-  // A person's board reads by title; a title's by craft.
   const showTitles = countAwardTitles(items) > 1;
   const label = (key: AwardsGrouping) =>
     key === "board"

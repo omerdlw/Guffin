@@ -454,7 +454,6 @@ export function PosterStack({
   paths: readonly (string | null)[];
 }): JSX.Element {
   return (
-    // Rounded like its posters, so the cursor's pane reads their corner.
     <div
       aria-hidden="true"
       className={cn("flex w-full rounded-thumb", className)}

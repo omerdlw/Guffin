@@ -58,16 +58,16 @@ switch, a list's lock) uses `ActionLabel` / `ActionIcon` too.
 
 ### 4.2 States
 
-| State    | Treatment                                                                                    |
-| -------- | -------------------------------------------------------------------------------------------- |
-| Rest     | Text `ink-body` (never dimmer for a control); surface `fill`, ring `edge`                    |
-| Hover    | Text `ink`; surface `fill-hover`, ring `edge-hover`                                          |
-| Focus    | The hover treatment via `focus-visible` (ring at `edge-focus`), plus the global outline      |
-| Active   | The active fill                                                                              |
-| Chosen   | `TONE.chosen`: a white sheet on an ink hairline; in `.on-photo` grade 15% fill, 25% ring     |
-| Disabled | `STATE.disabled`: `opacity-50`, no pointer, no press                                         |
-| Busy     | `STATE.busy`: keeps its colour, wait cursor, the loader over the label                       |
-| Submit   | `<Button intent="primary">`. Grade marks a chosen state, never a submit                      |
+| State    | Treatment                                                                                |
+| -------- | ---------------------------------------------------------------------------------------- |
+| Rest     | Text `ink-body` (never dimmer for a control); surface `fill`, ring `edge`                |
+| Hover    | Text `ink`; surface `fill-hover`, ring `edge-hover`                                      |
+| Focus    | The hover treatment via `focus-visible` (ring at `edge-focus`), plus the global outline  |
+| Active   | The active fill                                                                          |
+| Chosen   | `TONE.chosen`: a white sheet on an ink hairline; in `.on-photo` grade 15% fill, 25% ring |
+| Disabled | `STATE.disabled`: `opacity-50`, no pointer, no press                                     |
+| Busy     | `STATE.busy`: keeps its colour, wait cursor, the loader over the label                   |
+| Submit   | `<Button intent="primary">`. Grade marks a chosen state, never a submit                  |
 
 Each row is one tone in `src/design/foundations/tones.ts` (`TONES.neutral`,
 `outline`, `chosen`, `primary`, `danger`, `armed`, `glass`, `ghost`): a

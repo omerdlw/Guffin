@@ -156,7 +156,6 @@ export function daysUntil(
   return Math.round((Date.parse(date) - Date.parse(today)) / 86_400_000);
 }
 
-/** The dock's line under a show's title. */
 function describeShow(
   show: Pick<
     ShowDetails,
@@ -180,7 +179,6 @@ function describeShow(
     .join(" · ");
 }
 
-/** What the page chrome (dock card, ambient light) is handed of a show. */
 export const showChrome = (show: ShowDetails) => ({
   description: describeShow(show),
   hasProviders: Object.keys(show.watchProviders).length > 0,

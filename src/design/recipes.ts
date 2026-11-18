@@ -1,9 +1,6 @@
 import { defineRecipe } from "@omerdlw/base-framework/recipes";
 import { LAYER, STATE, TONES } from "./foundations/tones";
 
-// A button is glass on the page (liquid.css `.liquid-control`): the neutral
-// tone fills it, the outline tone leaves it clear until it is touched. The
-// other tones keep their fill; every button takes the touch (liquid-touch.ts).
 const BUTTON_TONES = {
   ...TONES,
   neutral: `${TONES.neutral} liquid-control`,
@@ -266,8 +263,6 @@ const selectMenu = defineRecipe({
 
 const selectOption = defineRecipe({
   base: [
-    // The chosen option is marked by a check in a gutter before every
-    // label (iOS 26's menus), not by weight: the labels line up either way.
     "relative isolate flex cursor-pointer items-center justify-between gap-2.5 text-ink-body select-none",
     "data-[highlighted]:text-ink aria-selected:text-ink aria-disabled:cursor-not-allowed aria-disabled:opacity-50",
   ],

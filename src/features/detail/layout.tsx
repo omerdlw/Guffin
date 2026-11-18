@@ -160,7 +160,6 @@ function DetailFacts({ facts }: { facts: readonly Fact[] }) {
   );
 }
 
-/** The film's or show's keywords, as quiet chips under its synopsis. */
 export function DetailTags({
   tags,
 }: {

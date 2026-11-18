@@ -16,10 +16,6 @@ import {
   tween,
 } from "./motion";
 
-// A toast rises 13px out from under the dock and settles on a critically
-// damped spring while its glass (the toast itself) comes up; it leaves by
-// lifting a little and going. One toast at a time: the next waits for it.
-
 const notificationMotion: NotificationMotion = {
   transition: {
     transform: spring(beat(0)),

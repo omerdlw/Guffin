@@ -182,7 +182,6 @@ export function Intermission({
   );
 }
 
-// The icon is dark, so it takes the light end of the picture's vivid ramp.
 const ICON_TONE = 70;
 
 const iconFor = (c: string) => {
@@ -218,9 +217,7 @@ function paint(colour: string | null) {
 export function TintedFavicon() {
   const { palette } = useAmbient();
   const colour =
-    palette && !palette.neutral
-      ? palette.roles.vibrant.ramp[ICON_TONE]
-      : null;
+    palette && !palette.neutral ? palette.roles.vibrant.ramp[ICON_TONE] : null;
 
   useEffect(() => paint(colour), [colour]);
   useEffect(() => () => paint(null), []);
