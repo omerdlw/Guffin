@@ -1,5 +1,6 @@
-import type { Database } from "@/lib/supabase/database.types";
 import { artworkOf } from "@/features/movie/movie";
+import type { SnakeRow } from "@/lib/db/pick";
+import type { accountShowProgress } from "@/lib/db/schema";
 import type { SeasonSummary, ShowDetails } from "@/lib/tmdb/shared";
 
 export type ShowStatus = (typeof SHOW_STATUSES)[number];
@@ -66,7 +67,15 @@ const EPISODE_DATE_FORMAT = new Intl.DateTimeFormat("en-US", {
   year: "numeric",
 });
 
-type ProgressRow = Database["public"]["Tables"]["account_show_progress"]["Row"];
+type ProgressRow = Pick<
+  SnakeRow<typeof accountShowProgress>,
+  | "aired_episodes"
+  | "last_episode"
+  | "last_season"
+  | "last_watched_at"
+  | "status"
+  | "watched_episodes"
+>;
 
 export function isShowStatus(value: unknown): value is ShowStatus {
   return (SHOW_STATUSES as readonly unknown[]).includes(value);

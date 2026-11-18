@@ -13,14 +13,12 @@ import { SurfacePart, SurfaceStage } from "@/design/components/surface";
 import { useSurfacePreload } from "@/design/lazy-surface";
 import { defineSurface } from "@/design/surface-definition";
 import {
-  requestEmailAuth,
+  requestEmailCode,
   signInSeedAccount,
   signInWithOAuth,
   signInWithPasskey,
 } from "./client";
 import { getAuthErrorMessage } from "./errors";
-import { SupabaseSetupNotice } from "./notice";
-import { useAuth } from "./provider";
 import {
   getAuthCallbackUrl,
   OAUTH_PROVIDERS,
@@ -126,7 +124,6 @@ function MethodButton({
 }
 
 function SignInSurface({ close, data = {} }: SignInSurfaceProps) {
-  const auth = useAuth();
   const { openSurface } = useDockActions();
   const toast = useToast();
   const [active, setActive] = useState<SignInMethod | null>(null);
@@ -141,7 +138,6 @@ function SignInSurface({ close, data = {} }: SignInSurfaceProps) {
   );
 
   async function startSignIn(method: OAuthProvider | "passkey") {
-    if (!auth.client) return;
     setActive(method);
     showSigningIn(
       method === "passkey"
@@ -152,13 +148,12 @@ function SignInSurface({ close, data = {} }: SignInSurfaceProps) {
     let redirecting = false;
     try {
       if (method === "passkey") {
-        await signInWithPasskey(auth.client);
+        await signInWithPasskey();
         close?.({ success: true });
         window.location.replace(postAuthRedirect);
         return;
       }
       await signInWithOAuth(
-        auth.client,
         method,
         getAuthCallbackUrl(postAuthRedirect),
       );
@@ -189,8 +184,6 @@ function SignInSurface({ close, data = {} }: SignInSurfaceProps) {
     }
     void startSignIn(method);
   }
-
-  if (!auth.isConfigured) return <SupabaseSetupNotice />;
 
   return (
     <SurfaceStage className="flex flex-col gap-2.5">
@@ -245,7 +238,6 @@ function SignInSurface({ close, data = {} }: SignInSurfaceProps) {
 }
 
 function EmailSignInSurface({ data = {} }: SignInSurfaceProps) {
-  const auth = useAuth();
   const { openSurface } = useDockActions();
   useSurfacePreload(verificationSurface);
   const toast = useToast();
@@ -262,11 +254,7 @@ function EmailSignInSurface({ data = {} }: SignInSurfaceProps) {
           window.location.replace(postAuthRedirect);
           return { email: target, signedIn: true, success: true };
         }
-        if (!auth.client) throw new Error("Authentication is not configured");
-        await requestEmailAuth(auth.client, {
-          createUser: true,
-          email: target,
-        });
+        await requestEmailCode(target);
         return { email: target, signedIn: false, success: true };
       } catch (error) {
         return {

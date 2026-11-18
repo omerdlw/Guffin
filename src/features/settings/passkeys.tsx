@@ -6,7 +6,6 @@ import {
   HighlightGroup,
   useHighlight,
 } from "@omerdlw/base-framework/ui";
-import type { PasskeyListItem } from "@supabase/supabase-js";
 import { Icon } from "@/design/components/icon";
 import { Input } from "@/design/components/input";
 import {
@@ -19,10 +18,10 @@ import {
 import { cn } from "@/design/ui";
 import {
   deletePasskey,
+  type Passkey,
   registerPasskey,
   renamePasskey,
 } from "@/features/auth/client";
-import { useAuth } from "@/features/auth/provider";
 import { Mark, PanelNotice, PanelSkeleton, useSecurityTask } from "./panel";
 import { INPUT_CLASS } from "./settings";
 
@@ -84,10 +83,9 @@ export function PasskeysPanel({
   reload,
 }: {
   loading: boolean;
-  passkeys: PasskeyListItem[];
+  passkeys: Passkey[];
   reload: () => Promise<void>;
 }) {
-  const { client } = useAuth();
   const run = useSecurityTask(reload);
   const [pending, setPending] = useState(false);
   const [editing, setEditing] = useState<{ id: string; name: string } | null>(
@@ -102,7 +100,7 @@ export function PasskeysPanel({
         <PanelNotice icon="solar:key-bold" text="No passkeys registered" />
       ) : (
         passkeys.map((passkey) => {
-          const name = passkey.friendly_name || "Passkey";
+          const name = passkey.name || "Passkey";
           if (editing?.id === passkey.id) {
             return (
               <div className={SURFACE_STACK} key={passkey.id}>
@@ -127,14 +125,12 @@ export function PasskeysPanel({
                   <Button
                     intent="primary"
                     width="fill"
-                    disabled={pending || !editing.name.trim() || !client}
+                    disabled={pending || !editing.name.trim()}
                     loading={pending}
                     onClick={() =>
-                      client &&
                       run(
                         async () => {
                           await renamePasskey(
-                            client,
                             passkey.id,
                             editing.name.trim(),
                           );
@@ -154,14 +150,13 @@ export function PasskeysPanel({
           }
           return (
             <PasskeyRow
-              disabled={pending || !client}
+              disabled={pending }
               key={passkey.id}
               name={name}
               onEdit={() => setEditing({ id: passkey.id, name })}
               onRemove={() =>
-                client &&
                 run(
-                  () => deletePasskey(client, passkey.id),
+                  () => deletePasskey(passkey.id),
                   setPending,
                   "Passkey removed",
                   "Couldn't remove this passkey",
@@ -175,12 +170,11 @@ export function PasskeysPanel({
       <Button
         intent="primary"
         width="full"
-        disabled={pending || !client || editing !== null}
+        disabled={pending || editing !== null}
         loading={pending && editing === null}
         onClick={() =>
-          client &&
           run(
-            () => registerPasskey(client),
+            () => registerPasskey(),
             setPending,
             "Passkey added",
             "Couldn't add a passkey",

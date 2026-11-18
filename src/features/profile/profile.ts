@@ -1,8 +1,7 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { TONE } from "@/design/foundations/tones";
 import type { PublicAccount } from "@/features/account/account";
 import type { SearchParams } from "@/lib/http";
-import type { Database } from "@/lib/supabase/database.types";
+import type { Session } from "@/lib/db/client";
 import {
   type MediaType,
   tmdbImageSrcSet,
@@ -195,7 +194,7 @@ export type TileSource =
 
 export type AccountData = PublicAccount;
 
-export type ProfileClient = SupabaseClient<Database>;
+export type ProfileClient = Session;
 
 export type LibraryCounts = Record<
   "diary" | "likes" | "lists" | "reviews" | "watched" | "watchlist",

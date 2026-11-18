@@ -97,7 +97,7 @@ export const TERMS: LegalDocument = {
     {
       blocks: [
         paragraph(
-          `Guffin depends on outside providers: Supabase for authentication, the database and file storage, Google or GitHub for optional sign-in, an email provider for account emails, and TMDB for ${titleData}, images and watch-provider availability. They operate under their own terms and privacy policies.`,
+          `Guffin depends on outside providers: Neon for the database, Google, GitHub or X for optional sign-in, an email provider for account emails, and TMDB for ${titleData}, images and watch-provider availability. They operate under their own terms and privacy policies.`,
         ),
         paragraph(
           "That data may change, be incomplete or be removed by those providers. Guffin is not responsible for third-party outages or inaccuracies outside its control. This product uses the TMDB API but is not endorsed or certified by TMDB.",
@@ -224,8 +224,8 @@ export const PRIVACY: LegalDocument = {
           "Guffin does not sell your personal information. It is processed by providers that help run the service:",
         ),
         bulletList(
-          "**Supabase** for authentication, database and file storage, and realtime features.",
-          "**Google** or **GitHub** when you choose those sign-in methods.",
+          "**Neon** for the database that stores your account, sign-in sessions and activity.",
+          "**Google**, **GitHub** or **X** when you choose those sign-in methods.",
           "**An email delivery provider** for verification and account-security emails.",
           "**Upstash** for short-lived rate-limiting counters tied to your address.",
           "**Hosting and infrastructure providers** that deliver the app and may process standard request metadata and logs.",

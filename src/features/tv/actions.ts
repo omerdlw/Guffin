@@ -1,10 +1,14 @@
 "use server";
 import "server-only";
 
+import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { fail, ok } from "@/features/auth/mutation";
 import { mutate } from "@/features/auth/server";
 import { ensureCatalogEntry } from "@/features/catalog/server";
+import { pgError, type Session } from "@/lib/db/client";
+import { pick } from "@/lib/db/pick";
+import { accountShowProgress } from "@/lib/db/schema";
 import { tvHref } from "@/lib/project";
 import { getSeasonDetails } from "@/lib/tmdb/server";
 import { isTmdbId } from "@/lib/tmdb/transport";
@@ -54,8 +58,37 @@ function isEpisodeList(value: unknown): value is number[] {
   );
 }
 
-function rpcFailure(error: { message?: string }, fallback: string) {
-  return fail(trackingErrorMessage(error.message) ?? fallback);
+function rpcFailure(error: unknown, fallback: string) {
+  const known = trackingErrorMessage(pgError(error)?.message);
+  if (!known && !pgError(error)) throw error;
+  return fail(known ?? fallback);
+}
+
+async function readProgress(
+  session: Session,
+  userId: string,
+  showId: number,
+): Promise<ShowProgress | null> {
+  const [row] = await session.db
+    .select(
+      pick(accountShowProgress, [
+        "status",
+        "watched_episodes",
+        "aired_episodes",
+        "last_season",
+        "last_episode",
+        "last_watched_at",
+      ]),
+    )
+    .from(accountShowProgress)
+    .where(
+      and(
+        eq(accountShowProgress.accountId, userId),
+        eq(accountShowProgress.showId, showId),
+      ),
+    )
+    .limit(1);
+  return toShowProgress(row ?? null);
 }
 
 export async function setEpisodesWatchedAction(
@@ -75,7 +108,7 @@ export async function setEpisodesWatchedAction(
       scope: "tv-progress",
       perMinute: 240,
     },
-    async ({ client }) => {
+    async ({ session }) => {
       if (!(await ensureCatalogEntry("tv", showId))) {
         return fail("Could not load this show, try again");
       }
@@ -88,15 +121,19 @@ export async function setEpisodesWatchedAction(
       );
       const aired = season > 0 ? await getAiredEpisodes(showId) : null;
 
-      const { data, error } = await client.rpc("set_episodes_watched", {
-        p_show_id: showId,
-        p_season: season,
-        p_episodes: episodes,
-        p_watched: watched,
-        p_aired_count: aired ? aired.filter((e) => e.s > 0).length : null,
-        p_runtimes: episodes.map((n) => byNumber.get(n)?.runtimeMinutes ?? 0),
-      });
-      if (error) return rpcFailure(error, "Could not update your progress");
+      let data;
+      try {
+        data = await session.call("set_episodes_watched", {
+          p_aired_count: aired ? aired.filter((e) => e.s > 0).length : null,
+          p_episodes: episodes,
+          p_runtimes: episodes.map((n) => byNumber.get(n)?.runtimeMinutes ?? 0),
+          p_season: season,
+          p_show_id: showId,
+          p_watched: watched,
+        });
+      } catch (error) {
+        return rpcFailure(error, "Could not update your progress");
+      }
 
       revalidatePath(tvHref(showId));
       return ok({ progress: toShowProgress(data) });
@@ -134,29 +171,26 @@ export async function setShowStatusAction(
       scope: "tv-progress",
       perMinute: 60,
     },
-    async ({ client }) => {
+    async ({ session, userId }) => {
       if (status !== null && !(await ensureCatalogEntry("tv", showId))) {
         return fail("Could not load this show, try again");
       }
 
-      if (status === "completed") {
-        await setShowCompleted(client, showId, true);
-      } else {
-        const { error } = await client.rpc("set_show_status", {
-          p_show_id: showId,
-          p_status: status,
-        });
-        if (error) return rpcFailure(error, "Could not update this show");
+      try {
+        if (status === "completed") {
+          await setShowCompleted(session, userId, showId, true);
+        } else {
+          await session.call("set_show_status", {
+            p_show_id: showId,
+            p_status: status,
+          });
+        }
+      } catch (error) {
+        return rpcFailure(error, "Could not update this show");
       }
 
-      const { data } = await client
-        .from("account_show_progress")
-        .select("*")
-        .eq("show_id", showId)
-        .maybeSingle();
-
       revalidatePath(tvHref(showId));
-      return ok({ progress: toShowProgress(data) });
+      return ok({ progress: await readProgress(session, userId, showId) });
     },
   );
 }
@@ -187,7 +221,7 @@ export async function rateEpisodeAction(
       scope: "tv-progress",
       perMinute: 240,
     },
-    async ({ client }) => {
+    async ({ session }) => {
       if (!(await ensureCatalogEntry("tv", showId))) {
         return fail("Could not load this show, try again");
       }
@@ -197,14 +231,17 @@ export async function rateEpisodeAction(
             ?.runtimeMinutes ?? null)
         : null;
 
-      const { error } = await client.rpc("set_episode_rating", {
-        p_show_id: showId,
-        p_season: season,
-        p_episode: episode,
-        p_rating: rating,
-        p_runtime: runtime,
-      });
-      if (error) return rpcFailure(error, "Could not save your rating");
+      try {
+        await session.call("set_episode_rating", {
+          p_episode: episode,
+          p_rating: rating,
+          p_runtime: runtime,
+          p_season: season,
+          p_show_id: showId,
+        });
+      } catch (error) {
+        return rpcFailure(error, "Could not save your rating");
+      }
 
       revalidatePath(tvHref(showId));
       return ok();

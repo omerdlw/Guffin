@@ -1,9 +1,12 @@
 import "server-only";
 
 import { report } from "@omerdlw/base-framework/utils";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { and, desc, eq, exists, isNotNull } from "drizzle-orm";
+import { getViewerSession } from "@/features/auth/server";
+import type { Session } from "@/lib/db/client";
+import { accounts, listItems, lists } from "@/lib/db/schema";
 import type { MediaType } from "@/lib/tmdb/shared";
-import type { ListsClient, PopularList } from "./list";
+import type { PopularList } from "./list";
 
 interface PopularListRow {
   description: string | null;
@@ -48,7 +51,7 @@ function toPopularList(
 }
 
 export async function readListPreviews(
-  client: ListsClient,
+  session: Session,
   listIds: readonly string[],
   limit: number,
   { dropEmpty = false }: { dropEmpty?: boolean } = {},
@@ -59,14 +62,13 @@ export async function readListPreviews(
   }
   const results = await Promise.all(
     batches.map((batch) =>
-      client.rpc("get_list_previews", { p_limit: limit, p_list_ids: batch }),
+      session.call("get_list_previews", { p_limit: limit, p_list_ids: batch }),
     ),
   );
 
   const previews = new Map<string, (string | null)[]>();
-  for (const { data, error } of results) {
-    if (error) throw error;
-    for (const item of data ?? []) {
+  for (const data of results) {
+    for (const item of data) {
       if (dropEmpty && !item.poster_path) continue;
       const posters = previews.get(item.list_id) ?? [];
       posters.push(item.poster_path);
@@ -81,26 +83,48 @@ export async function getMoviePopularLists(
   mediaType: MediaType = "movie",
 ): Promise<PopularList[]> {
   try {
-    const client = await createServerSupabaseClient();
-    const { data, error } = await client
-      .from("lists")
-      .select(
-        "id, slug, title, description, items_count, likes_count, reviews_count, owner:accounts!lists_account_id_fkey!inner(username, display_name, avatar_url), list_items!inner(tmdb_id)",
+    const session = await getViewerSession();
+    const rows: PopularListRow[] = await session.db
+      .select({
+        description: lists.description,
+        id: lists.id,
+        items_count: lists.itemsCount,
+        likes_count: lists.likesCount,
+        owner: {
+          avatar_url: accounts.avatarUrl,
+          display_name: accounts.displayName,
+          username: accounts.username,
+        },
+        reviews_count: lists.reviewsCount,
+        slug: lists.slug,
+        title: lists.title,
+      })
+      .from(lists)
+      .innerJoin(accounts, eq(accounts.id, lists.accountId))
+      .where(
+        and(
+          eq(lists.isPrivate, false),
+          isNotNull(accounts.username),
+          exists(
+            session.db
+              .select({ one: listItems.listId })
+              .from(listItems)
+              .where(
+                and(
+                  eq(listItems.listId, lists.id),
+                  eq(listItems.tmdbId, tmdbId),
+                  eq(listItems.mediaType, mediaType),
+                ),
+              ),
+          ),
+        ),
       )
-      .eq("list_items.tmdb_id", tmdbId)
-      .eq("list_items.media_type", mediaType)
-      .eq("is_private", false)
-      .order("likes_count", { ascending: false })
-      .order("items_count", { ascending: false })
+      .orderBy(desc(lists.likesCount), desc(lists.itemsCount))
       .limit(POPULAR_LISTS_SHOWN);
-    if (error) throw error;
-    const rows = ((data ?? []) as unknown as PopularListRow[]).filter(
-      (row) => row.owner?.username,
-    );
     if (rows.length === 0) return [];
 
     const previews = await readListPreviews(
-      client,
+      session,
       rows.map((row) => row.id),
       POPULAR_PREVIEW_POSTERS,
     );

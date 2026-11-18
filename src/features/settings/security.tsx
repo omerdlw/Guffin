@@ -16,10 +16,9 @@ import {
 } from "@/design/components/surface-classes";
 import { useSurfacePreload } from "@/design/lazy-surface";
 import { useAccount } from "@/features/account/provider";
-import { requestEmailAuth } from "@/features/auth/client";
+import { requestEmailChange, requestEmailCode } from "@/features/auth/client";
 import { getAuthErrorMessage } from "@/features/auth/errors";
 import { useAuth } from "@/features/auth/provider";
-import { getAuthCallbackUrl } from "@/features/auth/session";
 import { verificationSurface } from "@/features/auth/surfaces";
 import { requestJson } from "@/lib/http";
 import { Mark } from "./panel";
@@ -28,20 +27,32 @@ import { INPUT_CLASS } from "./settings";
 const DELETE_CONFIRMATION = "DELETE";
 
 export function EmailForm() {
-  const auth = useAuth();
-  const { account } = useAccount();
+  const { account, refresh } = useAccount();
+  const { openSurface } = useDockActions();
+  useSurfacePreload(verificationSurface);
   const toast = useToast();
   const currentEmail = account?.email?.trim() ?? "";
   const [email, setEmail] = useState(currentEmail);
   const [pending, setPending] = useState(false);
 
   async function updateEmail() {
-    if (!auth.client) return;
     setPending(true);
     try {
-      const { error } = await auth.client.auth.updateUser({ email });
-      if (error) throw error;
-      toast("Check your inbox to confirm the new email");
+      const target = await requestEmailChange(email);
+      void verificationSurface.open(
+        openSurface,
+        {
+          data: {
+            email: target,
+            onVerified: async () => {
+              await refresh();
+              toast("Email updated");
+            },
+            purpose: "change-email",
+          },
+        },
+        { title: "Verify new email" },
+      );
     } catch (error) {
       toast(getAuthErrorMessage(error, "Couldn't update your email"));
     } finally {
@@ -65,7 +76,6 @@ export function EmailForm() {
         width="full"
         disabled={
           pending ||
-          !auth.client ||
           !email.trim() ||
           email.trim() === currentEmail
         }
@@ -100,13 +110,10 @@ export function DeletePanel() {
   }
 
   async function sendCode() {
-    if (!ready || !auth.client) return;
+    if (!ready) return;
     setSending(true);
     try {
-      await requestEmailAuth(auth.client, {
-        email,
-        emailRedirectTo: getAuthCallbackUrl("/account"),
-      });
+      await requestEmailCode(email);
       void verificationSurface.open(
         openSurface,
         { data: { email, onVerified: deleteAccount } },

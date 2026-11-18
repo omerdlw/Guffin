@@ -18,8 +18,7 @@ import {
 import { globalEvents } from "@omerdlw/base-framework/events";
 import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
 import { REGISTRY_SOURCES } from "@omerdlw/base-framework/kernel";
-import { getCurrentPath, report } from "@omerdlw/base-framework/utils";
-import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+import { getCurrentPath } from "@omerdlw/base-framework/utils";
 import { usePathname, useRouter } from "next/navigation";
 import { useDockCommands } from "@/design/dock-commands";
 import { useSurfacePreload } from "@/design/lazy-surface";
@@ -27,7 +26,6 @@ import { useAuth } from "@/features/auth/provider";
 import { signInSurface } from "@/features/auth/surfaces";
 import { followsSurface } from "@/features/social/surfaces";
 import { accountHref } from "@/lib/project";
-import type { Database } from "@/lib/supabase/database.types";
 import {
   type CurrentAccount,
   DEFAULT_ACCOUNT_ICON,
@@ -53,9 +51,6 @@ interface AccountContextValue extends AccountState {
   refresh: () => Promise<void>;
 }
 
-type TableRow<T extends keyof Database["public"]["Tables"]> =
-  Database["public"]["Tables"][T]["Row"];
-
 const INITIAL_ACCOUNT_STATE: AccountState = Object.freeze({
   account: null,
   error: null,
@@ -74,18 +69,12 @@ const ACCOUNT_ENTRY_PATH = "/account";
 
 const SIGN_OUT_REDIRECT_DELAY_MS = 450;
 
-const REALTIME_DEBOUNCE_MS = 80;
+const SYNC_INTERVAL_MS = 60_000;
 
-const INBOX_TYPES = new Set(["FOLLOW_REQUEST", "FOLLOW_ACCEPTED"]);
+const SYNC_MIN_GAP_MS = 10_000;
 
 const succeeded = (result: unknown) =>
   (result as { success?: boolean } | undefined)?.success === true;
-
-function changedRow<T extends Record<string, unknown>>(
-  payload: RealtimePostgresChangesPayload<T>,
-): Partial<T> {
-  return payload.eventType === "DELETE" ? payload.old : payload.new;
-}
 
 const AccountContext = createContext<AccountContextValue | null>(null);
 
@@ -357,109 +346,31 @@ export function AccountGuard() {
   );
 }
 
-export function SocialRealtimeSync(): null {
+export function SocialSync(): null {
   const auth = useAuth();
-  const supabase = auth.client;
-  const userId = auth.user?.id ?? null;
-  const accessToken = auth.session?.access_token ?? null;
+  const userId = auth.isAuthenticated ? (auth.user?.id ?? null) : null;
 
   useEffect(() => {
-    if (!supabase || !auth.isAuthenticated || !userId) return;
+    if (!userId) return;
 
-    const refreshInbox = () =>
-      globalEvents.emitDebounced(
-        SOCIAL_EVENTS.INBOX_CHANGE,
-        undefined,
-        REALTIME_DEBOUNCE_MS,
-      );
-
-    const onFollowChange = (
-      payload: RealtimePostgresChangesPayload<TableRow<"account_follows">>,
-    ) => {
-      const { follower_id, following_id, status } = changedRow(payload);
-      if (following_id === userId) refreshInbox();
-      if (following_id !== userId && follower_id !== userId) return;
-      globalEvents.emit(SOCIAL_EVENTS.FOLLOW_CHANGE, {
-        followerId: follower_id ?? null,
-        followingId: following_id ?? null,
-        status: payload.eventType === "DELETE" ? null : (status ?? null),
-      });
+    let last = Date.now();
+    const sync = () => {
+      if (document.visibilityState !== "visible") return;
+      if (Date.now() - last < SYNC_MIN_GAP_MS) return;
+      last = Date.now();
+      globalEvents.emit(SOCIAL_EVENTS.NOTIFICATION_CHANGE);
+      globalEvents.emit(SOCIAL_EVENTS.INBOX_CHANGE);
     };
 
-    try {
-      if (accessToken) void supabase.realtime.setAuth(accessToken);
-      const channel = supabase
-        .channel(`social:user:${userId}`)
-        .on<TableRow<"notifications">>(
-          "postgres_changes",
-          {
-            event: "*",
-            filter: `user_id=eq.${userId}`,
-            schema: "public",
-            table: "notifications",
-          },
-          (payload) => {
-            globalEvents.emitDebounced(
-              SOCIAL_EVENTS.NOTIFICATION_CHANGE,
-              undefined,
-              REALTIME_DEBOUNCE_MS,
-            );
-            const type = changedRow(payload).type;
-            if (type && INBOX_TYPES.has(type)) refreshInbox();
-          },
-        )
-        .on<TableRow<"account_follows">>(
-          "postgres_changes",
-          {
-            event: "INSERT",
-            filter: `follower_id=eq.${userId}`,
-            schema: "public",
-            table: "account_follows",
-          },
-          onFollowChange,
-        )
-        .on<TableRow<"account_follows">>(
-          "postgres_changes",
-          {
-            event: "INSERT",
-            filter: `following_id=eq.${userId}`,
-            schema: "public",
-            table: "account_follows",
-          },
-          onFollowChange,
-        )
-        .on<TableRow<"account_follows">>(
-          "postgres_changes",
-          {
-            event: "UPDATE",
-            filter: `follower_id=eq.${userId}`,
-            schema: "public",
-            table: "account_follows",
-          },
-          onFollowChange,
-        )
-        .on<TableRow<"account_follows">>(
-          "postgres_changes",
-          {
-            event: "UPDATE",
-            filter: `following_id=eq.${userId}`,
-            schema: "public",
-            table: "account_follows",
-          },
-          onFollowChange,
-        )
-        .on<TableRow<"account_follows">>(
-          "postgres_changes",
-          { event: "DELETE", schema: "public", table: "account_follows" },
-          onFollowChange,
-        )
-        .subscribe();
-
-      return () => void supabase.removeChannel(channel);
-    } catch (error) {
-      report("Social realtime init", error, "warn");
-    }
-  }, [accessToken, auth.isAuthenticated, supabase, userId]);
+    const timer = window.setInterval(sync, SYNC_INTERVAL_MS);
+    window.addEventListener("focus", sync);
+    document.addEventListener("visibilitychange", sync);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("focus", sync);
+      document.removeEventListener("visibilitychange", sync);
+    };
+  }, [userId]);
 
   return null;
 }

@@ -5,10 +5,12 @@ Son güncelleme: 2026-11-18
 
 ## Şu an
 
-Production hazırlığı (2026-11-18): yorumlar, ölü export ve dosyalar temizlendi;
-dokümanlar `docs/` altında; README, `.env.example`; framework 3.3.0; veritabanı
-buluttaki Supabase'de (190 seed hesabı, ortak 900 film + 60 dizi havuzu).
-Kapılar temiz: typecheck, lint, 110 test, production build.
+Supabase → Postgres/Neon geçişi (2026-11-18, `neon-migration` dalı): Better
+Auth (email kodu, passkey, Google/GitHub/X), Drizzle + node-postgres, RLS
+korunuyor (`anon`/`authenticated` + `app.viewer_id`), şema `drizzle/` SQL'inde.
+Realtime yerine odakta/dakikada bir yenileme (`SocialSync`). pg_cron yerine
+`POST /api/cron/prune` (`CRON_SECRET`). Yerelde Docker Postgres + Mailpit,
+seed ve RLS probe'u (129/129) pg üzerinde. Neon'da şema kurulu; mail Resend (yerelde Mailpit); hosting Netlify.
 
 ## Bitti
 
@@ -53,12 +55,18 @@ Kapılar temiz: typecheck, lint, 110 test, production build.
 - Performans (2026-11-17, görünmez): cam haritaları canvas'sız (`png.ts`,
   piksel piksel aynı, 3.6× hızlı) ve `localStorage`'da önbellekli; cam
   okumaları ResizeObserver'da toplu; scroll sürücüsü aktifken `scrollY`
-  okunmuyor; stage'in sayfa sonu kontrolü kare sonrası; Supabase istemcisi
-  hidrasyondan sonra yükleniyor; `ActionArrival` dock inince duruyor.
+  okunmuyor; stage'in sayfa sonu kontrolü kare sonrası; `ActionArrival` dock inince duruyor.
   Prod ölçümü: yükleme script'i movie 408→308ms, tv 420→313, person 387→309,
   home 299→177, season 366→246; uzun kare bloklaması movie 260→54ms
 
 ## Sırada
+
+- [x] Neon (`Guffin`, `production` dalı) baseline uygulandı (2026-11-18)
+- [ ] Netlify: siteyi bağla, `.env.netlify`'yi içe aktar, `NEXT_PUBLIC_SITE_URL`
+      gerçek adres; günlük prune `netlify/functions/prune.mts`
+- [ ] Resend: alan adını doğrula, `EMAIL_FROM` ayarla
+- [ ] Giriş akışlarını tarayıcıda gör: email kodu, passkey, OAuth bağlama,
+      email değiştirme, oturumlar, hesap silme
 
 - [ ] Sinematik tempoyu tarayıcıda gör: detail açılış dizisi (çok mu uzun?),
       home hero, account, dock surface'leri, modal/menü/toast

@@ -1,7 +1,9 @@
+import { and, eq } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
 import { requireUser } from "@/features/auth/server";
+import { admin } from "@/lib/db/client";
+import { authSessions } from "@/lib/db/schema";
 import { apiErrorResponse, assertSameOrigin } from "@/lib/security";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export async function DELETE(
   request: NextRequest,
@@ -18,11 +20,11 @@ export async function DELETE(
       );
     }
 
-    const client = await createServerSupabaseClient();
-    const { error } = await client.rpc("revoke_auth_session", {
-      p_session_id: sessionId,
-    });
-    if (error) throw error;
+    await admin()
+      .db.delete(authSessions)
+      .where(
+        and(eq(authSessions.id, sessionId), eq(authSessions.userId, user.id)),
+      );
     return NextResponse.json({ revoked: true });
   } catch (error) {
     return apiErrorResponse(error);

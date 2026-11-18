@@ -1,20 +1,10 @@
 import { getSiteUrl, trimToNull } from "@omerdlw/base-framework/utils";
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/lib/supabase/database.types";
 
-export type AuthClient = SupabaseClient<Database>;
+export { OAUTH_PROVIDERS, type OAuthProvider } from "@/lib/auth/shared";
 
-export type OAuthProvider = "google" | "github" | "x";
-
-export type SignOutScope = "local" | "global" | "others";
+export type SignOutScope = "local" | "others";
 
 const AUTH_CALLBACK_PATH = "/auth/callback";
-
-export const OAUTH_PROVIDERS: readonly OAuthProvider[] = Object.freeze([
-  "google",
-  "github",
-  "x",
-]);
 
 export const SEED_EMAIL_DOMAIN = "seed.tvizzie.test";
 
@@ -36,7 +26,5 @@ export function getAuthCallbackUrl(nextPath = "/account"): string {
 }
 
 export function isSeedLoginEnabled(): boolean {
-  return (
-    process.env.SEED_LOGIN === "1" && process.env.VERCEL_ENV !== "production"
-  );
+  return process.env.SEED_LOGIN === "1";
 }

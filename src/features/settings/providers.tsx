@@ -7,7 +7,6 @@ import {
   HighlightGroup,
   useHighlight,
 } from "@omerdlw/base-framework/ui";
-import type { UserIdentity } from "@supabase/supabase-js";
 import { Icon } from "@/design/components/icon";
 import {
   rowVariants,
@@ -18,7 +17,11 @@ import {
   tileVariants,
 } from "@/design/components/surface-classes";
 import { cn } from "@/design/ui";
-import { linkIdentity, unlinkIdentity } from "@/features/auth/client";
+import {
+  type LinkedIdentity,
+  linkIdentity,
+  unlinkIdentity,
+} from "@/features/auth/client";
 import { getAuthErrorMessage } from "@/features/auth/errors";
 import { useAuth } from "@/features/auth/provider";
 import {
@@ -34,12 +37,11 @@ const PROVIDER_LABELS: Record<OAuthProvider, { icon: string; label: string }> =
     x: { icon: "simple-icons:x", label: "X" },
   };
 
-function providerOf(identity: UserIdentity): OAuthProvider | null {
-  const name = identity.provider.trim().toLowerCase();
-  if (name === "google" || name === "google.com") return "google";
-  if (name === "github" || name === "github.com") return "github";
-  if (["x", "x.com", "twitter", "twitter.com"].includes(name)) return "x";
-  return null;
+function providerOf(identity: LinkedIdentity): OAuthProvider | null {
+  const name = identity.provider;
+  return OAUTH_PROVIDERS.includes(name as OAuthProvider)
+    ? (name as OAuthProvider)
+    : null;
 }
 
 function ProviderGlyph({ provider }: { provider: OAuthProvider }) {
@@ -147,7 +149,7 @@ export function ProvidersPanel({
   identities,
   reload,
 }: {
-  identities: UserIdentity[];
+  identities: LinkedIdentity[];
   reload: () => Promise<void>;
 }) {
   const auth = useAuth();
@@ -164,7 +166,7 @@ export function ProvidersPanel({
   );
 
   const connected = useMemo(() => {
-    const linked = new Map<OAuthProvider, UserIdentity>();
+    const linked = new Map<OAuthProvider, LinkedIdentity>();
     for (const identity of active) {
       const provider = providerOf(identity);
       if (provider) linked.set(provider, identity);
@@ -172,16 +174,12 @@ export function ProvidersPanel({
     return linked;
   }, [active]);
 
-  async function unlink(provider: OAuthProvider, identity: UserIdentity) {
-    if (unlinking || !auth.client) return;
-    if (active.length < 2) {
-      toast("Keep at least one sign-in method connected to this account");
-      return;
-    }
+  async function unlink(provider: OAuthProvider, identity: LinkedIdentity) {
+    if (unlinking) return;
     const { label } = PROVIDER_LABELS[provider];
     setUnlinking(provider);
     try {
-      await unlinkIdentity(auth.client, identity);
+      await unlinkIdentity(identity);
       setUnlinkedIds((ids) => new Set([...ids, identity.id]));
       toast(`${label} disconnected`);
       await reload();
@@ -194,10 +192,10 @@ export function ProvidersPanel({
   }
 
   async function link(provider: OAuthProvider) {
-    if (linking || !auth.client) return;
+    if (linking) return;
     setLinking(provider);
     try {
-      await linkIdentity(auth.client, provider, getAuthCallbackUrl("/account"));
+      await linkIdentity(provider, getAuthCallbackUrl("/account"));
     } catch (error) {
       setLinking(null);
       toast(

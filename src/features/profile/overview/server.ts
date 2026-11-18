@@ -93,7 +93,7 @@ export async function getAccountOverview({
     watchlist: number;
   };
 }): Promise<AccountOverviewData> {
-  const { data, error } = await client.rpc("get_account_overview", {
+  const data = await client.call("get_account_overview", {
     p_account_id: accountId,
     p_activity: limits.activity,
     p_diary: limits.diary,
@@ -105,7 +105,6 @@ export async function getAccountOverview({
     p_watched: limits.watched,
     p_watchlist: limits.watchlist,
   });
-  if (error) throw error;
 
   const row = (data as unknown as OverviewRow | null) ?? EMPTY_OVERVIEW;
   const stats = row.stats;

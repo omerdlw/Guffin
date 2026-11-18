@@ -1,12 +1,17 @@
 import "server-only";
 
 import { report } from "@omerdlw/base-framework/utils";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { and, eq, sql } from "drizzle-orm";
 import { unstable_rethrow } from "next/navigation";
-import { getOptionalUser } from "@/features/auth/server";
+import { getOptionalUser, getViewerSession } from "@/features/auth/server";
 import { isAiring } from "@/features/catalog/quality";
-import type { Database } from "@/lib/supabase/database.types";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import type { Session } from "@/lib/db/client";
+import { pick } from "@/lib/db/pick";
+import {
+  accountEpisodeRatings,
+  accountShowProgress,
+  accountWatchedEpisodes,
+} from "@/lib/db/schema";
 import { getSeasonDetails, getShowDetails } from "@/lib/tmdb/server";
 import type { Episode, SeasonSummary } from "@/lib/tmdb/shared";
 import {
@@ -19,8 +24,6 @@ import {
   toShowProgress,
 } from "./show";
 
-type TvClient = SupabaseClient<Database>;
-
 type AiredEpisode = {
   e: number;
   r: number | null;
@@ -28,6 +31,15 @@ type AiredEpisode = {
 };
 
 const CONTINUE_WATCHING_LIMIT = 12;
+
+const PROGRESS_FIELDS = [
+  "status",
+  "watched_episodes",
+  "aired_episodes",
+  "last_season",
+  "last_episode",
+  "last_watched_at",
+] as const;
 
 const SEASON_STILL_LIMIT = 30;
 
@@ -80,72 +92,93 @@ export async function getSeasonStills(
 }
 
 export async function setShowCompleted(
-  client: TvClient,
+  session: Session,
+  userId: string,
   showId: number,
   completed: boolean,
 ): Promise<void> {
   if (completed) {
     const episodes = await getAiredEpisodes(showId);
-    const { error } = await client.rpc("set_show_status", {
+    await session.call("set_show_status", {
+      p_episodes: episodes ?? [],
       p_show_id: showId,
       p_status: "completed",
-      p_episodes: episodes ?? [],
     });
-    if (error) throw error;
     return;
   }
 
-  const { data } = await client
-    .from("account_show_progress")
-    .select("watched_episodes")
-    .eq("show_id", showId)
-    .maybeSingle();
-  const { error } = await client.rpc("set_show_status", {
+  const [data] = await session.db
+    .select({ watchedEpisodes: accountShowProgress.watchedEpisodes })
+    .from(accountShowProgress)
+    .where(
+      and(
+        eq(accountShowProgress.accountId, userId),
+        eq(accountShowProgress.showId, showId),
+      ),
+    )
+    .limit(1);
+  await session.call("set_show_status", {
     p_show_id: showId,
-    p_status: data && data.watched_episodes > 0 ? "watching" : null,
+    p_status: data && data.watchedEpisodes > 0 ? "watching" : null,
   });
-  if (error) throw error;
 }
 
 export async function getShowTracking(
   showId: number,
 ): Promise<ShowTracking | null> {
   try {
-    const client = await createServerSupabaseClient();
-    const { data: auth } = await client.auth.getUser();
-    const userId = auth.user?.id;
-    if (!userId) return null;
+    const user = await getOptionalUser();
+    if (!user) return null;
+    const userId = user.id;
+    const { db } = await getViewerSession();
 
     const [progress, watched, ratings] = await Promise.all([
-      client
-        .from("account_show_progress")
-        .select("*")
-        .eq("account_id", userId)
-        .eq("show_id", showId)
-        .maybeSingle(),
-      client
-        .from("account_watched_episodes")
-        .select("season_number, episode_number")
-        .eq("account_id", userId)
-        .eq("show_id", showId)
+      db
+        .select(pick(accountShowProgress, PROGRESS_FIELDS))
+        .from(accountShowProgress)
+        .where(
+          and(
+            eq(accountShowProgress.accountId, userId),
+            eq(accountShowProgress.showId, showId),
+          ),
+        )
+        .limit(1),
+      db
+        .select(
+          pick(accountWatchedEpisodes, ["season_number", "episode_number"]),
+        )
+        .from(accountWatchedEpisodes)
+        .where(
+          and(
+            eq(accountWatchedEpisodes.accountId, userId),
+            eq(accountWatchedEpisodes.showId, showId),
+          ),
+        )
         .limit(5000),
-      client
-        .from("account_episode_ratings")
-        .select("season_number, episode_number, rating")
-        .eq("account_id", userId)
-        .eq("show_id", showId)
+      db
+        .select(
+          pick(accountEpisodeRatings, [
+            "season_number",
+            "episode_number",
+            "rating",
+          ]),
+        )
+        .from(accountEpisodeRatings)
+        .where(
+          and(
+            eq(accountEpisodeRatings.accountId, userId),
+            eq(accountEpisodeRatings.showId, showId),
+          ),
+        )
         .limit(5000),
     ]);
-    if (progress.error) throw progress.error;
-    if (watched.error) throw watched.error;
-    if (ratings.error) throw ratings.error;
 
     return {
-      progress: toShowProgress(progress.data),
-      watched: watched.data.map((row) =>
+      progress: toShowProgress(progress[0] ?? null),
+      watched: watched.map((row) =>
         episodeKey(row.season_number, row.episode_number),
       ),
-      ratings: ratings.data.map((row) => ({
+      ratings: ratings.map((row) => ({
         season: row.season_number,
         episode: row.episode_number,
         rating: Number(row.rating),
@@ -163,19 +196,31 @@ export async function getContinueWatching(
   try {
     const user = await getOptionalUser();
     if (!user) return [];
-    const userId = user.id;
-    const client = await createServerSupabaseClient();
+    const { db } = await getViewerSession();
 
-    const { data, error } = await client
-      .from("account_show_progress")
+    const data = await db
       .select(
-        "show_id, status, title, poster_path, backdrop_path, watched_episodes, aired_episodes, last_season, last_episode",
+        pick(accountShowProgress, [
+          "show_id",
+          "status",
+          "title",
+          "poster_path",
+          "backdrop_path",
+          "watched_episodes",
+          "aired_episodes",
+          "last_season",
+          "last_episode",
+        ]),
       )
-      .eq("account_id", userId)
-      .eq("status", "watching")
-      .order("last_watched_at", { ascending: false, nullsFirst: false })
+      .from(accountShowProgress)
+      .where(
+        and(
+          eq(accountShowProgress.accountId, user.id),
+          eq(accountShowProgress.status, "watching"),
+        ),
+      )
+      .orderBy(sql`${accountShowProgress.lastWatchedAt} desc nulls last`)
       .limit(limit);
-    if (error) throw error;
     return data.flatMap((row) =>
       isShowStatus(row.status)
         ? [

@@ -23,8 +23,16 @@ import { ensureCatalogEntry } from "@/features/catalog/server";
 import { FAVORITES_MAX } from "@/features/profile/profile";
 import { setShowCompleted } from "@/features/tv/server";
 import { isUuid } from "@/lib/http";
+import { and, eq, inArray } from "drizzle-orm";
+import { pgError, pgErrorCode, type Session, viewer } from "@/lib/db/client";
+import {
+  accountDiary,
+  accountFavorites,
+  accountLikes,
+  accountWatched,
+  accountWatchlist,
+} from "@/lib/db/schema";
 import { checkRateLimit } from "@/lib/security";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 import {
   getMediaDetails,
   getMovieDetails,
@@ -51,27 +59,18 @@ type MovieLibraryResult = MutationResult<{ state: MovieLibraryState }>;
 
 type DiaryLogResult = MutationResult;
 
-type AccountClient = Awaited<ReturnType<typeof createServerSupabaseClient>>;
-
 type LibraryMarksResult = MutationResult<{
   watched: number[];
   watchlist: number[];
 }>;
 
 const LIBRARY_TABLES = {
-  liked: "account_likes",
-  watched: "account_watched",
-  watchlist: "account_watchlist",
+  liked: accountLikes,
+  watched: accountWatched,
+  watchlist: accountWatchlist,
 } as const;
 
 const ISO_DAY_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
-
-const LIBRARY_UPSERT_OPTIONS = {
-  onConflict: "account_id,media_type,tmdb_id",
-  ignoreDuplicates: true,
-};
-
-const COUNT_HEAD_OPTIONS = { count: "exact", head: true } as const;
 
 const LIBRARY_MARKS_MAX = 100;
 
@@ -127,10 +126,9 @@ export async function updateAccountAction(
     { code: "ACCOUNT_UPDATE_FAILED", fallback, name: "AccountAction update" },
     async () => {
       const user = await requireUser();
-      const client = await createServerSupabaseClient();
       const { account } = await updateAccount({
-        client,
         input,
+        session: viewer(user.id),
         userId: user.id,
       });
       if (!account) return err(fallback);
@@ -141,74 +139,88 @@ export async function updateAccountAction(
   );
 }
 
+function libraryWhere(
+  table: (typeof LIBRARY_TABLES)[MovieLibraryKind],
+  accountId: string,
+  mediaType: MediaType,
+) {
+  return and(eq(table.accountId, accountId), eq(table.mediaType, mediaType));
+}
+
 async function readLibraryState(
-  client: AccountClient,
+  session: Session,
   accountId: string,
   tmdbId: number,
   mediaType: MediaType,
 ): Promise<MovieLibraryState> {
   const results = await Promise.all(
-    MOVIE_LIBRARY_KINDS.map((kind) =>
-      client
-        .from(LIBRARY_TABLES[kind])
-        .select("tmdb_id", COUNT_HEAD_OPTIONS)
-        .eq("account_id", accountId)
-        .eq("media_type", mediaType)
-        .eq("tmdb_id", tmdbId),
-    ),
+    MOVIE_LIBRARY_KINDS.map((kind) => {
+      const table = LIBRARY_TABLES[kind];
+      return session.db
+        .select({ tmdbId: table.tmdbId })
+        .from(table)
+        .where(
+          and(
+            libraryWhere(table, accountId, mediaType),
+            eq(table.tmdbId, tmdbId),
+          ),
+        )
+        .limit(1);
+    }),
   );
 
   const state = { ...EMPTY_MOVIE_LIBRARY };
   MOVIE_LIBRARY_KINDS.forEach((kind, index) => {
-    const { count, error } = results[index];
-    if (error) throw error;
-    state[kind] = (count ?? 0) > 0;
+    state[kind] = results[index]!.length > 0;
   });
   return state;
 }
 
 async function readMarkedIds(
-  client: AccountClient,
+  session: Session,
   table: typeof LIBRARY_TABLES.watched | typeof LIBRARY_TABLES.watchlist,
   accountId: string,
   tmdbIds: number[],
   mediaType: MediaType,
 ): Promise<number[]> {
-  const { data, error } = await client
+  const rows = await session.db
+    .select({ tmdbId: table.tmdbId })
     .from(table)
-    .select("tmdb_id")
-    .eq("account_id", accountId)
-    .eq("media_type", mediaType)
-    .in("tmdb_id", tmdbIds);
-  if (error) throw error;
-  return data.map((row) => row.tmdb_id);
+    .where(
+      and(
+        libraryWhere(table, accountId, mediaType),
+        inArray(table.tmdbId, tmdbIds),
+      ),
+    );
+  return rows.map((row) => row.tmdbId);
 }
 
-function writeLibraryEntry(
-  client: AccountClient,
+async function writeLibraryEntry(
+  session: Session,
   accountId: string,
   tmdbId: number,
   kind: MovieLibraryKind,
   mediaType: MediaType,
   media: MovieDetails | ShowDetails | null,
-) {
-  const table = client.from(LIBRARY_TABLES[kind]);
+): Promise<void> {
+  const table = LIBRARY_TABLES[kind];
   if (!media) {
-    return table
-      .delete()
-      .eq("account_id", accountId)
-      .eq("media_type", mediaType)
-      .eq("tmdb_id", tmdbId);
+    await session.db
+      .delete(table)
+      .where(
+        and(
+          libraryWhere(table, accountId, mediaType),
+          eq(table.tmdbId, tmdbId),
+        ),
+      );
+    return;
   }
-  return table.upsert(
-    {
-      account_id: accountId,
-      media_type: mediaType,
-      tmdb_id: tmdbId,
-      ...mediaSnapshot(media),
-    },
-    LIBRARY_UPSERT_OPTIONS,
-  );
+  await session.db
+    .insert(table)
+    .values({ accountId, mediaType, tmdbId, ...mediaSnapshot(media) })
+    .onConflictDoNothing({
+      target: [table.accountId, table.mediaType, table.tmdbId],
+    });
 }
 
 export async function getMovieLibraryAction(
@@ -223,9 +235,13 @@ export async function getMovieLibraryAction(
     const user = await getOptionalUser();
     if (!user) return ok({ state: EMPTY_MOVIE_LIBRARY });
 
-    const client = await createServerSupabaseClient();
     return ok({
-      state: await readLibraryState(client, user.id, tmdbId, mediaType),
+      state: await readLibraryState(
+        viewer(user.id),
+        user.id,
+        tmdbId,
+        mediaType,
+      ),
     });
   } catch (error) {
     report("MovieLibrary read", error);
@@ -253,17 +269,17 @@ export async function getLibraryMarksAction(
     if (!user || tmdbIds.length === 0)
       return ok({ watched: [], watchlist: [] });
 
-    const client = await createServerSupabaseClient();
+    const session = viewer(user.id);
     const [watched, watchlist] = await Promise.all([
       readMarkedIds(
-        client,
+        session,
         LIBRARY_TABLES.watched,
         user.id,
         tmdbIds,
         mediaType,
       ),
       readMarkedIds(
-        client,
+        session,
         LIBRARY_TABLES.watchlist,
         user.id,
         tmdbIds,
@@ -298,15 +314,15 @@ export async function setMovieLibraryAction(
     const limit = await checkRateLimit(`library:${user.id}`, 120);
     if (!limit.success) return fail("Too many requests, slow down a little");
 
-    const client = await createServerSupabaseClient();
+    const session = viewer(user.id);
 
     if (mediaType === "tv" && kind === "watched") {
       if (!(await ensureCatalogEntry("tv", tmdbId))) {
         return fail("Could not load this show, try again");
       }
-      await setShowCompleted(client, tmdbId, active);
+      await setShowCompleted(session, user.id, tmdbId, active);
       return ok({
-        state: await readLibraryState(client, user.id, tmdbId, mediaType),
+        state: await readLibraryState(session, user.id, tmdbId, mediaType),
       });
     }
 
@@ -318,18 +334,10 @@ export async function setMovieLibraryAction(
       if (mediaType === "tv") await ensureCatalogEntry("tv", tmdbId);
     }
 
-    const { error } = await writeLibraryEntry(
-      client,
-      user.id,
-      tmdbId,
-      kind,
-      mediaType,
-      media,
-    );
-    if (error) throw error;
+    await writeLibraryEntry(session, user.id, tmdbId, kind, mediaType, media);
 
     return ok({
-      state: await readLibraryState(client, user.id, tmdbId, mediaType),
+      state: await readLibraryState(session, user.id, tmdbId, mediaType),
     });
   } catch (error) {
     report("MovieLibrary write", error);
@@ -355,29 +363,26 @@ export async function logMovieToDiaryAction(
     const result = await getMovieDetails(tmdbId);
     if (!result.success) return fail("Could not load this movie, try again");
 
-    const { backdrop_path, payload, poster_path, release_date, title } =
-      movieSnapshot(result.data);
+    const { payload, ...snapshot } = movieSnapshot(result.data);
 
-    const client = await createServerSupabaseClient();
-    const { error } = await client.from("account_diary").insert({
-      account_id: user.id,
-      backdrop_path,
-      poster_path,
-      release_date,
-      title,
-      tmdb_id: tmdbId,
-      watched_on: watchedOn,
-    });
-
-    if (error) {
+    const session = viewer(user.id);
+    try {
+      await session.db.insert(accountDiary).values({
+        accountId: user.id,
+        ...snapshot,
+        tmdbId,
+        watchedOn,
+      });
+    } catch (error) {
+      const message = pgError(error)?.message ?? "";
       const known = Object.keys(DIARY_INSERT_ERRORS).find((code) =>
-        error.message.includes(code),
+        message.includes(code),
       );
       if (known) return fail(DIARY_INSERT_ERRORS[known]);
       throw error;
     }
 
-    await rememberWatchedPayload(client, user.id, tmdbId, payload);
+    await rememberWatchedPayload(session, user.id, tmdbId, payload);
     return ok();
   } catch (error) {
     report("MovieDiary write", error);
@@ -399,27 +404,26 @@ export async function setFavoriteAction(
       fallback: "Could not update your favorites",
       name: "Favorite write",
     },
-    async ({ client, userId }) => {
+    async ({ session, userId }) => {
+      const mine = and(
+        eq(accountFavorites.accountId, userId),
+        eq(accountFavorites.mediaType, mediaType),
+      );
       if (!pinned) {
-        const { error } = await client
-          .from("account_favorites")
-          .delete()
-          .eq("account_id", userId)
-          .eq("media_type", mediaType)
-          .eq("tmdb_id", tmdbId);
-        if (error) throw error;
+        await session.db
+          .delete(accountFavorites)
+          .where(and(mine, eq(accountFavorites.tmdbId, tmdbId)));
         return ok();
       }
 
-      const taken = await client
-        .from("account_favorites")
-        .select("tmdb_id, position")
-        .eq("account_id", userId)
-        .eq("media_type", mediaType);
-      if (taken.error) throw taken.error;
-
-      const rows = taken.data ?? [];
-      if (rows.some((row) => row.tmdb_id === tmdbId)) return ok();
+      const rows = await session.db
+        .select({
+          position: accountFavorites.position,
+          tmdbId: accountFavorites.tmdbId,
+        })
+        .from(accountFavorites)
+        .where(mine);
+      if (rows.some((row) => row.tmdbId === tmdbId)) return ok();
       if (rows.length >= FAVORITES_MAX) {
         return fail(`You can pin up to ${FAVORITES_MAX} favorites`);
       }
@@ -431,14 +435,15 @@ export async function setFavoriteAction(
       ).find((slot) => !used.has(slot));
       if (!position) return fail("Your favorites are full");
 
-      const { error } = await client.from("account_favorites").insert({
-        account_id: userId,
-        media_type: mediaType,
-        position,
-        tmdb_id: tmdbId,
-      });
-      if (error) {
-        if (error.code === "23503") {
+      try {
+        await session.db.insert(accountFavorites).values({
+          accountId: userId,
+          mediaType,
+          position,
+          tmdbId,
+        });
+      } catch (error) {
+        if (pgErrorCode(error) === "23503") {
           return fail(
             mediaType === "tv"
               ? "Like this show to pin it"
@@ -461,13 +466,10 @@ export async function deleteDiaryEntryAction(
       fallback: "Could not remove this entry",
       name: "Diary delete",
     },
-    async ({ client, userId }) => {
-      const { error } = await client
-        .from("account_diary")
-        .delete()
-        .eq("id", id)
-        .eq("account_id", userId);
-      if (error) throw error;
+    async ({ session, userId }) => {
+      await session.db
+        .delete(accountDiary)
+        .where(and(eq(accountDiary.id, id), eq(accountDiary.accountId, userId)));
       return ok();
     },
   );

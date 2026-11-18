@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useToast } from "@omerdlw/base-framework/notification";
-import type { PasskeyListItem, UserIdentity } from "@supabase/supabase-js";
 import { Icon } from "@/design/components/icon";
 import {
   SURFACE_PANEL,
@@ -11,7 +10,12 @@ import {
   tileVariants,
 } from "@/design/components/surface-classes";
 import { cn } from "@/design/ui";
-import { getUserIdentities, listPasskeys } from "@/features/auth/client";
+import {
+  getUserIdentities,
+  type LinkedIdentity,
+  listPasskeys,
+  type Passkey,
+} from "@/features/auth/client";
 import { getAuthErrorMessage } from "@/features/auth/errors";
 import { useAuth } from "@/features/auth/provider";
 import { requestJson } from "@/lib/http";
@@ -112,23 +116,20 @@ export function useSecurityTask(reload: () => Promise<void>) {
 export function useSecurity(enabled: boolean) {
   const auth = useAuth();
   const [sessions, setSessions] = useState<AuthSession[]>([]);
-  const [passkeys, setPasskeys] = useState<PasskeyListItem[]>([]);
-  const [identities, setIdentities] = useState<UserIdentity[]>(
-    () => auth.user?.identities ?? [],
-  );
+  const [passkeys, setPasskeys] = useState<Passkey[]>([]);
+  const [identities, setIdentities] = useState<LinkedIdentity[]>([]);
   const [loading, setLoading] = useState(false);
 
   const reload = useCallback(async () => {
-    const client = auth.client;
-    if (!client || !auth.isAuthenticated) return;
+    if (!auth.isAuthenticated) return;
     setLoading(true);
     try {
       const [sessionList, passkeyList, identityList] = await Promise.all([
         requestJson<{ sessions: AuthSession[] }>("/api/auth/sessions", {
           notifyOnUnauthorized: false,
         }),
-        listPasskeys(client).catch(() => []),
-        getUserIdentities(client).catch(() => auth.user?.identities ?? []),
+        listPasskeys().catch(() => []),
+        getUserIdentities().catch(() => []),
       ]);
       setSessions(sessionList.sessions);
       setPasskeys(passkeyList);
@@ -136,7 +137,7 @@ export function useSecurity(enabled: boolean) {
     } finally {
       setLoading(false);
     }
-  }, [auth.client, auth.isAuthenticated, auth.user?.identities]);
+  }, [auth.isAuthenticated]);
 
   useEffect(() => {
     if (!enabled) return;

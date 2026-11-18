@@ -21,15 +21,20 @@ import { useSurfacePreload } from "@/design/lazy-surface";
 import { defineSurface } from "@/design/surface-definition";
 import { cn } from "@/design/ui";
 import { accountSetupSurface } from "@/features/account/surfaces";
-import { hasAccountUsername, requestEmailAuth, verifyEmailOtp } from "./client";
+import {
+  confirmEmailChange,
+  hasAccountUsername,
+  requestEmailChange,
+  requestEmailCode,
+  verifyEmailCode,
+} from "./client";
 import { getAuthErrorMessage } from "./errors";
-import { SupabaseSetupNotice } from "./notice";
-import { useAuth } from "./provider";
-import { getAuthCallbackUrl, sanitizeNextPath } from "./session";
+import { sanitizeNextPath } from "./session";
 import styles from "./verification-surface.module.css";
 
 interface VerificationData {
   email: string;
+  purpose?: "change-email" | "sign-in";
   next?: string | null;
   onVerified?: () => Promise<void> | void;
 }
@@ -177,11 +182,10 @@ function OtpBoxes({
 }
 
 function VerificationSurface({ close, data }: VerificationSurfaceProps) {
-  const auth = useAuth();
   const toast = useToast();
   const { openSurface } = useDockActions();
   useSurfacePreload(accountSetupSurface);
-  const { next, onVerified } = data;
+  const { next, onVerified, purpose = "sign-in" } = data;
   const email = data.email.trim();
   const postAuthRedirect = sanitizeNextPath(next, "/account");
 
@@ -202,15 +206,12 @@ function VerificationSurface({ close, data }: VerificationSurfaceProps) {
   }, []);
 
   const resendCode = async () => {
-    if (busy || !cooldown.canResend || !auth.client) return;
+    if (busy || !cooldown.canResend) return;
 
     setBusy("resending");
     try {
-      await requestEmailAuth(auth.client, {
-        createUser: true,
-        email,
-        emailRedirectTo: getAuthCallbackUrl(postAuthRedirect),
-      });
+      if (purpose === "change-email") await requestEmailChange(email);
+      else await requestEmailCode(email);
       setOtp(INITIAL_OTP_STATE);
       cooldown.restart();
     } catch (error) {
@@ -245,7 +246,6 @@ function VerificationSurface({ close, data }: VerificationSurfaceProps) {
   const completeVerification = async (value: string) => {
     const code = normalizeOtpValue(value);
     if (
-      !auth.client ||
       code.length !== OTP_LENGTH ||
       busy ||
       submission.current.inFlight ||
@@ -258,7 +258,8 @@ function VerificationSurface({ close, data }: VerificationSurfaceProps) {
     setBusy("submitting");
 
     try {
-      await verifyEmailOtp(auth.client, email, code);
+      if (purpose === "change-email") await confirmEmailChange(email, code);
+      else await verifyEmailCode(email, code);
 
       if (onVerified) {
         await onVerified();
@@ -282,8 +283,6 @@ function VerificationSurface({ close, data }: VerificationSurfaceProps) {
     setOtp((current) => ({ ...current, code }));
     if (code.length === OTP_LENGTH) void completeVerification(code);
   };
-
-  if (!auth.isConfigured) return <SupabaseSetupNotice />;
 
   const resendLabel = cooldown.canResend
     ? "Resend"

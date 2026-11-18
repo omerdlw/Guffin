@@ -5,16 +5,15 @@ import type { Result } from "@omerdlw/base-framework/result";
 import { report } from "@omerdlw/base-framework/utils";
 import { unstable_rethrow } from "next/navigation";
 import { after } from "next/server";
-import { getOptionalUser } from "@/features/auth/server";
+import { and, desc, eq, inArray, isNotNull } from "drizzle-orm";
+import { getOptionalUser, getViewerSession } from "@/features/auth/server";
 import { filterEligible } from "@/features/catalog/quality";
 import { getContinueWatching } from "@/features/tv/server";
 import { TV_ENABLED } from "@/lib/env";
 import { toLogline } from "@/lib/format";
 import { getRedisClient } from "@/lib/security";
-import {
-  createAdminSupabaseClient,
-  createServerSupabaseClient,
-} from "@/lib/supabase/server";
+import { admin } from "@/lib/db/client";
+import { accountDiary, accounts, filmStats } from "@/lib/db/schema";
 import {
   getMovieDetails,
   getMovieList,
@@ -467,11 +466,21 @@ function toPulseShelves(pulse: PulseRow): PulseShelves {
   };
 }
 
+function abortable<T>(work: Promise<T>, signal: AbortSignal): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const abort = () => reject(signal.reason);
+    if (signal.aborted) return abort();
+    signal.addEventListener("abort", abort, { once: true });
+    work.then(resolve, reject).finally(() =>
+      signal.removeEventListener("abort", abort),
+    );
+  });
+}
+
 async function readPulse(signal?: AbortSignal): Promise<PulseRow> {
-  const query = createAdminSupabaseClient().rpc("get_home_pulse");
-  const { data, error } = await (signal ? query.abortSignal(signal) : query);
-  if (error) throw error;
-  return (data as unknown as PulseRow | null) ?? EMPTY_PULSE;
+  const query = admin().call("get_home_pulse");
+  const data = await (signal ? abortable(query, signal) : query);
+  return (data as PulseRow | null) ?? EMPTY_PULSE;
 }
 
 async function recount(signal?: AbortSignal): Promise<PulseRow> {
@@ -536,10 +545,8 @@ async function getPulse(): Promise<PulseRow> {
 async function getCircle(): Promise<CircleRow | null> {
   try {
     if (!(await getOptionalUser())) return null;
-    const client = await createServerSupabaseClient();
-    const { data, error } = await client.rpc("get_home_circle");
-    if (error) throw error;
-    return (data as unknown as CircleRow | null) ?? null;
+    const session = await getViewerSession();
+    return ((await session.call("get_home_circle")) as CircleRow | null) ?? null;
   } catch (error) {
     unstable_rethrow(error);
     report("Home circle read", error);
@@ -549,22 +556,38 @@ async function getCircle(): Promise<CircleRow | null> {
 
 async function getRecentLogs(): Promise<RecentLog[]> {
   try {
-    const { data, error } = await createAdminSupabaseClient()
-      .from("account_diary")
-      .select(
-        "id, tmdb_id, title, poster_path, backdrop_path, release_date, watched_at, is_rewatch, author:accounts!inner(username, display_name, avatar_url)",
+    const data = await admin()
+      .db.select({
+        author: {
+          avatar_url: accounts.avatarUrl,
+          display_name: accounts.displayName,
+          username: accounts.username,
+        },
+        backdrop_path: accountDiary.backdropPath,
+        id: accountDiary.id,
+        is_rewatch: accountDiary.isRewatch,
+        poster_path: accountDiary.posterPath,
+        release_date: accountDiary.releaseDate,
+        title: accountDiary.title,
+        tmdb_id: accountDiary.tmdbId,
+        watched_at: accountDiary.watchedAt,
+      })
+      .from(accountDiary)
+      .innerJoin(accounts, eq(accounts.id, accountDiary.accountId))
+      .where(
+        and(
+          eq(accountDiary.mediaType, "movie"),
+          eq(accounts.isActive, true),
+          eq(accounts.isPrivate, false),
+          isNotNull(accounts.username),
+          isNotNull(accountDiary.posterPath),
+        ),
       )
-      .eq("media_type", "movie")
-      .eq("author.is_active", true)
-      .eq("author.is_private", false)
-      .not("author.username", "is", null)
-      .not("poster_path", "is", null)
-      .order("watched_at", { ascending: false })
+      .orderBy(desc(accountDiary.watchedAt))
       .limit(LOGGED_SCAN);
-    if (error) throw error;
     const seen = new Set<number>();
     const logs: RecentLog[] = [];
-    for (const row of data ?? []) {
+    for (const row of data) {
       if (seen.has(row.tmdb_id) || !row.author.username) continue;
       seen.add(row.tmdb_id);
       logs.push({
@@ -588,13 +611,17 @@ async function getWaiting(ids: number[]): Promise<Map<number, number>> {
   const waiting = new Map<number, number>();
   if (ids.length === 0) return waiting;
   try {
-    const client = await createServerSupabaseClient();
-    const { data, error } = await client
-      .from("film_stats")
-      .select("tmdb_id, watchlist_count, watched_count")
-      .in("tmdb_id", ids);
-    if (error) throw error;
-    for (const row of data ?? []) waiting.set(row.tmdb_id, row.watchlist_count);
+    const { db } = await getViewerSession();
+    const data = await db
+      .select({
+        tmdbId: filmStats.tmdbId,
+        watchlistCount: filmStats.watchlistCount,
+      })
+      .from(filmStats)
+      .where(inArray(filmStats.tmdbId, ids));
+    for (const row of data) {
+      if (row.tmdbId !== null) waiting.set(row.tmdbId, row.watchlistCount ?? 0);
+    }
   } catch (error) {
     unstable_rethrow(error);
     report("Home film stats read", error);

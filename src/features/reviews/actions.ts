@@ -12,7 +12,9 @@ import { getOptionalUser, mutate } from "@/features/auth/server";
 import { isMediaType } from "@/features/catalog/quality";
 import { ensureCatalogEntry } from "@/features/catalog/server";
 import { isUuid } from "@/lib/http";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { and, eq } from "drizzle-orm";
+import { viewer } from "@/lib/db/client";
+import { lists, reviewLikes, reviews } from "@/lib/db/schema";
 import { getMediaDetails, mediaSnapshot } from "@/lib/tmdb/server";
 import type { MediaType } from "@/lib/tmdb/shared";
 import { isTmdbId } from "@/lib/tmdb/transport";
@@ -60,21 +62,27 @@ export async function getOwnMovieReviewAction(
     const user = await getOptionalUser();
     if (!user) return ok({ review: null });
 
-    const client = await createServerSupabaseClient();
-    const { data, error } = await client
-      .from("reviews")
-      .select("content, rating, is_spoiler")
-      .eq("account_id", user.id)
-      .eq("media_type", mediaType)
-      .eq("tmdb_id", tmdbId)
-      .maybeSingle();
-    if (error) throw error;
+    const [data] = await viewer(user.id)
+      .db.select({
+        content: reviews.content,
+        isSpoiler: reviews.isSpoiler,
+        rating: reviews.rating,
+      })
+      .from(reviews)
+      .where(
+        and(
+          eq(reviews.accountId, user.id),
+          eq(reviews.mediaType, mediaType),
+          eq(reviews.tmdbId, tmdbId),
+        ),
+      )
+      .limit(1);
 
     return ok({
       review: data
         ? {
             content: data.content,
-            isSpoiler: data.is_spoiler,
+            isSpoiler: data.isSpoiler,
             rating: data.rating === null ? null : Number(data.rating),
           }
         : null,
@@ -126,14 +134,12 @@ export async function getMovieReviewsPageAction(
     return fail("Invalid request");
   }
   try {
-    const [viewer, client] = await Promise.all([
-      getOptionalUser(),
-      createServerSupabaseClient(),
-    ]);
-    const viewerId = viewer?.id ?? null;
-    const [{ reviews, total }, stats] = await Promise.all([
+    const user = await getOptionalUser();
+    const viewerId = user?.id ?? null;
+    const session = viewer(viewerId);
+    const [{ reviews: page, total }, stats] = await Promise.all([
       getMovieReviews({
-        client,
+        session,
         filter,
         from,
         limit,
@@ -143,9 +149,9 @@ export async function getMovieReviewsPageAction(
         username,
         viewerId,
       }),
-      getReviewStats({ client, mediaType, tmdbId, username }),
+      getReviewStats({ mediaType, session, tmdbId, username }),
     ]);
-    return ok({ reviews, stats, total, viewerId });
+    return ok({ reviews: page, stats, total, viewerId });
   } catch (error) {
     report("Reviews page read", error);
     return fail(toUserMessage(error, { fallback: "Could not load reviews" }));
@@ -160,18 +166,18 @@ export async function getViewerMovieReviewAction(
     return fail("Invalid request");
   }
   try {
-    const viewer = await getOptionalUser();
-    if (!viewer) return ok({ review: null });
-    const { reviews } = await getMovieReviews({
-      authorId: viewer.id,
-      client: await createServerSupabaseClient(),
+    const user = await getOptionalUser();
+    if (!user) return ok({ review: null });
+    const { reviews: own } = await getMovieReviews({
+      authorId: user.id,
       limit: 1,
       mediaType,
+      session: viewer(user.id),
       sort: "newest",
       tmdbId,
-      viewerId: viewer.id,
+      viewerId: user.id,
     });
-    return ok({ review: reviews[0] ?? null });
+    return ok({ review: own[0] ?? null });
   } catch (error) {
     report("Viewer review read", error);
     return fail(
@@ -197,31 +203,27 @@ export async function saveMovieReviewAction(
   return mutateReview(
     "Review save",
     "Could not save your review",
-    async ({ client, userId }) => {
+    async ({ session, userId }) => {
       const media = await getMediaDetails(mediaType, tmdbId);
       if (!media.success) return fail("Could not load this title, try again");
       if (mediaType === "tv") await ensureCatalogEntry("tv", tmdbId);
 
-      const { backdrop_path, payload, poster_path, release_date, title } =
-        mediaSnapshot(media.data.details);
-      const { error } = await client.from("reviews").upsert(
-        {
-          account_id: userId,
-          backdrop_path,
-          content: review.content,
-          is_spoiler: review.isSpoiler,
-          poster_path,
-          rating: review.rating,
-          release_date,
-          title,
-          media_type: mediaType,
-          tmdb_id: tmdbId,
-        },
-        { onConflict: "account_id,media_type,tmdb_id" },
-      );
-      if (error) throw error;
+      const { payload, ...snapshot } = mediaSnapshot(media.data.details);
+      const fields = {
+        ...snapshot,
+        content: review.content,
+        isSpoiler: review.isSpoiler,
+        rating: review.rating,
+      };
+      await session.db
+        .insert(reviews)
+        .values({ ...fields, accountId: userId, mediaType, tmdbId })
+        .onConflictDoUpdate({
+          set: fields,
+          target: [reviews.accountId, reviews.mediaType, reviews.tmdbId],
+        });
       if (mediaType === "movie") {
-        await rememberWatchedPayload(client, userId, tmdbId, payload);
+        await rememberWatchedPayload(session, userId, tmdbId, payload);
       }
       return ok();
     },
@@ -246,25 +248,24 @@ export async function saveListCommentAction(
   return mutateReview(
     "List comment",
     "Could not post your comment",
-    async ({ client, userId }) => {
-      const { data: list, error: listError } = await client
-        .from("lists")
-        .select("account_id")
-        .eq("id", listId)
-        .maybeSingle();
-      if (listError) throw listError;
+    async ({ session, userId }) => {
+      const [list] = await session.db
+        .select({ accountId: lists.accountId })
+        .from(lists)
+        .where(eq(lists.id, listId))
+        .limit(1);
       if (!list) return fail("This list is no longer available");
-      if (list.account_id === userId) {
+      if (list.accountId === userId) {
         return fail("You can't comment on your own list");
       }
 
-      const { error } = await client
-        .from("reviews")
-        .upsert(
-          { account_id: userId, content: text, list_id: listId },
-          { onConflict: "account_id,list_id" },
-        );
-      if (error) throw error;
+      await session.db
+        .insert(reviews)
+        .values({ accountId: userId, content: text, listId })
+        .onConflictDoUpdate({
+          set: { content: text },
+          target: [reviews.accountId, reviews.listId],
+        });
       return ok();
     },
   );
@@ -275,13 +276,10 @@ export async function deleteReviewAction(id: string): Promise<ReviewResult> {
   return mutateReview(
     "Review delete",
     "Could not delete this review",
-    async ({ client, userId }) => {
-      const { error } = await client
-        .from("reviews")
-        .delete()
-        .eq("id", id)
-        .eq("account_id", userId);
-      if (error) throw error;
+    async ({ session, userId }) => {
+      await session.db
+        .delete(reviews)
+        .where(and(eq(reviews.id, id), eq(reviews.accountId, userId)));
       return ok();
     },
   );
@@ -295,20 +293,22 @@ export async function setReviewLikeAction(
   return mutateReview(
     "Review like",
     "Could not update your like",
-    async ({ client, userId }) => {
-      const { error } = liked
-        ? await client
-            .from("review_likes")
-            .upsert(
-              { account_id: userId, review_id: reviewId },
-              { ignoreDuplicates: true, onConflict: "review_id,account_id" },
-            )
-        : await client
-            .from("review_likes")
-            .delete()
-            .eq("review_id", reviewId)
-            .eq("account_id", userId);
-      if (error) throw error;
+    async ({ session, userId }) => {
+      if (liked) {
+        await session.db
+          .insert(reviewLikes)
+          .values({ accountId: userId, reviewId })
+          .onConflictDoNothing();
+      } else {
+        await session.db
+          .delete(reviewLikes)
+          .where(
+            and(
+              eq(reviewLikes.reviewId, reviewId),
+              eq(reviewLikes.accountId, userId),
+            ),
+          );
+      }
       return ok();
     },
   );

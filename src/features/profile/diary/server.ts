@@ -1,11 +1,13 @@
 import "server-only";
 
+import { and, asc, desc, eq, gte, inArray, lt } from "drizzle-orm";
 import {
   type DiaryRow,
   type ProfileClient,
   releaseYear,
   shiftMonth,
 } from "@/features/profile/profile";
+import { accountDiary, reviews } from "@/lib/db/schema";
 import type { MediaType } from "@/lib/tmdb/shared";
 
 interface DiaryMonth {
@@ -42,48 +44,68 @@ export async function getDiaryMonth({
   mediaType?: MediaType;
   month: string | null;
 }): Promise<DiaryMonth> {
-  const edge = (ascending: boolean) =>
-    client
-      .from("account_diary")
-      .select("watched_on")
-      .eq("account_id", accountId)
-      .eq("media_type", mediaType)
-      .order("watched_on", { ascending })
-      .limit(1)
-      .maybeSingle();
+  const mine = and(
+    eq(accountDiary.accountId, accountId),
+    eq(accountDiary.mediaType, mediaType),
+  );
+  const edge = async (ascending: boolean) => {
+    const [row] = await client.db
+      .select({ watchedOn: accountDiary.watchedOn })
+      .from(accountDiary)
+      .where(mine)
+      .orderBy(
+        ascending ? asc(accountDiary.watchedOn) : desc(accountDiary.watchedOn),
+      )
+      .limit(1);
+    return row?.watchedOn.slice(0, 7) ?? null;
+  };
 
-  const [first, last] = await Promise.all([edge(true), edge(false)]);
-  const firstMonth = first.data?.watched_on.slice(0, 7) ?? null;
-  const lastMonth = last.data?.watched_on.slice(0, 7) ?? null;
+  const [firstMonth, lastMonth] = await Promise.all([edge(true), edge(false)]);
   const target = month ?? lastMonth ?? new Date().toISOString().slice(0, 7);
 
   const { from, to } = monthBounds(target);
-  const { data, error } = await client
-    .from("account_diary")
-    .select(
-      "id, tmdb_id, title, poster_path, release_date, watched_on, is_rewatch",
+  const entries: DiaryEntryRow[] = await client.db
+    .select({
+      id: accountDiary.id,
+      is_rewatch: accountDiary.isRewatch,
+      poster_path: accountDiary.posterPath,
+      release_date: accountDiary.releaseDate,
+      title: accountDiary.title,
+      tmdb_id: accountDiary.tmdbId,
+      watched_on: accountDiary.watchedOn,
+    })
+    .from(accountDiary)
+    .where(
+      and(
+        mine,
+        gte(accountDiary.watchedOn, from),
+        lt(accountDiary.watchedOn, to),
+      ),
     )
-    .eq("account_id", accountId)
-    .eq("media_type", mediaType)
-    .gte("watched_on", from)
-    .lt("watched_on", to)
-    .order("watched_on", { ascending: false })
-    .order("watched_at", { ascending: false })
+    .orderBy(desc(accountDiary.watchedOn), desc(accountDiary.watchedAt))
     .limit(DIARY_MONTH_LIMIT);
-  if (error) throw error;
 
-  const entries = (data ?? []) as DiaryEntryRow[];
-  const reviews =
+  const reviewed =
     entries.length > 0
-      ? await client
-          .from("reviews")
-          .select("tmdb_id, rating, content")
-          .eq("account_id", accountId)
-          .eq("media_type", mediaType)
-          .in("tmdb_id", [...new Set(entries.map((entry) => entry.tmdb_id))])
-      : null;
+      ? await client.db
+          .select({
+            content: reviews.content,
+            rating: reviews.rating,
+            tmdb_id: reviews.tmdbId,
+          })
+          .from(reviews)
+          .where(
+            and(
+              eq(reviews.accountId, accountId),
+              eq(reviews.mediaType, mediaType),
+              inArray(reviews.tmdbId, [
+                ...new Set(entries.map((entry) => entry.tmdb_id)),
+              ]),
+            ),
+          )
+      : [];
   const byMovie = new Map(
-    (reviews?.data ?? []).flatMap((review) =>
+    reviewed.flatMap((review) =>
       review.tmdb_id === null ? [] : [[review.tmdb_id, review] as const],
     ),
   );

@@ -5,10 +5,8 @@ import { report, USER_MESSAGES } from "@omerdlw/base-framework/utils";
 import { NextResponse } from "next/server";
 import { filterEligible } from "@/features/catalog/quality";
 import { getClientIp, rateLimitResponse } from "@/lib/security";
-import {
-  createAdminSupabaseClient,
-  createServerSupabaseClient,
-} from "@/lib/supabase/server";
+import { getViewerSession } from "@/features/auth/server";
+import { admin } from "@/lib/db/client";
 import {
   discoverMovies,
   getPersonDetails,
@@ -369,14 +367,12 @@ export async function searchUserHits(
   if (!text) return err(INVALID_QUERY_FAILURE);
 
   try {
-    const client = createAdminSupabaseClient();
-    const { data, error } = await client.rpc("search_accounts", {
+    const data = await admin().call("search_accounts", {
       p_limit: COMMUNITY_CANDIDATES,
       p_query: text,
     });
-    if (error) throw error;
 
-    const hits = (data ?? [])
+    const hits = data
       .flatMap((row) => {
         if (!row.username) return [];
         const followersCount = row.followers_count ?? 0;
@@ -412,14 +408,13 @@ export async function searchListHits(
   if (!text) return err(INVALID_QUERY_FAILURE);
 
   try {
-    const client = await createServerSupabaseClient();
-    const { data, error } = await client.rpc("search_lists", {
+    const session = await getViewerSession();
+    const data = await session.call("search_lists", {
       p_limit: COMMUNITY_CANDIDATES,
       p_query: text,
     });
-    if (error) throw error;
 
-    const hits = (data ?? [])
+    const hits = data
       .flatMap((row) => {
         const match = textMatch(row.title, text);
         return row.owner_username
@@ -460,15 +455,14 @@ export async function searchReviewHits(
   if (!text) return err(INVALID_QUERY_FAILURE);
 
   try {
-    const client = await createServerSupabaseClient();
-    const { data, error } = await client.rpc("search_reviews", {
+    const session = await getViewerSession();
+    const data = await session.call("search_reviews", {
       p_limit: COMMUNITY_CANDIDATES,
       p_query: text,
     });
-    if (error) throw error;
 
     const said = fold(text);
-    const hits = (data ?? []).flatMap((row) => {
+    const hits = data.flatMap((row) => {
       if (!row.author_username) return [];
       const year = row.release_date
         ? Number(row.release_date.slice(0, 4))

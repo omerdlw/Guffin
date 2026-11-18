@@ -1,12 +1,16 @@
 import { UserError } from "@omerdlw/base-framework/utils";
+import { and, count, desc, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { requireUser } from "@/features/auth/server";
+import { viewer } from "@/lib/db/client";
+import { pickAll } from "@/lib/db/pick";
+import { accounts, notifications } from "@/lib/db/schema";
+import { isUuid } from "@/lib/http";
 import {
   apiErrorResponse,
   assertSameOrigin,
   rateLimitResponse,
 } from "@/lib/security";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 const DONE = { success: true };
 
@@ -14,32 +18,37 @@ export async function GET(request: Request): Promise<Response> {
   try {
     const user = await requireUser();
     const params = new URL(request.url).searchParams;
-    const client = await createServerSupabaseClient();
+    const { db } = viewer(user.id);
+    const mine = eq(notifications.userId, user.id);
 
     if (params.get("resource") === "unread-count") {
-      const { count, error } = await client
-        .from("notifications")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", user.id)
-        .eq("read", false);
-      if (error) throw error;
-      return NextResponse.json({ data: count ?? 0 });
+      const [row] = await db
+        .select({ unread: count() })
+        .from(notifications)
+        .where(and(mine, eq(notifications.read, false)));
+      return NextResponse.json({ data: row?.unread ?? 0 });
     }
 
     const limit = Math.min(
       Math.max(1, Number(params.get("limitCount")) || 50),
       100,
     );
-    const { data, error } = await client
-      .from("notifications")
-      .select(
-        "*, actor:accounts!notifications_actor_id_fkey(id, username, display_name, avatar_url)",
-      )
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
+    const data = await db
+      .select({
+        ...pickAll(notifications),
+        actor: {
+          avatar_url: accounts.avatarUrl,
+          display_name: accounts.displayName,
+          id: accounts.id,
+          username: accounts.username,
+        },
+      })
+      .from(notifications)
+      .leftJoin(accounts, eq(accounts.id, notifications.actorId))
+      .where(mine)
+      .orderBy(desc(notifications.createdAt))
       .limit(limit);
-    if (error) throw error;
-    return NextResponse.json({ data: data ?? [] });
+    return NextResponse.json({ data });
   } catch (error) {
     return apiErrorResponse(error);
   }
@@ -56,19 +65,18 @@ export async function PATCH(request: Request): Promise<Response> {
     if (limited) return limited;
 
     const body = await request.json().catch(() => ({}));
-    const unread = (await createServerSupabaseClient())
-      .from("notifications")
-      .update({ read: true, read_at: new Date().toISOString() })
-      .eq("user_id", user.id);
+    const markRead = (where: ReturnType<typeof and>) =>
+      viewer(user.id)
+        .db.update(notifications)
+        .set({ read: true, readAt: new Date().toISOString() })
+        .where(and(eq(notifications.userId, user.id), where));
 
-    if (body.action === "mark-read" && body.notificationId) {
-      const { error } = await unread.eq("id", body.notificationId);
-      if (error) throw error;
+    if (body.action === "mark-read" && isUuid(body.notificationId)) {
+      await markRead(eq(notifications.id, body.notificationId));
       return NextResponse.json(DONE);
     }
     if (body.action === "mark-all-read") {
-      const { error } = await unread.eq("read", false);
-      if (error) throw error;
+      await markRead(eq(notifications.read, false));
       return NextResponse.json(DONE);
     }
     throw new UserError("Invalid notification patch action", 400);
@@ -90,19 +98,17 @@ export async function DELETE(request: Request): Promise<Response> {
     const params = new URL(request.url).searchParams;
     const action = params.get("action");
     const notificationId = params.get("notificationId");
-    const owned = (await createServerSupabaseClient())
-      .from("notifications")
-      .delete()
-      .eq("user_id", user.id);
+    const remove = (where?: ReturnType<typeof and>) =>
+      viewer(user.id)
+        .db.delete(notifications)
+        .where(and(eq(notifications.userId, user.id), where));
 
-    if (action === "delete" && notificationId) {
-      const { error } = await owned.eq("id", notificationId);
-      if (error) throw error;
+    if (action === "delete" && isUuid(notificationId)) {
+      await remove(eq(notifications.id, notificationId));
       return NextResponse.json(DONE);
     }
     if (action === "delete-all") {
-      const { error } = await owned;
-      if (error) throw error;
+      await remove();
       return NextResponse.json(DONE);
     }
     throw new UserError("Invalid notification delete action", 400);

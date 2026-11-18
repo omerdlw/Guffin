@@ -1,5 +1,6 @@
 import "server-only";
 
+import { and, asc, count, eq, type SQL, sql } from "drizzle-orm";
 import { readListPreviews } from "@/features/lists/server";
 import { paged } from "@/features/profile/params";
 import {
@@ -17,6 +18,8 @@ import {
   toMediaItem,
 } from "@/features/profile/profile";
 import { readPage } from "@/features/profile/server";
+import { pick } from "@/lib/db/pick";
+import { lists } from "@/lib/db/schema";
 import type { MediaType } from "@/lib/tmdb/shared";
 
 interface ListPageRow {
@@ -45,21 +48,31 @@ interface ListPageRow {
 
 const LIST_PAGE_SIZE = 18;
 
-const LIST_SORT_COLUMNS = {
-  created_asc: ["created_at", true],
-  created_desc: ["created_at", false],
-  items_desc: ["items_count", false],
-  likes_desc: ["likes_count", false],
-  title_asc: ["title", true],
-  updated_desc: ["updated_at", false],
-} as const;
+const LIST_ORDER: Record<ListSort, SQL> = {
+  created_asc: sql`${lists.createdAt} asc`,
+  created_desc: sql`${lists.createdAt} desc`,
+  items_desc: sql`${lists.itemsCount} desc`,
+  likes_desc: sql`${lists.likesCount} desc`,
+  title_asc: sql`${lists.title} asc`,
+  updated_desc: sql`${lists.updatedAt} desc`,
+};
 
 const LIST_PREVIEW_POSTERS = 5;
 
 const LIST_COMMENTS_LIMIT = 50;
 
-const PROFILE_LIST_COLUMNS =
-  "id, slug, title, description, is_private, is_ranked, items_count, likes_count, reviews_count, updated_at";
+const PROFILE_LIST_COLUMNS = pick(lists, [
+  "id",
+  "slug",
+  "title",
+  "description",
+  "is_private",
+  "is_ranked",
+  "items_count",
+  "likes_count",
+  "reviews_count",
+  "updated_at",
+]);
 
 async function withPreviews(
   client: ProfileClient,
@@ -86,22 +99,34 @@ export async function getListsPage({
   page: number;
   sort: ListSort;
 }): Promise<Paged<ListCardData>> {
-  const [column, ascending] = LIST_SORT_COLUMNS[sort];
-
+  const where = and(
+    eq(lists.accountId, accountId),
+    eq(lists.mediaType, mediaType),
+  );
   const result = await readPage(
-    client
-      .from("lists")
-      .select(PROFILE_LIST_COLUMNS, { count: "exact" })
-      .eq("account_id", accountId)
-      .eq("media_type", mediaType)
-      .order(column as "created_at", { ascending })
-      .order("id"),
+    {
+      count: async () => {
+        const [row] = await client.db
+          .select({ total: count() })
+          .from(lists)
+          .where(where);
+        return row?.total ?? 0;
+      },
+      rows: (limit, offset) =>
+        client.db
+          .select(PROFILE_LIST_COLUMNS)
+          .from(lists)
+          .where(where)
+          .orderBy(LIST_ORDER[sort], asc(lists.id))
+          .limit(limit)
+          .offset(offset),
+    },
     page,
     LIST_PAGE_SIZE,
   );
 
   return paged(
-    await withPreviews(client, result.rows as ListRow[]),
+    await withPreviews(client, result.rows),
     result.count,
     result.page,
     LIST_PAGE_SIZE,
@@ -121,7 +146,7 @@ export async function getListPage({
   owner: { displayName: string; id: string; username: string };
   slug: string;
 }): Promise<ListPageData | null> {
-  const { data, error } = await client.rpc("get_list_page", {
+  const data = await client.call("get_list_page", {
     p_account_id: owner.id,
     p_comments: comments,
     p_decade: filters.decade,
@@ -132,7 +157,6 @@ export async function getListPage({
     p_slug: slug,
     p_sort: filters.sort,
   });
-  if (error) throw error;
 
   const row = data as unknown as ListPageRow | null;
   if (!row) return null;

@@ -12,7 +12,7 @@ import { cn } from "@/design/ui";
 import { getCurrentAccount } from "@/features/account/server";
 import { getOptionalUser } from "@/features/auth/server";
 import { accountHref } from "@/lib/project";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { viewer } from "@/lib/db/client";
 
 export const metadata: Metadata = { title: "Account" };
 
@@ -38,8 +38,10 @@ export default async function AccountEntryPage(): Promise<JSX.Element> {
   const user = await getOptionalUser();
   if (!user) return <SignedOut />;
 
-  const client = await createServerSupabaseClient();
-  const { account } = await getCurrentAccount({ client, userId: user.id });
+  const { account } = await getCurrentAccount({
+    session: viewer(user.id),
+    userId: user.id,
+  });
 
   if (!account?.username) redirect("/?reason=account-incomplete");
   redirect(accountHref(account.username));

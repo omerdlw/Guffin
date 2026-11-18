@@ -1,4 +1,3 @@
-import type { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { MediaType } from "@/lib/tmdb/shared";
 
 export interface MovieListSummary {
@@ -29,10 +28,6 @@ export interface PopularList {
   slug: string;
   title: string;
 }
-
-export type ListsClient = Awaited<
-  ReturnType<typeof createServerSupabaseClient>
->;
 
 export interface ListOrderItem {
   posterPath: string | null;

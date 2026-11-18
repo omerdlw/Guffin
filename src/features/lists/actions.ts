@@ -11,8 +11,11 @@ import {
 import { mutate, requireUser } from "@/features/auth/server";
 import { isMediaType } from "@/features/catalog/quality";
 import { isUuid } from "@/lib/http";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { pgError, pgErrorCode, type Session, viewer } from "@/lib/db/client";
+import { pick } from "@/lib/db/pick";
+import { listItems, listLikes, lists } from "@/lib/db/schema";
 import { checkRateLimit } from "@/lib/security";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getMediaDetails, mediaSnapshot } from "@/lib/tmdb/server";
 import type { MediaType, MovieDetails, ShowDetails } from "@/lib/tmdb/shared";
 import { isTmdbId } from "@/lib/tmdb/transport";
@@ -21,7 +24,6 @@ import {
   LIST_TITLE_MAX,
   type ListDraft,
   type ListOrderItem,
-  type ListsClient,
   type MovieListSummary,
 } from "./list";
 import { readListPreviews } from "./server";
@@ -47,8 +49,14 @@ interface ListRecord {
   title: string;
 }
 
-const LIST_COLUMNS =
-  "id, title, description, is_private, items_count, poster_path";
+const LIST_COLUMNS = pick(lists, [
+  "id",
+  "title",
+  "description",
+  "is_private",
+  "items_count",
+  "poster_path",
+]);
 
 const MAX_LISTS = 200;
 
@@ -72,7 +80,7 @@ const toListSummary = (
 });
 
 function listErrorMessage(error: unknown, fallback: string) {
-  if ((error as { code?: string } | null)?.code === "54000") {
+  if (pgErrorCode(error) === "54000") {
     return "That list is full";
   }
   return toUserMessage(error, { fallback });
@@ -109,21 +117,19 @@ async function loadMedia(
 }
 
 async function addItem(
-  client: ListsClient,
+  session: Session,
   listId: string,
   mediaType: MediaType,
   tmdbId: number,
   media: MovieDetails | ShowDetails,
-) {
-  return client.from("list_items").upsert(
-    {
-      list_id: listId,
-      media_type: mediaType,
-      tmdb_id: tmdbId,
-      ...mediaSnapshot(media),
-    },
-    { ignoreDuplicates: true, onConflict: "list_id,media_type,tmdb_id" },
-  );
+): Promise<void> {
+  const { payload, ...snapshot } = mediaSnapshot(media);
+  await session.db
+    .insert(listItems)
+    .values({ listId, mediaType, payload, tmdbId, ...snapshot })
+    .onConflictDoNothing({
+      target: [listItems.listId, listItems.mediaType, listItems.tmdbId],
+    });
 }
 
 const loadFailure = (mediaType: MediaType) =>
@@ -134,56 +140,57 @@ const loadFailure = (mediaType: MediaType) =>
   );
 
 async function readList(
-  client: ListsClient,
+  session: Session,
   listId: string,
   accountId: string,
-) {
-  const { data, error } = await client
-    .from("lists")
+): Promise<ListRecord | null> {
+  const [row] = await session.db
     .select(LIST_COLUMNS)
-    .eq("id", listId)
-    .eq("account_id", accountId)
-    .maybeSingle();
-  if (error) throw error;
-  return data as ListRecord | null;
+    .from(lists)
+    .where(and(eq(lists.id, listId), eq(lists.accountId, accountId)))
+    .limit(1);
+  return row ?? null;
 }
 
 async function getMemberships(
-  client: ListsClient,
+  session: Session,
   rows: readonly ListRecord[],
   tmdbId: number,
   mediaType: MediaType,
 ): Promise<string[]> {
   if (rows.length === 0) return [];
-  const { data, error } = await client
-    .from("list_items")
-    .select("list_id")
-    .eq("media_type", mediaType)
-    .eq("tmdb_id", tmdbId)
-    .in(
-      "list_id",
-      rows.map((row) => row.id),
+  const data = await session.db
+    .select({ listId: listItems.listId })
+    .from(listItems)
+    .where(
+      and(
+        eq(listItems.mediaType, mediaType),
+        eq(listItems.tmdbId, tmdbId),
+        inArray(
+          listItems.listId,
+          rows.map((row) => row.id),
+        ),
+      ),
     );
-  if (error) throw error;
-  return (data ?? []).map((item: { list_id: string }) => item.list_id);
+  return data.map((item) => item.listId);
 }
 
 async function getManyListPreviews(
-  client: ListsClient,
+  session: Session,
   rows: readonly ListRecord[],
 ): Promise<Map<string, (string | null)[]>> {
   const ids = rows.filter((row) => row.items_count > 0).map((row) => row.id);
-  return readListPreviews(client, ids, PREVIEW_POSTERS, { dropEmpty: true });
+  return readListPreviews(session, ids, PREVIEW_POSTERS, { dropEmpty: true });
 }
 
-async function getListPreviews(client: ListsClient, listId: string) {
-  const { data } = await client
-    .from("list_items")
-    .select("poster_path")
-    .eq("list_id", listId)
-    .order("position", { ascending: true })
+async function getListPreviews(session: Session, listId: string) {
+  const data = await session.db
+    .select({ posterPath: listItems.posterPath })
+    .from(listItems)
+    .where(eq(listItems.listId, listId))
+    .orderBy(asc(listItems.position))
     .limit(PREVIEW_POSTERS);
-  return (data ?? []).map((item) => item.poster_path).filter(Boolean);
+  return data.map((item) => item.posterPath).filter(Boolean);
 }
 
 export async function getMovieListsAction(
@@ -196,21 +203,18 @@ export async function getMovieListsAction(
     }
 
     const user = await requireUser();
-    const client = await createServerSupabaseClient();
+    const session = viewer(user.id);
 
-    const lists = await client
-      .from("lists")
+    const rows = await session.db
       .select(LIST_COLUMNS)
-      .eq("account_id", user.id)
-      .eq("media_type", mediaType)
-      .order("updated_at", { ascending: false })
+      .from(lists)
+      .where(and(eq(lists.accountId, user.id), eq(lists.mediaType, mediaType)))
+      .orderBy(desc(lists.updatedAt))
       .limit(MAX_LISTS);
-    if (lists.error) throw lists.error;
 
-    const rows = (lists.data ?? []) as ListRecord[];
     const [memberships, previews] = await Promise.all([
-      getMemberships(client, rows, tmdbId, mediaType),
-      getManyListPreviews(client, rows),
+      getMemberships(session, rows, tmdbId, mediaType),
+      getManyListPreviews(session, rows),
     ]);
 
     return ok({
@@ -241,34 +245,37 @@ export async function setMovieListMembershipAction(
       return fail("Too many requests, slow down a little");
     }
 
-    const client = await createServerSupabaseClient();
-    if (!(await readList(client, listId, user.id))) {
+    const session = viewer(user.id);
+    if (!(await readList(session, listId, user.id))) {
       return fail("That list no longer exists");
     }
 
     if (active) {
       const media = await loadMedia(mediaType, tmdbId);
       if (!media) return loadFailure(mediaType);
-      const { error } = await addItem(client, listId, mediaType, tmdbId, media);
-      if (error) {
-        if (error.message.includes("LIST_MEDIA_TYPE_MISMATCH")) {
+      try {
+        await addItem(session, listId, mediaType, tmdbId, media);
+      } catch (error) {
+        if (pgError(error)?.message.includes("LIST_MEDIA_TYPE_MISMATCH")) {
           return fail("That list holds a different kind of title");
         }
         throw error;
       }
     } else {
-      const { error } = await client
-        .from("list_items")
-        .delete()
-        .eq("list_id", listId)
-        .eq("media_type", mediaType)
-        .eq("tmdb_id", tmdbId);
-      if (error) throw error;
+      await session.db
+        .delete(listItems)
+        .where(
+          and(
+            eq(listItems.listId, listId),
+            eq(listItems.mediaType, mediaType),
+            eq(listItems.tmdbId, tmdbId),
+          ),
+        );
     }
 
-    const list = await readList(client, listId, user.id);
+    const list = await readList(session, listId, user.id);
     if (!list) return fail("That list no longer exists");
-    const previews = await getListPreviews(client, listId);
+    const previews = await getListPreviews(session, listId);
     return ok({ inList: active, list: toListSummary(list, previews) });
   } catch (error) {
     report("MovieLists write", error);
@@ -297,28 +304,25 @@ export async function createMovieListAction(
     const media = await loadMedia(mediaType, tmdbId);
     if (!media) return loadFailure(mediaType);
 
-    const client = await createServerSupabaseClient();
-    const created = await client
-      .from("lists")
-      .insert({
-        account_id: user.id,
-        is_private: Boolean(isPrivate),
-        media_type: mediaType,
+    const session = viewer(user.id);
+    const [created] = await session.db
+      .insert(lists)
+      .values({
+        accountId: user.id,
+        isPrivate: Boolean(isPrivate),
+        mediaType,
         title: cleaned,
       })
-      .select(LIST_COLUMNS)
-      .single();
-    if (created.error) throw created.error;
+      .returning(LIST_COLUMNS);
+    if (!created) throw new Error("List insert returned no row");
 
-    const listId = (created.data as ListRecord).id;
-    const { error } = await addItem(client, listId, mediaType, tmdbId, media);
-    if (error) throw error;
+    await addItem(session, created.id, mediaType, tmdbId, media);
 
-    const list = await readList(client, listId, user.id);
-    const previews = await getListPreviews(client, listId);
+    const list = await readList(session, created.id, user.id);
+    const previews = await getListPreviews(session, created.id);
     return ok({
       inList: true,
-      list: toListSummary(list ?? (created.data as ListRecord), previews),
+      list: toListSummary(list ?? created, previews),
     });
   } catch (error) {
     report("MovieLists create", error);
@@ -336,31 +340,29 @@ export async function setListLikeAction(
       fallback: "Could not update your like",
       name: "List like",
     },
-    async ({ client, userId }) => {
-      const { data: list, error: listError } = await client
-        .from("lists")
-        .select("account_id")
-        .eq("id", listId)
-        .maybeSingle();
-      if (listError) throw listError;
+    async ({ session, userId }) => {
+      const [list] = await session.db
+        .select({ accountId: lists.accountId })
+        .from(lists)
+        .where(eq(lists.id, listId))
+        .limit(1);
       if (!list) return fail("This list is no longer available");
-      if (list.account_id === userId) {
+      if (list.accountId === userId) {
         return fail("You can't like your own list");
       }
 
-      const { error } = liked
-        ? await client
-            .from("list_likes")
-            .upsert(
-              { account_id: userId, list_id: listId },
-              { ignoreDuplicates: true, onConflict: "list_id,account_id" },
-            )
-        : await client
-            .from("list_likes")
-            .delete()
-            .eq("list_id", listId)
-            .eq("account_id", userId);
-      if (error) throw error;
+      if (liked) {
+        await session.db
+          .insert(listLikes)
+          .values({ accountId: userId, listId })
+          .onConflictDoNothing();
+      } else {
+        await session.db
+          .delete(listLikes)
+          .where(
+            and(eq(listLikes.listId, listId), eq(listLikes.accountId, userId)),
+          );
+      }
       return ok();
     },
   );
@@ -382,29 +384,26 @@ export async function saveListAction(
       fallback: "Could not save your list",
       name: "List save",
     },
-    async ({ client, userId }) => {
+    async ({ session, userId }) => {
       const row = {
         description: list.description,
-        is_private: list.isPrivate,
-        is_ranked: list.isRanked,
+        isPrivate: list.isPrivate,
+        isRanked: list.isRanked,
         title: list.title,
       };
 
-      const result = id
-        ? await client
-            .from("lists")
-            .update(row)
-            .eq("id", id)
-            .eq("account_id", userId)
-            .select("slug")
-            .single()
-        : await client
-            .from("lists")
-            .insert({ ...row, account_id: userId, media_type: mediaType })
-            .select("slug")
-            .single();
-      if (result.error) throw result.error;
-      return ok({ slug: result.data.slug });
+      const [saved] = id
+        ? await session.db
+            .update(lists)
+            .set(row)
+            .where(and(eq(lists.id, id), eq(lists.accountId, userId)))
+            .returning({ slug: lists.slug })
+        : await session.db
+            .insert(lists)
+            .values({ ...row, accountId: userId, mediaType })
+            .returning({ slug: lists.slug });
+      if (!saved) return fail("That list no longer exists");
+      return ok({ slug: saved.slug });
     },
   );
 }
@@ -416,13 +415,10 @@ export async function deleteListAction(listId: string): Promise<ActionResult> {
       fallback: "Could not delete this list",
       name: "List delete",
     },
-    async ({ client, userId }) => {
-      const { error } = await client
-        .from("lists")
-        .delete()
-        .eq("id", listId)
-        .eq("account_id", userId);
-      if (error) throw error;
+    async ({ session, userId }) => {
+      await session.db
+        .delete(lists)
+        .where(and(eq(lists.id, listId), eq(lists.accountId, userId)));
       return ok();
     },
   );
@@ -437,29 +433,31 @@ export async function getListOrderAction(
       fallback: "Could not load this list",
       name: "List order read",
     },
-    async ({ client, userId }) => {
-      const list = await client
-        .from("lists")
-        .select("id")
-        .eq("id", listId)
-        .eq("account_id", userId)
-        .maybeSingle();
-      if (list.error) throw list.error;
-      if (!list.data) return fail("That list no longer exists");
+    async ({ session, userId }) => {
+      const [list] = await session.db
+        .select({ id: lists.id })
+        .from(lists)
+        .where(and(eq(lists.id, listId), eq(lists.accountId, userId)))
+        .limit(1);
+      if (!list) return fail("That list no longer exists");
 
-      const { data, error } = await client
-        .from("list_items")
-        .select("tmdb_id, title, poster_path, release_date")
-        .eq("list_id", listId)
-        .order("position", { ascending: true })
+      const data = await session.db
+        .select({
+          posterPath: listItems.posterPath,
+          releaseDate: listItems.releaseDate,
+          title: listItems.title,
+          tmdbId: listItems.tmdbId,
+        })
+        .from(listItems)
+        .where(eq(listItems.listId, listId))
+        .orderBy(asc(listItems.position))
         .limit(LIST_ITEMS_MAX);
-      if (error) throw error;
       return ok({
-        items: (data ?? []).map((row) => ({
-          posterPath: row.poster_path,
+        items: data.map((row) => ({
+          posterPath: row.posterPath,
           title: row.title,
-          tmdbId: row.tmdb_id,
-          year: row.release_date ? row.release_date.slice(0, 4) : null,
+          tmdbId: row.tmdbId,
+          year: row.releaseDate ? row.releaseDate.slice(0, 4) : null,
         })),
       });
     },
@@ -484,13 +482,14 @@ export async function reorderListAction(
       fallback: "Could not save the new order",
       name: "List reorder",
     },
-    async ({ client }) => {
-      const { error } = await client.rpc("reorder_list_items", {
-        p_list_id: listId,
-        p_tmdb_ids: [...tmdbIds],
-      });
-      if (error) {
-        if (error.code === "22023") {
+    async ({ session }) => {
+      try {
+        await session.call("reorder_list_items", {
+          p_list_id: listId,
+          p_tmdb_ids: [...tmdbIds],
+        });
+      } catch (error) {
+        if (pgErrorCode(error) === "22023") {
           return fail("The list changed while you were arranging it");
         }
         throw error;

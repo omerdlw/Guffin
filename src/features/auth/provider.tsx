@@ -8,128 +8,80 @@ import {
   useEffect,
   useMemo,
   useRef,
-  useState,
 } from "react";
 import { DOCK_EVENTS } from "@omerdlw/base-framework/dock";
 import { globalEvents } from "@omerdlw/base-framework/events";
-import type { Session, User } from "@supabase/supabase-js";
 import {
   clearLastKnownAccount,
   saveLastKnownAccount,
   signedInStatus,
 } from "@/features/account/account";
 import { useAccount } from "@/features/account/provider";
-import { isSupabaseConfigured } from "@/lib/env";
-import { signOut as signOutClient } from "./client";
-import type { AuthClient, SignOutScope } from "./session";
+import { authClient } from "@/lib/auth/client";
+import { signOut as signOutClient, signOutOtherSessions } from "./client";
+import type { SignOutScope } from "./session";
 
-interface AuthState {
+export interface AuthUser {
+  email: string;
+  id: string;
+  image: string | null;
+  name: string;
+}
+
+interface AuthContextValue {
   error: unknown;
   isAuthenticated: boolean;
-  isConfigured: boolean;
   isReady: boolean;
-  session: Session | null;
-  user: User | null;
-}
-
-interface AuthContextValue extends AuthState {
-  client: AuthClient | null;
-  refresh: () => Promise<AuthState | null>;
+  refresh: () => Promise<void>;
+  sessionCreatedAt: string | null;
   signOut: (scope?: SignOutScope) => Promise<void>;
+  user: AuthUser | null;
 }
-
-const INITIAL_AUTH_STATE: AuthState = Object.freeze({
-  error: null,
-  isAuthenticated: false,
-  isConfigured: false,
-  isReady: false,
-  session: null,
-  user: null,
-});
 
 const STATUS_DURATION_MS = 3000;
-
-function authStateFrom(session: Session | null): AuthState {
-  return {
-    error: null,
-    isAuthenticated: Boolean(session?.user),
-    isConfigured: true,
-    isReady: true,
-    session,
-    user: session?.user ?? null,
-  };
-}
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children?: ReactNode }) {
-  const configured = isSupabaseConfigured();
-  const [state, setState] = useState<AuthState>(() => ({
-    ...INITIAL_AUTH_STATE,
-    isConfigured: configured,
-    isReady: !configured,
-  }));
-  const [client, setClient] = useState<AuthClient | null>(null);
-  useEffect(() => {
-    if (!configured) return;
-    let active = true;
-    import("@/lib/supabase/browser")
-      .then(({ createBrowserSupabaseClient }) => {
-        if (active) setClient(createBrowserSupabaseClient());
-      })
-      .catch((error: unknown) => {
-        if (active) {
-          setState((current) => ({ ...current, error, isReady: true }));
-        }
-      });
-    return () => {
-      active = false;
-    };
-  }, [configured]);
+  const { data, error, isPending, refetch } = authClient.useSession();
 
-  const refresh = useCallback(async (): Promise<AuthState | null> => {
-    if (!client) return null;
-    const { data } = await client.auth.getSession();
-    const next = authStateFrom(data.session);
-    setState(next);
-    return next;
-  }, [client]);
+  const refresh = useCallback(async () => {
+    await refetch();
+  }, [refetch]);
 
   const signOut = useCallback(
     async (scope: SignOutScope = "local") => {
-      if (!client) return;
-      await signOutClient(client, scope);
-      if (scope !== "others") {
-        setState({ ...INITIAL_AUTH_STATE, isConfigured: true, isReady: true });
+      if (scope === "others") {
+        await signOutOtherSessions();
+        return;
       }
+      await signOutClient();
+      await refetch();
     },
-    [client],
+    [refetch],
   );
 
-  useEffect(() => {
-    if (!client) return;
-    let active = true;
-
-    refresh().catch((error: unknown) => {
-      if (active) setState((current) => ({ ...current, error, isReady: true }));
-    });
-
-    const { data } = client.auth.onAuthStateChange((_event, session) => {
-      queueMicrotask(() => {
-        if (active) setState(authStateFrom(session));
-      });
-    });
-
-    return () => {
-      active = false;
-      data.subscription.unsubscribe();
+  const value = useMemo<AuthContextValue>(() => {
+    const user = data?.user
+      ? {
+          email: data.user.email,
+          id: data.user.id,
+          image: data.user.image ?? null,
+          name: data.user.name,
+        }
+      : null;
+    return {
+      error,
+      isAuthenticated: Boolean(user),
+      isReady: !isPending,
+      refresh,
+      sessionCreatedAt: data?.session
+        ? new Date(data.session.createdAt).toISOString()
+        : null,
+      signOut,
+      user,
     };
-  }, [client, refresh]);
-
-  const value = useMemo<AuthContextValue>(
-    () => ({ ...state, client, refresh, signOut }),
-    [client, refresh, signOut, state],
-  );
+  }, [data, error, isPending, refresh, signOut]);
 
   return <AuthContext value={value}>{children}</AuthContext>;
 }

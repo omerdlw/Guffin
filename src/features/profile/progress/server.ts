@@ -1,6 +1,9 @@
 import "server-only";
 
 import { report } from "@omerdlw/base-framework/utils";
+import { and, eq, inArray, sql } from "drizzle-orm";
+import { pick } from "@/lib/db/pick";
+import { accountShowProgress } from "@/lib/db/schema";
 import type { ProfileClient } from "@/features/profile/profile";
 import {
   type ContinueItem,
@@ -32,16 +35,32 @@ export async function getTrackedShows({
   limit: number;
   statuses: readonly ShowStatus[];
 }): Promise<ContinueItem[]> {
-  const { data, error } = await client
-    .from("account_show_progress")
-    .select(
-      "show_id, status, title, poster_path, backdrop_path, watched_episodes, aired_episodes, last_season, last_episode",
-    )
-    .eq("account_id", accountId)
-    .in("status", [...statuses])
-    .order("last_watched_at", { ascending: false, nullsFirst: false })
-    .limit(limit);
-  if (error) {
+  let data;
+  try {
+    data = await client.db
+      .select(
+        pick(accountShowProgress, [
+          "show_id",
+          "status",
+          "title",
+          "poster_path",
+          "backdrop_path",
+          "watched_episodes",
+          "aired_episodes",
+          "last_season",
+          "last_episode",
+        ]),
+      )
+      .from(accountShowProgress)
+      .where(
+        and(
+          eq(accountShowProgress.accountId, accountId),
+          inArray(accountShowProgress.status, [...statuses]),
+        ),
+      )
+      .orderBy(sql`${accountShowProgress.lastWatchedAt} desc nulls last`)
+      .limit(limit);
+  } catch (error) {
     report("Tracked shows read", error);
     return [];
   }

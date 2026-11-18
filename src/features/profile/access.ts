@@ -16,13 +16,15 @@ import { getPublicAccount } from "@/features/account/server";
 import { getOptionalUser } from "@/features/auth/server";
 import { type MutualFollowers, toPerson } from "@/features/social/social";
 import { AMBIENT_ANALYSIS } from "@/lib/ambient";
+import { and, eq } from "drizzle-orm";
+import { viewer } from "@/lib/db/client";
+import { accountFollows } from "@/lib/db/schema";
 import { isPublicHttps, pinnedFetch } from "@/lib/security";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { ProfileClient } from "./profile";
 
 interface AccountPageContext {
   account: PublicAccount;
-  client: Awaited<ReturnType<typeof createServerSupabaseClient>>;
+  client: ProfileClient;
   isOwner: boolean;
   locked: boolean;
   viewerId: string | null;
@@ -91,24 +93,26 @@ async function isAcceptedFollower(
 ): Promise<boolean> {
   if (!viewerId || viewerId === targetId) return false;
 
-  const { data } = await client
-    .from("account_follows")
-    .select("status")
-    .eq("follower_id", viewerId)
-    .eq("following_id", targetId)
-    .maybeSingle();
+  const [data] = await client.db
+    .select({ status: accountFollows.status })
+    .from(accountFollows)
+    .where(
+      and(
+        eq(accountFollows.followerId, viewerId),
+        eq(accountFollows.followingId, targetId),
+      ),
+    )
+    .limit(1);
   return data?.status === "accepted";
 }
 
 const readViewer = cache(getOptionalUser);
 
 const readAccountAndViewer = cache(async (username: string) => {
-  const client = await createServerSupabaseClient();
-  const [account, viewer] = await Promise.all([
-    getPublicAccount({ client, username }),
-    readViewer(),
-  ]);
-  return { account, client, viewer };
+  const user = await readViewer();
+  const client = viewer(user?.id ?? null);
+  const account = await getPublicAccount({ session: client, username });
+  return { account, client, viewer: user };
 });
 
 const readFollowerStatus = cache(isAcceptedFollower);
@@ -155,10 +159,12 @@ export async function getAccountHeader({
   accountId: string;
   client: ProfileClient;
 }): Promise<AccountHeader> {
-  const { data, error } = await client.rpc("get_account_header", {
-    p_account_id: accountId,
-  });
-  if (error) {
+  let data;
+  try {
+    data = await client.call("get_account_header", {
+      p_account_id: accountId,
+    });
+  } catch (error) {
     report("Account header read", error);
     return EMPTY_HEADER;
   }

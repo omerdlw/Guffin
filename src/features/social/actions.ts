@@ -7,7 +7,7 @@ import {
   toUserMessage,
   UserError,
 } from "@omerdlw/base-framework/utils";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { and, eq } from "drizzle-orm";
 import {
   requireFollowTarget,
   runAccountAction,
@@ -16,8 +16,8 @@ import { revalidateAccount } from "@/features/account/server";
 import { fail, type MutationResult, ok } from "@/features/auth/mutation";
 import { getOptionalUser } from "@/features/auth/server";
 import { isMediaType } from "@/features/catalog/quality";
-import type { Database } from "@/lib/supabase/database.types";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { type Session, viewer } from "@/lib/db/client";
+import { accountFollows } from "@/lib/db/schema";
 import type { MediaType } from "@/lib/tmdb/shared";
 import { isTmdbId } from "@/lib/tmdb/transport";
 import { type Friend, type MovieSocialProof, toPerson } from "./social";
@@ -76,17 +76,16 @@ function buildMovieSocialProof(
 type FollowStatus = "accepted" | "pending";
 
 async function readMovieSocialProof(
-  client: SupabaseClient<Database>,
+  session: Session,
   tmdbId: number,
   mediaType: MediaType,
 ): Promise<MovieSocialProof> {
-  const { data, error } = await client.rpc("get_media_social_proof", {
+  const data = await session.call("get_media_social_proof", {
     p_limit: MOVIE_PROOF_LIMIT,
     p_media_type: mediaType,
     p_tmdb_id: tmdbId,
   });
-  if (error) throw error;
-  return buildMovieSocialProof(data ?? []);
+  return buildMovieSocialProof(data);
 }
 
 export async function getMovieSocialProofAction(
@@ -100,8 +99,9 @@ export async function getMovieSocialProofAction(
     const user = await getOptionalUser();
     if (!user) return ok({ proof: null });
 
-    const client = await createServerSupabaseClient();
-    return ok({ proof: await readMovieSocialProof(client, tmdbId, mediaType) });
+    return ok({
+      proof: await readMovieSocialProof(viewer(user.id), tmdbId, mediaType),
+    });
   } catch (error) {
     report("Social proof read", error);
     return fail(
@@ -124,24 +124,22 @@ export async function followUserAction(
     },
     async () => {
       const user = await requireFollowTarget(followingId);
-      const client = await createServerSupabaseClient();
-      const { data: targets, error: targetError } = await client.rpc(
-        "get_account_follow_target",
-        { p_user_id: followingId },
-      );
-      if (targetError) throw targetError;
-      if (!targets?.[0]) throw new UserError("Account not found");
+      const session = viewer(user.id);
+      const targets = await session.call("get_account_follow_target", {
+        p_user_id: followingId,
+      });
+      if (!targets[0]) throw new UserError("Account not found");
 
       const status: FollowStatus = targets[0].is_private
         ? "pending"
         : "accepted";
-      const { error } = await client
-        .from("account_follows")
-        .upsert(
-          { follower_id: user.id, following_id: followingId, status },
-          { onConflict: "follower_id,following_id" },
-        );
-      if (error) throw error;
+      await session.db
+        .insert(accountFollows)
+        .values({ followerId: user.id, followingId, status })
+        .onConflictDoUpdate({
+          set: { status },
+          target: [accountFollows.followerId, accountFollows.followingId],
+        });
 
       revalidateAccount(targetUsername);
       return okResult(status);
@@ -161,13 +159,14 @@ export async function unfollowUserAction(
     },
     async () => {
       const user = await requireFollowTarget(followingId);
-      const client = await createServerSupabaseClient();
-      const { error } = await client
-        .from("account_follows")
-        .delete()
-        .eq("follower_id", user.id)
-        .eq("following_id", followingId);
-      if (error) throw error;
+      await viewer(user.id)
+        .db.delete(accountFollows)
+        .where(
+          and(
+            eq(accountFollows.followerId, user.id),
+            eq(accountFollows.followingId, followingId),
+          ),
+        );
 
       revalidateAccount(targetUsername);
       return okResult(null);

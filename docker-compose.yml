@@ -1,0 +1,29 @@
+name: guffin
+
+services:
+  db:
+    image: postgres:17
+    container_name: guffin-db
+    environment:
+      POSTGRES_DB: guffin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "5433:5432"
+    volumes:
+      - guffin-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-d", "guffin"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  mail:
+    image: axllent/mailpit
+    container_name: guffin-mail
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+volumes:
+  guffin-db:
+    name: guffin-db

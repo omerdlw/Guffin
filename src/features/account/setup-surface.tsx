@@ -24,7 +24,7 @@ function AccountSetupSurface({
   const auth = useAuth();
   const toast = useToast();
   const [fields, setFields] = useState(() => ({
-    displayName: String(auth.user?.user_metadata?.full_name ?? "").trim(),
+    displayName: (auth.user?.name ?? "").trim(),
     username: "",
   }));
 

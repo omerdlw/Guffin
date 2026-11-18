@@ -1,78 +1,53 @@
 import "server-only";
 
+import { cache } from "react";
 import {
   report,
   toUserMessage,
   UserError,
 } from "@omerdlw/base-framework/utils";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { and, eq } from "drizzle-orm";
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
-import { SESSION_CHECKED_HEADER } from "@/lib/env";
+import { redirect, unstable_rethrow } from "next/navigation";
+import { auth } from "@/lib/auth/server";
+import { admin, type Session, viewer } from "@/lib/db/client";
+import { authUsers } from "@/lib/db/schema";
 import { checkRateLimit } from "@/lib/security";
-import type { Database } from "@/lib/supabase/database.types";
-import {
-  createAdminSupabaseClient,
-  createServerSupabaseClient,
-} from "@/lib/supabase/server";
 import { fail, type MutationResult } from "./mutation";
 import { SEED_EMAIL_DOMAIN } from "./session";
 
-interface AuthUser {
-  aal: string;
-  claims: Record<string, unknown>;
-  email: string | null;
+export interface AuthUser {
+  email: string;
   id: string;
-  sessionId: string | null;
+  sessionCreatedAt: Date;
+  sessionId: string;
 }
 
-const MAX_AUTH_AGE_SECONDS = 600;
+const MAX_AUTH_AGE_MS = 10 * 60 * 1000;
 
 const NOT_A_SEED_ACCOUNT = "This is not a test account";
 
-function toAuthUser(
-  claims: Record<string, unknown> | null | undefined,
-): AuthUser | null {
-  if (typeof claims?.sub !== "string") return null;
-  return {
-    aal: typeof claims.aal === "string" ? claims.aal : "aal1",
-    claims,
-    email: typeof claims.email === "string" ? claims.email : null,
-    id: claims.sub,
-    sessionId: typeof claims.session_id === "string" ? claims.session_id : null,
-  };
-}
-
-function latestAuthenticationAt(user: AuthUser): number {
-  const methods = user.claims.amr;
-  if (!Array.isArray(methods)) return 0;
-  return methods.reduce<number>((latest, method) => {
-    const at = Number((method as { timestamp?: unknown })?.timestamp) || 0;
-    return Math.max(latest, at);
-  }, 0);
-}
-
-export async function getOptionalUser(): Promise<AuthUser | null> {
-  const supabase = await createServerSupabaseClient();
-  const { data, error } = await supabase.auth.getClaims();
-  const user = error ? null : toAuthUser(data?.claims);
-  if (!user) return null;
-
-  const checkedByProxy =
-    (await headers()).get(SESSION_CHECKED_HEADER) === user.sessionId;
-  if (!user.sessionId || checkedByProxy) return user;
-
+export const getOptionalUser = cache(async (): Promise<AuthUser | null> => {
   try {
-    const { data: session, error: sessionError } = await supabase
-      .from("auth_sessions")
-      .select("revoked_at")
-      .eq("session_id", user.sessionId)
-      .maybeSingle();
-    return sessionError || session?.revoked_at ? null : user;
-  } catch {
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (!session) return null;
+    return {
+      email: session.user.email,
+      id: session.user.id,
+      sessionCreatedAt: new Date(session.session.createdAt),
+      sessionId: session.session.id,
+    };
+  } catch (error) {
+    unstable_rethrow(error);
+    report("Read session", error);
     return null;
   }
-}
+});
+
+export const getViewerSession = cache(async (): Promise<Session> => {
+  const user = await getOptionalUser();
+  return viewer(user?.id ?? null);
+});
 
 export async function requireUser({
   redirectTo,
@@ -85,9 +60,7 @@ export async function requireUser({
 
 export async function requireRecentAuthentication(): Promise<AuthUser> {
   const user = await requireUser();
-  const at = latestAuthenticationAt(user);
-  const age = Math.floor(Date.now() / 1000) - at;
-  if (!at || age > MAX_AUTH_AGE_SECONDS) {
+  if (Date.now() - user.sessionCreatedAt.getTime() > MAX_AUTH_AGE_MS) {
     throw new UserError(
       "For your security, please sign in again to continue",
       403,
@@ -104,7 +77,7 @@ export async function mutate<T extends object = object>(
     scope = "account-change",
   }: { fallback: string; name: string; perMinute?: number; scope?: string },
   work: (context: {
-    client: SupabaseClient<Database>;
+    session: Session;
     userId: string;
   }) => Promise<MutationResult<T>>,
 ): Promise<MutationResult<T>> {
@@ -113,8 +86,7 @@ export async function mutate<T extends object = object>(
     const limit = await checkRateLimit(`${scope}:${user.id}`, perMinute);
     if (!limit.success) return fail("Too many requests, slow down a little");
 
-    const client = await createServerSupabaseClient();
-    return await work({ client, userId: user.id });
+    return await work({ session: viewer(user.id), userId: user.id });
   } catch (error) {
     report(name, error);
     return fail(toUserMessage(error, { fallback }));
@@ -127,38 +99,19 @@ export async function signInSeedAccount(value: unknown): Promise<string> {
     throw new UserError(NOT_A_SEED_ACCOUNT, 403);
   }
 
-  const admin = createAdminSupabaseClient();
-  const { data: owner, error: ownerError } = await admin
-    .from("account_emails")
-    .select("account_id")
-    .eq("email", email)
-    .maybeSingle();
-  if (ownerError) throw ownerError;
-  if (!owner) throw new UserError(NOT_A_SEED_ACCOUNT, 403);
+  const [seed] = await admin()
+    .db.select({ id: authUsers.id })
+    .from(authUsers)
+    .where(and(eq(authUsers.email, email), eq(authUsers.isSeed, true)))
+    .limit(1);
+  if (!seed) throw new UserError(NOT_A_SEED_ACCOUNT, 403);
 
-  const { data: found, error: userError } = await admin.auth.admin.getUserById(
-    owner.account_id,
-  );
-  if (userError) throw userError;
-  if (found.user?.app_metadata?.seed !== true) {
-    throw new UserError(NOT_A_SEED_ACCOUNT, 403);
-  }
-
-  const { data: link, error: linkError } = await admin.auth.admin.generateLink({
-    email,
-    type: "magiclink",
+  const otp = await auth.api.createVerificationOTP({
+    body: { email, type: "sign-in" },
   });
-  if (linkError) throw linkError;
-
-  const supabase = await createServerSupabaseClient();
-  const { error } = await supabase.auth.verifyOtp({
-    token_hash: link.properties.hashed_token,
-    type: "email",
+  await auth.api.signInEmailOTP({
+    body: { email, otp },
+    headers: await headers(),
   });
-  if (error?.status === 429) {
-    throw new UserError("Too many sign-ins, wait a few minutes", 429);
-  }
-  if (error) throw error;
-
-  return found.user.id;
+  return seed.id;
 }

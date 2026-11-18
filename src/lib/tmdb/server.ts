@@ -158,13 +158,13 @@ export function movieSnapshot(movie: {
     value && TMDB_PATH.test(value) ? value : null;
 
   return {
-    backdrop_path: path(movie.backdropPath),
+    backdropPath: path(movie.backdropPath),
     payload: {
       genre_ids: movie.genres.map((genre) => genre.id),
       vote_average: movie.voteAverage ?? null,
     },
-    poster_path: path(movie.posterPath),
-    release_date:
+    posterPath: path(movie.posterPath),
+    releaseDate:
       movie.releaseDate && ISO_DATE.test(movie.releaseDate)
         ? movie.releaseDate
         : null,

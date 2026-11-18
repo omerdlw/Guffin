@@ -1,7 +1,19 @@
 import "server-only";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/lib/supabase/database.types";
+import {
+  and,
+  asc,
+  count,
+  eq,
+  gte,
+  inArray,
+  lt,
+  ne,
+  type SQL,
+  sql,
+} from "drizzle-orm";
+import type { Session } from "@/lib/db/client";
+import { accountLikes, accounts, reviewLikes, reviews } from "@/lib/db/schema";
 import type { MediaType } from "@/lib/tmdb/shared";
 import type {
   MovieReview,
@@ -9,8 +21,6 @@ import type {
   MovieReviewSort,
   ReviewStats,
 } from "./review";
-
-type ReviewsClient = SupabaseClient<Database>;
 
 interface ReviewRow {
   author: {
@@ -28,16 +38,29 @@ interface ReviewRow {
   updated_at: string;
 }
 
-const REVIEW_COLUMNS =
-  "id, content, rating, is_spoiler, likes_count, created_at, updated_at, author:accounts!reviews_account_id_fkey!inner(id, username, display_name, avatar_url)";
+const REVIEW_COLUMNS = {
+  author: {
+    avatar_url: accounts.avatarUrl,
+    display_name: accounts.displayName,
+    id: accounts.id,
+    username: sql<string>`${accounts.username}`,
+  },
+  content: reviews.content,
+  created_at: reviews.createdAt,
+  id: reviews.id,
+  is_spoiler: reviews.isSpoiler,
+  likes_count: reviews.likesCount,
+  rating: reviews.rating,
+  updated_at: reviews.updatedAt,
+};
 
-const REVIEW_ORDER: Record<MovieReviewSort, [string, boolean]> = {
-  likes_asc: ["likes_count", true],
-  likes_desc: ["likes_count", false],
-  newest: ["updated_at", false],
-  oldest: ["updated_at", true],
-  rating_asc: ["rating", true],
-  rating_desc: ["rating", false],
+const REVIEW_ORDER: Record<MovieReviewSort, SQL> = {
+  likes_asc: sql`${reviews.likesCount} asc nulls last`,
+  likes_desc: sql`${reviews.likesCount} desc nulls last`,
+  newest: sql`${reviews.updatedAt} desc nulls last`,
+  oldest: sql`${reviews.updatedAt} asc nulls last`,
+  rating_asc: sql`${reviews.rating} asc nulls last`,
+  rating_desc: sql`${reviews.rating} desc nulls last`,
 };
 
 function toMovieReview(
@@ -67,106 +90,114 @@ function toMovieReview(
 
 export async function getMovieReviews({
   authorId,
-  client,
   filter = "all",
   from = 0,
   limit,
   mediaType = "movie",
+  session,
   sort,
   tmdbId,
   username,
   viewerId,
 }: {
   authorId?: string | null;
-  client: ReviewsClient;
   filter?: MovieReviewFilter;
   from?: number;
   limit: number;
   mediaType?: MediaType;
+  session: Session;
   sort: MovieReviewSort;
   tmdbId: number;
   username?: string | null;
   viewerId: string | null;
 }): Promise<{ reviews: MovieReview[]; total: number }> {
-  const [column, ascending] = REVIEW_ORDER[sort];
-
-  let query = client
-    .from("reviews")
-    .select(REVIEW_COLUMNS, { count: "exact" })
-    .eq("media_type", mediaType)
-    .eq("tmdb_id", tmdbId);
-  if (authorId) query = query.eq("account_id", authorId);
-  if (username) query = query.eq("author.username", username.toLowerCase());
-  if (filter === "written") query = query.neq("content", "");
+  const conditions: (SQL | undefined)[] = [
+    eq(reviews.mediaType, mediaType),
+    eq(reviews.tmdbId, tmdbId),
+  ];
+  if (authorId) conditions.push(eq(reviews.accountId, authorId));
+  if (username) conditions.push(eq(accounts.username, username.toLowerCase()));
+  if (filter === "written") conditions.push(ne(reviews.content, ""));
   else if (filter !== "all") {
     const stars = Number(filter);
-    query = query.gte("rating", stars).lt("rating", stars + 1);
+    conditions.push(gte(reviews.rating, stars), lt(reviews.rating, stars + 1));
   }
+  const where = and(...conditions);
 
-  const { count, data, error } = await query
-    .order(column as "created_at", { ascending, nullsFirst: false })
-    .order("id")
-    .range(from, from + limit - 1);
-  if (error?.code === "PGRST103") {
-    const rows = Number(/only (\d+) rows/.exec(error.details ?? "")?.[1]);
-    return { reviews: [], total: Number.isFinite(rows) ? rows : 0 };
-  }
-  if (error) throw error;
+  const [rows, [counted]] = await Promise.all([
+    session.db
+      .select(REVIEW_COLUMNS)
+      .from(reviews)
+      .innerJoin(accounts, eq(accounts.id, reviews.accountId))
+      .where(where)
+      .orderBy(REVIEW_ORDER[sort], asc(reviews.id))
+      .limit(limit)
+      .offset(from),
+    session.db
+      .select({ total: count() })
+      .from(reviews)
+      .innerJoin(accounts, eq(accounts.id, reviews.accountId))
+      .where(where),
+  ]);
 
-  const rows = (data ?? []) as unknown as ReviewRow[];
-  const authors = rows.flatMap((row) => (row.author ? [row.author.id] : []));
+  const authors = rows.map((row) => row.author.id);
   const [likes, fans] = await Promise.all([
     viewerId && rows.length > 0
-      ? client
-          .from("review_likes")
-          .select("review_id")
-          .eq("account_id", viewerId)
-          .in(
-            "review_id",
-            rows.map((row) => row.id),
+      ? session.db
+          .select({ reviewId: reviewLikes.reviewId })
+          .from(reviewLikes)
+          .where(
+            and(
+              eq(reviewLikes.accountId, viewerId),
+              inArray(
+                reviewLikes.reviewId,
+                rows.map((row) => row.id),
+              ),
+            ),
           )
-      : null,
+      : [],
     authors.length > 0
-      ? client
-          .from("account_likes")
-          .select("account_id")
-          .eq("media_type", mediaType)
-          .eq("tmdb_id", tmdbId)
-          .in("account_id", authors)
-      : null,
+      ? session.db
+          .select({ accountId: accountLikes.accountId })
+          .from(accountLikes)
+          .where(
+            and(
+              eq(accountLikes.mediaType, mediaType),
+              eq(accountLikes.tmdbId, tmdbId),
+              inArray(accountLikes.accountId, authors),
+            ),
+          )
+      : [],
   ]);
-  const liked = new Set((likes?.data ?? []).map((like) => like.review_id));
-  const lovedBy = new Set((fans?.data ?? []).map((fan) => fan.account_id));
+  const liked = new Set(likes.map((like) => like.reviewId));
+  const lovedBy = new Set(fans.map((fan) => fan.accountId));
 
   return {
-    reviews: rows.flatMap((row) =>
-      row.author
-        ? [toMovieReview(row, row.author, liked.has(row.id), lovedBy)]
-        : [],
+    reviews: rows.map((row) =>
+      toMovieReview(row, row.author, liked.has(row.id), lovedBy),
     ),
-    total: count ?? 0,
+    total: counted?.total ?? 0,
   };
 }
 
 export async function getReviewStats({
-  client,
   mediaType = "movie",
+  session,
   tmdbId,
   username,
 }: {
-  client: ReviewsClient;
   mediaType?: MediaType;
+  session: Session;
   tmdbId: number;
   username?: string | null;
 }): Promise<ReviewStats> {
-  const { data, error } = await client.rpc("get_review_stats", {
+  const data = await session.call("get_review_stats", {
     p_media_type: mediaType,
     p_tmdb_id: tmdbId,
     p_username: username ? username.toLowerCase() : null,
   });
-  if (error) throw error;
 
-  const stats = data?.[0];
+  const stats = data[0];
   const average = stats?.average ?? null;
   return {
     average: average === null ? null : Number(average),

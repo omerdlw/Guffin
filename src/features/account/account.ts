@@ -1,6 +1,6 @@
 import type { SyntheticEvent } from "react";
 import { isImageIconSource, trimToNull } from "@omerdlw/base-framework/utils";
-import type { User } from "@supabase/supabase-js";
+import type { AuthUser } from "@/features/auth/provider";
 
 export interface PublicAccount {
   avatarUrl: string | null;
@@ -211,10 +211,9 @@ export function signedInStatus({
   user,
 }: {
   account: CurrentAccount | null;
-  user: User | null;
+  user: AuthUser | null;
 }): { description: string; icon: string; title: string } {
   const cached = readLastKnownAccount(user?.id ?? null);
-  const metadata = user?.user_metadata ?? {};
   const username = (account?.username || cached?.username || "")
     .trim()
     .replace(/^@+/, "");
@@ -224,10 +223,7 @@ export function signedInStatus({
   const title =
     String(
       account?.displayName ||
-        metadata.displayName ||
-        metadata.display_name ||
-        metadata.full_name ||
-        metadata.name ||
+        user?.name ||
         cached?.displayName ||
         "",
     ).trim() ||

@@ -1,41 +1,14 @@
 import { trimToNull } from "@omerdlw/base-framework/utils";
 import type { TmdbConfig } from "@/lib/tmdb/transport";
 
-interface SupabasePublicConfig {
-  publishableKey: string;
-  url: string;
-}
-
-export function getSupabasePublicConfig(): SupabasePublicConfig | null {
-  const url = trimToNull(process.env.NEXT_PUBLIC_SUPABASE_URL);
-  const publishableKey = trimToNull(
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
-  );
-
-  if (!url || !publishableKey) return null;
-  return { publishableKey, url };
-}
-
-export function isSupabaseConfigured(): boolean {
-  return Boolean(getSupabasePublicConfig());
-}
-
-export function requireSupabasePublicConfig(): SupabasePublicConfig {
-  const config = getSupabasePublicConfig();
-  if (!config) {
+export function requireDatabaseUrl(): string {
+  const url = trimToNull(process.env.DATABASE_URL);
+  if (!url) {
     throw new Error(
-      "Supabase is not configured. Copy .env.example to .env.local and set the public URL and publishable key",
+      "DATABASE_URL is not set. Copy .env.example to .env.local and point it at Postgres",
     );
   }
-  return config;
-}
-
-export function requireSupabaseSecretKey(): string {
-  const secretKey = trimToNull(process.env.SUPABASE_SECRET_KEY);
-  if (!secretKey) {
-    throw new Error("SUPABASE_SECRET_KEY is required on the server");
-  }
-  return secretKey;
+  return url;
 }
 
 interface UpstashRedisConfig {
@@ -58,8 +31,6 @@ export function getTmdbConfig(): TmdbConfig | null {
   return baseUrl ? { accessToken, baseUrl } : { accessToken };
 }
 
-export const AUTH_COOKIE_NAME = "GUFFIN_AUTH";
-export const SESSION_CHECKED_HEADER = "x-guffin-session-checked";
 
 export function isHttpsRequest(headers: Headers, protocol?: string): boolean {
   const forwarded = headers.get("x-forwarded-proto")?.split(",")[0]?.trim();

@@ -1,9 +1,43 @@
 import { UserError } from "@omerdlw/base-framework/utils";
-import type { UserIdentity } from "@supabase/supabase-js";
+import { authClient } from "@/lib/auth/client";
 import { requestJson } from "@/lib/http";
-import type { AuthClient, OAuthProvider, SignOutScope } from "./session";
+import type { OAuthProvider } from "./session";
 
-function normalizeEmail(value: unknown): string {
+export interface LinkedIdentity {
+  accountId: string;
+  createdAt: string;
+  id: string;
+  provider: string;
+}
+
+export interface Passkey {
+  createdAt: string | null;
+  deviceType: string;
+  id: string;
+  name: string | null;
+}
+
+type Result<T> = { data: T | null; error: unknown };
+
+function unwrap<T>(result: Result<T>, fallbackMessage: string): T {
+  if (result.error) throw result.error;
+  if (result.data == null) throw new UserError(fallbackMessage);
+  return result.data;
+}
+
+function check(result: { error: unknown }): void {
+  if (result.error) throw result.error;
+}
+
+function socialProvider(provider: OAuthProvider): "google" | "github" | "twitter" {
+  return provider === "x" ? "twitter" : provider;
+}
+
+function fromSocialProvider(provider: string): string {
+  return provider === "twitter" ? "x" : provider;
+}
+
+export function normalizeEmail(value: unknown): string {
   const email = String(value || "")
     .trim()
     .toLowerCase();
@@ -13,30 +47,31 @@ function normalizeEmail(value: unknown): string {
   return email;
 }
 
-function unwrap<T>(
-  result: { data: T | null; error: unknown },
-  fallbackMessage: string,
-): T {
-  if (result.error) throw result.error;
-  if (!result.data) throw new UserError(fallbackMessage);
-  return result.data;
+export async function requestEmailCode(email: string): Promise<string> {
+  const normalizedEmail = normalizeEmail(email);
+  check(
+    await authClient.emailOtp.sendVerificationOtp({
+      email: normalizedEmail,
+      type: "sign-in",
+    }),
+  );
+  return normalizedEmail;
 }
 
-export async function requestEmailAuth(
-  client: AuthClient,
-  {
-    createUser = false,
-    email,
-    emailRedirectTo,
-  }: { createUser?: boolean; email: string; emailRedirectTo?: string },
-): Promise<string> {
-  const normalizedEmail = normalizeEmail(email);
-  const { error } = await client.auth.signInWithOtp({
-    email: normalizedEmail,
-    options: { emailRedirectTo, shouldCreateUser: createUser },
-  });
-  if (error) throw error;
-  return normalizedEmail;
+export async function verifyEmailCode(email: string, otp: string): Promise<void> {
+  check(await authClient.signIn.emailOtp({ email: normalizeEmail(email), otp }));
+}
+
+export async function requestEmailChange(newEmail: string): Promise<string> {
+  const email = normalizeEmail(newEmail);
+  check(await authClient.emailOtp.requestEmailChange({ newEmail: email }));
+  return email;
+}
+
+export async function confirmEmailChange(newEmail: string, otp: string): Promise<void> {
+  check(
+    await authClient.emailOtp.changeEmail({ newEmail: normalizeEmail(newEmail), otp }),
+  );
 }
 
 export async function signInSeedAccount(email: string): Promise<void> {
@@ -57,109 +92,82 @@ export async function hasAccountUsername(): Promise<boolean> {
   return Boolean(response?.account?.username);
 }
 
-export async function verifyEmailOtp(
-  client: AuthClient,
-  email: string,
-  token: string,
-): Promise<void> {
-  const normalizedEmail = normalizeEmail(email);
-  const asEmail = await client.auth.verifyOtp({
-    email: normalizedEmail,
-    token,
-    type: "email",
-  });
-  if (!asEmail.error) return;
-
-  const asSignup = await client.auth.verifyOtp({
-    email: normalizedEmail,
-    token,
-    type: "signup",
-  });
-  if (asSignup.error) throw asEmail.error;
-}
-
 export async function signInWithOAuth(
-  client: AuthClient,
   provider: OAuthProvider,
-  redirectTo: string,
+  callbackURL: string,
 ): Promise<void> {
-  const { error } = await client.auth.signInWithOAuth({
-    provider,
-    options: { redirectTo },
-  });
-  if (error) throw error;
+  check(
+    await authClient.signIn.social({
+      callbackURL,
+      errorCallbackURL: "/?reason=callback-failed",
+      provider: socialProvider(provider),
+    }),
+  );
 }
 
 export async function linkIdentity(
-  client: AuthClient,
   provider: OAuthProvider,
-  redirectTo: string,
+  callbackURL: string,
 ): Promise<void> {
-  const { data, error } = await client.auth.linkIdentity({
-    provider,
-    options: { redirectTo },
-  });
-  if (error) throw error;
-  if (data.url) window.location.assign(data.url);
-}
-
-export async function unlinkIdentity(
-  client: AuthClient,
-  identity: UserIdentity,
-): Promise<void> {
-  const { error } = await client.auth.unlinkIdentity(identity);
-  if (error) throw error;
-}
-
-export async function getUserIdentities(
-  client: AuthClient,
-): Promise<UserIdentity[]> {
-  const { data, error } = await client.auth.getUserIdentities();
-  if (error) throw error;
-  return data.identities;
-}
-
-export async function signInWithPasskey(client: AuthClient): Promise<void> {
-  unwrap(
-    await client.auth.signInWithPasskey(),
-    "Couldn't sign in with your passkey",
+  check(
+    await authClient.linkSocial({
+      callbackURL,
+      errorCallbackURL: "/?reason=link-failed",
+      provider: socialProvider(provider),
+    }),
   );
 }
 
-export async function registerPasskey(client: AuthClient): Promise<void> {
-  unwrap(await client.auth.registerPasskey(), "Couldn't add your passkey");
+export async function unlinkIdentity(identity: LinkedIdentity): Promise<void> {
+  check(await authClient.unlinkAccount({ accountId: identity.accountId }));
 }
 
-export async function listPasskeys(client: AuthClient) {
-  return unwrap(
-    await client.auth.passkey.list(),
+export async function getUserIdentities(): Promise<LinkedIdentity[]> {
+  const accounts = unwrap(
+    await authClient.listAccounts(),
+    "Couldn't load your connected accounts",
+  );
+  return accounts.map((account) => ({
+    accountId: account.accountId,
+    createdAt: new Date(account.createdAt).toISOString(),
+    id: account.id,
+    provider: fromSocialProvider(account.providerId),
+  }));
+}
+
+export async function signInWithPasskey(): Promise<void> {
+  check(await authClient.signIn.passkey());
+}
+
+export async function registerPasskey(): Promise<void> {
+  check(await authClient.passkey.addPasskey());
+}
+
+export async function listPasskeys(): Promise<Passkey[]> {
+  const passkeys = unwrap(
+    await authClient.passkey.listUserPasskeys(),
     "Couldn't load your passkeys",
   );
+  return passkeys.map((passkey) => ({
+    createdAt: passkey.createdAt ? new Date(passkey.createdAt).toISOString() : null,
+    deviceType: passkey.deviceType,
+    id: passkey.id,
+    name: passkey.name ?? null,
+  }));
 }
 
-export async function renamePasskey(
-  client: AuthClient,
-  passkeyId: string,
-  friendlyName: string,
-): Promise<void> {
-  unwrap(
-    await client.auth.passkey.update({ friendlyName, passkeyId }),
-    "Couldn't rename this passkey",
-  );
+export async function renamePasskey(id: string, name: string): Promise<void> {
+  check(await authClient.passkey.updatePasskey({ id, name }));
 }
 
-export async function deletePasskey(
-  client: AuthClient,
-  passkeyId: string,
-): Promise<void> {
-  const { error } = await client.auth.passkey.delete({ passkeyId });
-  if (error) throw error;
+export async function deletePasskey(id: string): Promise<void> {
+  check(await authClient.passkey.deletePasskey({ id }));
 }
 
-export async function signOut(
-  client: AuthClient,
-  scope: SignOutScope = "local",
-): Promise<void> {
-  const { error } = await client.auth.signOut({ scope });
-  if (error) throw error;
+export async function signOut(): Promise<void> {
+  check(await authClient.signOut());
+}
+
+export async function signOutOtherSessions(): Promise<void> {
+  check(await authClient.revokeOtherSessions());
 }

@@ -1,35 +1,29 @@
+import { eq } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
+import { getOptionalUser } from "@/features/auth/server";
 import { sanitizeNextPath } from "@/features/auth/session";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { admin } from "@/lib/db/client";
+import { accounts } from "@/lib/db/schema";
 
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
-  const code = url.searchParams.get("code");
   const nextPath = sanitizeNextPath(url.searchParams.get("next"));
-
-  if (!code)
-    return NextResponse.redirect(new URL("/?reason=missing-code", url));
-
-  const supabase = await createServerSupabaseClient();
-  const { data: sessionData, error } =
-    await supabase.auth.exchangeCodeForSession(code);
-  if (error)
+  const user = await getOptionalUser();
+  if (!user) {
     return NextResponse.redirect(new URL("/?reason=callback-failed", url));
+  }
 
-  const userId = sessionData?.user?.id;
-  if (userId) {
-    const { data: accountRow } = await supabase
-      .from("accounts")
-      .select("username")
-      .eq("id", userId)
-      .maybeSingle();
+  const [account] = await admin()
+    .db.select({ username: accounts.username })
+    .from(accounts)
+    .where(eq(accounts.id, user.id))
+    .limit(1);
 
-    if (!accountRow?.username) {
-      const setupUrl = new URL("/", url);
-      setupUrl.searchParams.set("setup", "account");
-      setupUrl.searchParams.set("next", nextPath);
-      return NextResponse.redirect(setupUrl);
-    }
+  if (!account?.username) {
+    const setupUrl = new URL("/", url);
+    setupUrl.searchParams.set("setup", "account");
+    setupUrl.searchParams.set("next", nextPath);
+    return NextResponse.redirect(setupUrl);
   }
 
   const redirectUrl = new URL(nextPath, url);

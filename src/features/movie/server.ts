@@ -1,8 +1,11 @@
 import "server-only";
 
 import { report } from "@omerdlw/base-framework/utils";
+import { and, eq } from "drizzle-orm";
+import { unstable_rethrow } from "next/navigation";
+import { getViewerSession } from "@/features/auth/server";
 import { getKnownFor } from "@/features/person/credits";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { mediaStats } from "@/lib/db/schema";
 import { getPersonDetails } from "@/lib/tmdb/server";
 import type { MediaType } from "@/lib/tmdb/shared";
 import {
@@ -19,26 +22,24 @@ export async function getFilmStats(
   mediaType: MediaType = "movie",
 ): Promise<FilmStats | null> {
   try {
-    const client = await createServerSupabaseClient();
-    const { data, error } = await client
-      .from("media_stats")
-      .select(
-        "watched_count, liked_count, listed_count, watchlist_count, reviews_count, ratings",
+    const { db } = await getViewerSession();
+    const [data] = await db
+      .select({
+        liked: mediaStats.likedCount,
+        listed: mediaStats.listedCount,
+        ratings: mediaStats.ratings,
+        reviews: mediaStats.reviewsCount,
+        watched: mediaStats.watchedCount,
+        watchlist: mediaStats.watchlistCount,
+      })
+      .from(mediaStats)
+      .where(
+        and(eq(mediaStats.mediaType, mediaType), eq(mediaStats.tmdbId, tmdbId)),
       )
-      .eq("media_type", mediaType)
-      .eq("tmdb_id", tmdbId)
-      .maybeSingle();
-    if (error) throw error;
-    if (!data) return null;
-    return {
-      liked: data.liked_count,
-      listed: data.listed_count,
-      ratings: data.ratings,
-      reviews: data.reviews_count,
-      watched: data.watched_count,
-      watchlist: data.watchlist_count,
-    };
+      .limit(1);
+    return data ?? null;
   } catch (error) {
+    unstable_rethrow(error);
     report("Film stats read", error);
     return null;
   }

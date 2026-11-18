@@ -30,7 +30,7 @@ import { DEFAULT_ACCOUNT_ICON } from "@/features/account/account";
 import {
   AccountGuard,
   AccountProvider,
-  SocialRealtimeSync,
+  SocialSync,
 } from "@/features/account/provider";
 import { BackdropPreloader } from "@/features/artwork/backdrop-preloader";
 import { AuthListener, AuthProvider } from "@/features/auth/provider";
@@ -134,7 +134,7 @@ export function Providers({ children }: { children: ReactNode }): JSX.Element {
         <AccountGuard />
         <SearchDockCommand />
         <SurfaceStyle />
-        <SocialRealtimeSync />
+        <SocialSync />
         <BackdropPreloader />
         <EngineProvider drive>
           {children}

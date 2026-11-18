@@ -1,13 +1,15 @@
 import { UserError } from "@omerdlw/base-framework/utils";
+import { and, count, desc, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { getOptionalUser, requireUser } from "@/features/auth/server";
+import { pgErrorCode, viewer } from "@/lib/db/client";
+import { accountFollows, accounts } from "@/lib/db/schema";
 import { isUuid } from "@/lib/http";
 import {
   apiErrorResponse,
   assertSameOrigin,
   rateLimitResponse,
 } from "@/lib/security";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 const FOLLOW_PAGE_SIZE = 50;
 const REQUESTS_LIMIT = 100;
@@ -45,35 +47,43 @@ export async function GET(request: Request): Promise<Response> {
     const resource = url.searchParams.get("resource");
     const followingId = url.searchParams.get("followingId");
     const targetUserId = url.searchParams.get("userId") || user?.id;
-    const client = await createServerSupabaseClient();
+    const session = viewer(user?.id ?? null);
+    const pendingForMe = user
+      ? and(
+          eq(accountFollows.followingId, user.id),
+          eq(accountFollows.status, "pending"),
+        )
+      : undefined;
 
     if (resource === "inbox-count") {
       if (!user) return NextResponse.json({ count: 0 });
-      const { count, error } = await client
-        .from("account_follows")
-        .select("*", { count: "exact", head: true })
-        .eq("following_id", user.id)
-        .eq("status", "pending");
-
-      if (error) throw error;
-      return NextResponse.json({ count: count ?? 0 });
+      const [row] = await session.db
+        .select({ pending: count() })
+        .from(accountFollows)
+        .where(pendingForMe);
+      return NextResponse.json({ count: row?.pending ?? 0 });
     }
 
     if (resource === "requests" || resource === "inbox") {
       if (!user) return NextResponse.json({ data: [] });
-      const { data: rows, error } = await client
-        .from("account_follows")
-        .select(
-          "follower_id, created_at, follower:accounts!account_follows_follower_id_fkey(username, display_name, avatar_url)",
-        )
-        .eq("following_id", user.id)
-        .eq("status", "pending")
-        .order("created_at", { ascending: false })
+      const rows = await session.db
+        .select({
+          created_at: accountFollows.createdAt,
+          follower: {
+            avatar_url: accounts.avatarUrl,
+            display_name: accounts.displayName,
+            username: accounts.username,
+          },
+          follower_id: accountFollows.followerId,
+        })
+        .from(accountFollows)
+        .leftJoin(accounts, eq(accounts.id, accountFollows.followerId))
+        .where(pendingForMe)
+        .orderBy(desc(accountFollows.createdAt))
         .limit(REQUESTS_LIMIT);
 
-      if (error) throw error;
       return NextResponse.json({
-        data: (rows ?? []).map((row) =>
+        data: rows.map((row) =>
           toSocialUser(row.follower_id, row.follower, row.created_at),
         ),
       });
@@ -86,33 +96,36 @@ export async function GET(request: Request): Promise<Response> {
       const before = cursorTime(url.searchParams.get("before"));
       const beforeId = url.searchParams.get("beforeId");
 
-      const [page, counts] = await Promise.all([
-        client.rpc("get_account_follows", {
-          p_account_id: targetUserId,
-          p_before: before,
-          p_before_id: beforeId && isUuid(beforeId) ? beforeId : null,
-          p_direction: resource,
-          p_limit: FOLLOW_PAGE_SIZE,
-        }),
-        before
-          ? null
-          : client.rpc("get_account_follow_counts", {
-              p_account_id: targetUserId,
-            }),
-      ]);
-
-      if (page.error?.code === "42501") {
-        return NextResponse.json(
-          { error: "This account is private" },
-          { status: 403 },
-        );
+      let rows;
+      let counts;
+      try {
+        [rows, counts] = await Promise.all([
+          session.call("get_account_follows", {
+            p_account_id: targetUserId,
+            p_before: before,
+            p_before_id: beforeId && isUuid(beforeId) ? beforeId : null,
+            p_direction: resource,
+            p_limit: FOLLOW_PAGE_SIZE,
+          }),
+          before
+            ? null
+            : session.call("get_account_follow_counts", {
+                p_account_id: targetUserId,
+              }),
+        ]);
+      } catch (error) {
+        if (pgErrorCode(error) === "42501") {
+          return NextResponse.json(
+            { error: "This account is private" },
+            { status: 403 },
+          );
+        }
+        throw error;
       }
-      if (page.error) throw page.error;
 
-      const rows = page.data ?? [];
       const last =
         rows.length === FOLLOW_PAGE_SIZE ? rows[rows.length - 1] : null;
-      const totals = counts?.data?.[0];
+      const totals = counts?.[0];
 
       return NextResponse.json({
         data: rows.map((row) => ({
@@ -130,15 +143,19 @@ export async function GET(request: Request): Promise<Response> {
       });
     }
 
-    if (!user || !followingId) return NextResponse.json({ status: null });
-    const { data, error } = await client
-      .from("account_follows")
-      .select("status")
-      .eq("follower_id", user.id)
-      .eq("following_id", followingId)
-      .maybeSingle();
-
-    if (error) throw error;
+    if (!user || !isUuid(followingId)) {
+      return NextResponse.json({ status: null });
+    }
+    const [data] = await session.db
+      .select({ status: accountFollows.status })
+      .from(accountFollows)
+      .where(
+        and(
+          eq(accountFollows.followerId, user.id),
+          eq(accountFollows.followingId, followingId),
+        ),
+      )
+      .limit(1);
     return NextResponse.json({ status: data?.status || null });
   } catch (error) {
     return apiErrorResponse(error);
@@ -157,25 +174,24 @@ export async function PATCH(request: Request): Promise<Response> {
 
     const body = await request.json().catch(() => ({}));
     const requesterId = String(body?.requesterId || "");
-    if (!requesterId) throw new UserError("Requester ID is required", 400);
-    const client = await createServerSupabaseClient();
+    if (!isUuid(requesterId)) {
+      throw new UserError("Requester ID is required", 400);
+    }
+    const { db } = viewer(user.id);
+    const pendingRequest = and(
+      eq(accountFollows.followingId, user.id),
+      eq(accountFollows.followerId, requesterId),
+    );
 
     if (body.action === "accept") {
-      const { error } = await client
-        .from("account_follows")
-        .update({ status: "accepted" })
-        .eq("following_id", user.id)
-        .eq("follower_id", requesterId);
-      if (error) throw error;
+      await db
+        .update(accountFollows)
+        .set({ status: "accepted" })
+        .where(pendingRequest);
       return NextResponse.json({ status: "accepted", success: true });
     }
     if (body.action === "reject") {
-      const { error } = await client
-        .from("account_follows")
-        .delete()
-        .eq("following_id", user.id)
-        .eq("follower_id", requesterId);
-      if (error) throw error;
+      await db.delete(accountFollows).where(pendingRequest);
       return NextResponse.json({ status: null, success: true });
     }
     throw new UserError("Invalid follow patch action", 400);
@@ -196,18 +212,18 @@ export async function DELETE(request: Request): Promise<Response> {
 
     const payload = await request.json().catch(() => ({}));
     const followerId = String(payload?.followerId || "");
-    if (!followerId || followerId === user.id) {
+    if (!isUuid(followerId) || followerId === user.id) {
       throw new UserError("Invalid follow target", 400);
     }
 
-    const { error } = await (
-      await createServerSupabaseClient()
-    )
-      .from("account_follows")
-      .delete()
-      .eq("following_id", user.id)
-      .eq("follower_id", followerId);
-    if (error) throw error;
+    await viewer(user.id)
+      .db.delete(accountFollows)
+      .where(
+        and(
+          eq(accountFollows.followingId, user.id),
+          eq(accountFollows.followerId, followerId),
+        ),
+      );
     return NextResponse.json({ status: null, success: true });
   } catch (error) {
     return apiErrorResponse(error);
