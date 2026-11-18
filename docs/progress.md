@@ -1,13 +1,14 @@
 # Progress
 
 Kısa durum dosyası: her anlamlı iş bitince güncellenir. Geçmiş için `git log`.
-Son güncelleme: 2026-11-17
+Son güncelleme: 2026-11-18
 
 ## Şu an
 
-`module-motion` dalı: modül koreografisi, legal ve spotlight sahneleri, kural
-düzeltmeleri. Kapılar temiz: typecheck, lint, 93 test, production build.
-Tarayıcıda henüz bakılmadı.
+Production hazırlığı (2026-11-18): yorumlar, ölü export ve dosyalar temizlendi;
+dokümanlar `docs/` altında; README, `.env.example`; framework 3.3.0; veritabanı
+buluttaki Supabase'de (190 seed hesabı, ortak 900 film + 60 dizi havuzu).
+Kapılar temiz: typecheck, lint, 110 test, production build.
 
 ## Bitti
 
