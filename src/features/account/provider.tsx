@@ -26,9 +26,7 @@ import { useSurfacePreload } from "@/design/lazy-surface";
 import { useAuth } from "@/features/auth/provider";
 import { signInSurface } from "@/features/auth/surfaces";
 import { followsSurface } from "@/features/social/surfaces";
-import { isSupabaseConfigured } from "@/lib/env";
 import { accountHref } from "@/lib/project";
-import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 import type { Database } from "@/lib/supabase/database.types";
 import {
   type CurrentAccount,
@@ -361,13 +359,13 @@ export function AccountGuard() {
 
 export function SocialRealtimeSync(): null {
   const auth = useAuth();
+  const supabase = auth.client;
   const userId = auth.user?.id ?? null;
   const accessToken = auth.session?.access_token ?? null;
 
   useEffect(() => {
-    if (!isSupabaseConfigured() || !auth.isAuthenticated || !userId) return;
+    if (!supabase || !auth.isAuthenticated || !userId) return;
 
-    const supabase = createBrowserSupabaseClient();
     const refreshInbox = () =>
       globalEvents.emitDebounced(
         SOCIAL_EVENTS.INBOX_CHANGE,
@@ -461,7 +459,7 @@ export function SocialRealtimeSync(): null {
     } catch (error) {
       report("Social realtime init", error, "warn");
     }
-  }, [accessToken, auth.isAuthenticated, userId]);
+  }, [accessToken, auth.isAuthenticated, supabase, userId]);
 
   return null;
 }

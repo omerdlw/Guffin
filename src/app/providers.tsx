@@ -1,7 +1,10 @@
 "use client";
 
 import { createElement, type JSX, type ReactNode } from "react";
-import { ambientModule } from "@omerdlw/base-framework/ambient";
+import {
+  ambientModule,
+  configureAmbient,
+} from "@omerdlw/base-framework/ambient";
 import { contextMenuModule } from "@omerdlw/base-framework/context-menu";
 import { controlsModule } from "@omerdlw/base-framework/controls";
 import { dockModule } from "@omerdlw/base-framework/dock";
@@ -18,6 +21,7 @@ import { ThemeProvider } from "@omerdlw/base-framework/theme";
 import { TooltipProvider, UiProvider } from "@omerdlw/base-framework/ui";
 import { ActionArrival } from "@/design/components/action-content";
 import { Logo } from "@/design/components/logo";
+import { SurfaceStyle } from "@/design/components/surface";
 import { GlassEngine } from "@/design/glass/engine";
 import { LiquidTouch } from "@/design/liquid-touch";
 import { themes } from "@/design/theme";
@@ -31,6 +35,7 @@ import {
 import { BackdropPreloader } from "@/features/artwork/backdrop-preloader";
 import { AuthListener, AuthProvider } from "@/features/auth/provider";
 import { SearchDockCommand } from "@/features/search/search-command";
+import { AMBIENT_ANALYSIS } from "@/lib/ambient";
 import { project } from "@/lib/project";
 import { Cursor } from "@/motion/cursor";
 import { EngineProvider } from "@/motion/react";
@@ -87,6 +92,9 @@ const TOOLTIP_SKIP_DELAY = 150;
 
 const FILM_PAGE = /^\/(?:movie|person)\/[^/]+$/;
 
+// Every palette is made for paper; the server asks for the same ground.
+configureAmbient({ analysis: AMBIENT_ANALYSIS });
+
 configureNavigation({
   intent: { match: (href) => FILM_PAGE.test(pathOf(href)) },
 });
@@ -126,6 +134,7 @@ export function Providers({ children }: { children: ReactNode }): JSX.Element {
         <AuthListener />
         <AccountGuard />
         <SearchDockCommand />
+        <SurfaceStyle />
         <SocialRealtimeSync />
         <BackdropPreloader />
         <EngineProvider drive>

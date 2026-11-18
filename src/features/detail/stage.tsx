@@ -89,18 +89,23 @@ const WallSetContext = createContext<StageWallSet>({
 
 export const useWallSet = () => use(WallSetContext);
 
+/**
+ * The page's light comes from its chrome (the film's, show's or person's own
+ * picture, served with its palette). `light` lays another picture's light
+ * over it while it is set, e.g. a gallery picture, and drops it at once.
+ */
 export function DetailStage({
   children,
-  picture,
+  light,
 }: {
   children: ReactNode;
-  picture: string | null;
+  light?: string | null;
 }) {
   const [set, choose] = useState<string | null>(null);
   const wall = useMemo(() => ({ choose, set }), [set]);
 
   return (
-    <DetailStageRoot grade={picture}>
+    <DetailStageRoot light={light ?? undefined} lightLinger={0}>
       <Room grain={false} />
       <WallSetContext value={wall}>{children}</WallSetContext>
     </DetailStageRoot>
@@ -334,21 +339,15 @@ export function StickyAside({
     return () => observer.disconnect();
   }, []);
 
+  // The aside keeps clear of the dock at rest; while a surface or action
+  // is open it holds where it was. The height comes from the dock's state,
+  // not a variable on <html> (see DockClear).
+  const dockHeight = useOptionalDockState((state) => state.dockHeight) ?? 0;
   useEffect(() => {
     const element = ref.current;
-    if (!element || !resting) return;
-    const root = document.documentElement;
-    const follow = () => {
-      const height = parseFloat(root.style.getPropertyValue("--dock-h"));
-      if (Number.isFinite(height)) {
-        element.style.setProperty("--aside-clear", `${height}px`);
-      }
-    };
-    follow();
-    const dock = new MutationObserver(follow);
-    dock.observe(root, { attributeFilter: ["style"], attributes: true });
-    return () => dock.disconnect();
-  }, [resting]);
+    if (!element || !resting || dockHeight <= 0) return;
+    element.style.setProperty("--aside-clear", `${Math.round(dockHeight)}px`);
+  }, [dockHeight, resting]);
 
   return (
     <aside

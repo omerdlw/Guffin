@@ -15,8 +15,8 @@ const beat = (n: number) => Math.round(PHI ** n * 1000) / 1000;
 // Fibonacci: staggers in ms, travel in px.
 const STAGGER = { char: 0.034, word: 0.055, item: 0.089 };
 
-// Settle: arrives quickly and spends its long tail coming to rest.
-const SETTLE: Curve = [0.236, 1, 0.382, 1];
+// Settle: gathers softly, never with a jolt, and spends its long tail coming to rest.
+const SETTLE: Curve = [0.236, 0.382, 0.146, 1];
 // Sweep: in and out on the same breath, for travel the eye follows.
 const SWEEP: Curve = [0.618, 0, 0.382, 1];
 
@@ -38,6 +38,8 @@ const reveal = (from: Look, more: Partial<Enter> = {}): Enter => ({
 
 export const LEGAL = defineStage({
   scope: "legal",
+  tempo: 1.272,
+  reach: 1.618,
   parts: [
     "eyebrow",
     "title",

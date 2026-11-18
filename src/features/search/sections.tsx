@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { memo, type ReactNode } from "react";
 import { useDockActionClass } from "@omerdlw/base-framework/dock";
 import { Button } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
@@ -133,7 +133,7 @@ function rowsOf(
   }
 }
 
-export function Section({
+export const Section = memo(function Section({
   active,
   lead,
   onNavigated,
@@ -146,6 +146,7 @@ export function Section({
   titled,
   total,
 }: {
+  // The highlighted option within this section, or -1.
   active: number;
   lead: number;
   onNavigated: () => void;
@@ -166,7 +167,7 @@ export function Section({
     halo = false,
   ) => (
     <Option
-      active={start + offset === active}
+      active={offset === active}
       halo={halo}
       id={optionId(start + offset)}
       index={lead + 1 + offset}
@@ -232,47 +233,71 @@ export function Section({
       {list}
     </div>
   );
+});
+
+function SkeletonHeader() {
+  return (
+    <div className="flex h-4 items-center justify-between px-1">
+      <SkeletonBlock className="h-2 w-14 rounded-full" />
+      <SkeletonBlock className="h-2 w-4 rounded-full" />
+    </div>
+  );
 }
 
-export function ResultsSkeleton({ scope }: { scope: SearchScope }) {
-  const posters =
-    scope === "all"
-      ? SEARCH_OVERVIEW.movies
-      : scope === "movies" || scope === "shows"
-        ? SEARCH_PER_PAGE[scope]
-        : 0;
-  const rows =
-    scope === "all"
-      ? 2
-      : scope === "movies" || scope === "shows"
-        ? 0
-        : SEARCH_PER_PAGE[scope];
-
+function SkeletonRows({ count }: { count: number }) {
   return (
-    <div aria-hidden="true" className="flex flex-col gap-2.5">
-      {posters > 0 ? (
-        <div className={RESULT_POSTER_GRID}>
-          {Array.from({ length: posters }, (_, index) => (
-            <SkeletonBlock
-              className="aspect-[2/3] w-full rounded-tile"
-              key={index}
-            />
-          ))}
+    <div className={RESULT_ROW_LIST}>
+      {Array.from({ length: count }, (_, index) => (
+        <div className="flex h-16 items-center gap-3 p-2 pr-4" key={index}>
+          <SkeletonBlock className="h-12 w-8 shrink-0 rounded-thumb" />
+          <div className="flex flex-1 flex-col gap-2">
+            <SkeletonBlock className="h-3 w-1/2 rounded-full" />
+            <SkeletonBlock className="h-2.5 w-3/4 rounded-full" />
+          </div>
         </div>
-      ) : null}
-      {rows > 0 ? (
-        <div className={RESULT_ROW_LIST}>
-          {Array.from({ length: rows }, (_, index) => (
-            <div className="flex h-16 items-center gap-3 p-2" key={index}>
-              <SkeletonBlock className="h-12 w-8 shrink-0 rounded-thumb" />
-              <div className="flex flex-1 flex-col gap-2">
-                <SkeletonBlock className="h-3.5 w-1/2 rounded-full" />
-                <SkeletonBlock className="h-3 w-3/4 rounded-full" />
-              </div>
-            </div>
-          ))}
+      ))}
+    </div>
+  );
+}
+
+function SkeletonPosters({ count }: { count: number }) {
+  return (
+    <div className={RESULT_POSTER_GRID}>
+      {Array.from({ length: count }, (_, index) => (
+        <SkeletonBlock
+          className="aspect-[2/3] w-full rounded-tile"
+          key={index}
+        />
+      ))}
+    </div>
+  );
+}
+
+// The skeleton is laid out as the results will be: the same padding, the
+// same group headers in the overview, the same rows and grid, so nothing
+// moves when the answer lands.
+export function ResultsSkeleton({ scope }: { scope: SearchScope }) {
+  if (scope === "all") {
+    return (
+      <div aria-hidden="true" className="flex flex-col gap-4 p-1">
+        <div className="flex flex-col gap-2">
+          <SkeletonHeader />
+          <SkeletonPosters count={SEARCH_OVERVIEW.movies} />
         </div>
-      ) : null}
+        <div className="flex flex-col gap-2">
+          <SkeletonHeader />
+          <SkeletonRows count={SEARCH_OVERVIEW.people} />
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div aria-hidden="true" className="p-1">
+      {scope === "movies" || scope === "shows" ? (
+        <SkeletonPosters count={SEARCH_PER_PAGE[scope]} />
+      ) : (
+        <SkeletonRows count={SEARCH_PER_PAGE[scope]} />
+      )}
     </div>
   );
 }

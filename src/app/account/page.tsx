@@ -1,3 +1,4 @@
+import { DockClear } from "@/design/components/dock-clear";
 import type { Metadata } from "next";
 import type { JSX } from "react";
 import { redirect } from "next/navigation";
@@ -20,6 +21,7 @@ export const metadata: Metadata = { title: "Account" };
 function SignedOut(): JSX.Element {
   return (
     <main className={cn("ui-scene", PAGE_CLASS)}>
+      <DockClear extra="2rem" />
       <div className={cn(CONTAINER_CLASS, "pt-24 sm:pt-28 lg:pt-32")}>
         <p className={cn(TONE.label, "text-ink-muted")}>Account</p>
         <h1 className="mt-6 font-zuume type-display-lg leading-none font-bold text-balance text-ink uppercase sm:type-display-xl">

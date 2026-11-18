@@ -6,20 +6,28 @@
     color-scheme: light;
 
     --ink-rgb: 17 19 24;
-    /* Paper: the picture's hue at L 0.95, a breath of its colour. */
-    --page: oklch(
-      from var(--ambient-shadow, #f7f6f3) 0.95
-        clamp(0.012, calc(c * 0.7), 0.045) h
+    /* Paper: the framework's light-ground page, L ~0.955 in the hue of the
+       picture's mood (lib/ambient.ts asks for a light ground). */
+    --page: var(--ambient-page, #f7f6f3);
+    /* The grade: the picture's most vivid colour, deep enough to read on
+       the paper (the framework keeps roles at 4.5:1 on the page). It is
+       ink in proportion to how little colour the picture has: a grey
+       picture gives ink, not a mid grey; no picture gives ink. */
+    --grade: color-mix(
+      in oklab,
+      var(--ambient-vibrant, var(--ink))
+        calc(var(--ambient-presence, 0) * 100%),
+      var(--ink)
     );
 
-    /* Ink is solid, not see-through: each step is the ink mixed into the
-       page, so a label reads the same over a fill, a glass layer or a
-       picture, and every step carries a breath of the scene's own hue. */
-    --ink: oklch(from var(--page) 0.19 min(c, 0.02) h);
-    --ink-lead: color-mix(in oklab, var(--ink) 90%, var(--page));
-    --ink-body: color-mix(in oklab, var(--ink) 76%, var(--page));
-    --ink-muted: color-mix(in oklab, var(--ink) 58%, var(--page));
-    --ink-faint: color-mix(in oklab, var(--ink) 34%, var(--page));
+    /* Ink is one colour, near black. Every step is that black at a lower
+       opacity, never a separate grey: a label lets through whatever it lies
+       on, so it sits in the fill, the glass or the picture like print. */
+    --ink: rgb(var(--ink-rgb));
+    --ink-lead: rgb(var(--ink-rgb) / 0.88);
+    --ink-body: rgb(var(--ink-rgb) / 0.74);
+    --ink-muted: rgb(var(--ink-rgb) / 0.56);
+    --ink-faint: rgb(var(--ink-rgb) / 0.32);
 
     /* Surfaces are white laid on paper, never ink breathed onto it. */
     --fill: rgb(255 255 255 / 0.45);
@@ -27,6 +35,10 @@
     --fill-active: rgb(255 255 255 / 0.9);
     /* White glass is near white: the lift is solid to be seen. */
     --fill-lift: #fff;
+    /* A placeholder is ink breathed onto the page, not a white sheet: it
+       reads as "not here yet", where white reads as a surface. */
+    --skeleton: rgb(var(--ink-rgb) / 0.06);
+    --skeleton-soft: rgb(var(--ink-rgb) / 0.04);
     --edge: rgb(var(--ink-rgb) / 0.08);
     --edge-hover: rgb(var(--ink-rgb) / 0.12);
     --edge-focus: rgb(var(--ink-rgb) / 0.2);
@@ -42,7 +54,12 @@
     --chosen-edge-hover: rgb(var(--ink-rgb) / 0.16);
     --chosen-ink: var(--ink);
 
-    --liquid-tint: rgb(255 255 255 / 0.22);
+    /* Glass lying on the page is the page's colour. It comes from the
+       lens's stain (engine.tsx: the glass takes the page's hue and chroma
+       and keeps its own light), so the tint stays thin and the glass stays
+       glass; the tint is paper too, for browsers without the lens. */
+    --liquid-stain: 1;
+    --liquid-tint: color-mix(in oklab, var(--page) 30%, transparent);
     --liquid-tint-dock: var(--liquid-tint);
     --liquid-tint-hover: rgb(255 255 255 / 0.38);
     /* A hairline of ink keeps the glass apart from the paper; the lift
@@ -53,24 +70,35 @@
        and a breath of shadow: a fill, never glass on glass. */
     --liquid-well: rgb(255 255 255 / 0.5);
     --liquid-well-hover: rgb(255 255 255 / 0.72);
-    --liquid-well-shadow:
-      0 0 0 0.5px rgb(var(--ink-rgb) / 0.06),
-      0 1px 2px rgb(var(--ink-rgb) / 0.05);
+    --liquid-well-edge: rgb(var(--ink-rgb) / 0.07);
+    --liquid-well-shadow: 0 1px 2px rgb(var(--ink-rgb) / 0.05);
     --liquid-frost: blur(12px) saturate(1.25);
     /* Under the lens the scene's range is lifted into [0.4, 1] (iOS
-       0.5–1.03), so dark ink on the glass reads over a dark picture. */
-    --liquid-lens-tone: saturate(1.1) contrast(0.44) brightness(1.42);
+       0.5–1.03), so dark ink on the glass reads over a dark picture. The
+       paper (L 0.95) maps to itself and the saturation undoes the
+       contrast's grey (0.42 × 1.38 × 1.7 ≈ 1): over the page the glass
+       keeps the page's hue instead of washing out to white. */
+    --liquid-lens-tone: saturate(1.7) contrast(0.42) brightness(1.38);
+
+    /* Light. One key light sits up and to the left, a weaker fill comes
+       back from the lower right: every glass edge is lit by where it faces
+       (liquid.css draws it as a rim). The key catches the edges that face
+       the upper left, the fill the ones that face the lower right, and the
+       edges between fall dark. */
+    --rim-width: 1px;
+    --rim-key: rgb(255 255 255 / 0.95);
+    --rim-fill: rgb(255 255 255 / 0.6);
+    /* Where the white rim cannot show (on white glass), a breath of ink
+       along the edges that face away from the key keeps the form. */
+    --rim-shade: rgb(var(--ink-rgb) / 0.07);
 
     /* A control made of glass, lying on the page (liquid.css). Nothing to
-       bend behind it, so its glass is a white sheet with a bevel lit from
-       above (a white top edge, a shade along the foot) and a soft contact
-       shadow in the page's own hue. */
+       bend behind it, so its glass is a white sheet, lit at the rim and
+       set on a soft contact shadow in the page's own hue. */
     --glass-control: rgb(255 255 255 / 0.5);
     --glass-control-hover: rgb(255 255 255 / 0.72);
     --glass-control-active: rgb(255 255 255 / 0.9);
-    --glass-control-bevel:
-      inset 0 1px 0 #fff, inset 0 -1px 0 rgb(var(--ink-rgb) / 0.05),
-      inset 0 0 0 0.5px rgb(var(--ink-rgb) / 0.07);
+    --glass-control-bevel: inset 0 0 0 0.5px rgb(var(--ink-rgb) / 0.07);
     --glass-control-contour: 0 1px 2px -1px
       oklch(from var(--page) 0.3 calc(c * 2) h / 0.14);
     --glass-control-focus: inset 0 0 0 1px var(--edge-focus);
@@ -99,19 +127,19 @@
 
     --focus-ring: rgb(var(--ink-rgb) / 0.55);
     --focus-ring-grade: var(--focus-ring);
-    --selection: rgb(var(--grade, var(--ink-rgb)) / 0.3);
+    --selection: color-mix(in oklab, var(--grade) 30%, transparent);
 
-    --watched: oklch(62% 0.19 150);
-    --listed: oklch(60% 0.14 236);
-    --liked: oklch(66% 0.18 52);
-    --rated: oklch(70% 0.16 82);
+    /* Meaning colours, deep enough to read on paper: each holds at least
+       3.5:1 on the page as a glyph (stars, a mark of light, stay brighter). */
+    --watched: oklch(57% 0.15 150);
+    --listed: oklch(55% 0.16 252);
+    --liked: oklch(60% 0.17 44);
+    --rated: oklch(69% 0.15 70);
     /* An unlit star: a breath of ink, never white on the white wells. */
     --rated-off: rgb(var(--ink-rgb) / 0.16);
-    --danger: oklch(58% 0.21 26);
-    --award: oklch(68% 0.12 85);
+    --danger: oklch(55% 0.2 26);
+    --award: oklch(60% 0.115 78);
 
-    --wash-tint-a: 16%;
-    --wash-tint-b: 10%;
     --wash-top: 26%;
     --wash-right: 22%;
     --wash-left: 20%;
@@ -130,16 +158,18 @@
     --ink-rgb: 252 252 251;
     --page: #0b0c0e;
 
-    --ink: oklch(from var(--page) 0.985 min(c, 0.008) h);
-    --ink-lead: color-mix(in oklab, var(--ink) 90%, var(--page));
-    --ink-body: color-mix(in oklab, var(--ink) 72%, var(--page));
-    --ink-muted: color-mix(in oklab, var(--ink) 54%, var(--page));
-    --ink-faint: color-mix(in oklab, var(--ink) 32%, var(--page));
+    --ink: rgb(var(--ink-rgb));
+    --ink-lead: rgb(var(--ink-rgb) / 0.9);
+    --ink-body: rgb(var(--ink-rgb) / 0.72);
+    --ink-muted: rgb(var(--ink-rgb) / 0.54);
+    --ink-faint: rgb(var(--ink-rgb) / 0.32);
 
     --fill: rgb(var(--ink-rgb) / 0.05);
     --fill-hover: rgb(var(--ink-rgb) / 0.1);
     --fill-active: rgb(var(--ink-rgb) / 0.15);
     --fill-lift: var(--fill-hover);
+    --skeleton: rgb(var(--ink-rgb) / 0.08);
+    --skeleton-soft: rgb(var(--ink-rgb) / 0.05);
     --edge: rgb(var(--ink-rgb) / 0.05);
     --edge-hover: rgb(var(--ink-rgb) / 0.1);
     --edge-focus: rgb(var(--ink-rgb) / 0.15);
@@ -147,12 +177,22 @@
     --line: rgb(var(--ink-rgb) / 0.1);
     --plate: color-mix(in srgb, var(--ink) 5%, var(--page));
 
-    --chosen: rgb(var(--grade, var(--ink-rgb)) / 0.15);
-    --chosen-hover: rgb(var(--grade, var(--ink-rgb)) / 0.2);
-    --chosen-edge: rgb(var(--grade, var(--ink-rgb)) / 0.25);
-    --chosen-edge-hover: rgb(var(--grade, var(--ink-rgb)) / 0.3);
-    --chosen-ink: rgb(var(--grade, var(--ink-rgb)));
+    /* Over a picture the grade is the light end of its ramp. */
+    --grade: color-mix(
+      in oklab,
+      var(--ambient-vibrant-80, var(--ink))
+        calc(var(--ambient-presence, 0) * 100%),
+      var(--ink)
+    );
 
+    --chosen: color-mix(in oklab, var(--grade) 15%, transparent);
+    --chosen-hover: color-mix(in oklab, var(--grade) 20%, transparent);
+    --chosen-edge: color-mix(in oklab, var(--grade) 25%, transparent);
+    --chosen-edge-hover: color-mix(in oklab, var(--grade) 30%, transparent);
+    --chosen-ink: var(--grade);
+
+    /* The picture keeps its own colour under the glass: no paper stain. */
+    --liquid-stain: 0;
     --liquid-tint: color-mix(in oklab, var(--page) 16%, transparent);
     --liquid-tint-dock: color-mix(in oklab, var(--page) 6%, transparent);
     --liquid-tint-hover: color-mix(
@@ -167,6 +207,7 @@
       0 2px 6px -2px rgb(0 0 0 / 0.35), 0 12px 32px -12px rgb(0 0 0 / 0.55);
     --liquid-well: rgb(255 255 255 / 0.07);
     --liquid-well-hover: rgb(255 255 255 / 0.11);
+    --liquid-well-edge: rgb(var(--ink-rgb) / 0.06);
     --liquid-well-shadow: 0 0 #0000;
     --liquid-frost: blur(12px) saturate(1.6) brightness(0.92);
     /* Under the lens the picture's highlights are pressed down to 0.72: a
@@ -176,9 +217,10 @@
     --glass-control: rgb(var(--ink-rgb) / 0.06);
     --glass-control-hover: rgb(var(--ink-rgb) / 0.1);
     --glass-control-active: rgb(var(--ink-rgb) / 0.14);
-    --glass-control-bevel:
-      inset 0 1px 0 rgb(255 255 255 / 0.07), inset 0 -1px 0 rgb(0 0 0 / 0.22),
-      inset 0 0 0 1px rgb(255 255 255 / 0.03);
+    --rim-key: rgb(255 255 255 / 0.42);
+    --rim-fill: rgb(255 255 255 / 0.18);
+    --rim-shade: rgb(0 0 0 / 0.2);
+    --glass-control-bevel: inset 0 0 0 1px rgb(255 255 255 / 0.03);
     --glass-control-contour: 0 0 0 0.5px rgb(0 0 0 / 0.55);
     --glass-control-focus: inset 0 0 0 1px var(--edge-focus);
 
@@ -199,7 +241,7 @@
     --sheen-primary: 0 0 0;
 
     --focus-ring: rgb(var(--ink-rgb) / 0.45);
-    --focus-ring-grade: rgb(var(--grade, var(--ink-rgb)) / 0.7);
+    --focus-ring-grade: color-mix(in oklab, var(--grade) 70%, transparent);
 
     --watched: #00e054;
     --listed: #40bcf4;
@@ -208,6 +250,16 @@
     --rated-off: rgb(var(--ink-rgb) / 0.15);
     --danger: oklch(70.4% 0.191 22.216);
     --award: #e9c46a;
+  }
+
+  /* Inside the dock every control is cut from one tone, the well: a
+     field, a segmented track, a select, a sheet of rows and a tile all read
+     as the same white, with the same hairline. The fills follow the well
+     here (and the well follows the scope it sits in). */
+  .dock-root {
+    --fill: var(--liquid-well);
+    --fill-hover: var(--liquid-well-hover);
+    --edge: var(--liquid-well-edge);
   }
 
   body {

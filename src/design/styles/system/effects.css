@@ -11,10 +11,10 @@
     position: relative;
   }
   .ui-skeleton {
-    background-color: var(--fill-hover);
+    background-color: var(--skeleton);
   }
   .ui-skeleton-soft {
-    background-color: var(--fill);
+    background-color: var(--skeleton-soft);
   }
 
   .ui-dots {

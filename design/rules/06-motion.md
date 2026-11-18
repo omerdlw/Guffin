@@ -44,10 +44,28 @@ const HOME = defineStage({
   scroll: { period: beat(0), gain: beat(-1) }, // wheel feel while mounted
   glide: { duration: beat(1), ease: SWEEP },   // carousel arrow pans
   opening: beat(2),                    // hold in-view roles while the opening plays
-  order: [["backdrop", "wash"], "headline", "copy"], // OR a sequenced opening
-  pace: 0.382,                         // with order: start the next this far through
+  inset: 0.16,                         // how far up the screen a role plays (fraction)
+  tempo: 1.272,                        // entrances' time × this (and the opening hold)
+  reach: 1.618,                        // entrances' px travel × this
 });
 ```
+
+**Tempo and reach** (`choreo.ts` `paced`) are the stage's pace, applied to
+the choreography before it compiles, so the sequenced opening, staggers and
+text budgets all stretch together. They touch entrances and leaves only;
+touch, drift and follow keep their own time. A page writes its moves on the
+φ ladder and sets its pace here:
+
+| Stages                                         | `tempo`    | `reach` | Feel                                                                        |
+| ---------------------------------------------- | ---------- | ------- | --------------------------------------------------------------------------- |
+| home, account, legal, directors, salon         | 1.272 (√φ) | 1.618 φ | Cinematic: half a beat slower, one Fibonacci step farther (8 → 13, 13 → 21) |
+| detail                                         | 1          | 1       | Quick: the hero in about a second, reveals in ~0.4–0.6s over 8–21px          |
+| surface, search                                | 1.236      | 1.272   | The hand's pace                                                             |
+
+Modules (modal, context menu, toast) are timed in `design/theme/*.ts`: their
+entrances sit one beat slower than they did (modal bloom `beat(0)`, menu
+spring `beat(-1)` without bounce, toast spring `beat(0)`); leaving stays
+quicker than arriving.
 
 It returns the stage's typed components:
 
@@ -129,7 +147,7 @@ trigger:
 | `enter.on` | Waits for                                                        | Set when                                                                                             |
 | ---------- | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | `"load"`   | `data-play` on the stage root                                    | After hydration and two painted frames, once no curtain is down                                      |
-| `"view"`   | `data-seen` on the role (or its section with `along: "section"`) | One IntersectionObserver, the first time it is 16% into the viewport (`rootMargin -16%` at the foot) |
+| `"view"`   | `data-seen` on the role (or its section with `along: "section"`) | One IntersectionObserver, the first time it is `inset` (default 16%) into the viewport from the foot |
 | `"ready"`  | the nearest `data-ready`                                         | The backdrop's picture has loaded (2.5s fallback)                                                    |
 
 - `delay`, `stagger` (seconds per `index`), `wrap` (restart the count every n,
@@ -141,13 +159,9 @@ trigger:
   the page as its dive fades.
 - **`opening`**: roles already in view on arrival wait this many seconds, so
   the page reads top-down.
-- **`order` (a sequenced opening)**: only the hero's roles, played in order;
-  roles in one array play together; each starts when the one before is
-  `pace` through and all earlier ones have ended. Everything else plays the
-  moment it is in view, waiting for nothing.
-- **Replay**: a role that leaves off the bottom is wound back and replays when
-  scrolled to again; nothing replays on scroll-up; a role skipped above the
-  viewport lands finished.
+- **A sequenced opening** is written as delays on the `load` entrances (detail's
+  `AT` timeline), not a runtime queue: one stylesheet, nothing to wait on.
+- A role plays once, the first time it is in view; nothing replays.
 - An entrance gated only by `data-play` below the fold is spent off screen:
   use `on: "view"` for anything not in the first viewport.
 - A carousel is entered as its section (scrollers and `overflow: hidden`
@@ -162,23 +176,31 @@ Home is the template; detail, account, the dock and surfaces speak it too.
 | Durations, cues | `beat(n) = φⁿ s`: 0.146, 0.236, 0.382, 0.618, 1, 1.618, 2.618, 4.236 |
 | Staggers        | Fibonacci ms: char 34, word 55, item 89, row 144                     |
 | Travel          | Fibonacci px: 3, 5, 8, 13, 21                                        |
-| Press           | `scale: 0.96` over `beat(-4)` (0.146s)                               |
+| Press           | `scale: 0.96` over `beat(-3)` (0.236s)                               |
 
 | Curve     | Bezier                   | For                                          |
 | --------- | ------------------------ | -------------------------------------------- |
-| `SETTLE`  | `0.236, 1, 0.382, 1`     | Arrives quickly, long tail to rest           |
+| `SETTLE`  | `0.236, 0.382, 0.146, 1` | Gathers softly, long tail to rest            |
 | `DEVELOP` | `0.382, 0, 0.146, 1`     | Pictures and shade: slow start, long resolve |
 | `SWEEP`   | `0.618, 0, 0.382, 1`     | Travel the eye follows                       |
 | `LEAVE`   | `0.618, 0, 0.854, 0.382` | Gathers, then goes                           |
-| `TOUCH`   | `0.146, 1, 0.382, 1`     | Answers at once, eases in                    |
+| `TOUCH`   | `0.382, 0.236, 0.146, 1` | Soft at both ends; `--soft-ease`             |
 | `PRESS`   | `0.382, 0, 0.236, 1`     | Direct                                       |
+
+**Softness is the first rule.** No curve starts with a jolt: a curve's
+opening slope (`y1 / x1`) stays under ~2× the average speed. The old
+`[0.236, 1, …]` / `[0.146, 1, …]` curves (4–7×) made a move look as if it
+happened at once; they are gone. `UNHURRIED` is `SETTLE`'s values; `SPRING`
+is `0.382, 0.618, 0.236, 1.146` (a hair of overshoot, soft start).
 
 Each page defines its own `beat`, `STAGGER` and curves locally; they are
 copied, not imported, so a page can retune without touching another.
 
 **Scroll feel**: `scroll: { period, gain }` tunes the smooth-scroll driver
 (`src/motion/scroll.ts`): the spring period in seconds (default 0.636) and
-distance per notch (1 = native). Home and account use `{ period: 1, gain: 0.618 }`.
+distance per notch (1 = native). Home and account use `{ period: 1, gain: 0.618 }`;
+detail `{ period: 0.618, gain: 1 }`, and its backdrop drifts down 13% and
+closes in (`screen` scale 1.055) over the first screen of scroll.
 
 ### 6.7 Do and don't
 
@@ -235,7 +257,7 @@ Isolated from the page contract; they keep their own clocks:
 - Tilt, magnet and foil (`tilt.tsx`).
 - The smooth-scroll driver (`scroll.ts`); it stands down while
   `data-scroll-lock` is on `<html>`.
-- The grade (`src/design/grade.ts`) and the room's atmosphere (`room.tsx`).
+- The room's atmosphere (`room.tsx`); the page's light is the framework's ambient palette (`src/design/ambient.ts`).
 
 Curves for these come from `bezier()` in `src/motion/curve.ts`.
 
@@ -244,3 +266,23 @@ Curves for these come from `bezier()` in `src/motion/curve.ts`.
 Check motion with timed screenshots or a CDP screencast in a real browser,
 not by counting animations; check every page that shares a stage or the dock,
 in every role, before calling it done.
+
+### 6.8 Softness: nothing changes in one frame
+
+`styles/interaction.css` gives every control, and every element carrying a
+`hover:` or `focus-visible:` class, a transition on colour, fill, border,
+outline, decoration, `fill`/`stroke` and box-shadow (`--soft-props`), plus
+opacity where a class swaps it (`hover:opacity-*`). Coming in takes
+`--soft-in` (0.382s), going back `--soft-out` (0.618s), both on
+`--soft-ease` (`TOUCH`). `ui-iris` fills and the dock's controls use the
+same tokens. It sits in `@layer base` under `:where()`, so any rule of a
+component's own wins.
+
+- A stage role with touch moves keeps the softness: `choreo.ts` appends the
+  soft properties to its `transition-property` at the soft pace.
+- Transforms are never in it: they belong to the stages.
+- Opacity is only softened where a class swaps it, so the motion library and
+  springs, which write opacity per frame, are never held back. A
+  spring-driven element that would match takes `data-spring` to opt out.
+- Never add a `transition-*` utility to undo it on a control; a snap is a
+  bug.

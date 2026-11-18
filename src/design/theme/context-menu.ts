@@ -20,7 +20,7 @@ import {
 
 // The context menu blooms from the point it was opened at: the glass (the
 // menu element itself, never an ancestor of it) comes up from a little small
-// on a short spring, its rows rise in one after another, 34ms apart. It goes
+// on a soft spring, its rows rise in one after another, 55ms apart. It goes
 // quicker than it came. A row pressed gives a hair and comes back.
 
 const ORIGIN = "top left";
@@ -33,15 +33,15 @@ const contextMenuMotion: ContextMenuMotion = {
       transform: at(),
       transformOrigin: ORIGIN,
       transition: {
-        transform: spring(beat(-2), 0.12),
-        opacity: tween(beat(-4), SETTLE),
+        transform: spring(beat(-1)),
+        opacity: tween(beat(-3), SETTLE),
       },
     },
     exit: {
       opacity: 0,
       transform: at(0, 0.97),
       transformOrigin: ORIGIN,
-      transition: tween(beat(-4), LEAVE),
+      transition: tween(beat(-3), LEAVE),
     },
   },
   content: {
@@ -49,7 +49,7 @@ const contextMenuMotion: ContextMenuMotion = {
     visible: {
       opacity: 1,
       transform: at(),
-      transition: tween(beat(-2), SETTLE, beat(-5)),
+      transition: tween(beat(-1), SETTLE, beat(-5)),
     },
   },
   item: {
@@ -57,7 +57,7 @@ const contextMenuMotion: ContextMenuMotion = {
     visible: (index: number) => ({
       opacity: 1,
       transform: at(),
-      transition: tween(beat(-2), SETTLE, beat(-5) + index * STAGGER.item),
+      transition: tween(beat(-1), SETTLE, beat(-5) + index * STAGGER.line),
     }),
   },
   itemTap: { transform: at(0, 0.98) },

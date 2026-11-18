@@ -4,7 +4,7 @@ export const TONES = {
   outline:
     "ui-iris bg-transparent text-ink-body ring-1 ring-edge-hover ring-inset hover:text-ink hover:ring-edge-focus focus-visible:text-ink focus-visible:ring-edge-focus",
   chosen:
-    "bg-chosen text-chosen-ink ring-1 ring-chosen-edge ring-inset hover:bg-chosen-hover hover:ring-chosen-edge-hover focus-visible:bg-chosen-hover focus-visible:ring-chosen-edge-hover",
+    "rim bg-chosen text-chosen-ink ring-1 ring-chosen-edge ring-inset hover:bg-chosen-hover hover:ring-chosen-edge-hover focus-visible:bg-chosen-hover focus-visible:ring-chosen-edge-hover",
   primary:
     "ui-sheen bg-primary text-on-primary ring-1 ring-primary ring-inset [--sheen-ink:var(--sheen-primary)] [--sheen:0.1] hover:bg-primary-hover focus-visible:bg-primary-hover",
   danger:
@@ -26,7 +26,8 @@ export const FILL =
 
 // A control inside a glass layer (the dock and its surfaces): a fill, never
 // glass on glass. A white pill on paper, a white tint over a picture.
-export const WELL = "bg-(--liquid-well) shadow-(--liquid-well-shadow)";
+export const WELL =
+  "bg-(--liquid-well) ring-1 ring-(color:--liquid-well-edge) ring-inset shadow-(--liquid-well-shadow)";
 export const WELL_HOVER =
   "hover:bg-(--liquid-well-hover) focus-visible:bg-(--liquid-well-hover)";
 

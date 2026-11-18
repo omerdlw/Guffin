@@ -7,28 +7,14 @@ import { createStore } from "@omerdlw/base-framework/utils";
 import {
   ACTIVE_SEARCH_TYPES,
   isSearchable,
-  type ListSearchResponse,
-  type MovieSearchResponse,
   normalizeQuery,
-  type PersonSearchResponse,
-  type ReviewSearchResponse,
   SEARCH_FALLBACK_MESSAGE,
   type SearchFailure,
   type SearchFailureCode,
   type SearchResults,
   type SearchScope,
   type SearchType,
-  type UserSearchResponse,
 } from "./query";
-
-interface SearchResponseMap {
-  lists: ListSearchResponse;
-  movies: MovieSearchResponse;
-  people: PersonSearchResponse;
-  reviews: ReviewSearchResponse;
-  shows: MovieSearchResponse;
-  users: UserSearchResponse;
-}
 
 type SearchHits = SearchResults[SearchType];
 
@@ -40,6 +26,9 @@ interface SearchState {
   input: string;
   isLoading: boolean;
   query: string;
+  // The query the shown results answer: while a new one loads, the last
+  // answer stays up, so it is not always `query`.
+  answered: string;
   results: SearchResults | null;
   retry: () => void;
   setInput: (value: string) => void;
@@ -49,14 +38,7 @@ const SEARCH_DEBOUNCE_MS = 250;
 
 const SEARCH_CACHE_LIMIT = 80;
 
-const SEARCH_ENDPOINTS: Readonly<Record<SearchType, string>> = {
-  lists: "/api/search/lists",
-  movies: "/api/search/movies",
-  people: "/api/search/people",
-  reviews: "/api/search/reviews",
-  shows: "/api/search/shows",
-  users: "/api/search/users",
-};
+const SEARCH_ENDPOINT = "/api/search";
 
 const FAILURE_CODE_BY_STATUS: Readonly<Record<number, SearchFailureCode>> = {
   400: "invalid_query",
@@ -68,14 +50,12 @@ const searchError = (
   message = SEARCH_FALLBACK_MESSAGE,
 ): Result<never, SearchFailure> => err({ code, message });
 
-function isSearchResponse(
-  value: unknown,
-): value is SearchResponseMap[SearchType] {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    Array.isArray((value as { hits?: unknown }).hits)
-  );
+type SearchBatch = Partial<
+  Record<SearchType, { hits?: unknown } | { failure?: SearchFailure }>
+>;
+
+function isBatch(value: unknown): value is SearchBatch {
+  return typeof value === "object" && value !== null;
 }
 
 function emptyResults(): SearchResults {
@@ -112,24 +92,34 @@ function collectAnswers(
   return results;
 }
 
-async function fetchSearch<T extends SearchType>(
-  type: T,
+// Scores arrive as numbers or not at all; a hit without one ranks last.
+function withScores(hits: unknown[]): SearchHits {
+  return hits.map((hit) => {
+    const { match, score } = hit as { match?: unknown; score?: unknown };
+    return {
+      ...(hit as object),
+      match: typeof match === "number" ? match : 0,
+      score: typeof score === "number" ? score : 0,
+    };
+  }) as SearchHits;
+}
+
+// Every kind the view still lacks, in one request.
+async function fetchSearch(
+  kinds: readonly SearchType[],
   query: string,
-  signal?: AbortSignal,
-): Promise<Result<SearchResponseMap[T], SearchFailure>> {
+  signal: AbortSignal,
+): Promise<
+  Result<Partial<Record<SearchType, SearchHits | null>>, SearchFailure>
+> {
   let response: Response;
   try {
     response = await fetch(
-      `${SEARCH_ENDPOINTS[type]}?${new URLSearchParams({ q: query })}`,
-      {
-        headers: { accept: "application/json" },
-        signal,
-      },
+      `${SEARCH_ENDPOINT}?${new URLSearchParams({ kinds: kinds.join(","), q: query })}`,
+      { headers: { accept: "application/json" }, signal },
     );
   } catch {
-    return signal?.aborted
-      ? searchError("aborted")
-      : searchError("unavailable");
+    return signal.aborted ? searchError("aborted") : searchError("unavailable");
   }
 
   const body: unknown = await response.json().catch(() => null);
@@ -139,17 +129,16 @@ async function fetchSearch<T extends SearchType>(
     error?: string;
   } | null;
 
-  if (response.ok && isSearchResponse(payload?.data)) {
-    const data = payload.data as SearchResponseMap[T];
-    const hits = (data.hits as unknown[]).map((hit) => {
-      const { match, score } = hit as { match?: unknown; score?: unknown };
-      return {
-        ...(hit as object),
-        match: typeof match === "number" ? match : 0,
-        score: typeof score === "number" ? score : 0,
-      };
-    });
-    return ok({ ...data, hits } as SearchResponseMap[T]);
+  if (response.ok && isBatch(payload?.data)) {
+    const batch = payload.data;
+    const answers: Partial<Record<SearchType, SearchHits | null>> = {};
+    for (const kind of kinds) {
+      const entry = batch[kind] as { hits?: unknown } | undefined;
+      answers[kind] = Array.isArray(entry?.hits)
+        ? withScores(entry.hits)
+        : null;
+    }
+    return ok(answers);
   }
 
   return searchError(
@@ -215,30 +204,30 @@ export function useSearch(scope: SearchScope): SearchState {
     const kinds = kindsOf(scope).filter(
       (kind) => !answerStore.getSnapshot().has(answerKey(kind, ready)),
     );
-    void Promise.all(
-      kinds.map((kind) => fetchSearch(kind, ready, signal)),
-    ).then((outcomes) => {
+    void fetchSearch(kinds, ready, signal).then((outcome) => {
       if (signal.aborted) return;
-
-      const missing: string[] = [];
-      let firstFailure: SearchFailure | null = null;
-      outcomes.forEach((outcome, index) => {
-        if (outcome.success) remember(kinds[index], ready, outcome.data.hits);
-        else {
-          missing.push(answerKey(kinds[index], ready));
-          firstFailure ??= outcome.error;
-        }
-      });
-
-      const answered =
-        outcomes.some((outcome) => outcome.success) ||
-        kinds.length < kindsOf(scope).length;
-      if (firstFailure && !answered) {
+      // A kind already known still shows when the rest fail: the rest are
+      // left out instead of the search failing.
+      if (!outcome.success && kinds.length < kindsOf(scope).length) {
+        const lost = kinds.map((kind) => answerKey(kind, ready));
+        setHoles((current) => new Set([...current, ...lost]));
+        return;
+      }
+      if (!outcome.success) {
         setFailed({
           key: `${scope}:${ready.toLowerCase()}`,
-          failure: firstFailure,
+          failure: outcome.error,
         });
-      } else if (missing.length > 0) {
+        return;
+      }
+
+      const missing: string[] = [];
+      for (const kind of kinds) {
+        const hits = outcome.data[kind];
+        if (hits) remember(kind, ready, hits);
+        else missing.push(answerKey(kind, ready));
+      }
+      if (missing.length > 0) {
         setHoles((current) => new Set([...current, ...missing]));
       }
     });
@@ -258,6 +247,7 @@ export function useSearch(scope: SearchScope): SearchState {
       : null;
 
   return {
+    answered: fresh ? query : stale && shown ? shown.query : "",
     clear,
     failure,
     input,

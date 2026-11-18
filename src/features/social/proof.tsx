@@ -8,7 +8,12 @@ import {
   useState,
 } from "react";
 import { useDockActions } from "@omerdlw/base-framework/dock";
-import { Avatar, Button } from "@omerdlw/base-framework/ui";
+import {
+  Avatar,
+  Button,
+  HighlightGroup,
+  useHighlight,
+} from "@omerdlw/base-framework/ui";
 import { report } from "@omerdlw/base-framework/utils";
 import { Icon } from "@/design/components/icon";
 import { Link } from "@/design/components/link";
@@ -19,6 +24,9 @@ import {
   SurfaceSwap,
 } from "@/design/components/surface";
 import {
+  GROUP_HIGHLIGHT,
+  groupRowVariants,
+  SURFACE_GROUP,
   SURFACE_META,
   SURFACE_SCROLL,
   SURFACE_STACK,
@@ -26,10 +34,12 @@ import {
   SURFACE_TILE_INNER,
   SURFACE_TITLE,
 } from "@/design/components/surface-classes";
+import { TONE } from "@/design/foundations/tones";
 import { defineSurface } from "@/design/surface-definition";
 import { cn } from "@/design/ui";
 import { useAuth } from "@/features/auth/provider";
 import { useMediaType } from "@/features/media/media-type";
+import { COLLECTION_MARKS } from "@/features/movie/movie";
 import { RatingStars } from "@/features/reviews/rating";
 import { pluralize } from "@/lib/format";
 import { accountHref, reviewHref } from "@/lib/project";
@@ -193,91 +203,118 @@ const socialProofSurface = defineSurface<{ data: SocialProofSurfaceData }>({
   title: "People you follow",
 });
 
-const SIGNAL_INK =
-  "text-ink-muted group-hover/friend:text-ink-body group-focus-visible/friend:text-ink-body group-has-focus-visible/friend:text-ink-body";
+// The surface sorts the people you follow by their verdict: who loved it,
+// who liked it, who was mixed, who didn't, then who saw it without a
+// rating and who means to. Each verdict is one sheet under a small caps
+// name, so the mood of the room reads from the headings before the names.
 
-function Signal({
-  active,
-  icon,
-  label,
-}: {
-  active: boolean;
-  icon: string;
+interface Verdict {
+  key: string;
   label: string;
-}): JSX.Element | null {
-  if (!active) return null;
-  return (
-    <span className={SIGNAL_INK} data-slot="icon" title={label}>
-      <Icon aria-label={label} icon={icon} size={15} />
-    </span>
-  );
+  range?: string;
+  take: (friend: Friend) => boolean;
 }
 
-// A row is a hairline ring and nothing else; the fill only comes with the
-// pointer, glowing in on the surface stage's `tile` (caption and icons with
-// it). The signals sit flush right, as far from the edge as from the top and
-// foot (52px row, 15px glyphs: 18px), so the row closes as evenly as the
-// avatar opens it.
+const rated = (friend: Friend, min: number, max: number) =>
+  friend.rating !== null && friend.rating >= min && friend.rating <= max;
+
+const VERDICTS: readonly Verdict[] = [
+  {
+    key: "loved",
+    label: "Loved it",
+    range: "4½–5",
+    take: (friend) => rated(friend, 4.5, 5),
+  },
+  {
+    key: "liked",
+    label: "Liked it",
+    range: "3½–4",
+    take: (friend) => rated(friend, 3.5, 4.49),
+  },
+  {
+    key: "mixed",
+    label: "Mixed",
+    range: "2½–3",
+    take: (friend) => rated(friend, 2.5, 3.49),
+  },
+  {
+    key: "disliked",
+    label: "Didn't like it",
+    range: "½–2",
+    take: (friend) => rated(friend, 0, 2.49),
+  },
+  {
+    key: "seen",
+    label: "Watched",
+    take: (friend) =>
+      friend.rating === null &&
+      (friend.watched || friend.liked || friend.reviewed),
+  },
+  {
+    key: "waiting",
+    label: "Want to watch",
+    take: (friend) =>
+      friend.rating === null &&
+      !friend.watched &&
+      !friend.liked &&
+      !friend.reviewed &&
+      friend.watchlisted,
+  },
+];
+
+const SIGNAL_INK =
+  "text-ink-muted group-hover:text-ink-body group-focus-visible:text-ink-body group-has-focus-visible:text-ink-body";
+
 function FriendRow({
   close,
   friend,
-  index,
   movieId,
 }: {
   close: () => void;
   friend: Friend;
-  index: number;
   movieId: number;
 }): JSX.Element {
+  const highlight = useHighlight(friend.id, GROUP_HIGHLIGHT);
   return (
-    <SurfacePart
-      as="li"
-      className="group/friend flex min-w-0 items-center gap-3 rounded-card p-1.5 pr-4.5 ring-1 ring-edge ring-inset hover:bg-fill has-focus-visible:bg-fill"
-      index={index}
-      name="tile"
+    <li
+      className={groupRowVariants({ className: "pr-3" })}
+      {...highlight.props}
     >
+      {highlight.node}
       <Link
-        className={`flex min-w-0 flex-1 items-center gap-3 ${SURFACE_TILE_INNER}`}
+        className={`relative z-10 flex min-w-0 flex-1 items-center gap-3 ${SURFACE_TILE_INNER}`}
         href={accountHref(friend.username)}
         onClick={close}
         prefetch={false}
       >
         <Avatar
-          className={SURFACE_TILE_INNER}
+          className="rounded-full"
           name={friend.displayName}
           size={40}
           src={friend.avatarUrl}
         />
         <span className={SURFACE_TEXT}>
           <span className={SURFACE_TITLE}>{friend.displayName}</span>
-          <span
-            className={`${SURFACE_META} group-hover/friend:text-ink-body group-focus-visible/friend:text-ink-body group-has-focus-visible/friend:text-ink-body`}
-            data-slot="caption"
-          >
-            @{friend.username}
-          </span>
+          <span className={SURFACE_META}>@{friend.username}</span>
         </span>
       </Link>
 
-      <span className="flex shrink-0 items-center gap-2.5">
+      <span className="relative z-10 flex shrink-0 items-center gap-2.5">
         {friend.rating !== null ? (
           <RatingStars rating={friend.rating} size={12} />
         ) : null}
-        <Signal active={friend.watched} icon="solar:eye-bold" label="Watched" />
-        <Signal active={friend.liked} icon="solar:heart-bold" label="Liked" />
-        <Signal
-          active={friend.watchlisted}
-          icon="solar:bookmark-bold"
-          label="Wants to watch"
-        />
+        {friend.liked ? (
+          <span className={COLLECTION_MARKS.like} title="Liked">
+            <Icon aria-label="Liked" icon="solar:heart-bold" size={15} />
+          </span>
+        ) : null}
         {friend.reviewed ? (
           <Link
             aria-label={`Read ${friend.displayName}'s review`}
             className={cn(
-              "center -m-1.5 size-7 rounded-full hover:bg-fill-hover focus-visible:bg-fill-hover hover:text-ink focus-visible:text-ink",
+              "center -m-1.5 size-7 rounded-full hover:bg-fill-hover hover:text-ink focus-visible:bg-fill-hover focus-visible:text-ink",
               SIGNAL_INK,
             )}
-            data-slot="icon"
             href={reviewHref(movieId, friend.username)}
             onClick={close}
             prefetch={false}
@@ -287,7 +324,7 @@ function FriendRow({
           </Link>
         ) : null}
       </span>
-    </SurfacePart>
+    </li>
   );
 }
 
@@ -297,6 +334,7 @@ function SocialProofSurface({
   data: SocialProofSurfaceData;
 }): JSX.Element {
   const { closeSurface } = useDockActions();
+  const close = () => closeSurface?.();
   const { counts, friends } = data.proof;
   const [tab, setTab] = useState<ProofTab>("all");
 
@@ -316,10 +354,15 @@ function SocialProofSurface({
     [counts, friends.length],
   );
 
-  const visible = useMemo(
-    () => friends.filter((friend) => matchesTab(friend, tab)),
-    [friends, tab],
-  );
+  const groups = useMemo(() => {
+    const visible = friends.filter((friend) => matchesTab(friend, tab));
+    return VERDICTS.map((verdict) => ({
+      ...verdict,
+      people: visible
+        .filter(verdict.take)
+        .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0)),
+    })).filter((group) => group.people.length > 0);
+  }, [friends, tab]);
 
   return (
     <SurfaceStage className={SURFACE_STACK}>
@@ -336,20 +379,38 @@ function SocialProofSurface({
       ) : null}
 
       <SurfaceSwap cue="rows" id={tab}>
-        <ul
-          className={`${SURFACE_SCROLL} flex max-h-[min(56dvh,26rem)] flex-col gap-2.5`}
+        <div
+          className={`${SURFACE_SCROLL} flex max-h-[min(56dvh,26rem)] flex-col gap-4`}
           data-scroll-native
         >
-          {visible.map((friend, index) => (
-            <FriendRow
-              close={() => closeSurface?.()}
-              friend={friend}
+          {groups.map((group, index) => (
+            <SurfacePart
+              className="flex flex-col gap-2"
               index={index}
-              key={friend.id}
-              movieId={data.movieId}
-            />
+              key={group.key}
+              name="row"
+            >
+              <p className={cn(TONE.label, "flex gap-1.5 px-3 text-ink-muted")}>
+                {group.label}
+                {group.range ? (
+                  <span className="text-ink-faint">· {group.range}</span>
+                ) : null}
+              </p>
+              <HighlightGroup className={SURFACE_GROUP}>
+                <ul className="flex flex-col">
+                  {group.people.map((friend) => (
+                    <FriendRow
+                      close={close}
+                      friend={friend}
+                      key={friend.id}
+                      movieId={data.movieId}
+                    />
+                  ))}
+                </ul>
+              </HighlightGroup>
+            </SurfacePart>
           ))}
-        </ul>
+        </div>
       </SurfaceSwap>
 
       {data.proof.total > friends.length ? (
@@ -364,7 +425,7 @@ function SocialProofSurface({
 }
 
 const PROOF_PILL =
-  "cine-card group relative flex h-14 w-full items-center overflow-hidden rounded-full bg-fill px-3.5 text-left ring-1 ring-edge ring-inset";
+  "cine-card liquid-control group relative flex h-14 w-full items-center overflow-hidden rounded-full bg-fill px-3.5 text-left ring-1 ring-edge ring-inset";
 
 // Friends' activity on a film, the last of the sidebar's actions: it joins
 // the action group's entrance at its `index`, showing a loader in place while
@@ -427,10 +488,7 @@ export function MovieSocialProof({
     <Part index={index} name={part}>
       {proof && summary ? (
         <Button
-          className={cn(
-            PROOF_PILL,
-            "cursor-pointer hover:bg-fill-hover focus-visible:bg-fill-hover hover:ring-edge-hover focus-visible:ring-edge-focus",
-          )}
+          className={cn(PROOF_PILL, "cursor-pointer")}
           onClick={() =>
             void openSurface(
               socialProofSurface({ data: { movieId, proof, title } }),

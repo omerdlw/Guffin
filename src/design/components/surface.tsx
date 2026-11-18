@@ -9,6 +9,7 @@ import {
 import { Button } from "@omerdlw/base-framework/ui";
 import { cn } from "@/design/ui";
 import type { Curve, Enter, Followed, Look } from "@/motion/choreo";
+import { useAheadOfOpen } from "@/design/lazy-surface";
 import { defineStage } from "@/motion/stage";
 import { Icon } from "./icon";
 import { Input } from "./input";
@@ -22,7 +23,7 @@ import { Input } from "./input";
 
 const PHI = 1.618034;
 const beat = (n: number) => Math.round(PHI ** n * 1000) / 1000;
-const SETTLE: Curve = [0.236, 1, 0.382, 1];
+const SETTLE: Curve = [0.236, 0.382, 0.146, 1];
 const LEAVE: Curve = [0.618, 0, 0.854, 0.382];
 /** Between blocks and between rows (s). */
 const LINE = 0.055;
@@ -54,6 +55,9 @@ const lift = { to: { opacity: 0, y: -5 }, duration: beat(-4), ease: LEAVE };
 
 const SURFACE = defineStage({
   scope: "surface",
+  // The hand's pace: slower than a click, quicker than a page.
+  tempo: 1.236,
+  reach: 1.272,
   motion: {
     parts: {
       item: { enter: rise({ opacity: 0, y: 8 }) },
@@ -80,6 +84,14 @@ const SURFACE = defineStage({
 });
 
 const SurfaceRoot = SURFACE.SurfaceRoot;
+
+/**
+ * The surfaces' stylesheet, put in ahead of the first surface that opens
+ * (see useAheadOfOpen). Mounted once, by the app's providers.
+ */
+export function SurfaceStyle() {
+  return useAheadOfOpen() ? <SURFACE.Style /> : null;
+}
 export const SurfacePart = SURFACE.Part;
 export const SurfaceSwap = SURFACE.Swap;
 export const useSurfacePart = SURFACE.usePart;

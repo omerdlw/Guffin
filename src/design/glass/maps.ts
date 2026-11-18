@@ -1,5 +1,5 @@
 // The lens maps a glass surface is drawn with, from the optics (optics.ts) and
-// its material (materials.ts). Browser only (canvas).
+// its material (materials.ts). Pure pixels: no canvas, no DOM.
 //
 // No map depends on the surface's size, only its corner radius and bezel:
 // along a straight side the rim is the same everywhere. So each is drawn
@@ -8,6 +8,7 @@
 // that resizes keeps the exact lens on every frame.
 
 import { rimShift } from "./optics";
+import { pngDataUrl } from "./png";
 
 /** Points read across each pixel of a mask, per axis, on small masks… */
 const SUPERSAMPLE = 4;
@@ -15,18 +16,22 @@ const SUPERSAMPLE = 4;
 const SUPERSAMPLE_LARGE = 2;
 const LARGE_MASK = 96;
 
-type Probe = (px: number, py: number) => [number, number, number];
+/** A map's pixels: `size` × `size`, RGBA, every pixel opaque. */
+export type Bitmap = { size: number; data: Uint8ClampedArray };
 
 /**
- * Measures a rounded rectangle at a point (css px from its centre): the
- * depth inside the outline (≤ 0 outside) and the outward normal of the
- * nearest edge.
+ * Measures a rounded rectangle at a point (css px from its centre) into
+ * `out`: the depth inside the outline (≤ 0 outside) and the outward normal
+ * of the nearest edge. Written in place: it runs for every sample of every
+ * pixel of every map.
  */
+type Probe = (px: number, py: number, out: Float64Array) => void;
+
 function prober(width: number, height: number, radius: number): Probe {
   const hx = width / 2;
   const hy = height / 2;
   const r = Math.min(radius, hx, hy);
-  return (px, py) => {
+  return (px, py, out) => {
     const qx = Math.abs(px) - (hx - r);
     const qy = Math.abs(py) - (hy - r);
     const ox = Math.max(qx, 0);
@@ -45,24 +50,10 @@ function prober(width: number, height: number, radius: number): Probe {
       nx = 0;
       ny = 1;
     }
-    return [depth, nx * (Math.sign(px) || 1), ny * (Math.sign(py) || 1)];
+    out[0] = depth;
+    out[1] = nx * (Math.sign(px) || 1);
+    out[2] = ny * (Math.sign(py) || 1);
   };
-}
-
-function paint(
-  columns: number,
-  rows: number,
-  fill: (data: Uint8ClampedArray) => void,
-) {
-  const canvas = document.createElement("canvas");
-  canvas.width = columns;
-  canvas.height = rows;
-  const context = canvas.getContext("2d", { willReadFrequently: true });
-  if (!context) return null;
-  const image = context.createImageData(columns, rows);
-  fill(image.data);
-  context.putImageData(image, 0, 0);
-  return canvas;
 }
 
 /**
@@ -75,10 +66,10 @@ export const sideOf = (slice: number) => slice * 2 + 2;
 /**
  * A mask around the outline of the square, at `density`. `shade` gets the
  * depth inside the outline (css px) and the outward normal of the nearest
- * edge, and returns the value there (0–1). `opaque` draws it as grey on
- * black (the value in the colour, full alpha): slices of it laid over one
- * another then replace each other where they meet instead of adding up
- * into a bright seam.
+ * edge, and returns the value there (0–1). Drawn as grey on black (the
+ * value in the colour, full alpha): slices of it laid over one another then
+ * replace each other where they meet instead of adding up into a bright
+ * seam.
  *
  * Each pixel is the average of several points across it: a line about a
  * pixel wide, read only at pixel centres, flickers along a curve and the
@@ -89,13 +80,13 @@ function drawMask(
   radius: number,
   density: number,
   shade: (depth: number, nx: number, ny: number) => number,
-  opaque = false,
-) {
+): Bitmap {
   const side = sideOf(slice);
   const size = Math.round(side * density);
   const samples = size > LARGE_MASK ? SUPERSAMPLE_LARGE : SUPERSAMPLE;
   const probe = prober(side, side, radius);
-  const alpha = new Float32Array(size * size);
+  const at = new Float64Array(3);
+  const data = new Uint8ClampedArray(size * size * 4);
   const step = 1 / (density * samples);
   const half = side / 2;
   for (let y = 0; y < size; y++) {
@@ -105,24 +96,21 @@ function drawMask(
         const py = y / density + (j + 0.5) * step - half;
         for (let i = 0; i < samples; i++) {
           const px = x / density + (i + 0.5) * step - half;
-          const [depth, nx, ny] = probe(px, py);
-          if (depth <= 0) continue;
-          sum += Math.min(1, Math.max(0, shade(depth, nx, ny)));
+          probe(px, py, at);
+          if (at[0]! <= 0) continue;
+          sum += Math.min(1, Math.max(0, shade(at[0]!, at[1]!, at[2]!)));
         }
       }
-      alpha[y * size + x] = sum / (samples * samples);
+      // Float32, as the mask was always kept, so the grey rounds the same.
+      const value = Math.round(Math.fround(sum / (samples * samples)) * 255);
+      const index = (y * size + x) * 4;
+      data[index] = value;
+      data[index + 1] = value;
+      data[index + 2] = value;
+      data[index + 3] = 255;
     }
   }
-  return paint(size, size, (data) => {
-    for (let i = 0; i < alpha.length; i++) {
-      const at = i * 4;
-      const value = Math.round(alpha[i]! * 255);
-      data[at] = opaque ? value : 255;
-      data[at + 1] = opaque ? value : 255;
-      data[at + 2] = opaque ? value : 255;
-      data[at + 3] = opaque ? 255 : value;
-    }
-  });
+  return { size, data };
 }
 
 /**
@@ -144,7 +132,6 @@ export const drawEdgeLight = (slice: number, radius: number, density: number) =>
       const lit = Math.abs(nx + ny) / Math.SQRT2;
       return band * lit;
     },
-    true,
   );
 
 /**
@@ -158,33 +145,35 @@ export function drawRefraction(
   radius: number,
   bezel: number,
   density: number,
-) {
+): Bitmap {
   const side = sideOf(slice);
   const size = Math.round(side * density);
   const probe = prober(side, side, radius);
-  const shift = new Float32Array(size * size * 2);
+  const at = new Float64Array(3);
+  const data = new Uint8ClampedArray(size * size * 4);
   for (let y = 0; y < size; y++) {
     const py = (y + 0.5) / density - side / 2;
     for (let x = 0; x < size; x++) {
-      const [depth, nx, ny] = probe((x + 0.5) / density - side / 2, py);
+      const index = (y * size + x) * 4;
+      let sx = 0;
+      let sy = 0;
+      probe((x + 0.5) / density - side / 2, py, at);
+      const depth = at[0]!;
       // The outline's own pixel (centre just outside) bends as the rim does.
-      if (depth <= -0.5 / density || depth >= bezel) continue;
-      const magnitude = rimShift(Math.max(depth, 0) / bezel);
-      const index = y * size + x;
-      // Sample inward of the pixel: the rim shows what lies further in.
-      shift[index * 2] = -nx * magnitude;
-      shift[index * 2 + 1] = -ny * magnitude;
+      if (depth > -0.5 / density && depth < bezel) {
+        const magnitude = rimShift(Math.max(depth, 0) / bezel);
+        // Sample inward of the pixel: the rim shows what lies further in.
+        // Float32, as the shift was always kept, so the bytes round the same.
+        sx = Math.fround(-at[1]! * magnitude);
+        sy = Math.fround(-at[2]! * magnitude);
+      }
+      data[index] = Math.round(128 + sx * 127);
+      data[index + 1] = Math.round(128 + sy * 127);
+      data[index + 2] = 128;
+      data[index + 3] = 255;
     }
   }
-  return paint(size, size, (data) => {
-    for (let i = 0; i < size * size; i++) {
-      const at = i * 4;
-      data[at] = Math.round(128 + shift[i * 2]! * 127);
-      data[at + 1] = Math.round(128 + shift[i * 2 + 1]! * 127);
-      data[at + 2] = 128;
-      data[at + 3] = 255;
-    }
-  });
+  return { size, data };
 }
 
 /** The nine slices' order: four sides first, the corners laid over them. */
@@ -193,11 +182,11 @@ export type Piece = (typeof PIECES)[number];
 export type Pieces = Record<Piece, string>;
 
 /** Cuts a map drawn for the square into its eight rim pieces. */
-function cut(canvas: HTMLCanvasElement, slice: number) {
-  const k = canvas.width / sideOf(slice);
+function cut({ size, data }: Bitmap, slice: number): Pieces {
+  const k = size / sideOf(slice);
   const corner = Math.round(slice * k);
-  const run = canvas.width - corner * 2;
-  const far = canvas.width - corner;
+  const run = size - corner * 2;
+  const far = size - corner;
   const boxes: Record<Piece, [number, number, number, number]> = {
     t: [corner, 0, run, corner],
     b: [corner, far, run, corner],
@@ -211,13 +200,12 @@ function cut(canvas: HTMLCanvasElement, slice: number) {
   const pieces = {} as Pieces;
   for (const piece of PIECES) {
     const [x, y, w, h] = boxes[piece];
-    const part = document.createElement("canvas");
-    part.width = w;
-    part.height = h;
-    const context = part.getContext("2d");
-    if (!context) return null;
-    context.drawImage(canvas, x, y, w, h, 0, 0, w, h);
-    pieces[piece] = part.toDataURL();
+    const part = new Uint8ClampedArray(w * h * 4);
+    for (let row = 0; row < h; row++) {
+      const from = ((y + row) * size + x) * 4;
+      part.set(data.subarray(from, from + w * 4), row * w * 4);
+    }
+    pieces[piece] = pngDataUrl(w, h, part);
   }
   return pieces;
 }
@@ -229,21 +217,15 @@ function cut(canvas: HTMLCanvasElement, slice: number) {
  * every frame the scene behind moves.
  */
 export function fold(
-  refraction: HTMLCanvasElement,
-  edge: HTMLCanvasElement | null,
+  refraction: Bitmap,
+  edge: Bitmap | null,
   slice: number,
-): Pieces | null {
-  const context = refraction.getContext("2d", { willReadFrequently: true });
-  if (!context) return null;
-  const { width, height } = refraction;
-  const image = context.getImageData(0, 0, width, height);
-  const glow = edge
-    ?.getContext("2d", { willReadFrequently: true })
-    ?.getImageData(0, 0, width, height).data;
-  for (let at = 0; at < image.data.length; at += 4) {
-    image.data[at + 2] = glow ? glow[at]! : 0;
+): Pieces {
+  const data = refraction.data;
+  const glow = edge?.data;
+  for (let at = 0; at < data.length; at += 4) {
+    data[at + 2] = glow ? glow[at]! : 0;
   }
-  context.putImageData(image, 0, 0);
   return cut(refraction, slice);
 }
 

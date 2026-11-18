@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAmbient } from "@omerdlw/base-framework/ambient";
 import {
   AnimatePresence,
   motion,
@@ -10,7 +11,6 @@ import {
 import { LOGO_PATH, LOGO_VIEWBOX } from "@/design/components/logo";
 import { Z_INDEX } from "@/design/foundations/z-index";
 import { houseDown } from "@/design/components/room";
-import { grade, rgbOf, type Tint } from "@/design/grade";
 
 type Bezier = [number, number, number, number];
 
@@ -182,8 +182,10 @@ export function Intermission({
   );
 }
 
-const iconFor = (tint: Tint) => {
-  const c = `rgb(${rgbOf(tint).join(",")})`;
+// The icon is dark, so it takes the light end of the picture's vivid ramp.
+const ICON_TONE = 70;
+
+const iconFor = (c: string) => {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#0a0a0a"/><rect width="64" height="64" rx="16" fill="${c}" fill-opacity="0.18"/><svg x="14" y="14" width="36" height="36" viewBox="${LOGO_VIEWBOX}"><path fill="${c}" d="${LOGO_PATH}"/></svg></svg>`;
   return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 };
@@ -192,8 +194,8 @@ const icons = () => [
   ...document.querySelectorAll<HTMLLinkElement>("link[rel~='icon']"),
 ];
 
-function paint(tint: Tint | null) {
-  const href = tint ? iconFor(tint) : null;
+function paint(colour: string | null) {
+  const href = colour ? iconFor(colour) : null;
   for (const link of icons()) {
     const untinted = link.getAttribute(SCREEN_UNTINTED);
     if (href) {
@@ -214,14 +216,14 @@ function paint(tint: Tint | null) {
 }
 
 export function TintedFavicon() {
-  useEffect(() => {
-    paint(grade.get());
-    const stop = grade.subscribe(paint);
-    return () => {
-      stop();
-      paint(null);
-    };
-  }, []);
+  const { palette } = useAmbient();
+  const colour =
+    palette && !palette.neutral
+      ? palette.roles.vibrant.ramp[ICON_TONE]
+      : null;
+
+  useEffect(() => paint(colour), [colour]);
+  useEffect(() => () => paint(null), []);
 
   return null;
 }

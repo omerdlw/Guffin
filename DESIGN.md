@@ -32,7 +32,7 @@ Each layer only reads from the layers above it.
    :root gives every variable its one value: ink steps, fills, edges,
    chosen, glass (--liquid-*), primary, semantic, room atmosphere, all
    derived from the paper colour, which follows the picture
-   (--ambient-shadow). .on-photo re-values them for text over a picture.
+   (--ambient-page, a light-ground palette). .on-photo re-values them for text over a picture.
         ↓
 3. Foundations (TS)       src/design/foundations/
    tones.ts  TONES, STATE, FILL, WELL, LAYER, TONE: complete state answers

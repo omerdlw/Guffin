@@ -2,13 +2,6 @@ import type { ReactNode } from "react";
 import { Image } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
 import {
-  SURFACE_META,
-  SURFACE_TEXT,
-  SURFACE_TILE_INNER,
-  SURFACE_TITLE,
-  tileVariants,
-} from "@/design/components/surface-classes";
-import {
   applyAvatarFallback,
   type AvatarSource,
   getUserAvatarFallbackUrl,
@@ -17,9 +10,7 @@ import {
 
 export function AvatarTile({ children }: { children: ReactNode }) {
   return (
-    <div
-      className={`relative size-10 shrink-0 overflow-hidden bg-fill ${SURFACE_TILE_INNER}`}
-    >
+    <div className="relative size-10 shrink-0 overflow-hidden rounded-full bg-fill">
       {children}
     </div>
   );
@@ -45,6 +36,9 @@ export function AccountAvatarImage({
   );
 }
 
+// An empty or failed list is a quiet note, not a row: the glyph in a soft
+// ring, a line, and a lighter line under it, centred in the space the rows
+// would take.
 export function StatusTile({
   description,
   icon,
@@ -55,15 +49,13 @@ export function StatusTile({
   title: string;
 }) {
   return (
-    <div className={tileVariants({ className: "w-full" })}>
-      <div
-        className={`center size-10 shrink-0 bg-fill text-ink-muted ${SURFACE_TILE_INNER}`}
-      >
-        <Icon icon={icon} size={20} />
+    <div className="flex min-h-44 w-full flex-col items-center justify-center gap-3 px-6 py-8 text-center">
+      <div className="center size-12 rounded-full bg-fill text-ink-muted ring-1 ring-edge ring-inset">
+        <Icon icon={icon} size={22} />
       </div>
-      <div className={SURFACE_TEXT}>
-        <p className={SURFACE_TITLE}>{title}</p>
-        <p className={SURFACE_META}>{description}</p>
+      <div className="flex flex-col gap-0.5">
+        <p className="type-body font-semibold text-ink">{title}</p>
+        <p className="type-meta text-ink-muted text-balance">{description}</p>
       </div>
     </div>
   );

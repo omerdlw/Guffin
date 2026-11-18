@@ -270,7 +270,7 @@ export function PersonView({
   const careers = chartable(getCareer(person));
 
   return (
-    <PersonStage backdrop={backdropPath} person={person}>
+    <PersonStage>
       <DetailLayout
         backdrop={
           backdrop ? (
@@ -318,7 +318,7 @@ export function PersonView({
                 <Suspense fallback={null}>
                   <DetailAwards
                     awards={awards}
-                    groupings={["organizations", "projects", "timeline"]}
+                    groupings={["board", "organizations", "timeline"]}
                   />
                 </Suspense>
               ),

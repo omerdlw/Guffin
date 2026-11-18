@@ -10,9 +10,9 @@ interface RoomProps {
   grainClassName?: string;
 }
 
+// The picture's regions, as pale light on the paper (the framework makes
+// them for a light ground). The wash shows as much as the picture has colour.
 const WASH = [
-  "radial-gradient(70% 55% at 22% 38%, color-mix(in oklch, var(--tint, transparent) var(--wash-tint-a), transparent), transparent 70%)",
-  "radial-gradient(60% 50% at 88% 92%, color-mix(in oklch, var(--tint, transparent) var(--wash-tint-b), transparent), transparent 70%)",
   "radial-gradient(65% 50% at 15% 0%, color-mix(in oklab, var(--ambient-top, transparent) var(--wash-top), transparent), transparent 72%)",
   "radial-gradient(60% 55% at 100% 20%, color-mix(in oklab, var(--ambient-right, transparent) var(--wash-right), transparent), transparent 72%)",
   "radial-gradient(70% 50% at 0% 100%, color-mix(in oklab, var(--ambient-left, transparent) var(--wash-left), transparent), transparent 72%)",
@@ -91,7 +91,7 @@ export function Room({
           aria-hidden="true"
           className="pointer-events-none fixed inset-0 z-0"
           data-part="wash"
-          style={{ background: WASH, opacity: "var(--tint-presence, 0)" }}
+          style={{ background: WASH, opacity: "var(--ambient-presence, 0)" }}
         />
       )}
       {black || !grain ? null : <Grain className={grainClassName} />}

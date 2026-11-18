@@ -16,6 +16,8 @@ export interface ActionButtonProps {
   iconSize?: number;
   label: ReactNode;
   loading?: boolean;
+  /** The meaning colour the icon takes once the action is on (`text-liked`). */
+  mark?: string;
   onClick: () => void;
 }
 
@@ -29,6 +31,7 @@ export function ActionButton({
   iconSize = 16,
   label,
   loading,
+  mark,
   onClick,
 }: ActionButtonProps): JSX.Element {
   return (
@@ -49,14 +52,17 @@ export function ActionButton({
         <span
           className={cn(
             "inline-flex shrink-0",
-            active ? "scale-108" : "group-hover:scale-108",
+            active ? ["scale-108", mark] : "group-hover:scale-108",
           )}
         >
           <Icon icon={active ? icon.on : icon.off} size={iconSize} />
         </span>
-        <span className="relative">
+        {/* Both labels share one cell, so it is as wide as the longer:
+            the hover label never wraps in the shorter one's box. */}
+        <span className="grid justify-items-center whitespace-nowrap">
           <span
             className={cn(
+              "col-start-1 row-start-1",
               hoverLabel &&
                 "group-hover:opacity-0 group-focus-visible:opacity-0 group-has-focus-visible:opacity-0",
             )}
@@ -64,7 +70,7 @@ export function ActionButton({
             {label}
           </span>
           {hoverLabel ? (
-            <span className="absolute inset-0 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 group-has-focus-visible:opacity-100">
+            <span className="col-start-1 row-start-1 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 group-has-focus-visible:opacity-100">
               {hoverLabel}
             </span>
           ) : null}

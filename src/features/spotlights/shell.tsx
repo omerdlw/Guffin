@@ -45,6 +45,8 @@ const URL_SYNC_DELAY_MS = 500;
 // would pin to it instead of the screen.
 const SALON = defineStage({
   scope: "salon",
+  tempo: 1.272,
+  reach: 1.618,
   parts: ["scene", "chrome"],
   motion: {
     parts: {
@@ -72,7 +74,7 @@ export function SalonStage({
   className: string;
 }) {
   return (
-    <SalonStageRoot grade={null}>
+    <SalonStageRoot light={null}>
       <Room black />
       <MotionConfig reducedMotion="user">
         <main

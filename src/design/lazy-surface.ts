@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   type DockActions,
   type SurfaceDescriptor,
@@ -98,4 +98,42 @@ export function useSurfacePreload(
     // eslint-disable-next-line react-hooks/exhaustive-deps -- handles are module constants
     [],
   );
+}
+
+function whenIdle(run: () => void): () => void {
+  if (typeof requestIdleCallback === "function") {
+    const id = requestIdleCallback(run, { timeout: 1000 });
+    return () => cancelIdleCallback(id);
+  }
+  const id = setTimeout(run, 200);
+  return () => clearTimeout(id);
+}
+
+/**
+ * True from an idle moment after the person first interacts with the page.
+ * A stage's stylesheet waits for it before it goes in: a sheet with keyframes
+ * restyles every animated element on the page (~15ms on home), so it goes in
+ * ahead of time instead of in the frame its surface opens.
+ */
+export function useAheadOfOpen(): boolean {
+  const [ahead, setAhead] = useState(false);
+  useEffect(() => {
+    if (ahead) return;
+    let cancelIdle: (() => void) | null = null;
+    const stop = preloadOnIntent(
+      [
+        {
+          preload: async () => {
+            cancelIdle = whenIdle(() => setAhead(true));
+          },
+        },
+      ],
+      window,
+    );
+    return () => {
+      stop();
+      cancelIdle?.();
+    };
+  }, [ahead]);
+  return ahead;
 }

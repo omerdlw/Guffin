@@ -1,6 +1,6 @@
 /* The dock's motion that tokens can't reach. Everything else it does is timed
    in design/theme/dock-motion.ts, on the same φ beats and curves:
-   settle cubic-bezier(0.236, 1, 0.382, 1), touch (0.146, 1, 0.382, 1).
+   settle cubic-bezier(0.236, 0.382, 0.146, 1); touch is the site's --soft-ease.
 
    Only individual transform properties (translate, scale) move here, so they
    compose with the transform the framework animates inline instead of
@@ -19,7 +19,7 @@
     }
 
     .dock-root {
-      animation: dock-arrive 1.618s cubic-bezier(0.236, 1, 0.382, 1) 0.382s
+      animation: dock-arrive 1.618s cubic-bezier(0.236, 0.382, 0.146, 1) 0.382s
         backwards;
     }
 
@@ -47,14 +47,12 @@
 
     /* Touch: every control in the dock warms and cools instead of snapping. */
     .dock-root :is(button, a[href]) {
-      transition:
-        color 0.236s cubic-bezier(0.236, 1, 0.382, 1),
-        background-color 0.236s cubic-bezier(0.236, 1, 0.382, 1),
-        box-shadow 0.236s cubic-bezier(0.236, 1, 0.382, 1);
+      transition-duration: var(--soft-out);
+      transition-property: var(--soft-props);
+      transition-timing-function: var(--soft-ease);
     }
-    /* …and a clear control's fill (ui-iris) blooms in at the same pace. */
-    .dock-root .ui-iris::before {
-      transition: opacity 0.236s cubic-bezier(0.236, 1, 0.382, 1);
+    .dock-root :is(button, a[href]):is(:hover, :focus-visible, :active) {
+      transition-duration: var(--soft-in);
     }
 
     /* An action arrives from below: it rises a step and settles, after the
@@ -71,7 +69,7 @@
     }
 
     .dock-root .dock-action {
-      animation: dock-action-arrive 0.618s cubic-bezier(0.236, 1, 0.382, 1)
+      animation: dock-action-arrive 0.618s cubic-bezier(0.236, 0.382, 0.146, 1)
         0.09s backwards;
     }
     .dock-root .dock-action:nth-child(2) {
@@ -96,9 +94,8 @@
       --i: 4;
     }
 
-    .dock-root .ui-iris::before,
     .dock-root .ui-fade {
-      transition: opacity 0.236s cubic-bezier(0.236, 1, 0.382, 1);
+      transition: opacity var(--soft-in) var(--soft-ease);
     }
   }
 

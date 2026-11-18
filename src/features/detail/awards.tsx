@@ -1,9 +1,10 @@
 "use client";
 
 import { Fragment, type ReactNode, use, useMemo, useState } from "react";
-import { Button, Image, SegmentedControl } from "@omerdlw/base-framework/ui";
+import { Button, Image } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
 import { DockLink } from "@/design/components/link";
+import { SegmentedControl } from "@/design/components/segmented-control";
 import { Select } from "@/design/components/select";
 import { TONE } from "@/design/foundations/tones";
 import { cn } from "@/design/ui";
@@ -16,18 +17,15 @@ import {
   tmdbImageUrl,
 } from "@/lib/tmdb/shared";
 import { Foil, type TiltLight } from "@/motion/tilt";
+import { CRAFT_ORDER, craftOf, prestigeOf, shortName } from "./award-board";
 import type { AwardsGrouping, AwardsLook } from "./detail";
+import { DetailPart, detailPart } from "./motion";
+import { Trace, TRACE_ROW, useTrace } from "./trace";
 
 interface AwardsFilters {
   grouping: AwardsGrouping;
   organizationId: string;
   winsOnly: boolean;
-}
-
-interface AwardStat {
-  label: string;
-  strong?: boolean;
-  value: number;
 }
 
 interface AwardItem {
@@ -38,6 +36,7 @@ interface AwardItem {
   organizationId: string;
   organizationLogoPath: string | null;
   organizationTitle: string;
+  prestige: number;
   posterPath: string | null;
   project: string | null;
   projectId: number | null;
@@ -51,18 +50,12 @@ interface AwardGroup {
   key: string;
   logoPath: string | null;
   nominations: number;
-  poster: {
-    id: number | null;
-    mediaType: "movie" | "tv" | null;
-    path: string | null;
-  } | null;
   title: string;
   wins: number;
 }
 
-const GROUPING_LABELS: Record<AwardsGrouping, string> = {
+const GROUPING_LABELS: Record<Exclude<AwardsGrouping, "board">, string> = {
   organizations: "By organization",
-  projects: "By project",
   timeline: "Timeline",
 };
 
@@ -82,6 +75,7 @@ function flattenAwards(awards: Awards): AwardItem[] {
       organizationId: organization.id,
       organizationLogoPath: organization.logoPath,
       organizationTitle: organization.title,
+      prestige: prestigeOf(organization.title),
       posterPath: award.posterPath,
       project: award.project,
       projectId: award.projectId,
@@ -115,7 +109,7 @@ function groupAwardItems(
   key: string,
   title: string,
   items: AwardItem[],
-  extra: Pick<AwardGroup, "logoPath" | "poster">,
+  extra: Pick<AwardGroup, "logoPath">,
 ): AwardGroup {
   return {
     ...extra,
@@ -129,14 +123,11 @@ function groupAwardItems(
 
 function groupAwards(
   items: readonly AwardItem[],
-  grouping: AwardsGrouping,
+  grouping: "organizations" | "timeline",
 ): AwardGroup[] {
   const buckets = new Map<string, AwardItem[]>();
-  const keyOf = (item: AwardItem): string => {
-    if (grouping === "organizations") return item.organizationId;
-    if (grouping === "timeline") return item.year ?? "";
-    return item.projectId ? `${item.mediaType}-${item.projectId}` : "honors";
-  };
+  const keyOf = (item: AwardItem) =>
+    grouping === "organizations" ? item.organizationId : (item.year ?? "");
   for (const item of items) {
     const key = keyOf(item);
     buckets.set(key, [...(buckets.get(key) ?? []), item]);
@@ -144,40 +135,110 @@ function groupAwards(
 
   const groups = [...buckets.entries()].map(([key, bucket]) => {
     const first = bucket[0];
-    if (grouping === "organizations") {
-      return groupAwardItems(key, first.organizationTitle, bucket, {
-        logoPath: first.organizationLogoPath,
-        poster: null,
-      });
-    }
-    if (grouping === "timeline") {
-      return groupAwardItems(key, first.year ?? "Undated", bucket, {
-        logoPath: null,
-        poster: null,
-      });
-    }
-    const titled = bucket.find((item) => item.project) ?? first;
-    return groupAwardItems(
-      key,
-      titled.project ?? "Career and honorary",
-      bucket,
-      {
-        logoPath: null,
-        poster: {
-          id: first.projectId,
-          mediaType: first.mediaType,
-          path: bucket.find((item) => item.posterPath)?.posterPath ?? null,
-        },
-      },
-    );
+    return grouping === "organizations"
+      ? groupAwardItems(key, first.organizationTitle, bucket, {
+          logoPath: first.organizationLogoPath,
+        })
+      : groupAwardItems(key, first.year ?? "Undated", bucket, {
+          logoPath: null,
+        });
   });
 
-  return groups.sort((a, b) => {
-    if (grouping === "timeline") {
-      return (b.items[0].year ?? "").localeCompare(a.items[0].year ?? "");
+  return groups.sort((a, b) =>
+    grouping === "timeline"
+      ? (b.items[0].year ?? "").localeCompare(a.items[0].year ?? "")
+      : a.items[0].prestige - b.items[0].prestige ||
+        b.wins - a.wins ||
+        b.items.length - a.items.length,
+  );
+}
+
+// The board: one row per craft (a title's page) or per title (a person's),
+// each row a strip of the organizations that named it, the ceremonies of
+// the season first. A filled tag is a win, an outlined one a nomination.
+interface BoardCell {
+  count: number;
+  key: string;
+  name: string;
+  title: string;
+  won: boolean;
+}
+
+interface BoardRow {
+  cells: BoardCell[];
+  items: AwardItem[];
+  key: string;
+  label: string;
+  order: number;
+  poster: {
+    id: number | null;
+    mediaType: "movie" | "tv" | null;
+    path: string | null;
+  } | null;
+  wins: number;
+}
+
+const byStanding = (a: AwardItem, b: AwardItem) =>
+  a.prestige - b.prestige ||
+  a.organizationTitle.localeCompare(b.organizationTitle) ||
+  Number(b.won) - Number(a.won) ||
+  (b.year ?? "").localeCompare(a.year ?? "");
+
+function boardRows(items: readonly AwardItem[], byTitle: boolean): BoardRow[] {
+  const rows = new Map<string, BoardRow>();
+  for (const item of items) {
+    const craft = craftOf(
+      item.category,
+      item.organizationTitle,
+      item.mediaType,
+    );
+    const key = byTitle
+      ? item.projectId
+        ? `${item.mediaType}-${item.projectId}`
+        : (item.project ?? "honors")
+      : craft.key;
+    const row = rows.get(key) ?? {
+      cells: [],
+      items: [],
+      key,
+      label: byTitle ? (item.project ?? "Career and honorary") : craft.label,
+      order: byTitle ? 0 : CRAFT_ORDER.indexOf(craft.key),
+      poster: byTitle
+        ? { id: item.projectId, mediaType: item.mediaType, path: null }
+        : null,
+      wins: 0,
+    };
+    row.items.push(item);
+    if (item.won) row.wins += 1;
+    if (row.poster && !row.poster.path) row.poster.path = item.posterPath;
+    rows.set(key, row);
+  }
+
+  for (const row of rows.values()) {
+    row.items.sort(byStanding);
+    const cells = new Map<string, BoardCell>();
+    for (const item of row.items) {
+      const cell = cells.get(item.organizationId) ?? {
+        count: 0,
+        key: item.organizationId,
+        name: shortName(item.organizationTitle),
+        title: item.organizationTitle,
+        won: false,
+      };
+      cell.count += 1;
+      cell.won ||= item.won;
+      cells.set(item.organizationId, cell);
     }
-    return b.wins - a.wins || b.items.length - a.items.length;
-  });
+    row.cells = [...cells.values()];
+  }
+
+  return [...rows.values()].sort(
+    (a, b) =>
+      b.wins - a.wins ||
+      b.items.length - a.items.length ||
+      a.order - b.order ||
+      a.label.localeCompare(b.label),
+  );
 }
 
 function wonAcademyAward(awards: Awards): boolean {
@@ -205,29 +266,6 @@ function countAwardTitles(items: readonly AwardItem[]): number {
   ).size;
 }
 
-function buildAwardStats(
-  awards: Awards,
-  titleCount: number | null,
-): AwardStat[] {
-  const organizations = awards.organizations.length;
-  return [
-    {
-      label: awards.wins === 1 ? "Win" : "Wins",
-      strong: true,
-      value: awards.wins,
-    },
-    {
-      label: awards.nominations === 1 ? "Nomination" : "Nominations",
-      value: awards.nominations,
-    },
-    ...(titleCount ? [{ label: "Titles", value: titleCount }] : []),
-    {
-      label: organizations === 1 ? "Organization" : "Organizations",
-      value: organizations,
-    },
-  ];
-}
-
 function InlineLink({ children, href }: { children: ReactNode; href: string }) {
   return (
     <DockLink href={href} variant="reveal">
@@ -252,44 +290,289 @@ function ProjectName({
   );
 }
 
-function Stat({
-  label,
-  strong = false,
-  value,
-}: {
-  label: string;
-  strong?: boolean;
-  value: number;
-}) {
+// Wins out of every nomination (a win was a nomination first), drawn as one
+// line under the count.
+function Summary({ awards }: { awards: Awards }) {
+  const total = awards.wins + awards.nominations;
+  const organizations = awards.organizations.length;
+
   return (
-    <div className="flex min-w-0 flex-col-reverse items-center gap-2 px-2 text-center">
-      <dt className={cn(LABEL_CLASS, "-mr-(--tracking-label) text-ink-muted")}>
-        {label}
-      </dt>
-      <dd
-        className={cn(
-          "font-zuume type-display-sm leading-none font-bold tabular-nums sm:type-display-md",
-          strong ? "text-ink" : "text-ink-muted",
-        )}
-      >
-        {value}
-      </dd>
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
+        <p className="flex items-baseline gap-3">
+          <span className="font-zuume type-display-sm leading-none font-bold text-ink tabular-nums sm:type-display-md">
+            {awards.wins > 0 ? awards.wins : total}
+          </span>
+          <span className="type-body text-ink-muted">
+            {awards.wins > 0 ? (
+              <>
+                <span className="font-semibold text-ink">
+                  {awards.wins === 1 ? "win" : "wins"}
+                </span>{" "}
+                of {pluralize(total, "nomination", "nominations")}
+              </>
+            ) : total === 1 ? (
+              "nomination"
+            ) : (
+              "nominations"
+            )}
+          </span>
+        </p>
+        <p className={cn(LABEL_CLASS, "text-ink-muted")}>
+          {pluralize(organizations, "organization", "organizations")}
+        </p>
+      </div>
+      <div className="h-1 overflow-hidden rounded-full bg-fill">
+        <span
+          className="block h-full rounded-full bg-ink"
+          style={{ width: `${(awards.wins / Math.max(total, 1)) * 100}%` }}
+          {...detailPart("meter")}
+        />
+      </div>
     </div>
   );
 }
 
-function Status({ won }: { won: boolean }) {
+function Mark({ won }: { won: boolean }) {
+  return won ? (
+    <Icon className="shrink-0 text-ink" icon="solar:cup-bold" size={14} />
+  ) : (
+    <span
+      aria-hidden="true"
+      className="mx-[3px] size-2 shrink-0 rounded-full ring-1 ring-ink-muted ring-inset"
+    />
+  );
+}
+
+function Tag({ cell }: { cell: BoardCell }) {
   return (
     <span
       className={cn(
-        LABEL_CLASS,
-        "-mr-(--tracking-label) inline-flex shrink-0 items-center gap-1.5 pt-0.5",
-        won ? "text-ink" : "text-ink-muted",
+        "inline-flex h-6 shrink-0 items-center gap-1 rounded-full px-2.5 type-meta font-semibold whitespace-nowrap",
+        cell.won
+          ? "bg-ink text-page"
+          : "text-ink-muted ring-1 ring-edge ring-inset",
       )}
+      title={cell.title}
     >
-      {won ? <Icon icon="solar:cup-bold" size={13} /> : null}
-      {won ? "Winner" : "Nominee"}
+      {cell.won ? <Icon icon="solar:cup-bold" size={11} /> : null}
+      {cell.name}
+      {cell.count > 1 ? (
+        <span className="opacity-60 tabular-nums">×{cell.count}</span>
+      ) : null}
+      <span className="sr-only">{cell.won ? ", won" : ", nominated"}</span>
     </span>
+  );
+}
+
+function BoardEntry({
+  item,
+  showRecipients,
+  showTitles,
+}: {
+  item: AwardItem;
+  showRecipients: boolean;
+  showTitles: boolean;
+}) {
+  const parts: ReactNode[] = [item.category];
+  if (showTitles && item.project)
+    parts.push(
+      <ProjectName
+        id={item.projectId}
+        mediaType={item.mediaType}
+        name={item.project}
+      />,
+    );
+  if (showRecipients && item.recipients.length > 0)
+    parts.push(<Recipients recipients={item.recipients} />);
+  if (item.year) parts.push(item.year);
+
+  return (
+    <li className="flex items-start gap-3 py-1.5">
+      <span className="flex h-5 items-center">
+        <Mark won={item.won} />
+      </span>
+      <span className="flex min-w-0 flex-col gap-0.5 sm:flex-row sm:gap-2">
+        <span
+          className={cn(
+            "shrink-0 type-body font-semibold",
+            item.won ? "text-ink" : "text-ink-body",
+          )}
+        >
+          {item.organizationTitle}
+        </span>
+        <span className="type-body text-ink-muted">
+          <Joined parts={parts} />
+        </span>
+      </span>
+    </li>
+  );
+}
+
+function Joined({ parts }: { parts: ReactNode[] }) {
+  return parts.map((part, index) => (
+    <Fragment key={index}>
+      {index > 0 ? " · " : null}
+      {part}
+    </Fragment>
+  ));
+}
+
+function Recipients({ recipients }: { recipients: AwardRecipient[] }) {
+  const names = recipients.slice(0, MAX_RECIPIENTS);
+  const more = recipients.length - names.length;
+  return (
+    <>
+      {names.map((recipient, index) => (
+        <Fragment key={recipient.id}>
+          {index > 0 ? ", " : null}
+          <InlineLink href={personHref(recipient.id)}>
+            {recipient.name}
+          </InlineLink>
+        </Fragment>
+      ))}
+      {more > 0 ? ` +${more}` : null}
+    </>
+  );
+}
+
+function BoardLine({
+  index,
+  look,
+  onToggle,
+  open,
+  row,
+  showRecipients,
+  showTitles,
+}: {
+  index: number;
+  look: AwardsLook;
+  onToggle: () => void;
+  open: boolean;
+  row: BoardRow;
+  showRecipients: boolean;
+  showTitles: boolean;
+}) {
+  const panel = `award-${row.key}`;
+
+  return (
+    <DetailPart as="li" className="relative" index={index} name="laurel">
+      <div {...TRACE_ROW} className="flex flex-col">
+        <button
+          aria-controls={panel}
+          aria-expanded={open}
+          className="grid w-full cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2.5 rounded-tile px-3 py-3 text-left sm:grid-cols-[minmax(0,13rem)_minmax(0,1fr)_auto]"
+          onClick={onToggle}
+          type="button"
+        >
+          <span className="flex min-w-0 items-center gap-3">
+            {row.poster?.path ? (
+              <PosterThumb
+                className={cn("w-8 shrink-0", look.poster)}
+                original
+                movieId={
+                  row.poster.mediaType === "movie" ? row.poster.id : null
+                }
+                posterPath={row.poster.path}
+              />
+            ) : null}
+            <span
+              className={cn(
+                "truncate type-body font-semibold",
+                row.wins > 0 ? "text-ink" : "text-ink-body",
+              )}
+            >
+              {row.label}
+            </span>
+          </span>
+          <span className="col-span-2 row-start-2 flex flex-wrap gap-1.5 sm:col-span-1 sm:row-start-1 sm:col-start-2">
+            {row.cells.map((cell) => (
+              <Tag cell={cell} key={cell.key} />
+            ))}
+          </span>
+          <span className="flex items-center gap-2 type-meta text-ink-muted tabular-nums sm:col-start-3">
+            <span>
+              <span className={row.wins > 0 ? "text-ink" : undefined}>
+                {row.wins}
+              </span>
+              /{row.items.length}
+            </span>
+            <span
+              className="flex"
+              style={{ transform: open ? "rotate(180deg)" : undefined }}
+              {...detailPart("turn")}
+            >
+              <Icon icon="solar:alt-arrow-down-linear" size={14} />
+            </span>
+          </span>
+        </button>
+        <div
+          className="grid"
+          id={panel}
+          style={{
+            gridTemplateRows: open ? "1fr" : "0fr",
+            opacity: open ? 1 : 0,
+          }}
+          {...detailPart("fold")}
+        >
+          <div className="min-h-0 overflow-hidden" inert={!open}>
+            <ul className="flex flex-col px-3 pt-0.5 pb-3">
+              {row.items.map((item) => (
+                <BoardEntry
+                  item={item}
+                  key={item.key}
+                  showRecipients={showRecipients}
+                  showTitles={showTitles && !row.poster}
+                />
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </DetailPart>
+  );
+}
+
+function AwardBoard({
+  byTitle,
+  items,
+  look,
+  showRecipients,
+  showTitles,
+}: {
+  byTitle: boolean;
+  items: readonly AwardItem[];
+  look: AwardsLook;
+  showRecipients: boolean;
+  showTitles: boolean;
+}) {
+  const rows = useMemo(() => boardRows(items, byTitle), [items, byTitle]);
+  const [open, setOpen] = useState<ReadonlySet<string>>(new Set());
+  const [list, setList] = useState<HTMLUListElement | null>(null);
+  const { trace, props } = useTrace(list);
+  const toggle = (key: string) =>
+    setOpen((current) => {
+      const next = new Set(current);
+      if (!next.delete(key)) next.add(key);
+      return next;
+    });
+
+  return (
+    <ul className="relative -mx-3 flex flex-col" ref={setList} {...props}>
+      <Trace trace={trace} />
+      {rows.map((row, index) => (
+        <BoardLine
+          index={index}
+          key={row.key}
+          look={look}
+          onToggle={() => toggle(row.key)}
+          open={open.has(row.key)}
+          row={row}
+          showRecipients={showRecipients}
+          showTitles={showTitles}
+        />
+      ))}
+    </ul>
   );
 }
 
@@ -302,29 +585,14 @@ function AwardRow({
 }: {
   item: AwardItem;
   look: AwardsLook;
-  omit: AwardsGrouping;
+  omit: "organizations" | "timeline";
   showRecipients: boolean;
   showTitles: boolean;
 }) {
   const parts: ReactNode[] = [];
-  if (showRecipients && item.recipients.length > 0) {
-    const names = item.recipients.slice(0, MAX_RECIPIENTS);
-    const more = item.recipients.length - names.length;
-    parts.push(
-      <>
-        {names.map((recipient, index) => (
-          <Fragment key={recipient.id}>
-            {index > 0 ? ", " : null}
-            <InlineLink href={personHref(recipient.id)}>
-              {recipient.name}
-            </InlineLink>
-          </Fragment>
-        ))}
-        {more > 0 ? ` +${more}` : null}
-      </>,
-    );
-  }
-  if (showTitles && omit !== "projects" && item.project) {
+  if (showRecipients && item.recipients.length > 0)
+    parts.push(<Recipients recipients={item.recipients} />);
+  if (showTitles && item.project) {
     parts.push(
       <ProjectName
         id={item.projectId}
@@ -337,8 +605,11 @@ function AwardRow({
   if (omit !== "timeline" && item.year) parts.push(item.year);
 
   return (
-    <li className="flex items-start gap-4 py-3.5">
-      {showTitles && omit !== "projects" && item.posterPath ? (
+    <li className="flex items-start gap-3 py-2.5">
+      <span className="flex h-6 items-center">
+        <Mark won={item.won} />
+      </span>
+      {showTitles && item.posterPath ? (
         <PosterThumb
           className={cn("w-9", look.poster)}
           original
@@ -346,7 +617,7 @@ function AwardRow({
           posterPath={item.posterPath}
         />
       ) : null}
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span
           className={cn(
             "type-body font-semibold",
@@ -357,16 +628,10 @@ function AwardRow({
         </span>
         {parts.length > 0 ? (
           <span className="type-meta text-ink-muted">
-            {parts.map((part, index) => (
-              <Fragment key={index}>
-                {index > 0 ? " · " : null}
-                {part}
-              </Fragment>
-            ))}
+            <Joined parts={parts} />
           </span>
         ) : null}
       </div>
-      <Status won={item.won} />
     </li>
   );
 }
@@ -379,7 +644,7 @@ function AwardGroupBlock({
   showTitles,
 }: {
   group: AwardGroup;
-  grouping: AwardsGrouping;
+  grouping: "organizations" | "timeline";
   look: AwardsLook;
   showRecipients: boolean;
   showTitles: boolean;
@@ -389,16 +654,6 @@ function AwardGroupBlock({
   return (
     <section className="flex flex-col">
       <header className="flex items-center gap-3 border-b border-rule pb-3">
-        {grouping === "projects" && group.poster?.path ? (
-          <PosterThumb
-            className={cn("w-9", look.poster)}
-            original
-            movieId={
-              group.poster.mediaType === "movie" ? group.poster.id : null
-            }
-            posterPath={group.poster.path}
-          />
-        ) : null}
         {logo ? (
           <Image
             alt=""
@@ -408,21 +663,13 @@ function AwardGroupBlock({
           />
         ) : null}
         <h3 className="min-w-0 flex-1 truncate type-body font-bold text-ink">
-          {grouping === "projects" && group.poster ? (
-            <ProjectName
-              id={group.poster.id}
-              mediaType={group.poster.mediaType}
-              name={group.title}
-            />
-          ) : (
-            group.title
-          )}
+          {group.title}
         </h3>
         <span className="shrink-0 type-meta text-ink-muted tabular-nums">
           {summarizeAwardGroup(group)}
         </span>
       </header>
-      <ul className="flex flex-col divide-y divide-rule">
+      <ul className="flex flex-col">
         {group.items.map((item) => (
           <AwardRow
             item={item}
@@ -454,7 +701,7 @@ export function AwardsView({
   showRecipients?: boolean;
 }) {
   const [filters, setFilters] = useState<AwardsFilters>({
-    grouping: groupings[0] ?? "organizations",
+    grouping: groupings[0] ?? "board",
     organizationId: ALL_ORGANIZATIONS,
     winsOnly: false,
   });
@@ -462,17 +709,18 @@ export function AwardsView({
   const updateFilters = (patch: Partial<AwardsFilters>) =>
     setFilters((current) => ({ ...current, ...patch }));
   const items = useMemo(() => (awards ? flattenAwards(awards) : []), [awards]);
-  const groups = useMemo(
+  const shown = useMemo(
     () =>
-      groupAwards(
-        filterAwards(items, {
-          organizationId:
-            organizationId === ALL_ORGANIZATIONS ? null : organizationId,
-          winsOnly,
-        }),
-        grouping,
-      ),
-    [grouping, items, organizationId, winsOnly],
+      filterAwards(items, {
+        organizationId:
+          organizationId === ALL_ORGANIZATIONS ? null : organizationId,
+        winsOnly,
+      }),
+    [items, organizationId, winsOnly],
+  );
+  const groups = useMemo(
+    () => (grouping === "board" ? [] : groupAwards(shown, grouping)),
+    [grouping, shown],
   );
 
   if (!awards) {
@@ -486,35 +734,24 @@ export function AwardsView({
     return <AwardsNotice>No awards or nominations on record</AwardsNotice>;
   }
 
-  const titleCount = countAwardTitles(items);
-  const showTitles = titleCount > 1;
-  const stats = buildAwardStats(
-    awards,
-    groupings.includes("projects") && showTitles ? titleCount : null,
-  );
+  // A person's board reads by title; a title's by craft.
+  const showTitles = countAwardTitles(items) > 1;
+  const label = (key: AwardsGrouping) =>
+    key === "board"
+      ? showTitles
+        ? "By title"
+        : "By category"
+      : GROUPING_LABELS[key];
 
   return (
     <div className="flex flex-col gap-8">
-      <dl
-        className="grid divide-x divide-rule"
-        style={{
-          gridTemplateColumns: `repeat(${stats.length}, minmax(0, 1fr))`,
-        }}
-      >
-        {stats.map((stat) => (
-          <Stat key={stat.label} {...stat} />
-        ))}
-      </dl>
+      <Summary awards={awards} />
 
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2.5">
         {groupings.length > 1 ? (
           <SegmentedControl
             ariaLabel="Group awards"
-            shape={look.shape}
-            items={groupings.map((key) => ({
-              key,
-              label: GROUPING_LABELS[key],
-            }))}
+            items={groupings.map((key) => ({ key, label: label(key) }))}
             onChange={(next) => updateFilters({ grouping: next })}
             value={grouping}
           />
@@ -557,8 +794,16 @@ export function AwardsView({
         className="flex flex-col gap-10"
         key={`${grouping}:${organizationId}:${winsOnly}`}
       >
-        {groups.length === 0 ? (
+        {shown.length === 0 ? (
           <AwardsNotice>Nothing matches these filters</AwardsNotice>
+        ) : grouping === "board" ? (
+          <AwardBoard
+            byTitle={showTitles}
+            items={shown}
+            look={look}
+            showRecipients={showRecipients}
+            showTitles={showTitles}
+          />
         ) : (
           groups.map((group) => (
             <AwardGroupBlock

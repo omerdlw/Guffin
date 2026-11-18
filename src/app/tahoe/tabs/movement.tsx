@@ -25,14 +25,22 @@ import { Code, Label, Page, PANEL, Section, Table } from "../kit";
 const BEATS = [-4, -3, -2, -1, 0, 1] as const;
 
 const EASES: { name: string; ease: Ease; note: string }[] = [
-  { name: "SETTLE", ease: SETTLE, note: "Çabuk varır, uzun kuyrukta durulur" },
+  {
+    name: "SETTLE",
+    ease: SETTLE,
+    note: "Yumuşak toplanır, sarsıntısız; uzun kuyrukta durulur",
+  },
   {
     name: "DEVELOP",
     ease: DEVELOP,
     note: "Yavaş başlar; görsel ve gölge için",
   },
   { name: "LEAVE", ease: LEAVE, note: "Toplanır, sonra gider" },
-  { name: "TOUCH", ease: TOUCH, note: "Hemen cevap verir, yerine oturur" },
+  {
+    name: "TOUCH",
+    ease: TOUCH,
+    note: "İki ucu yumuşak; her dokunuş ve renk geçişi bu eğriyle (--soft-ease)",
+  },
 ];
 
 const SPRINGS = [

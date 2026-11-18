@@ -7,53 +7,52 @@ import { defineStage } from "@/motion/stage";
 // person page shares the roles). Everything on the page that moves is written
 // here; a role left out renders still.
 //
-// It runs on home's proportion, the golden ratio: durations are φⁿ seconds,
-// staggers Fibonacci milliseconds, travel Fibonacci pixels, curves from φ's
-// fractions.
+// Quick and close to the hand. The opening is one short timeline, written
+// as delays, that is done about a second after the name card dives into the
+// picture: the picture settles, the title rises in, the one-sheet opens from
+// its foot, the rule is drawn and what sits along it comes in, then the copy
+// and the tags. What is already on screen beside it follows a beat behind.
 //
-// The opening plays in `order` (motion/stage.tsx, useQueue): the picture
-// develops out of the dark as the room's light comes up; the title settles
-// in a letter at a time; the one-sheet is unveiled beside it; the
-// rule is drawn under the title, and what sits at its ends (the person's
-// role and profiles, the numbers) arrives along it; the tagline and the
-// synopsis surface word by word, and the tags pop up after them.
+// Everything else answers the scroll: a role plays the moment it comes onto
+// the screen (`inset`), in about half a second and over a few pixels, so it
+// has settled before it reaches the eye; it plays once. The picture drifts
+// down and deepens as the page scrolls over it.
 //
-// Everything else plays its own entrance the moment it comes into view,
-// waiting for nothing, and only the first time: the actions pop
-// up one after another; a show's "continue" card rises under them; down the
-// sidebar each fact slides in, its label
-// flickers on and its value rises out of its line, and its rule is drawn;
-// every heading lights its icon, resolves its title, draws its rule and
-// shows its tabs; tabbed views (the cast, galleries, the wall, reviews, the
-// chart) are dealt in from the right with their cards; rows deal their
-// posters in with their arrows after; review stars light one after another.
-// Switching a tab, the shown view leaves to the left before the next is
-// dealt.
-//
-// Under the hand, a cast portrait comes to the front of its stack, a glass
-// frame opens around it and its known-for posters surface under it.
+// Under the hand, a cast portrait opens in its strip while the others make
+// room, a glass frame opens around it and its known-for posters surface
+// under it.
 
 const PHI = 1.618034;
-// φⁿ seconds: 0.146, 0.236, 0.382, 0.618, 1, 1.618, 2.618.
+// φⁿ seconds: 0.09, 0.146, 0.236, 0.382, 0.618, 1.
 const beat = (n: number) => Math.round(PHI ** n * 1000) / 1000;
-const STAGGER = { char: 0.034, word: 0.055, item: 0.089, row: 0.144 };
+const STAGGER = { char: 0.021, word: 0.034, item: 0.055, row: 0.089 };
 
-const SETTLE: Curve = [0.236, 1, 0.382, 1];
+const SETTLE: Curve = [0.236, 0.382, 0.146, 1];
 const DEVELOP: Curve = [0.382, 0, 0.146, 1];
 const SWEEP: Curve = [0.618, 0, 0.382, 1];
 const LEAVE: Curve = [0.618, 0, 0.854, 0.382];
-const TOUCH: Curve = [0.146, 1, 0.382, 1];
+const TOUCH: Curve = [0.382, 0.236, 0.146, 1];
 const PRESS: Curve = [0.382, 0, 0.236, 1];
-// Unhurried: an even arrival, without Settle's rush at the start, for the
-// sidebar, which is read a piece at a time.
-const UNHURRIED: Curve = [0.236, 0.618, 0.236, 1];
-// Spring: overshoots by a hair and settles, for a hinge.
-const SPRING: Curve = [0.236, 1.382, 0.382, 1];
+// Spring: overshoots by a hair and settles, for things that pop.
+const SPRING: Curve = [0.382, 0.618, 0.236, 1.146];
+
+// The opening's timeline: seconds after the page starts to play.
+const AT = {
+  picture: 0,
+  kicker: beat(-5),
+  title: beat(-5),
+  poster: beat(-4),
+  rule: beat(-3),
+  along: beat(-3) + beat(-5),
+  tagline: beat(-3) + beat(-5),
+  overview: beat(-2),
+  tags: beat(-2) + beat(-4),
+};
 
 const load = (from: Look, more: Partial<Enter> = {}): Enter => ({
   on: "load",
   from,
-  duration: beat(0),
+  duration: beat(-1),
   ease: SETTLE,
   ...more,
 });
@@ -61,234 +60,215 @@ const load = (from: Look, more: Partial<Enter> = {}): Enter => ({
 const reveal = (from: Look, more: Partial<Enter> = {}): Enter => ({
   on: "view",
   from,
-  duration: beat(0),
+  duration: beat(-1),
   ease: SETTLE,
   ...more,
 });
 
-const press = { scale: 0.96, duration: beat(-4), ease: PRESS };
+const press = { scale: 0.96, duration: beat(-3), ease: PRESS };
 
 const lift: Moves = {
-  hover: { y: -8, duration: beat(-1), ease: TOUCH },
-  rest: { duration: beat(0), ease: SETTLE },
+  hover: { y: -5, duration: beat(-2), ease: TOUCH },
+  rest: { duration: beat(-1), ease: SETTLE },
   focus: "hover",
   press,
 };
 
 const drawn = (enter: Enter): Moves => ({ origin: "left center", enter });
 
-// A text that surfaces word by word, like a subtitle (home's hero copy),
-// spread over at most `budget` seconds however long it is.
-const subtitle = (enter: (from: Look) => Enter, budget: number) => ({
+// A text that comes up word by word, spread over at most `budget` seconds
+// however long it is.
+const words = (enter: Enter, budget: number) => ({
   by: "word" as const,
   stagger: STAGGER.word,
   budget,
-  enter: enter({ opacity: 0, y: 8 }),
+  enter,
 });
 
-// A heading, in order: its icon lights, its title resolves from the middle
-// out while the icon settles, then the rule is drawn as the icon finishes
-// and the tabs surface as the title finishes.
+// A label that flickers on, letter by letter in no order.
+const flicker = (enter: Enter) => ({
+  by: "char" as const,
+  order: "random" as const,
+  stagger: STAGGER.char / 2,
+  budget: beat(-4),
+  enter,
+});
+
+// A heading: its icon pops, its title rises from the middle out, its rule
+// is drawn and its tabs come in, all inside half a second.
 const HEADING = {
-  icon: { at: 0, duration: beat(-1) },
-  title: { at: beat(-4), duration: beat(-1), budget: beat(-2) },
-  rule: { at: beat(-2), duration: beat(0) },
-  actions: { at: beat(-1), duration: beat(-1) },
+  title: { at: beat(-5), budget: beat(-4) },
+  rule: { at: beat(-4) },
+  actions: { at: beat(-3) },
+};
+
+// A tab's view: dealt in from the right, gone to the left.
+const dealt: Moves = {
+  enter: reveal({ opacity: 0, x: 21 }, { duration: beat(-2) }),
+  leave: { to: { opacity: 0, x: -21 }, duration: beat(-3), ease: LEAVE },
 };
 
 const DETAIL = defineStage({
   scope: "detail",
-  order: [
-    ["backdrop", "wash", "vignette"],
-    "title",
-    "poster",
-    "rule",
-    "role",
-    "link",
-    "stat",
-    "kicker",
-    "tagline",
-    "overview",
-    "more",
-    "tag",
-  ],
-  scroll: { period: beat(0), gain: beat(-1) },
-  glide: { duration: beat(1), ease: SWEEP },
+  // Roles in view on arrival (actions, facts, the first section) follow
+  // the hero a beat behind; anything reached by scrolling plays at once.
+  opening: beat(-2),
+  // A role plays as soon as it is on the screen, not a sixth of the way up.
+  inset: 0.05,
+  scroll: { period: beat(-1), gain: 1 },
+  glide: { duration: beat(-1), ease: SWEEP },
   motion: {
     parts: {
-      // The dive lands in the picture: it is already there, large, and
-      // settles as it develops out of the dark.
+      // The dive lands in the picture: it is there, a little large, and
+      // settles as it develops out of the dark. Scrolling, it drifts down
+      // behind the page and closes in.
       backdrop: {
+        scroll: { to: { y: "13%" }, range: ["0px", "100vh"] },
         slots: {
           screen: {
             enter: load(
-              { scale: 1.236 },
-              {
-                duration: beat(1),
-                ease: DEVELOP,
-              },
+              { scale: 1.09 },
+              { delay: AT.picture, duration: beat(0), ease: DEVELOP },
             ),
+            scroll: { to: { scale: 1.055 }, range: ["0px", "100vh"] },
           },
           picture: {
-            enter: load({ opacity: 0, bright: 0.382 }, { ease: DEVELOP }),
+            enter: load(
+              { opacity: 0, bright: 0.382 },
+              { delay: AT.picture, ease: DEVELOP },
+            ),
           },
         },
       },
-      // The title settles in a letter at a time like home's headline.
+      wash: {
+        enter: load({ opacity: 0 }, { delay: AT.picture, ease: DEVELOP }),
+      },
+      vignette: {
+        enter: load({ opacity: 0 }, { delay: AT.picture, ease: DEVELOP }),
+      },
+      // A season's line above its title (the show, its place in the run).
+      kicker: {
+        enter: load({ opacity: 0, y: 8 }, { delay: AT.kicker }),
+      },
       title: {
         text: {
           by: "char",
           stagger: STAGGER.char,
-          budget: beat(-1),
-          enter: load({
-            opacity: 0,
-            y: "0.382em",
-            scale: 1.236,
-          }),
+          budget: beat(-3),
+          enter: load(
+            { opacity: 0, y: "0.382em" },
+            { delay: AT.title, duration: beat(-1) },
+          ),
         },
       },
-      // The one-sheet is unveiled from its foot upwards, rising a little
-      // and developing as it opens.
+      // The one-sheet opens from its foot, rising a little as it develops.
       poster: {
         enter: load(
-          {
-            clip: "inset(100% 0 0 0)",
-            y: 34,
-            scale: 1.09,
-            bright: 0.382,
-          },
-          { duration: beat(1), ease: DEVELOP },
+          { clip: "inset(100% 0 0 0)", y: 13, bright: 0.618 },
+          { delay: AT.poster, ease: DEVELOP },
         ),
       },
-      // The room's light comes up with the picture.
-      wash: {
-        enter: load({ opacity: 0 }, { duration: beat(1), ease: DEVELOP }),
-      },
-      vignette: {
-        enter: load({ opacity: 0 }, { duration: beat(1), ease: DEVELOP }),
-      },
-      rule: drawn(load({ scale: [0, 1] }, { ease: SWEEP })),
-      // The person's role sits at the rule's left end and flickers on; their
-      // profiles pop in along the right end.
+      rule: drawn(load({ scale: [0, 1] }, { delay: AT.rule, ease: SWEEP })),
+      // Along the rule: the person's role flickers on at its left end,
+      // their profiles and the numbers come in at its right.
       role: {
-        text: {
-          by: "char",
-          order: "random",
-          stagger: STAGGER.char / 2,
-          budget: beat(-2),
-          enter: load({ opacity: 0 }, { duration: beat(-1) }),
-        },
+        text: flicker(
+          load({ opacity: 0 }, { delay: AT.along, duration: beat(-3) }),
+        ),
       },
       link: {
         enter: load(
-          { opacity: 0, scale: 0.618 },
+          { opacity: 0, scale: 0.786 },
           {
+            delay: AT.along,
             stagger: STAGGER.word,
-            duration: beat(-1),
+            duration: beat(-2),
             ease: SPRING,
           },
         ),
-        hover: { y: -3, duration: beat(-2), ease: TOUCH },
-        rest: { duration: beat(-1), ease: SETTLE },
+        hover: { y: -3, duration: beat(-3), ease: TOUCH },
+        rest: { duration: beat(-2), ease: SETTLE },
         focus: "hover",
         press,
       },
       stat: {
         enter: load(
-          { opacity: 0, x: 21 },
-          {
-            stagger: STAGGER.item,
-            duration: beat(-1),
-          },
+          { opacity: 0, x: 13 },
+          { delay: AT.along, stagger: STAGGER.item, duration: beat(-2) },
         ),
       },
-      // A season's line under its title (the show, its place in the run).
-      kicker: {
-        enter: load({ opacity: 0, y: 13 }),
+      tagline: {
+        text: words(
+          load({ opacity: 0, y: 8 }, { delay: AT.tagline }),
+          beat(-4),
+        ),
       },
-      tagline: { text: subtitle(load, beat(-2)) },
-      overview: { text: subtitle(load, beat(0)) },
+      overview: {
+        text: words(
+          load({ opacity: 0, y: 8 }, { delay: AT.overview }),
+          beat(-3),
+        ),
+      },
       // The biography's "read more" follows its excerpt.
       more: {
-        enter: load(
-          { opacity: 0, y: 8 },
-          {
-            duration: beat(-1),
-          },
-        ),
+        enter: load({ opacity: 0, y: 8 }, { delay: AT.tags }),
       },
-      // The tags pop up after the synopsis, one after another.
       tag: {
         enter: load(
           { opacity: 0, y: 8, scale: 0.854 },
-          { stagger: STAGGER.word, duration: beat(-1), ease: SPRING },
+          {
+            delay: AT.tags,
+            stagger: STAGGER.word,
+            duration: beat(-2),
+            ease: SPRING,
+          },
         ),
       },
-      // The actions pop up out of the glass one after another: risen a
-      // little and small, they overshoot by a hair and settle.
+      // The actions pop up out of the glass one after another.
       action: {
         enter: reveal(
-          { opacity: 0, y: 13, scale: 0.854 },
-          { stagger: STAGGER.item, ease: SPRING },
+          { opacity: 0, y: 8, scale: 0.944 },
+          { stagger: STAGGER.word, duration: beat(-2), ease: SPRING },
         ),
       },
       // A show's "continue" card rises under the actions, its bar filling
       // to where the viewer is.
       resume: {
-        enter: reveal(
-          { opacity: 0, y: 13 },
-          { delay: beat(-2), ease: UNHURRIED },
-        ),
+        enter: reveal({ opacity: 0, y: 13 }, { delay: beat(-4) }),
         slots: {
           rule: drawn(
-            reveal(
-              { scale: [0, 1] },
-              { delay: beat(-1), duration: beat(0), ease: SWEEP },
-            ),
+            reveal({ scale: [0, 1] }, { delay: beat(-3), ease: SWEEP }),
           ),
         },
       },
-      // Social proof under the actions surfaces after them.
+      // Social proof under the actions.
       proof: {
-        enter: reveal(
-          { opacity: 0, y: 13 },
-          { delay: beat(-2), ease: UNHURRIED },
-        ),
+        enter: reveal({ opacity: 0, y: 13 }, { delay: beat(-4) }),
       },
-      // The facts, down the sidebar: each row slides in, its label flickers
-      // on letter by letter, its value rises out of its own line word by
-      // word, and the rule under it is drawn left to right.
+      // The facts down the sidebar: each row slides in, its label flickers
+      // on, its value rises out of its line and its rule is drawn.
       row: {
         enter: reveal(
-          { opacity: 0, x: 13 },
-          { stagger: STAGGER.word, duration: beat(-1), ease: UNHURRIED },
+          { opacity: 0, x: 8 },
+          { stagger: STAGGER.word, duration: beat(-2) },
         ),
       },
       label: {
-        text: {
-          by: "char",
-          order: "random",
-          stagger: STAGGER.char / 2,
-          budget: beat(-2),
-          enter: reveal(
-            { opacity: 0 },
-            { delay: beat(-3), duration: beat(-1) },
-          ),
-        },
+        text: flicker(reveal({ opacity: 0 }, { duration: beat(-3) })),
       },
       value: {
         text: {
           by: "word",
           mask: true,
           stagger: STAGGER.word,
-          budget: beat(-2),
-          enter: reveal({ y: "110%" }, { delay: beat(-2), duration: beat(-1) }),
+          budget: beat(-4),
+          enter: reveal({ y: "110%" }, { delay: beat(-5), duration: beat(-2) }),
         },
       },
       line: drawn(
         reveal(
           { scale: [0, 1] },
-          { delay: beat(-2), stagger: STAGGER.word, ease: SWEEP },
+          { delay: beat(-5), stagger: STAGGER.word, ease: SWEEP },
         ),
       ),
       header: {
@@ -298,70 +278,78 @@ const DETAIL = defineStage({
           stagger: STAGGER.char,
           budget: HEADING.title.budget,
           enter: reveal(
-            { opacity: 0, y: "0.382em", scale: 1.236 },
-            { delay: HEADING.title.at, duration: HEADING.title.duration },
+            { opacity: 0, y: "0.382em" },
+            { delay: HEADING.title.at, duration: beat(-2) },
           ),
         },
         slots: {
           icon: {
             enter: reveal(
-              { opacity: 0, scale: 0.382, rotate: -34 },
-              { duration: HEADING.icon.duration, ease: SPRING },
+              { opacity: 0, scale: 0.618, rotate: -21 },
+              { duration: beat(-2), ease: SPRING },
             ),
           },
           rule: drawn(
-            reveal(
-              { scale: [0, 1] },
-              {
-                delay: HEADING.rule.at,
-                duration: HEADING.rule.duration,
-                ease: SWEEP,
-              },
-            ),
+            reveal({ scale: [0, 1] }, { delay: HEADING.rule.at, ease: SWEEP }),
           ),
-          // The heading's tabs or readout surface after its title.
+          // The heading's tabs or readout come in after its title.
           actions: {
             enter: reveal(
-              { opacity: 0, x: 21 },
-              {
-                delay: HEADING.actions.at,
-                duration: HEADING.actions.duration,
-              },
+              { opacity: 0, x: 13 },
+              { delay: HEADING.actions.at, duration: beat(-2) },
             ),
           },
         },
       },
       control: {
-        enter: reveal({ opacity: 0, x: 21 }),
+        enter: reveal({ opacity: 0, x: 13 }, { duration: beat(-2) }),
       },
-      // The cast, dealt as a stack: each portrait starts gathered behind
+      // The cast, dealt as a strip: each portrait starts gathered behind
       // the lead and is dealt out to its seat, the lead first. Under the
-      // hand a seat lifts, grows to the front, its glass frame opens around
-      // it and down under it, and the person's posters surface on the frame.
+      // hand a seat opens and the others make room (its share of the strip
+      // follows), its name turns from the spine to the foot, its glass
+      // frame opens around it and down under it, and the person's posters
+      // surface on the frame.
       person: {
         enter: reveal(
-          { opacity: 0, x: "var(--gather)", y: 21 },
-          { stagger: STAGGER.item, ease: SETTLE },
+          { opacity: 0, x: "var(--gather)", y: 13 },
+          { stagger: STAGGER.item },
         ),
-        hover: { y: -5, duration: beat(-1), ease: TOUCH },
-        rest: { duration: beat(0), ease: SETTLE },
-        focus: "hover",
+        // The strip makes room on one settle; the picture pulls back on a
+        // slower one, so the opening seems to keep breathing after it lands.
+        follow: { of: ["flex-grow"], duration: beat(-1), ease: SETTLE },
         slots: {
-          // Grows by scale (the portrait is laid out at the front's size);
-          // its caption scales back against it on the same beat.
-          deck: {
-            follow: { of: ["scale"], duration: beat(-1), ease: SETTLE },
+          picture: {
+            follow: { of: ["scale"], duration: beat(0), ease: SETTLE },
           },
+          shade: {
+            follow: { of: ["opacity"], duration: beat(-1), ease: SETTLE },
+          },
+          // One name at a time, each sliding through its own clip: opening,
+          // the spine's name drops out downwards and the caption rises in
+          // once the seat has mostly opened; closing, the caption sinks
+          // away and the spine's name rises back as the seat narrows.
           caption: {
-            follow: {
-              of: ["scale", "width"],
+            follow: { of: ["translate"], duration: beat(-2), ease: SETTLE },
+            hover: {
+              y: 0,
               duration: beat(-1),
               ease: SETTLE,
+              delay: beat(-3),
             },
+          },
+          spine: {
+            follow: {
+              of: ["translate"],
+              duration: beat(-1),
+              ease: SETTLE,
+              delay: beat(-3),
+            },
+            hover: { y: "-100%", duration: beat(-2), ease: SETTLE },
           },
           folder: {
             follow: {
-              of: ["width", "height", "translate"],
+              of: ["width", "height", "translate", "visibility"],
               duration: beat(-1),
               ease: SETTLE,
             },
@@ -379,26 +367,25 @@ const DETAIL = defineStage({
           },
         },
       },
-      // The rest of the cast, rolled as an end credit under the stack:
-      // the names rise in turn after the portraits; under the hand a
-      // name's face blooms above it, risen out of the name.
+      // The rest of the cast, rolled as an end credit under the strip;
+      // under the hand a name's portrait opens below it.
       cameo: {
         enter: reveal(
           { opacity: 0, y: 8 },
-          { stagger: STAGGER.item, duration: beat(-1) },
+          { stagger: STAGGER.word, duration: beat(-2) },
         ),
-        hover: { y: -2, duration: beat(-2), ease: TOUCH },
-        rest: { duration: beat(-1), ease: SETTLE },
+        hover: { y: -2, duration: beat(-3), ease: TOUCH },
+        rest: { duration: beat(-2), ease: SETTLE },
         focus: "hover",
         slots: {
           thumb: {
             hover: {
               opacity: 1,
               scale: 1,
-              duration: beat(-1),
+              duration: beat(-2),
               ease: SPRING,
             },
-            rest: { duration: beat(-2), ease: SETTLE },
+            rest: { duration: beat(-3), ease: SETTLE },
             focus: "hover",
           },
         },
@@ -406,16 +393,13 @@ const DETAIL = defineStage({
       credit: {
         enter: reveal(
           { opacity: 0, y: 8 },
-          {
-            delay: beat(-2),
-            stagger: STAGGER.item,
-            duration: beat(-2),
-          },
+          { delay: beat(-4), stagger: STAGGER.word, duration: beat(-2) },
         ),
       },
+      // A row's posters come in from the right, a word's breath apart.
       slide: {
         enter: reveal(
-          { opacity: 0, x: 89, scale: 0.944 },
+          { opacity: 0, x: 34 },
           { along: "section", stagger: STAGGER.word, wrap: 8 },
         ),
       },
@@ -423,7 +407,7 @@ const DETAIL = defineStage({
       // itself (its links are), so it neither lifts nor presses.
       review: {
         enter: reveal(
-          { opacity: 0, y: 55 },
+          { opacity: 0, y: 21 },
           { stagger: STAGGER.item, wrap: 3 },
         ),
       },
@@ -431,34 +415,52 @@ const DETAIL = defineStage({
       star: {
         enter: reveal(
           { opacity: 0, scale: 0.618 },
-          { delay: beat(-3), stagger: STAGGER.char, duration: beat(-2) },
+          { delay: beat(-4), stagger: STAGGER.char, duration: beat(-3) },
         ),
       },
       list: {
         ...lift,
         enter: reveal(
-          { opacity: 0, y: 55, scale: 0.944 },
+          { opacity: 0, y: 21 },
           { stagger: STAGGER.item, wrap: 3 },
         ),
       },
       awards: {
-        enter: reveal({ opacity: 0, y: 34 }),
+        enter: reveal({ opacity: 0, y: 13 }),
+      },
+      // The awards board: the wins line is drawn, the rows come in one after
+      // another; a row opens on one settle and its arrow turns with it.
+      meter: drawn(reveal({ scale: [0, 1] }, { delay: beat(-4), ease: SWEEP })),
+      laurel: {
+        enter: reveal(
+          { opacity: 0, y: 8 },
+          { stagger: STAGGER.word, wrap: 12, duration: beat(-2) },
+        ),
+      },
+      fold: {
+        follow: {
+          of: ["grid-template-rows", "opacity"],
+          duration: beat(-2),
+          ease: SETTLE,
+        },
+      },
+      turn: {
+        follow: { of: ["transform"], duration: beat(-2), ease: SETTLE },
       },
       tile: {
         enter: reveal(
-          { opacity: 0, y: 34, scale: 0.944 },
+          { opacity: 0, y: 13 },
           { stagger: STAGGER.char, wrap: 8 },
         ),
       },
-      // The career chart: the readout surfaces, the years fade in, and the
-      // bars open out of the baseline.
+      // The career chart: the readout comes in, the years fade in and the
+      // bars open out of the baseline together.
       readout: {
-        enter: reveal({ opacity: 0, y: 13 }),
+        enter: reveal({ opacity: 0, y: 8 }, { duration: beat(-2) }),
       },
       tick: {
-        enter: reveal({ opacity: 0 }),
+        enter: reveal({ opacity: 0 }, { duration: beat(-2) }),
       },
-      // Each bar opens upwards out of the baseline, all together.
       bar: {
         enter: reveal(
           { clip: "inset(100% 0 0 0)" },
@@ -467,83 +469,84 @@ const DETAIL = defineStage({
       },
       // The timeline: its spine is drawn down the page, each year's stamp
       // lands on it and its titles follow.
+      // Drawn with its section: collapsed, the spine has no height for the
+      // viewport to see, so it cannot be its own trigger.
       spine: {
         origin: "center top",
-        enter: reveal({ scale: [1, 0] }, { duration: beat(0), ease: SWEEP }),
+        enter: reveal(
+          { scale: [1, 0] },
+          { along: "section", duration: beat(0), ease: SWEEP },
+        ),
+      },
+      // The timeline's one highlight, gliding from row to row under the hand.
+      trace: {
+        follow: {
+          of: ["translate", "width", "height", "opacity"],
+          duration: beat(-2),
+          ease: SETTLE,
+        },
       },
       // Stamps keep still in place (the dot is centred with `translate`).
       stamp: {
-        enter: reveal({ opacity: 0, scale: 0.618 }, { ease: SPRING }),
+        enter: reveal(
+          { opacity: 0, scale: 0.618 },
+          { duration: beat(-2), ease: SPRING },
+        ),
       },
       entry: {
         enter: reveal(
-          { opacity: 0, x: -21 },
-          { stagger: STAGGER.char / 2, wrap: 10 },
+          { opacity: 0, x: -13 },
+          { stagger: STAGGER.char, wrap: 10, duration: beat(-2) },
         ),
       },
     },
     sections: {
       // Switching the page's views (overview, awards, timeline), the view
-      // shown slides in from the right and resolves.
+      // shown slides in from the right.
       view: {
-        enter: load({ opacity: 0, x: 34 }),
+        enter: load({ opacity: 0, x: 21 }, { duration: beat(-2) }),
       },
-      // Switching tabs, the shown view drifts off to the left and fades
-      // before the next one is dealt in from the right.
-      ...Object.fromEntries(
-        (["cast", "slides", "tiles", "reviews", "chart"] as const).map(
-          (cue) => [
-            cue,
-            {
-              enter: reveal(
-                { opacity: 0, x: 55 },
-                { delay: beat(-3), duration: beat(1) },
-              ),
-              leave: {
-                to: { opacity: 0, x: -55 },
-                duration: beat(-1),
-                ease: LEAVE,
-              },
-            } satisfies Moves,
-          ],
-        ),
-      ),
+      cast: dealt,
+      slides: dealt,
+      tiles: dealt,
+      reviews: dealt,
+      chart: dealt,
     },
     kinds: {
       media: {
         press,
-        rest: { duration: beat(-1), ease: SETTLE },
+        rest: { duration: beat(-2), ease: SETTLE },
         slots: {
           image: {
-            hover: { scale: 1.146, duration: beat(1), ease: SETTLE },
-            rest: { duration: beat(1), ease: SETTLE },
+            hover: { scale: 1.055, duration: beat(-1), ease: SETTLE },
+            rest: { duration: beat(-1), ease: SETTLE },
             focus: "hover",
           },
         },
       },
       // A button rises to the hand and gives under it.
       button: {
-        hover: { y: -2, scale: 1.034, duration: beat(-2), ease: SPRING },
-        rest: { duration: beat(-1), ease: SETTLE },
+        hover: { y: -2, scale: 1.034, duration: beat(-3), ease: SPRING },
+        rest: { duration: beat(-2), ease: SETTLE },
         focus: "hover",
         press,
       },
       segmented: {
         slots: {
           tab: {
-            follow: { of: ["color"], duration: beat(-1), ease: SWEEP },
+            follow: { of: ["color"], duration: beat(-2), ease: SWEEP },
             press,
           },
         },
       },
-      // A row's arrows surface once its posters are under way.
+      // A row's arrows come in once its posters are under way.
       arrow: {
         enter: reveal(
-          { opacity: 0, scale: 0.618 },
-          { along: "section", delay: beat(-2), duration: beat(-2) },
+          { opacity: 0, scale: 0.786 },
+          { along: "section", delay: beat(-3), duration: beat(-3) },
         ),
-        hover: { scale: 1.09, opacity: 1, duration: beat(-2), ease: TOUCH },
-        rest: { duration: beat(-1), ease: SETTLE },
+        hover: { scale: 1.09, opacity: 1, duration: beat(-3), ease: TOUCH },
+        rest: { duration: beat(-2), ease: SETTLE },
         press: { ...press, scale: 0.91 },
       },
     },
@@ -581,11 +584,16 @@ const DETAIL = defineStage({
     "star",
     "list",
     "awards",
+    "meter",
+    "laurel",
+    "fold",
+    "turn",
     "tile",
     "readout",
     "bar",
     "tick",
     "spine",
+    "trace",
     "stamp",
     "entry",
   ],

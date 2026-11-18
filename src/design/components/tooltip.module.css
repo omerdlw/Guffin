@@ -35,10 +35,10 @@
       --tip-y: 0px;
     }
     :global(.ui-tooltip[data-state="delayed-open"]) {
-      animation: tip-in 0.236s cubic-bezier(0.236, 1, 0.382, 1) both;
+      animation: tip-in 0.236s cubic-bezier(0.236, 0.382, 0.146, 1) both;
     }
     :global(.ui-tooltip[data-state="instant-open"]) {
-      animation: tip-fade 0.146s cubic-bezier(0.236, 1, 0.382, 1) both;
+      animation: tip-fade 0.146s cubic-bezier(0.236, 0.382, 0.146, 1) both;
     }
     :global(.ui-tooltip[data-state="closed"]) {
       animation: tip-out 0.146s cubic-bezier(0.618, 0, 0.854, 0.382) forwards;

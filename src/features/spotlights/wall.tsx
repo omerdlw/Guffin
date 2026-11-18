@@ -1,5 +1,6 @@
 "use client";
 
+import { DockClear } from "@/design/components/dock-clear";
 import { type JSX, useRef } from "react";
 import { useDockActionClass } from "@omerdlw/base-framework/dock";
 import { Button, Image } from "@omerdlw/base-framework/ui";
@@ -91,10 +92,11 @@ export function Facts({
   return (
     <div
       className={cn(
-        "pointer-events-none fixed inset-x-4 bottom-[calc(var(--dock-h,6rem)+4.75rem)] z-10 flex flex-col items-center gap-2 text-center sm:inset-x-8",
+        "pointer-events-none fixed inset-x-4 bottom-[calc(6rem+4.75rem)] z-10 flex flex-col items-center gap-2 text-center sm:inset-x-8",
         opened ? "opacity-100" : "opacity-0",
       )}
     >
+      <DockClear edge="bottom" extra="4.75rem" />
       <p className="type-meta text-ink-muted tabular-nums">No. {film.rank}</p>
       <h2 className="max-w-full truncate font-zuume type-display-sm leading-crop font-bold text-ink lg:type-display-md">
         {film.title}
@@ -145,10 +147,11 @@ export function Rail({
   return (
     <div
       className={cn(
-        "fixed inset-x-0 bottom-[calc(var(--dock-h,6rem)+1.25rem)] z-10 px-4 sm:px-8",
+        "fixed inset-x-0 bottom-[calc(6rem+1.25rem)] z-10 px-4 sm:px-8",
         opened ? "opacity-100" : "pointer-events-none opacity-0",
       )}
     >
+      <DockClear edge="bottom" extra="1.25rem" />
       <div className="mx-auto flex max-w-3xl items-center gap-3">
         <span className="type-micro text-ink-muted tabular-nums">{count}</span>
         <div
@@ -269,7 +272,8 @@ export function PlainWall({
   watched: ReadonlySet<number>;
 }): JSX.Element {
   return (
-    <div className="fixed inset-0 overflow-y-auto px-4 pt-10 pb-[calc(var(--dock-h,6rem)+3rem)] sm:px-8">
+    <div className="fixed inset-0 overflow-y-auto px-4 pt-10 pb-[calc(6rem+3rem)] sm:px-8">
+      <DockClear extra="3rem" />
       <ol className="grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-3">
         {films.map((entry) => {
           const src = tmdbImageUrl("poster", entry.posterPath, "w185");

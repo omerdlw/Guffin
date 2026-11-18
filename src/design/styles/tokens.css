@@ -11,8 +11,8 @@
 @theme inline {
   --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
 
-  --color-grade: rgb(var(--grade, var(--ink-rgb)));
-  --color-accent: rgb(var(--grade, var(--ink-rgb)));
+  --color-grade: var(--grade);
+  --color-accent: var(--grade);
 
   --color-watched: var(--watched);
   --color-listed: var(--listed);

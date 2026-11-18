@@ -36,8 +36,8 @@ const shift = (x: number, y: number, scale = 1) =>
   `translate3d(${x}px, ${y}px, 0) scale(${scale})`;
 const REST = shift(0, 0);
 
-const BLOOM = spring(beat(-1));
-const GATHER = tween(beat(-3), LEAVE);
+const BLOOM = spring(beat(0));
+const GATHER = tween(beat(-2), LEAVE);
 
 const position = (from: string): ModalPositionMotion => ({
   variants: {
@@ -47,7 +47,7 @@ const position = (from: string): ModalPositionMotion => ({
       transform: REST,
       transition: {
         transform: BLOOM,
-        "--modal-glass": tween(beat(-3), SETTLE),
+        "--modal-glass": tween(beat(-2), SETTLE),
       },
     },
     exit: { "--modal-glass": 0, transform: from, transition: GATHER },
@@ -56,15 +56,15 @@ const position = (from: string): ModalPositionMotion => ({
 
 // Words and blocks inside: in from below, out at once with the glass.
 const rise = (delay: number) => ({
-  hidden: away(TRAVEL.step),
-  visible: { ...here(), transition: tween(beat(-1), SETTLE, delay) },
+  hidden: away(TRAVEL.rise),
+  visible: { ...here(), transition: tween(beat(0), SETTLE, delay) },
 });
 
 const modalMotion: ModalMotion = {
   backdrop: {
     hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: tween(beat(-1), DEVELOP) },
-    exit: { opacity: 0, transition: tween(beat(-2), LEAVE) },
+    visible: { opacity: 1, transition: tween(beat(0), DEVELOP) },
+    exit: { opacity: 0, transition: tween(beat(-1), LEAVE) },
   },
   header: rise(beat(-4)),
   content: rise(beat(-4) + STAGGER.line),

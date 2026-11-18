@@ -31,14 +31,14 @@ export const TRAVEL = {
 
 export type Ease = [number, number, number, number];
 
-/** Settle: arrives quickly and spends its long tail coming to rest. */
-export const SETTLE: Ease = [0.236, 1, 0.382, 1];
+/** Settle: gathers softly, never with a jolt, and spends its long tail coming to rest. */
+export const SETTLE: Ease = [0.236, 0.382, 0.146, 1];
 /** Develop: a slow start and a long, even resolve, for pictures and shade. */
 export const DEVELOP: Ease = [0.382, 0, 0.146, 1];
 /** Leave: gathers, then goes. */
 export const LEAVE: Ease = [0.618, 0, 0.854, 0.382];
-/** Touch: answers at once and eases into place. */
-export const TOUCH: Ease = [0.146, 1, 0.382, 1];
+/** Touch: eased at both ends, so a touch never starts with a jolt (the same curve as --soft-ease). */
+export const TOUCH: Ease = [0.382, 0.236, 0.146, 1];
 
 export const tween = (duration: number, ease: Ease, delay = 0) => ({
   type: "tween" as const,

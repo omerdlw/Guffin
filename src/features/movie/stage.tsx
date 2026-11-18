@@ -19,13 +19,11 @@ import {
   useArtworkPath,
 } from "@/features/artwork/artwork";
 import { DetailAction as Action, DetailStage } from "@/features/detail/stage";
-import { useMediaType } from "@/features/media/media-type";
 import { MovieAction } from "@/features/reviews/movie-action";
 import { describeReviewStats, useReviewsPager } from "@/features/reviews/pager";
 import { mediaHref } from "@/lib/project";
 import {
   type MediaType,
-  type MovieDetails,
   tmdbImageSrcSet,
   tmdbImageUrl,
 } from "@/lib/tmdb/shared";
@@ -53,27 +51,12 @@ const MOVIE_FALLBACK_ICON = "solar:clapperboard-play-bold";
 
 const POSTER_LINK_WIDTHS = ["w185", "w342"] as const;
 
-export function MovieStage({
-  children,
-  movie,
-}: {
-  children: ReactNode;
-  movie: Pick<MovieDetails, "backdropPath" | "id" | "posterPath">;
-}) {
+/** A picture chosen from the gallery lights the page while it is shown. */
+export function MovieStage({ children }: { children: ReactNode }) {
   const { reel } = useReel();
-  const kind = useMediaType();
-  const backdrop = useArtworkPath(
-    kind,
-    movie.id,
-    "backdrop",
-    movie.backdropPath,
-  );
-  const poster = useArtworkPath(kind, movie.id, "poster", movie.posterPath);
-  const picture =
-    (reel ? tmdbImageUrl("backdrop", reel, "w300") : null) ??
-    movieSwatch(backdrop, poster);
+  const light = reel ? tmdbImageUrl("backdrop", reel, "w300") : undefined;
 
-  return <DetailStage picture={picture}>{children}</DetailStage>;
+  return <DetailStage light={light}>{children}</DetailStage>;
 }
 
 export function MoviePageChrome({

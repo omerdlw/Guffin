@@ -3,6 +3,7 @@
 import {
   type FormEvent,
   type KeyboardEvent,
+  useCallback,
   useEffect,
   useId,
   useRef,
@@ -29,6 +30,8 @@ import {
 } from "@/lib/project";
 import styles from "./search-action.module.css";
 import { SearchPart, SearchStage, SearchSwap, useSearchPart } from "./motion";
+
+export { SearchStyle } from "./motion";
 import {
   ACTIVE_SEARCH_TYPES,
   MATCH_SCORE,
@@ -193,6 +196,7 @@ export function SearchAction({ onClose }: { onClose?: () => void } = {}) {
   const { navigate } = useDockActions();
   const actionClass = useDockActionClass();
   const drawerPart = useSearchPart("drawer");
+  const resultsPart = useSearchPart("results");
   const listId = useId();
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -204,13 +208,24 @@ export function SearchAction({ onClose }: { onClose?: () => void } = {}) {
     index: number;
     source: "keyboard" | "pointer";
   } | null>(null);
-  const { clear, failure, input, isLoading, query, results, retry, setInput } =
-    useSearch(scope);
+  const {
+    answered,
+    clear,
+    failure,
+    input,
+    isLoading,
+    query,
+    results,
+    retry,
+    setInput,
+  } = useSearch(scope);
 
   const view = arrange(scope, results, page);
   const hrefs = view.sections.flatMap(hrefsOf);
   const hitCount = hrefs.length;
-  const viewKey = `${scope}:${query}:${view.page}`;
+  // Keyed by the query the results answer, not the one being typed: stale
+  // results stay mounted while the next answer loads.
+  const viewKey = `${scope}:${answered}:${view.page}`;
   const active = cursor?.key === viewKey ? cursor.index : -1;
   const keyboardActive = cursor?.source === "keyboard" ? active : -1;
 
@@ -231,7 +246,14 @@ export function SearchAction({ onClose }: { onClose?: () => void } = {}) {
       .getElementById(`${listId}-option-${keyboardActive}`)
       ?.scrollIntoView({ block: "nearest" });
   }, [keyboardActive, listId]);
-  const optionId = (index: number) => `${listId}-option-${index}`;
+  const optionId = useCallback(
+    (index: number) => `${listId}-option-${index}`,
+    [listId],
+  );
+  const pointTo = useCallback(
+    (index: number) => setCursor({ index, key: viewKey, source: "pointer" }),
+    [viewKey],
+  );
 
   const showSkeleton = isLoading && hitCount === 0;
   const showEmpty = !isLoading && !failure && query !== "" && hitCount === 0;
@@ -246,10 +268,10 @@ export function SearchAction({ onClose }: { onClose?: () => void } = {}) {
     setPage(0);
   };
 
-  const handleClear = () => {
+  const handleClear = useCallback(() => {
     clear();
     setPage(0);
-  };
+  }, [clear]);
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
@@ -300,15 +322,18 @@ export function SearchAction({ onClose }: { onClose?: () => void } = {}) {
   const titled = scope === "all";
   const sections = view.sections.map((section, index) => (
     <Section
-      active={active}
+      active={
+        active >= starts[index] &&
+        active < starts[index] + section.hits.length
+          ? active - starts[index]
+          : -1
+      }
       key={section.kind}
       lead={starts[index] + index}
       onNavigated={handleClear}
-      onOptionPointerEnter={(index) =>
-        setCursor({ index, key: viewKey, source: "pointer" })
-      }
+      onOptionPointerEnter={pointTo}
       optionId={optionId}
-      query={query}
+      query={answered}
       section={section}
       spacers={hasPager ? view.perPage - section.hits.length : 0}
       start={starts[index]}
@@ -392,7 +417,12 @@ export function SearchAction({ onClose }: { onClose?: () => void } = {}) {
         )}
         inert={!query}
       >
-        <div className="min-h-0 overflow-hidden">
+        {/* The clip is only for the unfold. The room around it (cancelled by
+            the margins, so nothing moves) holds the scope indicator swelled
+            past its track and the whole of its drop shadow (0 6px 16px -4px
+            at full glass): a clip any closer cuts the shadow off straight,
+            a grey box round the drop. */}
+        <div className="-mx-4 -mt-2 -mb-6 min-h-0 overflow-hidden px-4 pt-2 pb-6">
           <SearchPart
             className={cn("pt-2.5", !query && "-translate-y-3 scale-95")}
             name="scopes"
@@ -438,13 +468,15 @@ export function SearchAction({ onClose }: { onClose?: () => void } = {}) {
           ) : hitCount > 0 ? (
             <>
               <div
+                key={viewKey}
+                {...resultsPart}
+                aria-busy={isLoading || undefined}
                 aria-label="Search results"
                 className={cn(
                   SURFACE_SCROLL,
-                  "relative isolate flex max-h-[min(44dvh,22rem)] scroll-p-1 flex-col gap-4 p-1",
+                  "relative isolate flex max-h-[min(56dvh,34rem)] scroll-p-1 flex-col gap-4 p-1 aria-busy:opacity-60",
                 )}
                 id={listId}
-                key={viewKey}
                 onPointerLeave={() => {
                   setCursor((current) =>
                     current?.source === "pointer" ? null : current,

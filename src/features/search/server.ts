@@ -754,37 +754,69 @@ export async function searchPersonHits(
   return ok({ hits, page, totalPages, totalResults });
 }
 
-export function createSearchHandler(type: SearchType, search: SearchRunner) {
-  const cacheControl = COMMUNITY_SEARCH_TYPES.includes(type)
-    ? PRIVATE_CACHE_CONTROL
-    : PUBLIC_CACHE_CONTROL;
+export type SearchBatch = Partial<
+  Record<SearchType, { hits: unknown[] } | { failure: SearchFailure }>
+>;
 
+// One request answers every kind the search asks for: one rate-limit check
+// and one round trip per query instead of one per kind. A kind that fails
+// comes back as its failure; the request fails only when every kind did.
+export function createSearchBatchHandler(
+  runners: Readonly<Partial<Record<SearchType, SearchRunner>>>,
+) {
   return async function GET(request: Request): Promise<Response> {
     const limited = await rateLimitResponse(
-      `search:${type}:${getClientIp(request)}`,
+      `search:${getClientIp(request)}`,
       60,
     );
     if (limited) return limited;
 
     const { searchParams } = new URL(request.url);
-    const page = searchParams.has("page")
-      ? Number(searchParams.get("page"))
-      : 1;
-
-    const result = await search(searchParams.get("q") ?? "", {
-      page,
-      signal: request.signal,
-    });
-
-    if (!result.success) {
+    const query = searchParams.get("q") ?? "";
+    const kinds = [
+      ...new Set((searchParams.get("kinds") ?? "").split(",")),
+    ].filter((kind): kind is SearchType => Object.hasOwn(runners, kind));
+    if (kinds.length === 0) {
       return NextResponse.json(
-        { code: result.error.code, error: result.error.message },
-        { status: FAILURE_STATUS[result.error.code] },
+        { code: "invalid_query", error: FAILURE_MESSAGES.invalid_query },
+        { status: FAILURE_STATUS.invalid_query },
       );
     }
+
+    const outcomes = await Promise.all(
+      kinds.map((kind) =>
+        runners[kind]!(query, { page: 1, signal: request.signal }),
+      ),
+    );
+
+    const data: SearchBatch = {};
+    let failure: SearchFailure | null = null;
+    outcomes.forEach((outcome, index) => {
+      if (outcome.success) data[kinds[index]] = { hits: outcome.data.hits };
+      else {
+        data[kinds[index]] = { failure: outcome.error };
+        failure ??= outcome.error;
+      }
+    });
+
+    if (failure && outcomes.every((outcome) => !outcome.success)) {
+      const { code, message } = failure as SearchFailure;
+      return NextResponse.json(
+        { code, error: message },
+        { status: FAILURE_STATUS[code] },
+      );
+    }
+    const personal = kinds.some((kind) =>
+      COMMUNITY_SEARCH_TYPES.includes(kind),
+    );
     return NextResponse.json(
-      { data: result.data },
-      { headers: { "Cache-Control": cacheControl } },
+      { data },
+      {
+        headers: {
+          "Cache-Control":
+            personal || failure ? PRIVATE_CACHE_CONTROL : PUBLIC_CACHE_CONTROL,
+        },
+      },
     );
   };
 }

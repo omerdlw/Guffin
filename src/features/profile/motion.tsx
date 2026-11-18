@@ -34,16 +34,16 @@ const STAGGER = {
   row: 0.144,
 };
 
-const SETTLE: Curve = [0.236, 1, 0.382, 1];
+const SETTLE: Curve = [0.236, 0.382, 0.146, 1];
 const DEVELOP: Curve = [0.382, 0, 0.146, 1];
 const SWEEP: Curve = [0.618, 0, 0.382, 1];
-const TOUCH: Curve = [0.146, 1, 0.382, 1];
+const TOUCH: Curve = [0.382, 0.236, 0.146, 1];
 const PRESS: Curve = [0.382, 0, 0.236, 1];
 // Unhurried: an even arrival, without Settle's rush at the start, for lines
 // read a piece at a time.
-const UNHURRIED: Curve = [0.236, 0.618, 0.236, 1];
+const UNHURRIED: Curve = [0.236, 0.382, 0.146, 1];
 // Spring: overshoots by a hair and settles.
-const SPRING: Curve = [0.236, 1.382, 0.382, 1];
+const SPRING: Curve = [0.382, 0.618, 0.236, 1.146];
 
 const load = (from: Look, delay: number, more: Partial<Enter> = {}): Enter => ({
   on: "load",
@@ -62,7 +62,7 @@ const reveal = (from: Look, more: Partial<Enter> = {}): Enter => ({
   ...more,
 });
 
-const press = { scale: 0.96, duration: beat(-4), ease: PRESS };
+const press = { scale: 0.96, duration: beat(-3), ease: PRESS };
 
 const nudge: Moves = {
   hover: { y: -3, duration: beat(-2), ease: TOUCH },
@@ -83,6 +83,10 @@ const CUE = {
 
 const ACCOUNT = defineStage({
   scope: "account",
+  // Cinematic: every entrance half a beat slower (√φ) and a Fibonacci step
+  // farther (φ), so it is felt, not glimpsed.
+  tempo: 1.272,
+  reach: 1.618,
   // What is in view on arrival below the hero waits until the counts have
   // begun along the right, so the card reads from the top down.
   opening: beat(2),

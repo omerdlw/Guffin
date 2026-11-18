@@ -346,6 +346,10 @@ export const dockMotion: DockMotion = {
       transition: tween(beat(-4), LEAVE),
     }),
     tapScale: 0.98,
+    // No --dock-h on <html>: each write restyled the whole page (twice per
+    // surface open). The few elements that clear the dock read its height
+    // from state (components/dock-clear.tsx).
+    heightVar: false,
     stacking: {
       collapsed: {
         offsetY: -10,

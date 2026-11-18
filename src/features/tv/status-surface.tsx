@@ -2,30 +2,22 @@
 
 import { type JSX, useState } from "react";
 import { useToast } from "@omerdlw/base-framework/notification";
-import {
-  Button,
-  CheckboxIndicator,
-  HighlightGroup,
-  useHighlight,
-} from "@omerdlw/base-framework/ui";
+import { Button, Spinner } from "@omerdlw/base-framework/ui";
 import { report, toUserMessage } from "@omerdlw/base-framework/utils";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/design/components/icon";
+import { TextButton } from "@/design/components/link";
 import {
   SurfacePart,
   SurfaceStage,
   SurfaceSwap,
 } from "@/design/components/surface";
 import {
-  rowVariants,
-  SURFACE_META,
+  CHOICE_BODY,
+  choiceVariants,
   SURFACE_STACK,
-  SURFACE_TEXT,
-  SURFACE_TILE_INNER,
-  SURFACE_TITLE,
 } from "@/design/components/surface-classes";
 import { defineSurface } from "@/design/surface-definition";
-import { cn } from "@/design/ui";
 import { setShowStatusAction } from "./actions";
 import { SHOW_STATUS_ICONS, SHOW_STATUS_LABELS, type ShowStatus } from "./show";
 import { announceShowChange, useShowStatus } from "./status";
@@ -56,43 +48,41 @@ export const showStatusSurface = defineSurface<{
   title: "Your status",
 });
 
-function StatusRow({
+function StatusChoice({
   chosen,
+  disabled,
   onChoose,
   pending,
   status,
 }: {
   chosen: boolean;
+  disabled: boolean;
   onChoose: () => void;
   pending: boolean;
   status: ShowStatus;
 }): JSX.Element {
-  const highlight = useHighlight(status);
   return (
     <Button
+      aria-describedby={chosen ? "show-status-detail" : undefined}
+      aria-busy={pending || undefined}
       aria-pressed={chosen}
-      className={rowVariants({ intent: chosen ? "chosen" : "neutral" })}
-      disabled={pending}
+      className={choiceVariants({ chosen })}
+      disabled={disabled}
       onClick={onChoose}
-      {...highlight.props}
     >
-      {highlight.node}
-      <span
-        className={cn(
-          "center relative z-10 size-12 shrink-0",
-          SURFACE_TILE_INNER,
-          chosen ? "bg-grade/15" : "bg-fill",
-        )}
-      >
-        <Icon icon={SHOW_STATUS_ICONS[status]} size={20} />
-      </span>
-      <span className={cn(SURFACE_TEXT, "relative z-10")}>
-        <span className={SURFACE_TITLE}>{SHOW_STATUS_LABELS[status]}</span>
-        <span className={cn(SURFACE_META, "whitespace-normal")}>
-          {SHOW_STATUS_DETAILS[status]}
+      <span className={CHOICE_BODY}>
+        <span className="flex w-full items-center justify-between">
+          <Icon icon={SHOW_STATUS_ICONS[status]} size={24} />
+          {pending ? (
+            <Spinner size={16} />
+          ) : chosen ? (
+            <Icon icon="solar:check-circle-bold" size={18} />
+          ) : null}
+        </span>
+        <span className="type-body font-semibold">
+          {SHOW_STATUS_LABELS[status]}
         </span>
       </span>
-      <CheckboxIndicator checked={chosen} pending={pending} />
     </Button>
   );
 }
@@ -136,33 +126,42 @@ function ShowStatusSurface({
     <SurfaceStage>
       <div className={SURFACE_STACK}>
         <SurfaceSwap cue="rows" id="statuses" now>
-          <HighlightGroup className="flex flex-col gap-2.5">
+          <div className="grid grid-cols-2 gap-2.5">
             {SHOW_STATUS_ORDER.map((item, index) => (
               <SurfacePart index={index} key={item} name="row">
-                <StatusRow
+                <StatusChoice
                   chosen={loaded && status === item}
+                  disabled={!loaded || pending === item}
                   onChoose={() => void choose(item)}
-                  pending={pending === item || !loaded}
+                  pending={pending === item}
                   status={item}
                 />
               </SurfacePart>
             ))}
-          </HighlightGroup>
+          </div>
         </SurfaceSwap>
-        {status ? (
-          <SurfacePart name="item">
-            <Button
-              intent="neutral"
-              width="full"
+        <SurfacePart
+          className="flex min-h-control-md items-center justify-between gap-4 pr-1 pl-2"
+          name="note"
+        >
+          <p
+            className="min-w-0 type-meta text-ink-muted text-pretty"
+            id="show-status-detail"
+          >
+            {status
+              ? SHOW_STATUS_DETAILS[status]
+              : "Pick one to start following this show"}
+          </p>
+          {status ? (
+            <TextButton
+              className="shrink-0"
               disabled={pending !== null}
-              loading={pending === "stop"}
               onClick={() => void choose(null)}
             >
-              <Icon icon="solar:close-circle-linear" size={16} />
-              Stop tracking
-            </Button>
-          </SurfacePart>
-        ) : null}
+              {pending === "stop" ? "Stopping…" : "Stop tracking"}
+            </TextButton>
+          ) : null}
+        </SurfacePart>
       </div>
     </SurfaceStage>
   );

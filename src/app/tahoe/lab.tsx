@@ -1,12 +1,16 @@
 "use client";
 
 import { type JSX, useEffect, useState } from "react";
+import {
+  formatOklch,
+  toneOf,
+  useAmbientTheme,
+} from "@omerdlw/base-framework/ambient";
 import { Icon } from "@/design/components/icon";
 import { Logo } from "@/design/components/logo";
 import { SegmentedControl } from "@/design/components/segmented-control";
 import { SHELL } from "@/design/foundations/layers";
 import { TONE, WELL } from "@/design/foundations/tones";
-import { grade as pageGrade, type Tint, useGrade } from "@/design/grade";
 import { cn } from "@/design/ui";
 import { GlassLab } from "./glass-lab";
 import { ButtonsTab } from "./tabs/buttons";
@@ -105,15 +109,39 @@ type Tab = (typeof TABS)[number]["key"];
 
 const GROUPS = [...new Set(TABS.map((t) => t.group))];
 
-/** Grades to try: the hues a picture might give a page. */
-const GRADES: { name: string; tint: Tint | null }[] = [
-  { name: "Yok", tint: null },
-  { name: "Kızıl", tint: { l: 0.74, c: 0.12, h: 25 } },
-  { name: "Kehribar", tint: { l: 0.78, c: 0.12, h: 70 } },
-  { name: "Yeşil", tint: { l: 0.76, c: 0.12, h: 150 } },
-  { name: "Mavi", tint: { l: 0.74, c: 0.11, h: 240 } },
-  { name: "Mor", tint: { l: 0.72, c: 0.12, h: 305 } },
+/**
+ * Grades to try: the hues a picture might give a page, written as the
+ * light-ground palette the framework would make for them (page, vivid role
+ * and its light tone, pale region glows).
+ */
+const tone = (h: number, l: number, cap: number) =>
+  formatOklch(toneOf(h, l, 0.8, cap));
+
+const lightPalette = (h: number): Record<string, string> => ({
+  "--ambient-page": tone(h, 0.955, 0.025),
+  "--ambient-presence": "1",
+  "--ambient-vibrant": tone(h, 0.52, 0.14),
+  "--ambient-vibrant-80": tone(h, 0.8, 0.14),
+  ...Object.fromEntries(
+    ["top", "right", "left", "bottom"].map((region) => [
+      `--ambient-${region}`,
+      tone(h, 0.84, 0.1),
+    ]),
+  ),
+});
+
+const GRADES: { name: string; hue: number | null }[] = [
+  { name: "Yok", hue: null },
+  { name: "Kızıl", hue: 25 },
+  { name: "Kehribar", hue: 70 },
+  { name: "Yeşil", hue: 150 },
+  { name: "Mavi", hue: 240 },
+  { name: "Mor", hue: 305 },
 ];
+
+const GRADE_COLOURS = GRADES.map(({ hue }) =>
+  hue === null ? null : lightPalette(hue),
+);
 
 const BACKDROPS = [
   { key: "wallpaper", label: "Tahoe" },
@@ -215,8 +243,8 @@ function Settings({
               key={g.name}
               onClick={() => setGrade(i)}
               style={{
-                background: g.tint
-                  ? `oklch(${g.tint.l} ${g.tint.c} ${g.tint.h})`
+                background: g.hue !== null
+                  ? tone(g.hue, 0.52, 0.14)
                   : "repeating-linear-gradient(135deg, var(--ink-faint) 0 2px, transparent 2px 5px)",
               }}
               type="button"
@@ -232,9 +260,11 @@ export function UiLab({ wallpaper }: { wallpaper: string }): JSX.Element {
   const [tab, setTab] = useTab();
   const [backdrop, setBackdrop] = useState<Backdrop>("wallpaper");
   const [grade, setGrade] = useState(0);
-  useGrade(GRADES[grade]!.tint);
-  // Leaving the lab hands the page back ungraded.
-  useEffect(() => () => pageGrade.set(null), []);
+  // "Yok" hands the page back neutral; leaving the lab drops the grade.
+  useAmbientTheme({
+    colors: GRADE_COLOURS[grade] ?? { "--ambient-presence": "0" },
+    linger: 0,
+  });
 
   const settings = (
     <Settings

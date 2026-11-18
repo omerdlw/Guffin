@@ -20,7 +20,7 @@ import { AnimatePresence, motion, useReducedMotion } from "@/motion/lib";
 type Ease = [number, number, number, number];
 
 // The dock's curves and beats (φ): settle in, gather and leave.
-const SETTLE: Ease = [0.236, 1, 0.382, 1];
+const SETTLE: Ease = [0.236, 0.382, 0.146, 1];
 const LEAVE: Ease = [0.618, 0, 0.854, 0.382];
 const IN = { duration: 0.382, ease: SETTLE };
 const OUT = { duration: 0.236, ease: LEAVE };
@@ -110,6 +110,8 @@ const DOCK_LANDS_MS = 382 + 500;
 /** Watch for actions this long at most while waiting for the dock. */
 const WATCH_MS = 6000;
 
+// Read from the element that runs it when there is one: the document as a
+// whole runs hundreds of animations.
 const arrivalOf = (root: ParentNode, name: string) =>
   (root instanceof Element ? root.getAnimations() : document.getAnimations())
     .filter(
@@ -127,11 +129,22 @@ const arrivalOf = (root: ParentNode, name: string) =>
  */
 export function ActionArrival(): null {
   useEffect(() => {
+    let landed = false;
     const hold = (action: Element) => {
-      const dock = arrivalOf(document, "dock-arrive");
+      if (landed) return;
+      const dock = arrivalOf(
+        document.querySelector(".dock-root") ?? document,
+        "dock-arrive",
+      );
+      if (dock?.playState === "finished") {
+        // Every later action rises at once: nothing left to watch for.
+        landed = true;
+        watcher.disconnect();
+        return;
+      }
       const own = arrivalOf(action, "dock-action-arrive");
       const now = Number(document.timeline.currentTime);
-      if (!dock || !own || dock.playState === "finished") return;
+      if (!dock || !own) return;
       // Still pending (not started): it starts on this frame.
       const start = dock.startTime === null ? now : Number(dock.startTime);
       const wait = start + DOCK_LANDS_MS - now;
@@ -142,7 +155,6 @@ export function ActionArrival(): null {
       if (root instanceof Element && root.matches(".dock-action")) hold(root);
       root.querySelectorAll(".dock-action").forEach(hold);
     };
-    scan(document);
     const watcher = new MutationObserver((records) => {
       for (const record of records) {
         for (const node of record.addedNodes) {
@@ -150,7 +162,10 @@ export function ActionArrival(): null {
         }
       }
     });
-    watcher.observe(document.body, { childList: true, subtree: true });
+    scan(document);
+    if (!landed) {
+      watcher.observe(document.body, { childList: true, subtree: true });
+    }
     const timer = window.setTimeout(() => watcher.disconnect(), WATCH_MS);
     return () => {
       window.clearTimeout(timer);

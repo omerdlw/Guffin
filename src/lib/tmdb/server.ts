@@ -2,12 +2,14 @@ import "server-only";
 import { cache } from "react";
 import { ok, type Result } from "@omerdlw/base-framework/result";
 import {
+  AMBIENT_ANALYSIS_VERSION,
   AmbientDecoderMissingError,
   type AmbientPalette,
   extractAmbientPalette,
 } from "@omerdlw/base-framework/ambient/server";
 import { report } from "@omerdlw/base-framework/utils";
 import { unstable_cache } from "next/cache";
+import { AMBIENT_ANALYSIS } from "@/lib/ambient";
 import { getTmdbConfig } from "@/lib/env";
 import { createTmdbClient, type TmdbClient } from "./api";
 import type {
@@ -176,7 +178,7 @@ export function movieSnapshot(movie: {
 
 const IMAGE_HOST = new URL(TMDB_IMAGE_BASE_URL).hostname;
 
-const PALETTE_VERSION = "ambient";
+const PALETTE_VERSION = `ambient-v${AMBIENT_ANALYSIS_VERSION}-${AMBIENT_ANALYSIS.ground}`;
 const PALETTE_TIMEOUT_MS = 3_000;
 
 class NoPalette extends Error {}
@@ -184,6 +186,7 @@ class NoPalette extends Error {}
 const paletteOf = unstable_cache(
   async (url: string): Promise<AmbientPalette> => {
     const palette = await extractAmbientPalette(url, {
+      analysis: AMBIENT_ANALYSIS,
       allow: (target) =>
         target.protocol === "https:" && target.hostname === IMAGE_HOST,
       timeoutMs: PALETTE_TIMEOUT_MS,

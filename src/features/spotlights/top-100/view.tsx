@@ -1,5 +1,6 @@
 "use client";
 
+import { DockClear } from "@/design/components/dock-clear";
 import {
   type JSX,
   type KeyboardEvent,
@@ -361,6 +362,7 @@ function Canon({
           opened && !failed ? "opacity-100" : "opacity-0",
         )}
       >
+        <DockClear edge="bottom" extra="13rem" />
         <span
           className={cn(
             styles.numeral,
@@ -371,7 +373,9 @@ function Canon({
         </span>
       </div>
 
-      <div aria-hidden="true" className={TUNNEL_SLOT_CLASS} ref={slot} />
+      <div aria-hidden="true" className={TUNNEL_SLOT_CLASS} ref={slot}>
+        <DockClear edge="bottom" extra="13rem" />
+      </div>
 
       <canvas
         aria-label={`${title} as a countdown from No. ${films.length} to No. 1. Scroll, drag or use the arrow keys to fly; Enter opens the film in the gate.`}

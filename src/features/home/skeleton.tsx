@@ -1,5 +1,6 @@
 "use client";
 
+import { DockClear } from "@/design/components/dock-clear";
 import type { JSX } from "react";
 import { BackdropHeroSkeleton } from "@/design/components/backdrop";
 import {
@@ -140,6 +141,7 @@ export function HomeSkeleton(): JSX.Element {
       className={`home-page overflow-x-clip ${PAGE_CLASS}`}
       id="main"
     >
+      <DockClear extra="2rem" />
       <span className="sr-only">Loading</span>
       <div className={CONTAINER_CLASS}>
         <Opening guest={guest} />

@@ -2,7 +2,7 @@ const RHYTHM_GAP = "gap-8 sm:gap-10 lg:gap-12";
 const RHYTHM_GAP_Y = "gap-y-8 sm:gap-y-10 lg:gap-y-12";
 const STACK_CLASS = `flex w-full flex-col ${RHYTHM_GAP}`;
 
-export const PAGE_CLASS = "min-h-screen pb-[calc(var(--dock-h,6rem)+2rem)]";
+export const PAGE_CLASS = "min-h-screen pb-[calc(6rem+2rem)]";
 export const CONTAINER_CLASS =
   "relative z-10 mx-auto flex w-full max-w-6xl flex-col px-4 [overflow-anchor:none] sm:px-6 lg:px-8";
 

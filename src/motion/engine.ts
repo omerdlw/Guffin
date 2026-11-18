@@ -452,7 +452,15 @@ function createEngine(options: EngineOptions = {}): Engine {
       const source = options.scroll;
       scroll.set(source.get());
       cleanup.push(source.subscribe((y) => scroll.set(y)));
-    } else listen("scroll", () => scroll.set(window.scrollY));
+    } else {
+      // A started scroll driver (scroll.ts) keeps this signal itself, from
+      // the spring and from the native scrolls it adopts; reading scrollY
+      // here as well would make the browser restyle and lay out the page in
+      // the scroll event, ahead of the frame, every frame.
+      listen("scroll", () => {
+        if (!drivenScroll.has(scroll)) scroll.set(window.scrollY);
+      });
+    }
 
     listen("resize", () =>
       viewport.set({ width: window.innerWidth, height: window.innerHeight }),
@@ -502,6 +510,9 @@ function createEngine(options: EngineOptions = {}): Engine {
     },
   };
 }
+
+/** Scroll signals a started scroll driver keeps (scroll.ts). */
+export const drivenScroll = new WeakSet<Source<number>>();
 
 let shared: Engine | null = null;
 

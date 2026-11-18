@@ -62,7 +62,7 @@ export type Filter = "all" | "seen" | "unseen";
 export const SHOW_CANON_SIZE = 100;
 
 export const TUNNEL_SLOT_CLASS =
-  "pointer-events-none fixed inset-x-4 top-[clamp(4.5rem,11svh,7rem)] bottom-[calc(var(--dock-h,6rem)+13rem)] sm:inset-x-8";
+  "pointer-events-none fixed inset-x-4 top-[clamp(4.5rem,11svh,7rem)] bottom-[calc(6rem+13rem)] sm:inset-x-8";
 
 export const typing = (target: EventTarget | null) =>
   target instanceof HTMLElement &&

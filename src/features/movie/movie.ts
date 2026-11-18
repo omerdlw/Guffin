@@ -82,16 +82,16 @@ export const artworkOf = ({
 
 export const MOVIE_FEATURED_PEOPLE = 5;
 
-// The stack's seats, by billing: the lead in front at the middle, then
-// alternating left and right, each further back and smaller. `x` is the
-// seat's centre from the stack's middle and `w` its width, both in % of the
-// stack's width (cqi). Under the hand a seat comes to the front at `FRONT`.
+// The strip's seats, by billing: the lead in the middle, then alternating
+// left and right. `order` is the seat's place in the strip from the left,
+// `x` its rough centre from the strip's middle (cqi), where its portrait is
+// dealt out from behind the lead.
 export const CAST_SEATS = [
-  { at: 0, x: 0, w: 38 },
-  { at: 1, x: -22, w: 30 },
-  { at: 1, x: 22, w: 30 },
-  { at: 2, x: -37, w: 24 },
-  { at: 2, x: 37, w: 24 },
+  { order: 2, x: 0 },
+  { order: 1, x: -27 },
+  { order: 3, x: 27 },
+  { order: 0, x: -42 },
+  { order: 4, x: 42 },
 ] as const;
 
 export const TAGLINE_TYPE = "type-body sm:type-copy";
@@ -107,6 +107,13 @@ const MOVIE_MONEY_FORMAT = new Intl.NumberFormat("en-US", {
   notation: "compact",
   style: "currency",
 });
+
+// The meaning colour each collection state lights its icon with.
+export const COLLECTION_MARKS = {
+  like: "text-liked",
+  watched: "text-watched",
+  watchlist: "text-listed",
+} as const;
 
 export const COLLECTION_ICONS = {
   like: { off: "solar:heart-linear", on: "solar:heart-bold" },

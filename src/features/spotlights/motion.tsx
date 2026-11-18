@@ -21,19 +21,19 @@ export const beat = (n: number) => Math.round(PHI ** n * 1000) / 1000;
 // Fibonacci: stagger in ms.
 const STAGGER = { char: 0.034 };
 
-// Settle: arrives quickly and spends its long tail coming to rest.
-export const SETTLE: Curve = [0.236, 1, 0.382, 1];
+// Settle: gathers softly, never with a jolt, and spends its long tail coming to rest.
+export const SETTLE: Curve = [0.236, 0.382, 0.146, 1];
 // Develop: a slow start and a long, even resolve, for pictures.
 export const DEVELOP: Curve = [0.382, 0, 0.146, 1];
 // Leave: gathers, then goes.
 const LEAVE: Curve = [0.618, 0, 0.854, 0.382];
-// Touch: answers at once and eases into place.
-const TOUCH: Curve = [0.146, 1, 0.382, 1];
+// Touch: eased at both ends, so a touch never starts with a jolt (the same curve as --soft-ease).
+const TOUCH: Curve = [0.382, 0.236, 0.146, 1];
 // Press: direct.
 const PRESS: Curve = [0.382, 0, 0.236, 1];
 
 const media: Moves = {
-  press: { scale: 0.96, duration: beat(-4), ease: PRESS },
+  press: { scale: 0.96, duration: beat(-3), ease: PRESS },
   rest: { duration: beat(-1), ease: SETTLE },
   slots: {
     image: {
@@ -46,6 +46,8 @@ const media: Moves = {
 
 const DIRECTORS = defineStage({
   scope: "directors",
+  tempo: 1.272,
+  reach: 1.618,
   parts: ["portrait", "poster"],
   sections: ["director"],
   motion: {
@@ -84,7 +86,7 @@ export const DirectorsSwap = DIRECTORS.Swap;
 
 export function DirectorsStage({ children }: { children: ReactNode }) {
   return (
-    <DirectorsStageRoot grade={null}>
+    <DirectorsStageRoot light={null}>
       <Room black />
       <MotionConfig reducedMotion="user">
         <main

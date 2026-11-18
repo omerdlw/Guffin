@@ -316,26 +316,8 @@ export function PersonPageChrome({
   return null;
 }
 
-export function PersonStage({
-  backdrop,
-  children,
-  person,
-}: {
-  backdrop: string | null;
-  children: ReactNode;
-  person: Pick<PersonDetails, "id" | "profilePath">;
-}) {
-  const path = useArtworkPath("person", person.id, "backdrop", backdrop);
-  const photo = useArtworkPath(
-    "person",
-    person.id,
-    "poster",
-    person.profilePath,
-  );
-
-  return (
-    <DetailStage picture={personSwatch(path, photo)}>{children}</DetailStage>
-  );
+export function PersonStage({ children }: { children: ReactNode }) {
+  return <DetailStage>{children}</DetailStage>;
 }
 
 export function PersonProjection({

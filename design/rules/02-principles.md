@@ -1,11 +1,12 @@
 # 2. Principles
 
 - **The picture leads.** Guffin is a projection room: chrome recedes so the
-  film's own image can carry the page. The page colour follows the picture
-  (the ambient shadow), the accent is taken from it (the grade), and the room
-  around it (wash, vignette, grain) is lit in its hues.
-- **Quiet, on paper.** There is one theme: paper (the picture's hue at
-  L 0.95) with near-black ink. Liquid glass reads best on it: light, depth
+  film's own image can carry the page. One palette, read from the picture by
+  the framework's ambient for a light ground, gives the page colour (its
+  mood), the accent (the grade: its most vivid colour) and the room's light
+  (pale glows of its regions).
+- **Quiet, on paper.** There is one theme: paper (the picture's mood at
+  L 0.955) with near-black ink. Liquid glass reads best on it: light, depth
   and frost show on white. Components name roles and `themes.css` gives each
   role its one value. Surfaces are white sheets with ink hairlines; layers
   lift on a shadow cut from the page's own hue. There is no dark mode, no

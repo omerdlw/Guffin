@@ -31,7 +31,7 @@ import {
   DetailSection,
 } from "@/features/detail/motion";
 import { DetailAction } from "@/features/detail/stage";
-import { COLLECTION_ICONS } from "@/features/movie/movie";
+import { COLLECTION_ICONS, COLLECTION_MARKS } from "@/features/movie/movie";
 import { RatingSelector, RatingStars } from "@/features/reviews/rating";
 import {
   type Episode,
@@ -246,6 +246,7 @@ export function SeasonWatchAction(): JSX.Element {
       hoverLabel={allWatched ? "Unmark season" : undefined}
       icon={COLLECTION_ICONS.watched}
       label={allWatched ? "Season watched" : "Mark season"}
+      mark={COLLECTION_MARKS.watched}
       loading={busy}
       onClick={toggleSeason}
     />

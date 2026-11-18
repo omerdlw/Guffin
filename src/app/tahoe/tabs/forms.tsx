@@ -41,7 +41,7 @@ export function FormsTab() {
   return (
     <Page
       eyebrow="5 Form ve kontroller"
-      lead="Sayfada duran alanlar, select tetikleyicileri ve segmented rayı hafif camdır (liquid-control): bükecek bir şey yok, bu yüzden lens ve buz yok; ışıklı bir bevel ve kontür."
+      lead="Sayfada duran alanlar, select tetikleyicileri ve segmented rayı hafif camdır (liquid-control): bükecek bir şey yok, bu yüzden lens ve buz yok; sol üstten anahtar, sağ alttan dolgu ışığı alan bir kenar ve kontür."
       source="design/recipes.ts · components/{input,select,switch,segmented-control,tooltip}.tsx"
       title="Form"
     >

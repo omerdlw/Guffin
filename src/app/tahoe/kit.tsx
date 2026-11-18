@@ -33,7 +33,10 @@ function subscribeGrade(notify: () => void) {
 export function useGradeKey(): string {
   return useSyncExternalStore(
     subscribeGrade,
-    () => document.documentElement.style.getPropertyValue("--grade"),
+    () => {
+      const { style } = document.documentElement;
+      return `${style.getPropertyValue("--ambient-vibrant")}|${style.getPropertyValue("--ambient-page")}`;
+    },
     () => "",
   );
 }

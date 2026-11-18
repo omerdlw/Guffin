@@ -41,14 +41,14 @@ interface MoviePeopleProps {
 const MOVIE_COMPACT_PEOPLE = 3;
 
 const STACK = {
-  // A seat's width at the front (cqi).
-  "--front": "38cqi",
+  // An open seat's portrait (4:5 of the strip's height) and how many
+  // shares of the strip it takes beside the closed ones.
+  "--photo": "40cqi",
+  "--grow": "2.86",
   // The frame's margin around the picture, and a known-for poster's width.
   "--pad": "0.375rem",
   "--poster": "7.5cqi",
 } as CSSProperties;
-
-const FOOT = "cast-foot";
 
 const CARD_RADIUS = nested(RADIUS.shell, 6);
 
@@ -90,88 +90,10 @@ function KnownForLeaves({
   ));
 }
 
-// The foot: the portrait's face stays sharp and its foot melts into a soft
-// field of its own colours, as iOS's scroll edge does. Three blurs, each
-// deeper and starting lower, laid over one another through alpha ramps
-// (one blur under a single ramp would show the sharp and the blurred
-// picture doubled half way down). The deepest is dimmed a touch so the
-// name on it reads. Every blur repeats the picture's edge (`duplicate`), so
-// no dark halo creeps in from outside. Drawn once per page; every portrait
-// in the stack takes it.
-const ramp = (from: number, to: number) =>
-  `data:image/svg+xml,${encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1" preserveAspectRatio="none"><linearGradient id="r" x2="0" y2="1"><stop offset="${from}" stop-color="white" stop-opacity="0"/><stop offset="${to}" stop-color="white"/></linearGradient><rect width="1" height="1" fill="url(#r)"/></svg>`,
-  )}`;
-
-/** Each step: its blur (px σ) and where down the picture it fades in. */
-const FOOT_STEPS = [
-  { blur: 2.5, from: 0.7, to: 0.8 },
-  { blur: 8, from: 0.75, to: 0.87 },
-  { blur: 18, from: 0.8, to: 0.95 },
-] as const;
-
-function FootFilter() {
-  return (
-    <svg aria-hidden="true" className="absolute size-0">
-      <filter
-        colorInterpolationFilters="sRGB"
-        height="100%"
-        id={FOOT}
-        width="100%"
-        x="0%"
-        y="0%"
-      >
-        {FOOT_STEPS.map(({ blur, from, to }, step) => {
-          const deepest = step === FOOT_STEPS.length - 1;
-          const under = step === 0 ? "SourceGraphic" : `step${step - 1}`;
-          return (
-            <Fragment key={step}>
-              <feImage
-                height="100%"
-                href={ramp(from, to)}
-                preserveAspectRatio="none"
-                result={`ramp${step}`}
-                width="100%"
-                x="0%"
-                y="0%"
-              />
-              <feGaussianBlur
-                edgeMode="duplicate"
-                in="SourceGraphic"
-                result={`blur${step}`}
-                stdDeviation={blur}
-              />
-              {deepest ? (
-                <feComponentTransfer in={`blur${step}`} result={`blur${step}`}>
-                  <feFuncR slope={0.72} type="linear" />
-                  <feFuncG slope={0.72} type="linear" />
-                  <feFuncB slope={0.72} type="linear" />
-                </feComponentTransfer>
-              ) : null}
-              <feComposite
-                in={`blur${step}`}
-                in2={`ramp${step}`}
-                operator="in"
-                result={`cut${step}`}
-              />
-              <feComposite
-                in={`cut${step}`}
-                in2={under}
-                operator="over"
-                result={`step${step}`}
-              />
-            </Fragment>
-          );
-        })}
-      </filter>
-    </svg>
-  );
-}
-
-// A person in the stack: their portrait, its foot melting into a soft field
-// of its own colours, with their name on it. Under the hand the seat comes to the
-// front, a glass frame opens around the portrait and runs down under it,
-// and the person's known-for posters surface on it.
+// A person in the strip: their portrait, its foot darkened so a name reads
+// on it. Open, their name and role lie across the foot; closed, the name runs up the seat's spine. Under the hand the seat opens, a glass
+// frame opens around the portrait and runs down under it, and the person's
+// known-for posters surface on it.
 function CastCard({
   index,
   knownFor,
@@ -191,21 +113,16 @@ function CastCard({
     person.profilePath,
   );
   const src = tmdbImageUrl("profile", photoPath, "h632");
-  const lead = seat.at === 0;
 
   return (
     <li
       {...detailPart("person")}
       className={styles.seat}
-      data-at={seat.at}
+      data-lead={index === 0 ? "" : undefined}
       style={
         {
           "--i": index,
-          "--x": `${seat.x}cqi`,
-          // Every portrait is laid out at the front's size and scaled down
-          // to its seat: under the hand it grows by transform alone, so
-          // nothing reflows and the foot's blur is not redrawn per frame.
-          "--s": seat.w / CAST_SEATS[0]!.w,
+          order: seat.order,
           "--gather": `${-seat.x}cqi`,
         } as CSSProperties
       }
@@ -224,7 +141,7 @@ function CastCard({
           style={{ borderRadius: CARD_RADIUS }}
         >
           {src ? (
-            <span className={styles.photo}>
+            <span className={styles.photo} data-slot="picture">
               <Image
                 alt=""
                 className="object-cover object-top"
@@ -233,32 +150,51 @@ function CastCard({
               />
             </span>
           ) : (
-            <Icon
-              className="center text-ink-faint"
-              icon="solar:user-bold"
-              size={32}
-            />
+            <span className={styles.glyph}>
+              <Icon
+                className="text-ink-faint"
+                icon="solar:user-bold"
+                size={32}
+              />
+            </span>
           )}
-          <span className={styles.caption} data-slot="caption">
-            <DetailExpose
-              as="span"
+          <span aria-hidden="true" className={styles.shade} data-slot="shade" />
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5 bg-linear-to-t from-page/80 via-page/30 to-transparent"
+          />
+          <span aria-hidden="true" className={styles.spine}>
+            <span
               className={cn(
-                "block max-w-full truncate font-semibold text-ink",
-                lead ? "type-copy" : "type-meta",
+                styles.spineText,
+                "type-meta font-semibold tracking-tagline text-ink uppercase",
               )}
-              index={index}
-              part="credit"
-              text={person.name}
-              truncate
-            />
-            <DetailExpose
-              as="span"
-              className="block max-w-full truncate type-micro font-medium tracking-tagline text-ink-body uppercase"
-              index={index}
-              part="credit"
-              text={person.subtitle}
-              truncate
-            />
+              data-slot="spine"
+            >
+              {person.name}
+            </span>
+          </span>
+          <span className={styles.caption}>
+            <span className={styles.captionLines} data-slot="caption">
+              <DetailExpose
+                as="span"
+                className={cn(
+                  "block max-w-full truncate type-copy font-semibold text-ink",
+                )}
+                index={index}
+                part="credit"
+                text={person.name}
+                truncate
+              />
+              <DetailExpose
+                as="span"
+                className="block max-w-full truncate type-micro font-medium tracking-tagline text-ink-body uppercase"
+                index={index}
+                part="credit"
+                text={person.subtitle}
+                truncate
+              />
+            </span>
           </span>
         </DockLink>
         {knownFor ? (
@@ -277,9 +213,9 @@ function CastCard({
   );
 }
 
-// The rest of the cast, rolled as an end credit under the stack: one
-// centred line, no boxes. Under the hand a name's face blooms above it as a
-// small drop; the line ends on how many more there are, which opens the
+// The rest of the cast, rolled as an end credit under the strip: one
+// centred line, no boxes. Under the hand a name's portrait opens below it,
+// poster-sized; the line ends on how many more there are, which opens the
 // whole cast.
 function CreditRoll({
   compact,
@@ -335,15 +271,11 @@ function CreditName({ index, person }: { index: number; person: PersonEntry }) {
       style={{ "--i": index } as CSSProperties}
     >
       {person.profilePath ? (
-        <span
-          aria-hidden="true"
-          className={styles.face}
-          data-slot="thumb"
-        >
+        <span aria-hidden="true" className={styles.face} data-slot="thumb">
           <Image
             alt=""
             className="object-cover object-top"
-            sizes="48px"
+            sizes="88px"
             src={tmdbImageUrl("profile", person.profilePath, "w185")}
           />
         </span>
@@ -377,7 +309,11 @@ export function MoviePeople({
   };
 
   return (
-    <DetailSection className="flex w-full flex-col" cue="shelf" now={now}>
+    <DetailSection
+      className={cn(styles.section, "flex w-full flex-col")}
+      cue="shelf"
+      now={now}
+    >
       <Heading
         actions={
           <SegmentedControl
@@ -398,7 +334,6 @@ export function MoviePeople({
         intro="casting"
         now={now}
       >
-        <FootFilter />
         <ul className={styles.stack} style={STACK}>
           {featured.map((person, index) => (
             <CastCard

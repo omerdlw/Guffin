@@ -1,5 +1,6 @@
 "use client";
 
+import { DockClear } from "@/design/components/dock-clear";
 import { usePage } from "@omerdlw/base-framework/kernel";
 import type { JSX } from "react";
 import { DockLink, ExternalLink, linkVariants } from "@/design/components/link";
@@ -207,8 +208,9 @@ export function LegalPage({
   });
 
   return (
-    <LegalStage grade={null}>
+    <LegalStage light={null}>
       <main className={`ui-scene ${PAGE_CLASS}`}>
+        <DockClear extra="2rem" />
         <div className={`${CONTAINER_CLASS} pt-24 sm:pt-28 lg:pt-32`}>
           <header className="flex flex-col">
             <LegalPart

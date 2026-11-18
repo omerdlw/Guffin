@@ -1,3 +1,4 @@
+import { DockClear } from "@/design/components/dock-clear";
 import type { JSX } from "react";
 import {
   SkeletonBlock,
@@ -33,6 +34,7 @@ export function TunnelSkeleton(): JSX.Element {
         className={cn(TUNNEL_SLOT_CLASS, "grid place-items-center")}
         style={{ containerType: "size" }}
       >
+        <DockClear edge="bottom" extra="13rem" />
         {DEPTHS.map((depth) => (
           <span
             className="col-start-1 row-start-1 block rounded-card ring-1 ring-edge"
@@ -54,8 +56,9 @@ export function TunnelSkeleton(): JSX.Element {
 
       <div
         aria-hidden="true"
-        className="pointer-events-none fixed inset-x-4 bottom-[calc(var(--dock-h,6rem)+4.75rem)] z-10 flex flex-col items-center gap-2 sm:inset-x-8"
+        className="pointer-events-none fixed inset-x-4 bottom-[calc(6rem+4.75rem)] z-10 flex flex-col items-center gap-2 sm:inset-x-8"
       >
+        <DockClear edge="bottom" extra="4.75rem" />
         <SkeletonLines className="type-meta" widths={["3.25rem"]} />
         <div className="flex h-[1lh] items-center font-zuume type-display-sm leading-crop lg:type-display-md">
           <SkeletonBlock className="h-[0.7em] w-[min(18rem,70vw)] rounded-card" />
@@ -65,8 +68,9 @@ export function TunnelSkeleton(): JSX.Element {
 
       <div
         aria-hidden="true"
-        className="pointer-events-none fixed inset-x-0 bottom-[calc(var(--dock-h,6rem)+1.25rem)] z-10 px-4 sm:px-8"
+        className="pointer-events-none fixed inset-x-0 bottom-[calc(6rem+1.25rem)] z-10 px-4 sm:px-8"
       >
+        <DockClear edge="bottom" extra="1.25rem" />
         <div className="mx-auto flex max-w-3xl items-center gap-3">
           <span className="type-micro text-ink-muted tabular-nums">
             {CANON_SIZE}

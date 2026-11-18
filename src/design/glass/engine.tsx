@@ -10,6 +10,7 @@ import {
   type Piece,
   type Pieces,
 } from "./maps";
+import { compactPng, pngDataUrl } from "./png";
 import {
   bezelFor,
   frostFor,
@@ -18,7 +19,7 @@ import {
   type MaterialName,
   materialOf,
 } from "./materials";
-import { channelSpread } from "./optics";
+import { channelSpread, rimShift } from "./optics";
 
 // The glass engine. Every `.liquid` surface is a slab of glass made of a
 // material (materials.ts); on `liquid-lens` surfaces in Chromium (the only
@@ -55,11 +56,6 @@ function refracts() {
   return Boolean(data?.brands.some(({ brand }) => brand === "Chromium"));
 }
 
-function radiusOf(element: Element, width: number, height: number) {
-  const value = parseFloat(getComputedStyle(element).borderTopLeftRadius);
-  return Math.min(Number.isFinite(value) ? value : 0, width / 2, height / 2);
-}
-
 function set(
   element: Element,
   name: string,
@@ -90,6 +86,8 @@ type Lens = {
   margin: number;
   map: Record<Piece, SVGElement>;
   flat: SVGElement;
+  /** The page's colour the glass is stained with, sized like `flat`. */
+  paper: SVGElement | null;
   /** The frost, set to the surface's size as it resizes. */
   frost: SVGElement | null;
   material: Material;
@@ -97,20 +95,141 @@ type Lens = {
   height: number;
 };
 
-/** The material's numbers, with a surface's own overrides read in. */
-function tuned(element: HTMLElement, name: MaterialName) {
+/**
+ * What a surface's lens is fitted from, read in one pass over its computed
+ * style: its corner, its material and that surface's own overrides.
+ */
+type Reading = {
+  width: number;
+  height: number;
+  radius: number;
+  name: MaterialName;
+  material: Material;
+  bezel: number | null;
+  /** How far the glass takes the page's colour (0–1), `--liquid-stain`. */
+  stain: number;
+};
+
+function readSurface(
+  element: HTMLElement,
+  name: MaterialName,
+  width: number,
+  height: number,
+): Reading {
   const base = MATERIALS[name];
   const style = getComputedStyle(element);
+  const corner = parseFloat(style.borderTopLeftRadius);
   const bend = parseFloat(style.getPropertyValue("--liquid-bend"));
   const bezel = parseFloat(style.getPropertyValue("--liquid-bezel"));
+  const stain = parseFloat(style.getPropertyValue("--liquid-stain"));
   return {
+    width,
+    height,
+    radius:
+      Math.round(
+        Math.min(Number.isFinite(corner) ? corner : 0, width / 2, height / 2) *
+          2,
+      ) / 2,
+    name,
     material:
       Number.isFinite(bend) && bend > 0
         ? { ...base, bend }
         : (base as Material),
     bezel: Number.isFinite(bezel) && bezel > 0 ? bezel : null,
+    stain:
+      Number.isFinite(stain) && stain > 0
+        ? Math.round(Math.min(stain, 1) * 100) / 100
+        : 0,
   };
 }
+
+/**
+ * Drawn maps outlive the page: kept in storage under a key that changes
+ * whenever the drawing code does (its own source, hashed), so a reload or a
+ * new tab lays out lenses without drawing any.
+ */
+const STORE = "guffin:glass-maps";
+const STORE_LIMIT = 64;
+
+function hash(text: string) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < text.length; i++) {
+    h = Math.imul(h ^ text.charCodeAt(i), 0x01000193);
+  }
+  return (h >>> 0).toString(36);
+}
+
+/**
+ * The drawing code's fingerprint: its sources, and one small map drawn
+ * through all of it (helpers a source does not show still change the map).
+ */
+function mapsVersion(density: number) {
+  const probe = fold(
+    drawRefraction(12, 8, 6, density),
+    drawEdgeLight(12, 8, density),
+    12,
+  );
+  return hash(
+    [drawRefraction, drawEdgeLight, fold, pngDataUrl, rimShift]
+      .join("\n")
+      .concat(...PIECES.map((piece) => probe[piece])),
+  );
+}
+
+type Stored = { version: string; maps: Record<string, LensMaps> };
+
+function loadMaps(version: string): Map<string, LensMaps> {
+  try {
+    const stored = JSON.parse(
+      localStorage.getItem(STORE) ?? "null",
+    ) as Stored | null;
+    if (stored?.version === version && stored.maps) {
+      for (const { map } of Object.values(stored.maps)) {
+        for (const piece of PIECES) compacted.set(map[piece], map[piece]);
+      }
+      return new Map(Object.entries(stored.maps));
+    }
+  } catch {
+    // Storage blocked or the entry unreadable: draw afresh.
+  }
+  return new Map();
+}
+
+/** Each drawn piece, deflated for storage (pixels untouched). */
+const compacted = new Map<string, string>();
+
+async function saveMaps(version: string, maps: Map<string, LensMaps>) {
+  const kept: Record<string, LensMaps> = {};
+  let count = 0;
+  for (const [key, value] of maps) {
+    if (++count > STORE_LIMIT) break;
+    const map = {} as Pieces;
+    for (const piece of PIECES) {
+      const url = value.map[piece];
+      let small = compacted.get(url);
+      if (!small) {
+        small = await compactPng(url);
+        compacted.set(url, small);
+      }
+      map[piece] = small;
+    }
+    kept[key] = { slice: value.slice, map };
+  }
+  try {
+    localStorage.setItem(
+      STORE,
+      JSON.stringify({ version, maps: kept } satisfies Stored),
+    );
+  } catch {
+    // Full or blocked: the maps are drawn again next time.
+  }
+}
+
+const idle = (task: () => void) => {
+  if (typeof window.requestIdleCallback === "function") {
+    window.requestIdleCallback(task, { timeout: 2000 });
+  } else setTimeout(task, 200);
+};
 
 function startGlass(lensing: boolean) {
   const defs = document.createElementNS(SVG_NS, "svg");
@@ -122,7 +241,17 @@ function startGlass(lensing: boolean) {
   document.body.append(defs);
 
   const density = Math.min(window.devicePixelRatio || 1, 2);
-  const maps = new Map<string, LensMaps | null>();
+  const version = lensing ? `${mapsVersion(density)}@${density}` : "";
+  const maps = lensing ? loadMaps(version) : new Map<string, LensMaps>();
+  let saving = false;
+  function remember() {
+    if (saving) return;
+    saving = true;
+    idle(() => {
+      saving = false;
+      void saveMaps(version, maps);
+    });
+  }
   const lenses = new Map<Element, Lens>();
   const sizes = new WeakMap<Element, { width: number; height: number }>();
   // Pending hydration retries, cancelled with the rest on teardown.
@@ -130,12 +259,13 @@ function startGlass(lensing: boolean) {
   let count = 0;
 
   function mapsFor(key: string, slice: number, radius: number, bezel: number) {
-    if (maps.has(key)) return maps.get(key) ?? null;
+    const known = maps.get(key);
+    if (known) return known;
     const refraction = drawRefraction(slice, radius, bezel, density);
     const edge = drawEdgeLight(slice, radius, density);
-    const map = refraction && fold(refraction, edge, slice);
-    const value = map ? { slice, map } : null;
+    const value = { slice, map: fold(refraction, edge, slice) };
     maps.set(key, value);
+    remember();
     return value;
   }
 
@@ -143,6 +273,7 @@ function startGlass(lensing: boolean) {
     found: LensMaps,
     material: Material,
     bezel: number,
+    stain: number,
     key: string,
   ): Lens {
     const id = `liquid-lens-${++count}`;
@@ -284,7 +415,38 @@ function startGlass(lensing: boolean) {
       in: "glow",
       in2: clear ? "bent" : "frosted",
       operator: "over",
+      result: "glass",
     });
+    // The stain: the glass takes the page's hue and chroma ("color" blend)
+    // and keeps its own lightness, so every bend, the frost and the edge
+    // light stay while the slab reads as the page's colour. A tint laid on
+    // top would get there only by covering them. Partial: what lies behind
+    // keeps a share of its own colour.
+    let paper: SVGElement | null = null;
+    // Clear glass (a drop of water) stays clear.
+    if (stain > 0 && !clear) {
+      paper = set(filter, "feFlood", {
+        x: -margin,
+        y: -margin,
+        result: "paper",
+      });
+      paper.setAttribute("style", "flood-color: var(--page)");
+      set(filter, "feBlend", {
+        in: "paper",
+        in2: "glass",
+        mode: "color",
+        result: "stained",
+      });
+      set(filter, "feComposite", {
+        in: "stained",
+        in2: "glass",
+        operator: "arithmetic",
+        k1: 0,
+        k2: stain,
+        k3: 1 - stain,
+        k4: 0,
+      });
+    }
     return {
       key,
       filter,
@@ -292,6 +454,7 @@ function startGlass(lensing: boolean) {
       margin,
       map,
       flat,
+      paper,
       frost,
       material,
       width: -1,
@@ -312,6 +475,8 @@ function startGlass(lensing: boolean) {
     lens.filter.setAttribute("height", outer[1]!);
     lens.flat.setAttribute("width", outer[0]!);
     lens.flat.setAttribute("height", outer[1]!);
+    lens.paper?.setAttribute("width", outer[0]!);
+    lens.paper?.setAttribute("height", outer[1]!);
     if (lens.frost) {
       const deviation = String(frostFor(lens.material, width, height));
       if (lens.frost.getAttribute("stdDeviation") !== deviation) {
@@ -337,7 +502,11 @@ function startGlass(lensing: boolean) {
     element.style.removeProperty("--liquid-lens");
   }
 
-  function fit(element: HTMLElement) {
+  /**
+   * Reads what a surface's lens needs, or why it has none: no DOM writes, so
+   * every surface in a batch is read against one style and layout pass.
+   */
+  function read(element: HTMLElement): Reading | "drop" | "skip" {
     // Server-rendered markup React has not hydrated yet must stay as sent,
     // or hydration reports a mismatch; try again shortly.
     if (!hydrated(element)) {
@@ -346,24 +515,24 @@ function startGlass(lensing: boolean) {
         element,
         window.setTimeout(() => {
           timers.delete(element);
-          if (element.isConnected) fit(element);
+          if (element.isConnected) refit(element);
         }, HYDRATION_RETRY_MS),
       );
-      return;
+      return "skip";
     }
-    if (element.classList.contains(FLUID)) return;
+    if (element.classList.contains(FLUID)) return "skip";
     const size = sizes.get(element);
-    if (!size) return;
+    if (!size) return "skip";
     const { width, height } = size;
-    if (width < MIN_SIDE || height < MIN_SIDE) return;
-    const radius = Math.round(radiusOf(element, width, height) * 2) / 2;
-
+    if (width < MIN_SIDE || height < MIN_SIDE) return "skip";
     const name = materialOf(element);
-    if (!lensing || !name) {
-      dropLens(element);
-      return;
-    }
-    const { material, bezel: asked } = tuned(element, name);
+    if (!lensing || !name) return "drop";
+    return readSurface(element, name, width, height);
+  }
+
+  function apply(element: HTMLElement, reading: Reading) {
+    const { width, height, radius, name, material, stain } = reading;
+    const asked = reading.bezel;
     const bezel = Math.round(
       asked
         ? Math.min(asked, Math.min(width, height) / 2)
@@ -378,7 +547,7 @@ function startGlass(lensing: boolean) {
       ),
       Math.ceil(radius),
     );
-    const key = `${name}:${slice}r${radius}b${bezel}x${material.bend}`;
+    const key = `${name}:${slice}r${radius}b${bezel}x${material.bend}s${stain}`;
     let lens = lenses.get(element);
     if (lens?.key !== key) {
       const found = mapsFor(
@@ -388,26 +557,38 @@ function startGlass(lensing: boolean) {
         bezel,
       );
       if (lens) lens.filter.remove();
-      if (!found) {
-        lenses.delete(element);
-        element.style.removeProperty("--liquid-lens");
-        return;
-      }
-      lens = buildLens(found, material, bezel, key);
+      lens = buildLens(found, material, bezel, stain, key);
       lenses.set(element, lens);
       // Tone first (saturation, brightness); the lens bends, frosts and
-      // lights the edge itself.
+      // lights the edge itself. Clear glass takes no tone: it lies over
+      // text, and the lifted levels would wash the ink under it to grey.
       element.style.setProperty(
         "--liquid-lens",
-        `var(--liquid-lens-tone) url(#${lens.filter.id})`,
+        material.frost.large === 0
+          ? `url(#${lens.filter.id})`
+          : `var(--liquid-lens-tone) url(#${lens.filter.id})`,
       );
     }
     place(lens, width, height);
   }
 
+  /** Fits a batch of surfaces: every read first, then every write. */
+  function fit(elements: Iterable<HTMLElement>) {
+    const readings: [HTMLElement, Reading | "drop"][] = [];
+    for (const element of elements) {
+      const reading = read(element);
+      if (reading !== "skip") readings.push([element, reading]);
+    }
+    for (const [element, reading] of readings) {
+      if (reading === "drop") dropLens(element);
+      else apply(element, reading);
+    }
+  }
+
   // Fires after layout and before paint, on every frame a surface resizes:
   // the lens follows the size in the frame it changes.
   const observer = new ResizeObserver((entries) => {
+    const resized: HTMLElement[] = [];
     for (const entry of entries) {
       const element = entry.target as HTMLElement;
       const box = entry.borderBoxSize[0];
@@ -415,9 +596,21 @@ function startGlass(lensing: boolean) {
         width: box ? box.inlineSize : element.offsetWidth,
         height: box ? box.blockSize : element.offsetHeight,
       });
-      fit(element);
+      resized.push(element);
     }
+    fit(resized);
   });
+
+  /**
+   * Fits a surface again in the coming frame, after its layout and before
+   * its paint: observed anew, the ResizeObserver reports it there, where its
+   * style is read for free instead of forced mid-task.
+   */
+  function refit(element: Element) {
+    if (!watched.has(element)) return;
+    observer.unobserve(element);
+    observer.observe(element, { box: "border-box" });
+  }
 
   const watched = new WeakSet<Element>();
   function observe(element: Element) {
@@ -446,6 +639,7 @@ function startGlass(lensing: boolean) {
 
   watch(document);
   const additions = new MutationObserver((records) => {
+    const changed = new Set<Element>();
     for (const record of records) {
       for (const node of record.removedNodes) {
         if (node instanceof Element) release(node);
@@ -458,10 +652,11 @@ function startGlass(lensing: boolean) {
         if (target.matches(SELECTOR)) {
           observe(target);
           // A class or material change can turn the lens on or off.
-          fit(target);
+          changed.add(target);
         }
       }
     }
+    for (const element of changed) refit(element);
   });
   additions.observe(document.body, {
     // What can change a surface's glass without resizing it: its classes,

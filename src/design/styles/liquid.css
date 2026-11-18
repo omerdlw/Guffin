@@ -20,12 +20,30 @@
    .liquid-flat   no shadow (the contour stays): a control laid on a page or
                   a picture, or sitting inside another layer.
 
-   No white glint on the rim: it tired the eye on every edge. The rim reads
-   by its bend and by the scene's own colours caught in it.
+   Light (.liquid, a control on the page, .rim): a key light up and to the
+   left, a weaker fill back from the lower right. The rim is lit by where
+   each stretch of edge faces: the conic below runs round the shape from the
+   upper left (key) through the upper right (shade) to the lower right
+   (fill) and the lower left (shade). A field cannot carry the pseudo-element
+   and takes the same two lights as offset inset shadows.
 
    Values per theme live in themes.css (--liquid-*). Components drop their
    bg-*, ring-* and backdrop-* classes when they take the material: a ring
    utility would replace the material's box-shadow. */
+
+/* A lens's rim and strength belong to that one surface: a thumb inside the
+   dock's shelf must not take the shelf's wide rim. Unset reads 0 (the
+   material's own). */
+@property --liquid-bezel {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+@property --liquid-bend {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
 
 @layer components {
   .liquid {
@@ -47,6 +65,41 @@
 
   .liquid-flat {
     --liquid-drop: 0 0 #0000;
+  }
+
+  /* The rim. A ring as wide as --rim-width, cut out of a conic laid round
+     the shape, so the light runs along the edge the way it would round a
+     lit glass bead. */
+  :is(.liquid, .rim)::after,
+  .liquid-control:not(
+      input,
+      textarea,
+      :where(.dock-root, .liquid, [role="dialog"]) *
+    )::after {
+    background: conic-gradient(
+      from 315deg,
+      var(--rim-key) 0deg,
+      var(--rim-shade) 75deg 105deg,
+      var(--rim-fill) 180deg,
+      var(--rim-shade) 255deg 285deg,
+      var(--rim-key) 360deg
+    );
+    border-radius: inherit;
+    content: "";
+    inset: 0;
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box exclude,
+      linear-gradient(#000 0 0);
+    padding: var(--rim-width);
+    pointer-events: none;
+    position: absolute;
+  }
+  .rim {
+    position: relative;
   }
 
   @media (prefers-reduced-transparency: reduce) {
@@ -73,8 +126,8 @@
 
 /* Controls made of glass (buttons, a select's trigger, a field, a segmented
    control's track) lying on the page. There is nothing to bend behind them,
-   so they take no lens and no frost: a light glass, a bevel lit from above
-   and the contour. Inside a glass layer (the dock, a modal, a menu) they keep
+   so they take no lens and no frost: a light glass, the lit rim and the
+   contour. Inside a glass layer (the dock, a modal, a menu) they keep
    their fill: never glass on glass.
 
    Unlayered on purpose: the material replaces the fill and ring utilities a
@@ -91,8 +144,9 @@
     display: none;
   }
 
+  /* A segmented track stays put under the pointer: its indicator answers. */
   @media (hover: hover) {
-    &:hover {
+    &:hover:not([role="tablist"]) {
       background-color: var(--glass-control-hover);
     }
   }
@@ -103,10 +157,20 @@
       var(--glass-control-contour), var(--glass-control-bevel),
       var(--glass-control-focus);
   }
+  &:is(input, textarea) {
+    box-shadow:
+      var(--glass-control-contour),
+      var(--glass-control-bevel),
+      inset 1px 1px 0 var(--rim-key),
+      inset -1px -1px 0 var(--rim-fill);
+  }
   &:is(input, textarea):focus {
     background-color: var(--glass-control-hover);
     box-shadow:
-      var(--glass-control-contour), var(--glass-control-bevel),
+      var(--glass-control-contour),
+      var(--glass-control-bevel),
+      inset 1px 1px 0 var(--rim-key),
+      inset -1px -1px 0 var(--rim-fill),
       var(--glass-control-focus);
   }
   &:is(button, a[href], [role="button"]):active {

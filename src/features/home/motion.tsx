@@ -43,16 +43,16 @@ const beat = (n: number) => Math.round(PHI ** n * 1000) / 1000;
 const STAGGER = { char: 0.034, word: 0.055, item: 0.089, row: 0.144 };
 
 // Curves from φ's fractions (0.146, 0.236, 0.382, 0.618, 0.854).
-// Settle: arrives quickly and spends its long tail coming to rest.
-const SETTLE: Curve = [0.236, 1, 0.382, 1];
+// Settle: gathers softly, never with a jolt, and spends its long tail coming to rest.
+const SETTLE: Curve = [0.236, 0.382, 0.146, 1];
 // Develop: a slow start and a long, even resolve, for pictures.
 const DEVELOP: Curve = [0.382, 0, 0.146, 1];
 // Sweep: in and out on the same breath, for travel the eye follows.
 const SWEEP: Curve = [0.618, 0, 0.382, 1];
 // Leave: gathers, then goes.
 const LEAVE: Curve = [0.618, 0, 0.854, 0.382];
-// Touch: answers at once and eases into place.
-const TOUCH: Curve = [0.146, 1, 0.382, 1];
+// Touch: eased at both ends, so a touch never starts with a jolt (the same curve as --soft-ease).
+const TOUCH: Curve = [0.382, 0.236, 0.146, 1];
 // Press: direct.
 const PRESS: Curve = [0.382, 0, 0.236, 1];
 
@@ -72,7 +72,7 @@ const reveal = (from: Look, more: Partial<Enter> = {}): Enter => ({
   ...more,
 });
 
-const press = { scale: 0.96, duration: beat(-4), ease: PRESS };
+const press = { scale: 0.96, duration: beat(-3), ease: PRESS };
 
 const lift: Moves = {
   hover: { y: -8, duration: beat(-1), ease: TOUCH },
@@ -123,6 +123,10 @@ const flicker = (enter: (from: Look) => Enter) => ({
 
 const HOME = defineStage({
   scope: "home",
+  // Cinematic: every entrance half a beat slower (√φ) and a Fibonacci step
+  // farther (φ), so it is felt, not glimpsed.
+  tempo: 1.272,
+  reach: 1.618,
   scroll: { period: beat(0), gain: beat(-1) },
   glide: { duration: beat(1), ease: SWEEP },
   motion: {
@@ -407,7 +411,7 @@ export function HomeStage({
   const lighting = useMemo(() => ({ lead: setLead }), []);
 
   return (
-    <HomeStageRoot grade={lead ?? ambientImage(backdrop)}>
+    <HomeStageRoot light={lead ?? ambientImage(backdrop)}>
       <Room black />
       <LightContext value={lighting}>{children}</LightContext>
     </HomeStageRoot>

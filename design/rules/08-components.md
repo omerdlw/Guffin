@@ -53,6 +53,12 @@ menu: `rounded-sheet`).
 Controls lying on the page are glass too (`liquid-control`, section 10.4);
 inside a layer they keep their fill. Never glass on glass.
 
+**Inside the dock there is one control tone.** `.dock-root` (themes.css)
+points `--fill`, `--fill-hover` and `--edge` at the well
+(`--liquid-well`, `--liquid-well-hover`, `--liquid-well-edge`), so a field,
+a segmented track, a select, a sheet of rows and a tile are the same white
+behind the same hairline. Don't give a dock control its own tone.
+
 **Layer motion**: the dock and its surfaces are choreographed; modal, menu
 and toast still open and close in one cut (section 6.8).
 
@@ -70,6 +76,20 @@ and toast still open and close in one cut (section 6.8).
 - **Tiles and rows carry no ring.** A tile or row is a `WELL`
   (`tileVariants`, `rowVariants`); only a chosen row takes the grade ring
   (`rowVariants({ intent: "chosen" })`). Rings stay on fields and buttons.
+- **Surfaces don't share one look.** Pick the shape that fits the content
+  rather than stacking a card per row:
+  - _A list of people or things_ (follows, notifications, the settings
+    overview) is **one sheet**: `SURFACE_GROUP` holds `groupRowVariants()` rows
+    that share one hover (`useHighlight(key, GROUP_HIGHLIGHT)`); people sit in
+    round avatars. A long overview splits into sheets under `TONE.label`
+    names.
+  - _One choice among a few_ (a show's status) is a **grid of tiles**
+    (`choiceVariants`, content in `CHOICE_BODY`): glyph above, name below; the
+    chosen tile is the grade itself. What the choice means is one caption
+    under the grid, not a line in every tile.
+  - _Things with pictures_ (lists) are **cards with covers** in a two-column
+    grid; chosen wears the grade ring and a check on the cover.
+  - _Empty or failed_ is a centred note (`StatusTile`), never a row.
 - **Text in a tile** is a title over a meta line with no gap (`SURFACE_TEXT`).
 - **Radius inside a tile:** buttons and icon tiles are `rounded-inset`.
 - **A list of rows shares one hover.** `HighlightGroup` and `useHighlight`

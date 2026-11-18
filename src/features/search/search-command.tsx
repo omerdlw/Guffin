@@ -2,6 +2,7 @@
 
 import {
   type ComponentType,
+  type ReactNode,
   useCallback,
   useEffect,
   useMemo,
@@ -15,13 +16,20 @@ import { REGISTRY_SOURCES } from "@omerdlw/base-framework/kernel";
 import { report } from "@omerdlw/base-framework/utils";
 import { usePathname } from "next/navigation";
 import { useDockCommands } from "@/design/dock-commands";
-import { preloadOnIntent } from "@/design/lazy-surface";
+import { preloadOnIntent, useAheadOfOpen } from "@/design/lazy-surface";
 
 // The dock's search button, on every page. The search itself (its drawer,
 // results and their stages) loads on the first sign of a person at the page,
 // as the dock surfaces do, so a page that is only read never downloads it.
+// Its stylesheet goes in once it has loaded, in an idle moment: put in as the
+// search opens, it would restyle every animated element in that frame.
 
 type SearchActionComponent = ComponentType<{ onClose?: () => void }>;
+
+interface SearchModule {
+  SearchAction: SearchActionComponent;
+  SearchStyle: ComponentType;
+}
 
 const SEARCH_ICON = "solar:magnifer-linear";
 
@@ -36,11 +44,11 @@ const SEARCH_REGISTRATION = {
   source: REGISTRY_SOURCES.DYNAMIC,
 } as const;
 
-let pending: Promise<SearchActionComponent> | null = null;
+let pending: Promise<SearchModule> | null = null;
 
 function loadSearchAction() {
   pending ??= import("./search-action").then(
-    (module) => module.SearchAction,
+    ({ SearchAction, SearchStyle }) => ({ SearchAction, SearchStyle }),
     (error: unknown) => {
       pending = null;
       throw error;
@@ -49,22 +57,24 @@ function loadSearchAction() {
   return pending;
 }
 
-export function SearchDockCommand(): null {
+export function SearchDockCommand(): ReactNode {
   const pathname = usePathname();
   const [openPath, setOpenPath] = useState<string | null>(null);
-  const [SearchAction, setSearchAction] =
-    useState<SearchActionComponent | null>(null);
+  const [loaded, setLoaded] = useState<SearchModule | null>(null);
+  const ahead = useAheadOfOpen();
+  const SearchAction = loaded?.SearchAction ?? null;
   const open = openPath === pathname && SearchAction !== null;
   const frontPath = useDockSelector((state) => state.activeItem?.path ?? null);
 
-  useEffect(() => {
-    const keep = (action: SearchActionComponent) =>
-      setSearchAction(() => action);
-    return preloadOnIntent(
-      [{ preload: () => loadSearchAction().then(keep) }],
-      window,
-    );
-  }, []);
+  useEffect(
+    () =>
+      preloadOnIntent(
+        [{ preload: () => loadSearchAction().then(setLoaded) }],
+        window,
+      ),
+    [],
+  );
+
 
   const toggle = useCallback(() => {
     if (openPath === pathname) {
@@ -73,8 +83,8 @@ export function SearchDockCommand(): null {
     }
     // Opens once the search has loaded; on intent it already has.
     loadSearchAction().then(
-      (action) => {
-        setSearchAction(() => action);
+      (module) => {
+        setLoaded(module);
         setOpenPath(pathname);
       },
       (error: unknown) => report("SearchDockCommand", error),
@@ -109,5 +119,6 @@ export function SearchDockCommand(): null {
   );
 
   useDockCommands(actions);
-  return null;
+  const SearchStyle = ahead ? loaded?.SearchStyle : null;
+  return SearchStyle ? <SearchStyle /> : null;
 }

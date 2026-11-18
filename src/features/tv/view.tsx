@@ -479,7 +479,7 @@ export async function ShowPageContent({
         <MovieViewProvider>
           <ShowPageChrome palette={palette} reviews {...showChrome(show)} />
           <ReelProvider>
-            <MovieStage movie={art}>
+            <MovieStage>
               <DetailReviewsLayout
                 backdrop={
                   backdrop ? (
@@ -521,7 +521,7 @@ export async function ShowPageContent({
       <MovieViewProvider>
         <ShowPageChrome palette={palette} {...showChrome(show)} />
         <ReelProvider>
-          <MovieStage movie={art}>
+          <MovieStage>
             <DetailLayout
               after={
                 <>

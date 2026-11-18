@@ -1,3 +1,4 @@
+import { DockClear } from "@/design/components/dock-clear";
 import type { JSX } from "react";
 import { BackdropHeroSkeleton } from "@/design/components/backdrop";
 import {
@@ -183,6 +184,7 @@ export function PersonSkeleton(): JSX.Element {
       className={`overflow-x-clip ${PAGE_CLASS}`}
       data-cinematic
     >
+      <DockClear extra="2rem" />
       <div className={CONTAINER_CLASS}>
         <div className="relative">
           <BackdropHeroSkeleton />

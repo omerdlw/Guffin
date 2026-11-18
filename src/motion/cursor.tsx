@@ -928,7 +928,7 @@ function Reticle() {
     <div
       aria-hidden="true"
       data-reticle=""
-      className="pointer-events-none fixed inset-0 [--liquid-drop:0_1px_3px_rgb(0_0_0/0.2),0_6px_16px_-6px_rgb(0_0_0/0.3)] overflow-hidden opacity-0 [@media(hover:none),(pointer:coarse)]:hidden"
+      className="pointer-events-none fixed inset-0 [--liquid-drop:0_1px_3px_rgb(0_0_0/0.2),0_6px_16px_-6px_rgb(0_0_0/0.3)] [--liquid-lens-tone:saturate(1)] [--liquid-tint:transparent] overflow-hidden opacity-0 [@media(hover:none),(pointer:coarse)]:hidden"
       ref={root}
       style={{ zIndex: Z_INDEX.TOOLTIP + 20 }}
     >
@@ -936,15 +936,16 @@ function Reticle() {
         className="absolute top-0 left-0 flex items-center justify-center will-change-transform"
         ref={body}
       >
+        {/* Pure glass throughout: no tint, no tone, only the bend and the rim. */}
         {/* Idle: a drop of clear glass that bends what lies under it. */}
         <span
-          className="liquid liquid-clear absolute [--liquid-tint:rgb(255_255_255/0.03)] top-1/2 left-1/2 size-[34px] rounded-full"
+          className="liquid liquid-clear absolute top-1/2 left-1/2 size-[34px] rounded-full"
           ref={bead}
           style={{ transform: "translate(-50%, -50%)" }}
         />
         {/* Over a control: the drop spreads into a pane hugging it. */}
         <span
-          className="liquid liquid-fluid absolute inset-0 rounded-[inherit] [--liquid-tint:rgb(var(--ink-rgb)/0.05)]"
+          className="liquid liquid-fluid absolute inset-0 rounded-[inherit]"
           ref={sheet}
           style={{ opacity: 0 }}
         />
@@ -952,7 +953,7 @@ function Reticle() {
             so it gets a real lens: the picture bends at the rim and most
             at the corners, and stays still in the middle. */}
         <span
-          className="liquid liquid-clear liquid-prism liquid-flat absolute inset-0 [--liquid-bend:0.32] [--liquid-bezel:10] [--liquid-lens-tone:saturate(1)] [--liquid-tint:transparent]"
+          className="liquid liquid-clear liquid-prism liquid-flat absolute inset-0 [--liquid-bend:0.32] [--liquid-bezel:10]"
           ref={lensSheet}
           style={{ opacity: 0 }}
         />

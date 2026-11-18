@@ -1,3 +1,4 @@
+import { DockClear } from "@/design/components/dock-clear";
 import type { JSX, ReactNode } from "react";
 import { Icon } from "@/design/components/icon";
 import { FactLink } from "@/design/components/link";
@@ -208,6 +209,7 @@ export function DetailLayout({
       className={`${className} ui-scene overflow-x-clip ${PAGE_CLASS}`}
       data-cinematic=""
     >
+      <DockClear extra="2rem" />
       {intermission}
       <DetailWallStage cue="wall" wall={wall}>
         <div className={CONTAINER_CLASS}>
@@ -314,6 +316,7 @@ export function DetailReviewsLayout({
       className={`${className} ui-scene overflow-x-clip ${PAGE_CLASS}`}
       data-cinematic=""
     >
+      <DockClear extra="2rem" />
       {intermission}
       <DetailWallStage cue="wall" wall={null}>
         <div className={CONTAINER_CLASS}>

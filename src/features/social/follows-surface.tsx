@@ -29,12 +29,14 @@ import {
   useSurfaceSearch,
 } from "@/design/components/surface";
 import {
+  GROUP_HIGHLIGHT,
+  groupRowVariants,
+  SURFACE_GROUP,
   SURFACE_META,
   SURFACE_SCROLL,
   SURFACE_TEXT,
   SURFACE_TILE_INNER,
   SURFACE_TITLE,
-  tileVariants,
 } from "@/design/components/surface-classes";
 import { defineSurface } from "@/design/surface-definition";
 import { cn } from "@/design/ui";
@@ -89,7 +91,7 @@ const SOCIAL_TAB_LABELS: Record<SocialTab, string> = {
 
 const SOCIAL_BUTTON = "min-w-[5.5rem]";
 
-const SOCIAL_ROW = tileVariants({ className: "w-full pr-2" });
+const SOCIAL_ROW = groupRowVariants();
 
 function socialErrorMessage(error: unknown, tab: SocialTab): string {
   const status = (error as { status?: number } | null)?.status;
@@ -107,15 +109,13 @@ function socialErrorMessage(error: unknown, tab: SocialTab): string {
 function LoadingRow() {
   return (
     <div className={SOCIAL_ROW}>
-      <div
-        className={`${SKELETON.block} size-10 shrink-0 ${SURFACE_TILE_INNER}`}
-      />
+      <div className={`${SKELETON.block} size-10 shrink-0 rounded-full`} />
       <div className="flex min-w-0 flex-1 flex-col justify-center gap-1.5">
         <div className={cn(SKELETON.block, "h-3 w-28 rounded-full")} />
         <div className={cn(SKELETON.block, "h-2.5 w-16 rounded-full")} />
       </div>
       <div
-        className={`${SKELETON.block} h-control-chrome w-[5.5rem] shrink-0 rounded-thumb`}
+        className={`${SKELETON.block} h-control-sm w-[5.5rem] shrink-0 rounded-full`}
       />
     </div>
   );
@@ -159,13 +159,10 @@ const UserRow = memo(function UserRow({
   onNavigate?: () => void;
   user: FollowUser;
 }) {
-  const highlight = useHighlight(user.id);
+  const highlight = useHighlight(user.id, GROUP_HIGHLIGHT);
 
   return (
-    <div
-      className={`${SOCIAL_ROW} relative isolate group/user`}
-      {...highlight.props}
-    >
+    <div className={`${SOCIAL_ROW} group/user`} {...highlight.props}>
       {highlight.node}
       <Link
         className={`relative z-10 flex h-full min-w-0 flex-1 items-center gap-3 ${SURFACE_TILE_INNER}`}
@@ -228,8 +225,8 @@ const UserAction = memo(function UserAction({
         aria-label={label}
         className={SOCIAL_BUTTON}
         intent={intent}
-        shape="thumb"
-        size="chrome"
+        shape="pill"
+        size="sm"
         disabled={busy}
         loading={pending === action}
         onClick={() => void act(action)}
@@ -262,8 +259,8 @@ const UserAction = memo(function UserAction({
       aria-label={requested ? "Requested" : "Follow"}
       className={SOCIAL_BUTTON}
       intent={requested ? "ghost" : "primary"}
-      shape="thumb"
-      size="chrome"
+      shape="pill"
+      size="sm"
       disabled={busy || requested}
       onClick={() => act("follow")}
     >
@@ -443,7 +440,7 @@ function AccountSocialSurface({
   if (active.loading) {
     view = "loading";
     body = (
-      <SurfacePart className="flex w-full flex-col gap-2.5" name="item">
+      <SurfacePart className={SURFACE_GROUP} name="item">
         {Array.from({ length: 4 }, (_, index) => (
           <LoadingRow key={index} />
         ))}
@@ -460,7 +457,7 @@ function AccountSocialSurface({
     const more = Boolean(active.next || active.loadingMore);
     view = more ? "searching" : "none";
     body = more ? (
-      <SurfacePart className="flex w-full flex-col gap-2.5" name="item">
+      <SurfacePart className={SURFACE_GROUP} name="item">
         <LoadingRow />
       </SurfacePart>
     ) : (
@@ -479,7 +476,7 @@ function AccountSocialSurface({
         className={`${SURFACE_SCROLL} max-h-[min(56dvh,26rem)] w-full touch-pan-y`}
         data-scroll-native
       >
-        <HighlightGroup className="flex w-full flex-col gap-2.5">
+        <HighlightGroup className={SURFACE_GROUP}>
           {search.matches.map((user, index) => (
             <SurfacePart index={index} key={user.id} name="row">
               <UserRow

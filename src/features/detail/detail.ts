@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import type { MediaCardAspect } from "@/design/components/media-card";
 import type { Awards } from "@/lib/tmdb/shared";
 
-export type AwardsGrouping = "organizations" | "projects" | "timeline";
+export type AwardsGrouping = "board" | "organizations" | "timeline";
 
 export interface WallPicture {
   crossOrigin?: "anonymous";

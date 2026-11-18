@@ -2,6 +2,7 @@ import "server-only";
 
 import { cache } from "react";
 import {
+  AMBIENT_ANALYSIS_VERSION,
   AmbientDecoderMissingError,
   type AmbientPalette,
   extractAmbientPalette,
@@ -14,6 +15,7 @@ import type { PublicAccount } from "@/features/account/account";
 import { getPublicAccount } from "@/features/account/server";
 import { getOptionalUser } from "@/features/auth/server";
 import { type MutualFollowers, toPerson } from "@/features/social/social";
+import { AMBIENT_ANALYSIS } from "@/lib/ambient";
 import { isPublicHttps, pinnedFetch } from "@/lib/security";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { ProfileClient } from "./profile";
@@ -72,7 +74,7 @@ const EMPTY_HEADER: AccountHeader = {
   mutual: null,
 };
 
-const PALETTE_VERSION = "account-ambient";
+const PALETTE_VERSION = `account-ambient-v${AMBIENT_ANALYSIS_VERSION}-${AMBIENT_ANALYSIS.ground}`;
 
 const PALETTE_TIMEOUT_MS = 3_000;
 
@@ -188,6 +190,7 @@ const readPalette = unstable_cache(
   async (url: string): Promise<AmbientPalette> => {
     const palette = await extractAmbientPalette(url, {
       allow: isPublicHttps,
+      analysis: AMBIENT_ANALYSIS,
       fetch: pinnedFetch,
       maxBytes: PALETTE_MAX_BYTES,
       timeoutMs: PALETTE_TIMEOUT_MS,

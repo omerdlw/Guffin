@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  type CSSProperties,
   type FormEvent,
   type JSX,
   memo,
@@ -10,13 +9,7 @@ import {
   useState,
 } from "react";
 import { useToast } from "@omerdlw/base-framework/notification";
-import {
-  Button,
-  CheckboxIndicator,
-  HighlightGroup,
-  Image,
-  useHighlight,
-} from "@omerdlw/base-framework/ui";
+import { Button, Image, Spinner } from "@omerdlw/base-framework/ui";
 import { report, toUserMessage } from "@omerdlw/base-framework/utils";
 import { ActionIcon } from "@/design/components/action-content";
 import { Icon } from "@/design/components/icon";
@@ -28,16 +21,13 @@ import {
   SurfaceSwap,
 } from "@/design/components/surface";
 import {
-  rowVariants,
   SURFACE_META,
   SURFACE_SCROLL,
   SURFACE_STACK,
-  SURFACE_TEXT,
-  SURFACE_TILE_END,
-  SURFACE_TILE_INNER,
   SURFACE_TITLE,
-  tileVariants,
 } from "@/design/components/surface-classes";
+import { WELL, WELL_HOVER } from "@/design/foundations/tones";
+import { variants } from "@/design/foundations/variants";
 import { defineSurface } from "@/design/surface-definition";
 import { cn, ui } from "@/design/ui";
 import { pluralize } from "@/lib/format";
@@ -60,24 +50,25 @@ interface ListPickerData {
   movieId: number;
 }
 
-const PREVIEW_STACK = 3;
+const COVER_POSTERS = 3;
 
-const PREVIEW_PEEK = 6;
+const LIST_GRID = "grid grid-cols-2 gap-2.5";
 
-const PREVIEW_STEP = 8;
-
-const PREVIEW_STACK_WIDTH = 40 + PREVIEW_PEEK * (PREVIEW_STACK - 1);
-
-function stackCard(index: number): CSSProperties {
-  const height = 60 - index * PREVIEW_STEP;
-  return {
-    height: `${height}px`,
-    left: `${index * PREVIEW_PEEK}px`,
-    top: `${(60 - height) / 2}px`,
-    width: "40px",
-    zIndex: PREVIEW_STACK - index,
-  };
-}
+// A list is shown by its cover: its first three posters side by side under
+// one radius, its name and count below. A chosen list wears the grade ring
+// and a check on its cover.
+const listCardVariants = variants(
+  "group relative isolate flex h-auto w-full cursor-pointer flex-col items-stretch justify-start gap-2 rounded-card p-1.5 pb-2.5 text-left select-none outline-none disabled:cursor-wait",
+  {
+    variants: {
+      chosen: {
+        false: `${WELL} ${WELL_HOVER} text-ink-body hover:text-ink focus-visible:text-ink`,
+        true: `${WELL} text-ink ring-2 ring-grade ring-inset`,
+      },
+    },
+    defaultVariants: { chosen: false },
+  },
+);
 
 export const listPickerSurface = defineSurface<{ data: ListPickerData }>({
   component: ListPickerSurface,
@@ -89,66 +80,36 @@ export const listPickerSurface = defineSurface<{ data: ListPickerData }>({
   title: "Your Lists",
 });
 
-function PreviewCard({
-  index,
-  poster,
-}: {
-  index: number;
-  poster: string | undefined;
-}): JSX.Element {
-  const src = poster ? tmdbImageUrl("poster", poster, "original") : null;
+function ListCover({ list }: { list: MovieListSummary }): JSX.Element {
+  const posters = previewPosters(list).slice(0, COVER_POSTERS);
 
   return (
-    <div
-      className={cn(
-        "absolute overflow-hidden",
-        SURFACE_TILE_INNER,
-        poster ? "bg-page ring-1 ring-inset ring-edge-hover" : "bg-fill-hover",
-      )}
-      style={stackCard(index)}
-    >
-      {!poster ? (
-        <div className="center size-full text-ink-muted">
-          <Icon icon="solar:folder-bold" size={18} />
-        </div>
-      ) : src ? (
-        <Image
-          alt=""
-          className="size-full object-cover select-none pointer-events-none"
-          decoding="async"
-          loading="lazy"
-          src={src}
-          wrapperClassName="size-full bg-fill"
-        />
-      ) : (
-        <div className="center size-full bg-fill text-ink-faint">
-          <Icon icon="solar:filmstrip-bold" size={14} />
-        </div>
-      )}
-    </div>
+    <span className="grid aspect-[2/1] w-full grid-cols-3 gap-px overflow-hidden rounded-inset bg-fill">
+      {Array.from({ length: COVER_POSTERS }, (_, index) => {
+        const src = tmdbImageUrl("poster", posters[index], "original");
+        return src ? (
+          <Image
+            alt=""
+            className="size-full object-cover select-none pointer-events-none"
+            decoding="async"
+            key={index}
+            loading="lazy"
+            src={src}
+            wrapperClassName="size-full bg-fill"
+          />
+        ) : (
+          <span className="center size-full bg-fill text-ink-faint" key={index}>
+            {index === 1 && posters.length === 0 ? (
+              <Icon icon="solar:folder-bold" size={18} />
+            ) : null}
+          </span>
+        );
+      })}
+    </span>
   );
 }
 
-const ListPreviewStack = memo(function ListPreviewStack({
-  list,
-}: {
-  list: MovieListSummary;
-}): JSX.Element {
-  const posters = previewPosters(list).slice(0, PREVIEW_STACK);
-
-  return (
-    <div
-      className="relative z-10 h-[60px] shrink-0 select-none"
-      style={{ width: `${PREVIEW_STACK_WIDTH}px` }}
-    >
-      {Array.from({ length: Math.max(posters.length, 1) }, (_, index) => (
-        <PreviewCard index={index} key={index} poster={posters[index]} />
-      ))}
-    </div>
-  );
-});
-
-const ListRow = memo(function ListRow({
+const ListCard = memo(function ListCard({
   inList,
   list,
   onToggle,
@@ -159,88 +120,54 @@ const ListRow = memo(function ListRow({
   onToggle: () => void;
   pending: boolean;
 }): JSX.Element {
-  const highlight = useHighlight(list.id);
-  const detail = pluralize(list.itemsCount, "film");
-
   return (
     <Button
+      aria-busy={pending || undefined}
       aria-pressed={inList}
-      className={rowVariants({
-        className: "pr-[22px]",
-        intent: inList ? "chosen" : "neutral",
-      })}
+      className={listCardVariants({ chosen: inList })}
       disabled={pending}
       onClick={onToggle}
-      {...highlight.props}
     >
-      {highlight.node}
-      <ListPreviewStack list={list} />
-
-      <div className={cn(SURFACE_TEXT, "relative z-10")}>
-        <p className={SURFACE_TITLE}>{list.title}</p>
-        {list.description ? (
-          <p className={cn(SURFACE_META, "text-ink-body")}>
-            {list.description}
-          </p>
+      <span className="relative block w-full">
+        <ListCover list={list} />
+        {pending || inList ? (
+          <span className="absolute top-1.5 right-1.5 center size-6 rounded-full bg-grade text-on-accent">
+            {pending ? (
+              <Spinner size={12} />
+            ) : (
+              <Icon icon="solar:check-read-linear" size={14} />
+            )}
+          </span>
         ) : null}
-        <p className={cn(SURFACE_META, "flex items-center gap-1.5")}>
-          {list.isPrivate ? (
-            <>
-              <Icon icon="solar:lock-bold" size={12} />
-              <span>Private</span>
-              <span aria-hidden="true">·</span>
-            </>
-          ) : null}
-          <span>{detail}</span>
-        </p>
-      </div>
-
-      <CheckboxIndicator checked={inList} pending={pending} reveal />
+      </span>
+      <span className="flex w-full min-w-0 flex-col px-1.5">
+        <span className={SURFACE_TITLE}>{list.title}</span>
+        <span className={cn(SURFACE_META, "flex items-center gap-1.5")}>
+          {list.isPrivate ? <Icon icon="solar:lock-bold" size={12} /> : null}
+          {pluralize(list.itemsCount, "film")}
+        </span>
+      </span>
     </Button>
   );
 });
 
 function LoadingListSkeleton(): JSX.Element {
   return (
-    <div className="flex w-full flex-col gap-2.5">
-      {Array.from({ length: 3 }, (_, index) => (
+    <div className={LIST_GRID}>
+      {Array.from({ length: 4 }, (_, index) => (
         <div
-          key={index}
           className={cn(
-            tileVariants(),
-            SURFACE_TILE_END,
-            "w-full",
+            listCardVariants(),
+            "pointer-events-none",
             SKELETON.pulse,
           )}
+          key={index}
         >
-          <div
-            className="relative h-[60px] shrink-0"
-            style={{ width: `${PREVIEW_STACK_WIDTH}px` }}
-          >
-            {Array.from({ length: PREVIEW_STACK }, (_, stackIndex) => (
-              <div
-                key={stackIndex}
-                className={cn(
-                  "absolute overflow-hidden bg-fill-hover ring-1 ring-edge ring-inset",
-                  SURFACE_TILE_INNER,
-                )}
-                style={{
-                  ...stackCard(stackIndex),
-                  opacity: 1 - stackIndex * 0.22,
-                }}
-              />
-            ))}
-          </div>
-          <div className={SURFACE_TEXT}>
+          <div className="aspect-[2/1] w-full rounded-inset bg-fill-hover" />
+          <div className="flex flex-col gap-1.5 px-1.5">
             <div className={cn(SKELETON.block, "h-3.5 w-3/5 rounded-full")} />
             <div className={cn(SKELETON.soft, "h-2.5 w-2/5 rounded-full")} />
           </div>
-          <div
-            className={cn(
-              SKELETON.soft,
-              "size-6 shrink-0 rounded-full ring-1 ring-edge ring-inset",
-            )}
-          />
         </div>
       ))}
     </div>
@@ -308,10 +235,10 @@ function ListShelf({
   }
 
   return (
-    <HighlightGroup className="flex flex-col gap-2.5">
+    <div className={LIST_GRID}>
       {library.lists.map((list, index) => (
         <SurfacePart index={index} key={list.id} name="row">
-          <ListRow
+          <ListCard
             inList={library.memberships.has(list.id)}
             list={list}
             onToggle={() => onToggle(list)}
@@ -319,7 +246,7 @@ function ListShelf({
           />
         </SurfacePart>
       ))}
-    </HighlightGroup>
+    </div>
   );
 }
 

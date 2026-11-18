@@ -22,15 +22,15 @@ import {
 
 const notificationMotion: NotificationMotion = {
   transition: {
-    transform: spring(beat(-1)),
-    opacity: tween(beat(-3), SETTLE),
+    transform: spring(beat(0)),
+    opacity: tween(beat(-2), SETTLE),
   },
   toast: {
     hidden: away(TRAVEL.rise),
     visible: here(),
     exit: {
       ...away(-TRAVEL.nudge),
-      transition: tween(beat(-3), LEAVE),
+      transition: tween(beat(-2), LEAVE),
     },
   },
 };

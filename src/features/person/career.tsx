@@ -1,11 +1,7 @@
 "use client";
 
 import { type MouseEvent, useEffect, useRef, useState } from "react";
-import {
-  Button,
-  HighlightGroup,
-  useHighlight,
-} from "@omerdlw/base-framework/ui";
+import { Button } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
 import { DockLink, TextButton } from "@/design/components/link";
 import { TONE } from "@/design/foundations/tones";
@@ -17,6 +13,7 @@ import {
   DetailSection,
   DetailSwap,
 } from "@/features/detail/motion";
+import { Trace, TRACE_ROW, useTrace } from "@/features/detail/trace";
 import { pluralize } from "@/lib/format";
 import { mediaHref } from "@/lib/project";
 import type { MediaType } from "@/lib/tmdb/shared";
@@ -242,26 +239,15 @@ export function PersonCareer({
   );
 }
 
-function TimelineRow({
-  credit,
-  highlightKey,
-}: {
-  credit: TimelineCredit;
-  highlightKey: string;
-}) {
+function TimelineRow({ credit }: { credit: TimelineCredit }) {
   const href = mediaHref(credit.mediaType, credit.id);
-  const highlight = useHighlight(
-    highlightKey,
-    "rounded-tile bg-fill-hover ring-1 ring-edge-hover ring-inset",
-  );
 
   return (
     <DockLink
       className="group relative isolate flex items-center gap-4 rounded-tile p-1 pr-3"
       href={href}
-      {...highlight.props}
+      {...TRACE_ROW}
     >
-      {highlight.node}
       <PosterThumb
         className="pointer-events-none relative z-10 w-14 rounded-thumb sm:w-16"
         kind={credit.mediaType}
@@ -327,6 +313,7 @@ function SpineProgress({ list }: { list: HTMLOListElement | null }) {
 
 export function PersonTimeline({ years }: { years: TimelineYear[] }) {
   const [list, setList] = useState<HTMLOListElement | null>(null);
+  const { trace, props } = useTrace(list);
   if (years.length === 0) return null;
 
   const films = years.reduce((total, { credits }) => total + credits.length, 0);
@@ -335,53 +322,44 @@ export function PersonTimeline({ years }: { years: TimelineYear[] }) {
     <DetailSection className="flex w-full flex-col" cue="timeline">
       <Heading icon="solar:sort-by-time-bold" title={`Timeline (${films})`} />
 
-      <HighlightGroup>
-        <ol className="relative flex flex-col" ref={setList}>
-          <DetailPart
-            className={`absolute top-2 bottom-0 w-px bg-line ${TIMELINE_SPINE_CLASS}`}
-            name="spine"
-          >
-            <SpineProgress list={list} />
-          </DetailPart>
-          {years.map(({ credits, year }, index) => (
-            <li data-year={year ?? "undated"} key={year ?? "undated"}>
-              <DetailSection
-                as="div"
-                className={`relative flex ${index === years.length - 1 ? "" : "pb-8"}`}
-                cue="year"
+      <ol className="relative flex flex-col" ref={setList} {...props}>
+        <Trace trace={trace} />
+        <DetailPart
+          className={`absolute top-2 bottom-0 w-px bg-line ${TIMELINE_SPINE_CLASS}`}
+          name="spine"
+        >
+          <SpineProgress list={list} />
+        </DetailPart>
+        {years.map(({ credits, year }, index) => (
+          <li data-year={year ?? "undated"} key={year ?? "undated"}>
+            <DetailSection
+              as="div"
+              className={`relative flex ${index === years.length - 1 ? "" : "pb-8"}`}
+              cue="year"
+            >
+              <DetailPart
+                className="w-14 shrink-0 pt-1 pr-3 text-right sm:w-20 sm:pr-4"
+                name="stamp"
               >
-                <DetailPart
-                  className="w-14 shrink-0 pt-1 pr-3 text-right sm:w-20 sm:pr-4"
-                  name="stamp"
-                >
-                  <h3 className="type-meta font-bold text-ink-muted tabular-nums sm:type-body">
-                    {year ?? "—"}
-                  </h3>
-                </DetailPart>
-                <DetailPart
-                  className={`absolute top-1.5 z-10 size-3 -translate-x-1/2 rounded-full bg-ink ${TIMELINE_SPINE_CLASS}`}
-                  name="stamp"
-                />
-                <ul className="flex min-w-0 flex-1 flex-col gap-1 pl-4 sm:pl-6">
-                  {credits.map((credit, at) => (
-                    <DetailPart
-                      as="li"
-                      index={at}
-                      key={credit.key}
-                      name="entry"
-                    >
-                      <TimelineRow
-                        credit={credit}
-                        highlightKey={`${year ?? "undated"}:${credit.key}`}
-                      />
-                    </DetailPart>
-                  ))}
-                </ul>
-              </DetailSection>
-            </li>
-          ))}
-        </ol>
-      </HighlightGroup>
+                <h3 className="type-meta font-bold text-ink-muted tabular-nums sm:type-body">
+                  {year ?? "—"}
+                </h3>
+              </DetailPart>
+              <DetailPart
+                className={`absolute top-1.5 z-10 size-3 -translate-x-1/2 rounded-full bg-ink ${TIMELINE_SPINE_CLASS}`}
+                name="stamp"
+              />
+              <ul className="flex min-w-0 flex-1 flex-col gap-1 pl-4 sm:pl-6">
+                {credits.map((credit, at) => (
+                  <DetailPart as="li" index={at} key={credit.key} name="entry">
+                    <TimelineRow credit={credit} />
+                  </DetailPart>
+                ))}
+              </ul>
+            </DetailSection>
+          </li>
+        ))}
+      </ol>
     </DetailSection>
   );
 }

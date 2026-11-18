@@ -1,5 +1,6 @@
 "use client";
 
+import { DockClear } from "@/design/components/dock-clear";
 import type { JSX, ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { BackdropHeroSkeleton } from "@/design/components/backdrop";
@@ -776,9 +777,10 @@ export function AccountSkeleton(): JSX.Element {
   return (
     <main
       aria-busy="true"
-      className="ui-scene min-h-screen overflow-x-clip pb-[calc(var(--dock-h,6rem)+3rem)]"
+      className="ui-scene min-h-screen overflow-x-clip pb-[calc(6rem+3rem)]"
       data-cinematic
     >
+      <DockClear extra="3rem" />
       <div className="relative z-10 w-full [overflow-anchor:none]">
         <Tabs active={tab} />
         <Hero backdrop={backdrop} />

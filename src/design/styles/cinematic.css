@@ -10,12 +10,13 @@
   :is([data-cinematic], .ui-motion, .ui-scene) .cine-afterglow {
     border-radius: inherit;
     box-shadow: inset 0 0 0 1px
-      color-mix(in oklab, rgb(var(--grade, var(--ink-rgb))) 55%, #ffc48c);
+      color-mix(in oklab, var(--grade) 55%, #ffc48c);
     inset: 0;
     opacity: 0;
     pointer-events: none;
     position: absolute;
   }
+
   :is([data-cinematic], .ui-motion, .ui-scene)
     :is(.cine-card:is(:hover, :focus-visible), [data-active] .cine-card)
     .cine-afterglow {

@@ -1,3 +1,4 @@
+import { DockClear } from "@/design/components/dock-clear";
 import type { JSX } from "react";
 import { CONTAINER_CLASS, PAGE_CLASS } from "@/design/foundations/layout";
 import { HomeShowing } from "./cinema";
@@ -23,6 +24,7 @@ export function HomeView({ feed }: { feed: HomeFeed }): JSX.Element {
         className={`home-page ui-scene overflow-x-clip ${PAGE_CLASS}`}
         data-cinematic=""
       >
+        <DockClear extra="2rem" />
         <h1 className="sr-only">Guffin</h1>
         <div className={CONTAINER_CLASS}>
           <HomeOpening

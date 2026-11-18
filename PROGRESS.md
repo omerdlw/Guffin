@@ -36,7 +36,35 @@ Tarayıcıda henüz bakılmadı.
   18rem; TV'de ödüller, popüler listeler, "Continue" kartı (`ShowResume`);
   popüler listeler artık `media_type` ile süzülüyor
 
+- Renk/ışık (2026-11-17): mürekkep tek siyah + opaklık (100/88/74/56/32);
+  cam kenarı sol üst anahtar + sağ alt dolgu ışığıyla (`--rim-*`, conic
+  `::after`, `liquid.css`); anlam renkleri kağıda göre koyulaştı, aktif
+  like/watched/watchlist ikonları kendi renginde (`COLLECTION_MARKS`)
+
+- Yumuşaklık (2026-11-17): proje geneli renk/dolgu/gölge geçişi
+  (`--soft-*`, `interaction.css`), sarsıntılı SETTLE/TOUCH/SPRING eğrileri
+  yumuşak başlangıçlı oldu, press 0.236s, choreo dokunuşları yumuşak
+  geçişleri koruyor
+- Sinematik koreografi (2026-11-17): sahne başına `tempo`/`reach`
+  (`choreo.ts` `paced`); sayfalar √φ yavaş + φ uzak, surface/search
+  1.236/1.272; modal, menü, toast bir vuruş yavaş, menüde sekme yok
+
+- Performans (2026-11-17, görünmez): cam haritaları canvas'sız (`png.ts`,
+  piksel piksel aynı, 3.6× hızlı) ve `localStorage`'da önbellekli; cam
+  okumaları ResizeObserver'da toplu; scroll sürücüsü aktifken `scrollY`
+  okunmuyor; stage'in sayfa sonu kontrolü kare sonrası; Supabase istemcisi
+  hidrasyondan sonra yükleniyor; `ActionArrival` dock inince duruyor.
+  Prod ölçümü: yükleme script'i movie 408→308ms, tv 420→313, person 387→309,
+  home 299→177, season 366→246; uzun kare bloklaması movie 260→54ms
+
 ## Sırada
+
+- [ ] Sinematik tempoyu tarayıcıda gör: detail açılış dizisi (çok mu uzun?),
+      home hero, account, dock surface'leri, modal/menü/toast
+
+- [ ] Yumuşaklığı tarayıcıda gör: butonlar, dock, segmented/switch (yay
+      ile sürülen parçalar geride kalmıyor mu), hover etiket değişimleri
+- [ ] Renk/ışık değişikliğini tarayıcıda gör (kağıt, `.on-photo`, dock, alanlar)
 
 - [ ] Movie/TV düzen değişikliğini tarayıcıda gör: mobil künye katlama,
       lg 18rem sidebar'da aksiyon satırı, tag hareketleri, GoT ödülleri

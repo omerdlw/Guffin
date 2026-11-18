@@ -8,7 +8,7 @@
     background: linear-gradient(
       90deg,
       transparent,
-      rgb(var(--grade, var(--ink-rgb)) / 0.15),
+      color-mix(in oklab, var(--grade) 15%, transparent),
       transparent
     );
     content: "";

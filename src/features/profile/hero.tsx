@@ -1,5 +1,6 @@
 "use client";
 
+import { DockClear } from "@/design/components/dock-clear";
 import { type JSX, type ReactNode, useEffect, useRef, useState } from "react";
 import {
   type AmbientPalette,
@@ -349,13 +350,14 @@ export function AccountLayout({
   const backdropUrl = resolveAccountBackdropUrl(account);
 
   return (
-    <AccountStageRoot grade={backdropUrl || account?.avatarUrl || null}>
+    <AccountStageRoot>
       <Room grain={false} />
       <main
         id="main"
-        className="account-page ui-scene relative min-h-screen overflow-x-clip pb-[calc(var(--dock-h,6rem)+3rem)]"
+        className="account-page ui-scene relative min-h-screen overflow-x-clip pb-[calc(6rem+3rem)]"
         data-cinematic=""
       >
+        <DockClear extra="3rem" />
         <PlanGuides />
         <div className="relative z-10 w-full [overflow-anchor:none]">
           {tabsSlot && !isPrivateLocked ? (

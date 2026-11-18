@@ -1,3 +1,4 @@
+import { DockClear } from "@/design/components/dock-clear";
 import type { CSSProperties, JSX } from "react";
 import { BackdropHeroSkeleton } from "@/design/components/backdrop";
 import {
@@ -114,15 +115,9 @@ function People(): JSX.Element {
           {CAST_SEATS.map((seat, index) => (
             <div
               className={cast.seat}
-              data-at={seat.at}
+              data-lead={index === 0 ? "" : undefined}
               key={index}
-              style={
-                {
-                  "--x": `${seat.x}cqi`,
-                  "--front": `${CAST_SEATS[0]!.w}cqi`,
-                  "--s": seat.w / CAST_SEATS[0]!.w,
-                } as CSSProperties
-              }
+              style={{ "--grow": "2.86", order: seat.order } as CSSProperties}
             >
               <SkeletonBlock className={cn(cast.holder, "rounded-sheet")} />
             </div>
@@ -216,6 +211,7 @@ export function MovieSkeleton(): JSX.Element {
       className={`overflow-x-clip ${PAGE_CLASS}`}
       data-cinematic
     >
+      <DockClear extra="2rem" />
       <div className={CONTAINER_CLASS}>
         <div className="relative">
           <BackdropHeroSkeleton />

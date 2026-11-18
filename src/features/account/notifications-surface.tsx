@@ -10,21 +10,21 @@ import {
   useRef,
   useState,
 } from "react";
-import { DockSurfaceExtension } from "@omerdlw/base-framework/dock";
 import { globalEvents } from "@omerdlw/base-framework/events";
 import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
 import { useToast } from "@omerdlw/base-framework/notification";
 import {
   Button,
   HighlightGroup,
-  SegmentedControl,
   useHighlight,
 } from "@omerdlw/base-framework/ui";
 import { toUserMessage } from "@omerdlw/base-framework/utils";
 import { Icon } from "@/design/components/icon";
 import { Link } from "@/design/components/link";
+import { SegmentedControl } from "@/design/components/segmented-control";
 import { SKELETON } from "@/design/components/skeleton";
 import {
+  SurfaceExtension,
   SurfacePart,
   SurfaceSearch,
   SurfaceStage,
@@ -32,12 +32,14 @@ import {
   useSurfaceSearch,
 } from "@/design/components/surface";
 import {
+  GROUP_HIGHLIGHT,
+  groupRowVariants,
+  SURFACE_GROUP,
   SURFACE_META,
   SURFACE_SCROLL,
   SURFACE_TEXT,
   SURFACE_TILE_INNER,
   SURFACE_TITLE,
-  tileVariants,
 } from "@/design/components/surface-classes";
 import { defineSurface } from "@/design/surface-definition";
 import { cn } from "@/design/ui";
@@ -139,12 +141,12 @@ const announceNotificationChange = () =>
 
 function NotificationSkeleton() {
   return (
-    <div className="flex w-full flex-col gap-2.5">
+    <div className={SURFACE_GROUP}>
       {Array.from({ length: 4 }, (_, index) => (
-        <div className={tileVariants({ className: "w-full" })} key={index}>
+        <div className={groupRowVariants()} key={index}>
           <div className="flex min-w-0 flex-1 items-center gap-3">
             <div
-              className={`${SKELETON.block} size-10 shrink-0 ${SURFACE_TILE_INNER}`}
+              className={`${SKELETON.block} size-10 shrink-0 rounded-full`}
             />
             <div className="flex min-w-0 flex-1 flex-col justify-center gap-1.5">
               <div className={cn(SKELETON.block, "h-3 w-28 rounded-full")} />
@@ -152,7 +154,7 @@ function NotificationSkeleton() {
             </div>
           </div>
           <div
-            className={`${SKELETON.block} size-10 shrink-0 ${SURFACE_TILE_INNER}`}
+            className={`${SKELETON.block} size-control-chrome shrink-0 ${SURFACE_TILE_INNER}`}
           />
         </div>
       ))}
@@ -172,34 +174,52 @@ const NotificationRow = memo(function NotificationRow({
   onNavigate?: () => void;
 }) {
   const { actor } = notification;
-  const highlight = useHighlight(notification.id);
+  const highlight = useHighlight(notification.id, GROUP_HIGHLIGHT);
   const href = actor ? accountHref(actor.username || actor.id) : null;
   const headline = notificationHeadline(notification);
   const age = formatNotificationAge(notification.created_at);
 
   const content: ReactNode = (
     <>
-      <AvatarTile>
-        {actor ? (
-          <AccountAvatarImage
-            account={{
-              avatarUrl: actor.avatar_url,
-              displayName: actor.display_name,
-              username: actor.username,
-            }}
-            alt={headline}
-          />
-        ) : (
-          <div className="center size-full text-ink-body">
-            <Icon
-              icon={NOTIFICATION_ICONS[notification.type] ?? NOTIFICATIONS_ICON}
-              size={20}
+      <span className="relative shrink-0">
+        <AvatarTile>
+          {actor ? (
+            <AccountAvatarImage
+              account={{
+                avatarUrl: actor.avatar_url,
+                displayName: actor.display_name,
+                username: actor.username,
+              }}
+              alt={headline}
             />
-          </div>
+          ) : (
+            <div className="center size-full text-ink-body">
+              <Icon
+                icon={
+                  NOTIFICATION_ICONS[notification.type] ?? NOTIFICATIONS_ICON
+                }
+                size={20}
+              />
+            </div>
+          )}
+        </AvatarTile>
+        {notification.read ? null : (
+          <span
+            aria-label="Unread"
+            className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-grade"
+            role="img"
+          />
         )}
-      </AvatarTile>
+      </span>
       <div className={`${SURFACE_TEXT} h-full`}>
-        <span className={SURFACE_TITLE}>{headline}</span>
+        <span
+          className={cn(
+            SURFACE_TITLE,
+            notification.read && "font-medium text-ink-body",
+          )}
+        >
+          {headline}
+        </span>
         <span className={SURFACE_META}>
           {notificationSummary(notification)}
           {age ? ` · ${age}` : ""}
@@ -210,8 +230,8 @@ const NotificationRow = memo(function NotificationRow({
 
   return (
     <div
-      className={tileVariants({
-        className: "group/user relative isolate w-full justify-between",
+      className={groupRowVariants({
+        className: "group/user justify-between",
       })}
       {...highlight.props}
     >
@@ -478,10 +498,10 @@ function NotificationList({
       className={`${SURFACE_SCROLL} max-h-[min(56dvh,26rem)] w-full touch-pan-y`}
       data-scroll-native
     >
-      <HighlightGroup>
+      <HighlightGroup className={SURFACE_GROUP}>
         {/* A new filter lifts the old rows away and deals its own. */}
         <SurfaceSwap
-          className="flex min-h-[48px] w-full flex-col justify-center gap-2.5 overflow-visible"
+          className="flex min-h-[48px] w-full flex-col justify-center overflow-visible"
           cue="rows"
           id={filter}
         >
@@ -534,10 +554,11 @@ function AccountNotificationsSurface({ close }: { close?: () => void }) {
 
   return (
     <SurfaceStage className="flex flex-col overflow-hidden">
-      <DockSurfaceExtension align="left" id="account-notifications-toolbar">
-        <div className="flex h-8 w-full items-center justify-between gap-2 select-none">
+      <SurfaceExtension align="left" id="account-notifications-toolbar">
+        <div className="flex w-full min-w-0 items-center justify-between gap-2 select-none">
           <SegmentedControl
             ariaLabel="Filter notifications"
+            className="min-w-0"
             items={[
               { count: feed.items.length, key: "all", label: "All" },
               { count: unreadCount, key: "unread", label: "Unread" },
@@ -563,7 +584,7 @@ function AccountNotificationsSurface({ close }: { close?: () => void }) {
             </div>
           ) : null}
         </div>
-      </DockSurfaceExtension>
+      </SurfaceExtension>
       {search.enabled && feed.status === "ready" ? (
         <SurfacePart className="mb-2.5" name="item">
           <SurfaceSearch

@@ -77,6 +77,9 @@ const EFFECTS = [
   "--liquid-shadow",
   "--lift",
   "--glass-control-bevel",
+  "--rim-key",
+  "--rim-fill",
+  "--rim-shade",
 ] as const;
 
 function Swatch({ role }: { role: Role }) {
@@ -131,18 +134,18 @@ export function ColourTab() {
       eyebrow="3.1 · 3.2 Renk"
       lead={
         <>
-          Mürekkep katıdır, şeffaf değil: her basamak mürekkebin sayfaya
-          karışımıdır, bu yüzden bir etiket dolgu, cam ya da görsel üstünde aynı
-          okunur. Sayfa rengi görseli izler (<Code>--ambient-shadow</Code>).
-          Aşağıdaki değerler tarayıcının şu an boyadığı değerlerdir;
-          grade&apos;i değiştir, hepsi değişir.
+          Mürekkep tek renktir, siyaha yakın: her basamak aynı siyahın daha
+          düşük opaklığıdır, ayrı bir gri değil. Etiket altındakini geçirir;
+          dolguya, cama ya da görsele baskı gibi oturur. Sayfa rengi görseli
+          izler (<Code>--ambient-page</Code>). Aşağıdaki değerler tarayıcının
+          şu an boyadığı değerlerdir; grade&apos;i değiştir, hepsi değişir.
         </>
       }
       source="styles/themes.css · design/rules/03-colour.md"
       title="Renk"
     >
       <Section
-        note="Beş basamak; kontroller dinlenirken bile ink-body'den sönük olmaz."
+        note="Tek siyah, beş opaklık (100 · 88 · 74 · 56 · 32); kontroller dinlenirken bile ink-body'den sönük olmaz."
         title="Mürekkep"
       >
         <div className={cn(PANEL, "flex flex-col gap-fib-2 p-fib-5")}>

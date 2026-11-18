@@ -23,7 +23,6 @@ import {
 import { MediaTypeProvider } from "@/features/media/media-type";
 import {
   AFTER_TAGLINE,
-  artworkOf,
   movieTitleClass,
   readableUrl,
   TAGLINE_CLASS,
@@ -191,7 +190,7 @@ export async function SeasonPageContent({
       <MovieViewProvider>
         <ShowPageChrome palette={palette} {...showChrome(show)} />
         <ReelProvider>
-          <MovieStage movie={artworkOf(show)}>
+          <MovieStage>
             <SeasonTrackerProvider
               initialRatings={tracking?.ratings ?? []}
               initialWatched={(tracking?.watched ?? []).filter((key) =>

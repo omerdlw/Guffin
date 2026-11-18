@@ -348,7 +348,7 @@ export function SegmentedControl<K extends string>({
       {/* The indicator's fill, under the labels. */}
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute top-0.5 bottom-0.5 left-0 rounded-full bg-chosen"
+        className="pointer-events-none absolute top-0.5 bottom-0.5 left-0 rounded-full bg-chosen shadow-(--liquid-well-shadow) ring-1 ring-chosen-edge ring-inset"
         ref={pill}
         style={{ visibility: "hidden" }}
       />
@@ -363,8 +363,10 @@ export function SegmentedControl<K extends string>({
               // The item under the indicator reads a weight heavier.
               index === shown
                 ? "font-semibold text-ink"
-                : "text-ink-body hover:text-ink focus-visible:text-ink",
-              active && !ready && "bg-chosen",
+                : "text-ink-body focus-visible:text-ink",
+              active &&
+                !ready &&
+                "bg-chosen shadow-(--liquid-well-shadow) ring-1 ring-chosen-edge ring-inset",
             )}
             // Only the cursor's dot here: the indicator is the glass.
             data-cursor="point"
@@ -398,7 +400,12 @@ export function SegmentedControl<K extends string>({
               <span className="col-start-1 row-start-1">{item.label}</span>
             </span>
             {item.count !== undefined && item.count > 0 ? (
-              <span className="-ml-0.5 font-medium tabular-nums">
+              <span
+                className={cn(
+                  "font-medium tabular-nums",
+                  index === shown ? "text-ink-muted" : "text-ink-faint",
+                )}
+              >
                 {item.count}
               </span>
             ) : null}
@@ -408,7 +415,7 @@ export function SegmentedControl<K extends string>({
       {/* …and its glass, over them: clear, so the labels bend at its rim. */}
       <span
         aria-hidden="true"
-        className="liquid liquid-clear pointer-events-none absolute top-0.5 left-0 z-10 rounded-full [--liquid-bend:0.08] [--liquid-tint:rgb(var(--ink-rgb)/0.03)]"
+        className="liquid liquid-clear pointer-events-none absolute top-0.5 left-0 z-10 rounded-full [--liquid-tint:rgb(var(--ink-rgb)/0.03)]"
         ref={lens}
         style={{ opacity: 0, visibility: "hidden" }}
       />

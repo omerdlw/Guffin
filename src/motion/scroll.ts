@@ -1,4 +1,4 @@
-import { type Engine, Value } from "./engine";
+import { drivenScroll, type Engine, Value } from "./engine";
 import { clamp } from "./math";
 
 interface ScrollTarget {
@@ -92,6 +92,13 @@ class ScrollDriver {
   private feel: ScrollFeel = DEFAULT_FEEL;
   private position: Value;
   private written = 0;
+  /**
+   * The driver scrolled the page in the last frame: the scroll event that
+   * follows is its own echo, already known, and is checked after the frame
+   * (when reading the offset costs nothing) instead of in the event.
+   */
+  private echo = false;
+  private verifying = false;
   private started = false;
   private resting: ReturnType<typeof setTimeout> | null = null;
   private movedAt = 0;
@@ -142,7 +149,10 @@ class ScrollDriver {
     const options = { passive: false, capture: true } as const;
     window.addEventListener("wheel", this.wheel, options);
     window.addEventListener("scroll", this.adopt, { passive: true });
+    drivenScroll.add(this.engine.scroll);
+    this.engine.scroll.set(window.scrollY);
     this.detach = [
+      () => drivenScroll.delete(this.engine.scroll),
       stop,
       () => window.removeEventListener("wheel", this.wheel, options),
       () => window.removeEventListener("scroll", this.adopt),
@@ -171,6 +181,7 @@ class ScrollDriver {
     if (immediate || this.quiet()) {
       this.written = y;
       window.scrollTo({ top: y, behavior: "instant" });
+      this.echoed();
       this.position.set(y);
       return;
     }
@@ -201,8 +212,10 @@ class ScrollDriver {
     if (snapped === this.written) return;
     this.written = snapped;
     this.engine.clock.once("render", () => {
-      if (window.scrollY !== this.written)
+      if (window.scrollY !== this.written) {
         window.scrollTo({ top: this.written, behavior: "instant" });
+        this.echoed();
+      }
     });
     this.scrolling();
   }
@@ -259,12 +272,37 @@ class ScrollDriver {
     this.position.to(y, { spring: this.spring });
   };
 
+  private echoed() {
+    this.echo = true;
+    // No scroll event comes if the offset did not move: the flag lasts one
+    // frame at most.
+    this.engine.clock.once("read", () => {
+      this.echo = false;
+    });
+  }
+
   private adopt = () => {
-    const y = window.scrollY;
+    if (this.echo) {
+      this.echo = false;
+      // Anything else that moved the page in the same frame (a navigation's
+      // scroll, a script) is still adopted, a frame later.
+      if (!this.verifying) {
+        this.verifying = true;
+        setTimeout(() => {
+          this.verifying = false;
+          if (this.started) this.settle(window.scrollY);
+        }, 0);
+      }
+      return;
+    }
+    this.settle(window.scrollY);
+  };
+
+  private settle(y: number) {
     if (Math.abs(y - this.written) <= 1) return;
     this.written = y;
     this.position.set(y);
-  };
+  }
 }
 
 const drivers = new WeakMap<Engine, ScrollDriver>();

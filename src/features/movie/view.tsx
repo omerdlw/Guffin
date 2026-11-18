@@ -261,11 +261,15 @@ function toPersonEntries(movie: MovieDetails): {
   };
 }
 
-export function MovieAwards({ awards }: { awards: AwardsRequest }): JSX.Element {
+export function MovieAwards({
+  awards,
+}: {
+  awards: AwardsRequest;
+}): JSX.Element {
   return (
     <DetailAwards
       awards={awards}
-      groupings={["organizations", "timeline"]}
+      groupings={["board", "organizations", "timeline"]}
       showRecipients
     />
   );
@@ -498,9 +502,7 @@ function MovieHeader({
           text={movie.overview}
         />
       ) : null}
-      <DetailTags
-        tags={getTags(movie).map((tag) => capitalizeWords(tag))}
-      />
+      <DetailTags tags={getTags(movie).map((tag) => capitalizeWords(tag))} />
     </>
   );
 }
@@ -537,7 +539,7 @@ function MovieView({
   if (page.kind === "reviews") {
     return (
       <ReelProvider>
-        <MovieStage movie={art}>
+        <MovieStage>
           <DetailReviewsLayout
             backdrop={
               backdrop ? (
@@ -570,7 +572,7 @@ function MovieView({
 
   return (
     <ReelProvider>
-      <MovieStage movie={art}>
+      <MovieStage>
         <DetailLayout
           after={
             <>

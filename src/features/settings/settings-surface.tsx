@@ -9,12 +9,16 @@ import {
 import { Icon } from "@/design/components/icon";
 import { SurfacePart, SurfaceStage } from "@/design/components/surface";
 import {
-  rowVariants,
+  GROUP_HIGHLIGHT,
+  groupRowVariants,
+  SURFACE_GROUP,
   SURFACE_META,
   SURFACE_STACK,
   SURFACE_TEXT,
   SURFACE_TITLE,
 } from "@/design/components/surface-classes";
+import { TONE } from "@/design/foundations/tones";
+import { cn } from "@/design/ui";
 import { defineSurface } from "@/design/surface-definition";
 import { MediaForm, ProfileForm } from "./identity";
 import { Mark, useSecurity } from "./panel";
@@ -70,6 +74,20 @@ const SETTINGS_OVERVIEW = {
   title: "Account settings",
 };
 
+// The overview reads like a settings app: who you are, how you sign in, and
+// the one way out, each on its own sheet under a small caps name.
+const OVERVIEW_GROUPS: readonly {
+  label: string;
+  sections: readonly SettingsSection[];
+}[] = [
+  { label: "Profile", sections: ["account", "avatar-background"] },
+  {
+    label: "Sign-in",
+    sections: ["email", "providers", "passkeys", "sessions"],
+  },
+  { label: "Danger zone", sections: ["delete"] },
+];
+
 const SECURITY_SECTIONS: readonly SettingsKey[] = [
   "passkeys",
   "providers",
@@ -84,17 +102,23 @@ function OverviewRow({
   section: SettingsSection;
 }) {
   const { description, icon, title } = SETTINGS_SECTIONS[section];
-  const highlight = useHighlight(section);
+  const highlight = useHighlight(section, GROUP_HIGHLIGHT);
+  const danger = section === "delete";
   return (
     <Button
-      className={rowVariants()}
+      className={groupRowVariants({
+        action: true,
+        className: cn("h-auto justify-start pr-4", danger && "text-danger"),
+      })}
       onClick={() => onOpen(section)}
       {...highlight.props}
     >
       {highlight.node}
-      <Mark icon={icon} tone={section === "delete" ? "danger" : "plain"} />
+      <Mark icon={icon} tone={danger ? "danger" : "plain"} />
       <span className={SURFACE_TEXT}>
-        <span className={SURFACE_TITLE}>{title}</span>
+        <span className={cn(SURFACE_TITLE, danger && "text-danger")}>
+          {title}
+        </span>
         <span className={SURFACE_META}>{description}</span>
       </span>
       <Icon
@@ -111,17 +135,23 @@ function Overview() {
   const open = (section: SettingsSection) =>
     void accountSettingsSurface.open(openSurface, { section });
   return (
-    <HighlightGroup>
-      <div className={SURFACE_STACK}>
-        {(Object.keys(SETTINGS_SECTIONS) as SettingsSection[]).map(
-          (section, index) => (
-            <SurfacePart index={index} key={section} name="item">
-              <OverviewRow onOpen={open} section={section} />
-            </SurfacePart>
-          ),
-        )}
-      </div>
-    </HighlightGroup>
+    <div className={cn(SURFACE_STACK, "gap-4")}>
+      {OVERVIEW_GROUPS.map((group, index) => (
+        <SurfacePart
+          className="flex flex-col gap-2"
+          index={index}
+          key={group.label}
+          name="item"
+        >
+          <p className={cn(TONE.label, "px-3 text-ink-muted")}>{group.label}</p>
+          <HighlightGroup className={SURFACE_GROUP}>
+            {group.sections.map((section) => (
+              <OverviewRow key={section} onOpen={open} section={section} />
+            ))}
+          </HighlightGroup>
+        </SurfacePart>
+      ))}
+    </div>
   );
 }
 

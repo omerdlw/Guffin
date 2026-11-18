@@ -15,6 +15,47 @@ export const SURFACE_SCROLL =
 
 const TILE = "flex min-w-0 items-center gap-3 rounded-card p-1.5";
 
+// A list drawn as one sheet: the rows share a single well and the hover
+// slides between them, so a long list reads as one quiet object instead of
+// a stack of cards. The sheet is the card (16); its rows sit 4px in, on the
+// tile radius (12), concentric with it.
+export const SURFACE_GROUP = `flex w-full flex-col rounded-card p-1 ${WELL}`;
+/** The shared hover inside a group follows the rows' radius. */
+export const GROUP_HIGHLIGHT = "rounded-tile";
+
+export const groupRowVariants = variants(
+  "group relative isolate flex w-full min-w-0 items-center gap-3 rounded-tile p-2 text-left select-none outline-none",
+  {
+    variants: {
+      action: {
+        false: "",
+        true: "cursor-pointer text-ink-body hover:text-ink focus-visible:text-ink disabled:cursor-wait",
+      },
+    },
+    defaultVariants: { action: false },
+  },
+);
+
+// One choice among a few, laid as a grid of tiles: the glyph above, the
+// name below. Its content sits in one stretched column (CHOICE_BODY), so the
+// button's own centring never reaches it. The chosen tile is the grade itself, the one loud thing in the
+// surface.
+export const CHOICE_BODY =
+  "flex w-full flex-col items-start justify-between gap-4 self-stretch";
+
+export const choiceVariants = variants(
+  "group relative isolate h-auto min-h-24 w-full cursor-pointer rounded-card p-4 text-left select-none outline-none disabled:cursor-wait",
+  {
+    variants: {
+      chosen: {
+        false: `${WELL} ${WELL_HOVER} text-ink-body hover:text-ink focus-visible:text-ink`,
+        true: "ui-sheen bg-grade text-on-accent",
+      },
+    },
+    defaultVariants: { chosen: false },
+  },
+);
+
 export const rowVariants = variants(
   [
     "group relative isolate w-full cursor-pointer pr-5 select-none outline-none disabled:cursor-wait",

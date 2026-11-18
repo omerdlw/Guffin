@@ -31,7 +31,7 @@ import { listPickerSurface } from "@/features/lists/surfaces";
 import { SHOW_EVENTS } from "@/features/tv/show";
 import { announceShowChange } from "@/features/tv/status";
 import type { MediaType } from "@/lib/tmdb/shared";
-import { COLLECTION_ICONS } from "./movie";
+import { COLLECTION_ICONS, COLLECTION_MARKS } from "./movie";
 
 function useMovieLibrary(
   movieId: number,
@@ -194,6 +194,7 @@ export function MovieCollectionActions({
             disabled={disabled}
             hoverLabel={state.liked ? "Unlike" : undefined}
             icon={COLLECTION_ICONS.like}
+            mark={COLLECTION_MARKS.like}
             index={0}
             label={state.liked ? "Liked" : "Like"}
             onClick={() => void toggle("liked")}
@@ -203,6 +204,7 @@ export function MovieCollectionActions({
             disabled={disabled}
             hoverLabel={show ? "Not finished" : "Unwatch"}
             icon={COLLECTION_ICONS.watched}
+            mark={COLLECTION_MARKS.watched}
             index={1}
             label={show ? "Finished" : "Watched"}
             onClick={() => void toggle("watched")}
@@ -214,6 +216,7 @@ export function MovieCollectionActions({
             active={false}
             disabled={disabled}
             icon={COLLECTION_ICONS.watched}
+            mark={COLLECTION_MARKS.watched}
             index={0}
             label={show ? "Mark finished" : "Mark watched"}
             onClick={() => void toggle("watched")}
@@ -223,6 +226,7 @@ export function MovieCollectionActions({
             disabled={disabled}
             hoverLabel={state.watchlist ? "Remove" : undefined}
             icon={COLLECTION_ICONS.watchlist}
+            mark={COLLECTION_MARKS.watchlist}
             index={1}
             label={state.watchlist ? "In Watchlist" : "Watchlist"}
             onClick={() => void toggle("watchlist")}

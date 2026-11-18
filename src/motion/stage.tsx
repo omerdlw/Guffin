@@ -13,13 +13,12 @@ import {
   useRef,
   useState,
 } from "react";
-import { type Grading, useGrade } from "@/design/grade";
+import { type StageLight, useStageLight } from "@/design/ambient";
 import {
   type Choreography,
   compile,
   type Curve,
-  type Releases,
-  releases,
+  paced,
   type TextMoves,
   LEAVING,
 } from "./choreo";
@@ -44,12 +43,14 @@ interface StageRoles<P extends string, S extends string> {
   // may enter, so the page reads from the top down: the opening first, the
   // blocks under it after. Roles reached by scrolling later play at once.
   opening?: number;
-  // A sequenced opening instead: the opening's roles play in this order
-  // (roles listed together play together), none starting before the roles
-  // two places ahead of it have finished; every other role plays once, as
-  // it first comes into view (see useQueue). `pace` is how far through a role the next one may begin (0–1).
-  order?: readonly (P | readonly P[])[];
-  pace?: number;
+  // How far up from the viewport's foot a role must come before it counts
+  // as in view (a fraction of the viewport's height; default 0.16). Lower
+  // plays it sooner, as it comes onto the screen.
+  inset?: number;
+  // How slow and how far the entrances are (choreo.ts `paced`): `tempo`
+  // stretches their time (and the opening's hold), `reach` their travel.
+  tempo?: number;
+  reach?: number;
 }
 
 export interface Glide {
@@ -154,11 +155,9 @@ interface WallState {
 
 const WALL_RETURN_MARGIN = 24;
 
-const RULE_COLOR =
-  "color-mix(in oklch, var(--light, #fcfcfb) 20%, transparent)";
+const RULE_COLOR = "color-mix(in oklch, var(--grade) 20%, transparent)";
 
-const METER_COLOR =
-  "color-mix(in oklch, var(--light, #fcfcfb) 75%, transparent)";
+const METER_COLOR = "color-mix(in oklch, var(--grade) 75%, transparent)";
 
 const WallContext = createContext<WallState | null>(null);
 
@@ -168,13 +167,13 @@ const dialogOpen = () =>
   Boolean(document.querySelector("[role='dialog'], [aria-modal='true']"));
 
 export function StageRoot({
-  grade,
+  light,
   children,
 }: {
-  grade?: Grading;
+  light?: StageLight;
   children: ReactNode;
 }) {
-  useGrade(grade);
+  useStageLight(light);
   return <>{children}</>;
 }
 
@@ -337,7 +336,7 @@ export function Header({
             <span
               className="flex shrink-0"
               data-slot="icon"
-              style={{ color: "var(--light, currentColor)" }}
+              style={{ color: "var(--grade)" }}
             >
               {icon}
             </span>
@@ -591,6 +590,25 @@ export function WallStage({ wall, children }: WallStageProps<string>) {
 // entrance; roles added later (a swapped shelf, more rows) are watched too.
 // Roles in view during the opening are held until it has played.
 const ROLES = "[data-part], [data-section]";
+
+/**
+ * A scroll handler that reads the page's height runs once the frame is
+ * drawn: inside the scroll event the scroll-linked styles are stale, and
+ * reading scrollY there makes the browser restyle and lay out the whole page
+ * ahead of the frame. Calls before then share one run.
+ */
+function afterFrame(task: () => void) {
+  let pending: ReturnType<typeof setTimeout> | undefined;
+  const schedule = () => {
+    if (pending !== undefined) return;
+    pending = setTimeout(() => {
+      pending = undefined;
+      task();
+    }, 0);
+  };
+  schedule.cancel = () => clearTimeout(pending);
+  return schedule;
+}
 const KEYFRAME_META = new Set([
   "offset",
   "computedOffset",
@@ -599,12 +617,13 @@ const KEYFRAME_META = new Set([
 ]);
 const CURTAIN_LIMIT_MS = 12000;
 
-const EMPTY_PLAN = { hosts: [], along: [], order: [], pace: 0 };
+const INSET = 0.16;
 
 function useCue(
   root: { current: HTMLElement | null },
   on: boolean,
   opening: number,
+  inset = INSET,
 ) {
   useEffect(() => {
     const element = root.current;
@@ -640,7 +659,7 @@ function useCue(
         for (const entry of entries)
           if (entry.isIntersecting) release(entry.target);
       },
-      { rootMargin: "0px 0px -16% 0px" },
+      { rootMargin: `0px 0px -${inset * 100}% 0px` },
     );
     // A role in the page's last screen may never clear the line above: once
     // the page can scroll no further, whatever is on screen is seen.
@@ -651,13 +670,14 @@ function useCue(
     const settle = () => {
       if (showing.size && atEnd()) [...showing].forEach(release);
     };
+    const settleLater = afterFrame(settle);
     const near = new IntersectionObserver((entries) => {
       for (const entry of entries)
         if (entry.isIntersecting) showing.add(entry.target);
         else showing.delete(entry.target);
       settle();
     });
-    window.addEventListener("scroll", settle, { passive: true });
+    window.addEventListener("scroll", settleLater, { passive: true });
     const watch = (node: Element) => {
       const observe = (target: Element) => {
         if (target.hasAttribute("data-seen")) return;
@@ -682,10 +702,11 @@ function useCue(
       clearTimeout(hold);
       seen.disconnect();
       near.disconnect();
-      window.removeEventListener("scroll", settle);
+      window.removeEventListener("scroll", settleLater);
+      settleLater.cancel();
       added.disconnect();
     };
-  }, [root, on, opening]);
+  }, [root, on, opening, inset]);
 }
 
 // Calls `start` once no curtain (a title card playing over the page) is down
@@ -717,313 +738,6 @@ function whenLifted(element: HTMLElement, start: () => void) {
     curtain.disconnect();
     clearTimeout(limit);
   };
-}
-
-// A queued stage's player. The opening's roles are lined up in the stage's
-// order once the curtain lifts, and the line lets each one go (`data-seen`)
-// at the first moment that
-//   - the role before it is `pace` of the way through, and
-//   - every role before that one has finished,
-// timed off the paused animations themselves, so the line follows whatever
-// the stylesheet says.
-//
-// Every other role plays its own entrance as soon as it first comes into
-// view, with nothing to wait for, and only that once.
-interface Step {
-  start: number;
-  end: number;
-}
-
-const RELEASE_LAG_MS = 17;
-const END_MARGIN_MS = 17;
-
-function useQueue(
-  root: { current: HTMLElement | null },
-  on: boolean,
-  plan: Releases & {
-    order: readonly (string | readonly string[])[];
-    pace: number;
-  },
-) {
-  useEffect(() => {
-    const element = root.current;
-    if (!on || !element) return;
-
-    const hosts = plan.hosts;
-    const join = (list: { selector: string }[]) =>
-      list.map((entry) => entry.selector).join(", ");
-    const LOAD = join(hosts.filter((host) => host.on === "load"));
-    const VIEW = join(hosts.filter((host) => host.on === "view"));
-    const ALONG = join(plan.along);
-    const CUE = join(hosts.filter((host) => host.cue));
-    const SECTION = "[data-section]";
-
-    const roleOf = (node: Element) =>
-      [...hosts, ...plan.along].find((entry) => node.matches(entry.selector));
-    const rank = (node: Element) => {
-      const part = node.getAttribute("data-part");
-      const at = part
-        ? plan.order.findIndex((entry) =>
-            typeof entry === "string" ? entry === part : entry.includes(part),
-          )
-        : -1;
-      return at < 0 ? plan.order.length : at;
-    };
-    const before = (a: Element, b: Element) =>
-      a === b ? 0 : a.compareDocumentPosition(b) & 4 ? -1 : 1;
-    const opening = (node: Element) => Boolean(LOAD) && node.matches(LOAD);
-
-    let played = false;
-    const waiting = new Set<Element>();
-    // A role plays once; marked, it stays as it landed.
-    const marked = new Set<Element>();
-    const line: Element[][] = [];
-    let steps: Step[] = [];
-    let timer: ReturnType<typeof setTimeout> | undefined;
-
-    // A section in view brings its carousel items; one that enters on view
-    // deals itself in with them and the roles already on screen inside it,
-    // as a tab swapped in does. A role brings the roles inside it (a card's
-    // stars).
-    const along = (section: Element) =>
-      ALONG
-        ? [...section.querySelectorAll(ALONG)].filter(
-            (item) => item.parentElement?.closest(SECTION) === section,
-          )
-        : [];
-    const expand = (node: Element): Element[] => {
-      if (CUE && node.matches(CUE))
-        return [
-          node,
-          ...along(node),
-          ...(VIEW
-            ? [...node.querySelectorAll(VIEW)].filter(
-                (inner) =>
-                  !marked.has(inner) &&
-                  inner.getBoundingClientRect().top < window.innerHeight,
-              )
-            : []),
-        ];
-      if (node.matches(SECTION)) return along(node);
-      return [
-        node,
-        ...(VIEW
-          ? [...node.querySelectorAll(VIEW)].filter(
-              (inner) => !marked.has(inner),
-            )
-          : []),
-      ];
-    };
-
-    const entrances = (node: Element) => {
-      const names = roleOf(node)?.names ?? [];
-      return node
-        .getAnimations({ subtree: true })
-        .filter(
-          (animation): animation is CSSAnimation =>
-            animation instanceof CSSAnimation &&
-            names.includes(animation.animationName),
-        );
-    };
-
-    // Once marked, a trigger is done with both watches: each would only
-    // find it marked and pass.
-    const mark = (trigger: Element, nodes: Element[]) => {
-      nodes.forEach((node) => node.setAttribute("data-seen", ""));
-      marked.add(trigger);
-      seen.unobserve(trigger);
-      near.unobserve(trigger);
-      showing.delete(trigger);
-    };
-
-    // Roles of the same place in the order wait as one.
-    const enlist = (node: Element) => {
-      const together = line.find((group) => rank(group[0]!) === rank(node));
-      if (together) together.push(node);
-      else line.push([node]);
-    };
-
-    const release = (node: Element) => {
-      if (marked.has(node)) return;
-      if (opening(node)) {
-        enlist(node);
-        return;
-      }
-      mark(node, expand(node));
-    };
-
-    const land = (node: Element) => {
-      const nodes = expand(node);
-      const tracks = nodes.flatMap(entrances);
-      mark(node, nodes);
-      tracks.forEach((animation) => animation.finish());
-    };
-
-    const measure = (nodes: Element[]) => {
-      let span = null as Step | null;
-      for (const animation of nodes.flatMap(entrances)) {
-        if (animation.playState !== "paused") continue;
-        const timing = animation.effect?.getComputedTiming();
-        const delay = Number(timing?.delay ?? 0);
-        const end = Number(timing?.endTime ?? 0);
-        span = {
-          start: Math.min(span?.start ?? Infinity, delay),
-          end: Math.max(span?.end ?? -Infinity, end),
-        };
-      }
-      return span;
-    };
-
-    const latest = () =>
-      steps.reduce<Step | null>(
-        (last, step) => (!last || step.start >= last.start ? step : last),
-        null,
-      );
-
-    // The opening's line.
-    const pump = () => {
-      if (timer !== undefined || !played) return;
-      line.sort((a, b) => rank(a[0]!) - rank(b[0]!) || before(a[0]!, b[0]!));
-      while (line.length) {
-        const nodes = line[0]!.filter(
-          (node) => node.isConnected && !marked.has(node),
-        );
-        const span = measure(nodes);
-        if (!span) {
-          line.shift();
-          nodes.forEach((node) => mark(node, [node]));
-          continue;
-        }
-        const now = performance.now();
-        const last = latest();
-        const elder = steps
-          .filter((step) => step !== last)
-          .reduce((end, step) => Math.max(end, step.end), -Infinity);
-        let at = now;
-        if (last)
-          at = Math.max(
-            at,
-            last.start + (last.end - last.start) * plan.pace - span.start,
-            elder - span.start,
-          );
-        if (at - now > 1) {
-          timer = setTimeout(() => {
-            timer = undefined;
-            pump();
-          }, at - now);
-          return;
-        }
-        line.shift();
-        const start = performance.now() + RELEASE_LAG_MS;
-        nodes.forEach((node) => mark(node, [node]));
-        steps = [
-          ...steps.filter((step) => step.end > now),
-          {
-            start: start + span.start,
-            end: start + span.end + END_MARGIN_MS,
-          },
-        ];
-      }
-    };
-
-    const flush = (nodes: Iterable<Element>) => {
-      for (const node of nodes) release(node);
-      pump();
-    };
-
-    const stopLift = whenLifted(element, () => {
-      element.setAttribute("data-play", "");
-      played = true;
-      if (LOAD) element.querySelectorAll(LOAD).forEach(enlist);
-      const held = [...waiting].sort(before);
-      waiting.clear();
-      flush(held);
-    });
-
-    const come = (nodes: Element[]) => {
-      if (!nodes.length) return;
-      if (played) flush(nodes);
-      else nodes.forEach((node) => waiting.add(node));
-    };
-
-    // In view (past the screen's lower sixth) it plays.
-    const seen = new IntersectionObserver(
-      (entries) =>
-        come(
-          entries
-            .filter((entry) => entry.isIntersecting)
-            .map((entry) => entry.target),
-        ),
-      { rootMargin: "0px 0px -16% 0px" },
-    );
-    // Gone off the top without having played (scrolled past in one flick)
-    // it simply lands, so nothing plays on the way back up. On screen near the page's foot, which may never clear the
-    // lower sixth, it plays once the page can scroll no further.
-    const showing = new Set<Element>();
-    const atEnd = () =>
-      window.scrollY + window.innerHeight >=
-      document.documentElement.scrollHeight - 2;
-    const settle = () => {
-      if (showing.size && atEnd())
-        come([...showing].filter((node) => !marked.has(node)));
-    };
-    const near = new IntersectionObserver((entries) => {
-      for (const entry of entries) {
-        if (entry.isIntersecting) showing.add(entry.target);
-        else {
-          showing.delete(entry.target);
-          waiting.delete(entry.target);
-          if (!played) continue;
-          const bounds = entry.rootBounds;
-          if (!bounds) continue;
-          if (
-            entry.boundingClientRect.bottom <= bounds.top &&
-            !marked.has(entry.target) &&
-            !opening(entry.target)
-          )
-            land(entry.target);
-        }
-      }
-      settle();
-    });
-    window.addEventListener("scroll", settle, { passive: true });
-
-    const WATCHED = [VIEW, SECTION, LOAD].filter(Boolean).join(", ");
-    const watch = (node: Element) => {
-      const observe = (target: Element) => {
-        seen.observe(target);
-        near.observe(target);
-      };
-      if (node.matches(WATCHED)) observe(node);
-      node.querySelectorAll(WATCHED).forEach(observe);
-      // An opening role that arrives late (streamed in) joins the line.
-      if (played && LOAD) {
-        const late = [
-          ...(node.matches(LOAD) ? [node] : []),
-          ...node.querySelectorAll(LOAD),
-        ];
-        if (late.length) flush(late);
-      }
-    };
-    watch(element);
-
-    const added = new MutationObserver((records) => {
-      for (const record of records)
-        record.addedNodes.forEach((node) => {
-          if (node instanceof Element) watch(node);
-        });
-    });
-    added.observe(element, { childList: true, subtree: true });
-
-    return () => {
-      stopLift();
-      clearTimeout(timer);
-      seen.disconnect();
-      near.disconnect();
-      window.removeEventListener("scroll", settle);
-      added.disconnect();
-    };
-  }, [root, on, plan]);
 }
 
 // Touching a role hands it to its touch states at once: an entrance still
@@ -1094,21 +808,10 @@ export function defineStage<
   const P extends string,
   const S extends string = never,
 >(roles: StageRoles<P, S>) {
-  const {
-    scope,
-    motion,
-    scroll,
-    glide = null,
-    opening = 0,
-    order,
-    pace = 0.382,
-  } = roles;
-  const queued = Boolean(order);
-  const css = scope && motion ? compile(scope, motion, { queued }) : "";
-  const plan =
-    scope && motion && order
-      ? { ...releases(scope, motion), order, pace }
-      : null;
+  const { scope, scroll, glide = null, inset, tempo = 1, reach = 1 } = roles;
+  const motion = roles.motion && paced(roles.motion, { tempo, reach });
+  const opening = (roles.opening ?? 0) * tempo;
+  const css = scope && motion ? compile(scope, motion) : "";
   const texts = Object.fromEntries(
     Object.entries(motion?.parts ?? {}).map(([key, moves]) => [
       key,
@@ -1117,17 +820,18 @@ export function defineStage<
   );
 
   function ChoreoRoot({
-    grade,
+    light,
+    lightLinger,
     children,
   }: {
-    grade?: Grading;
+    light?: StageLight;
+    lightLinger?: number;
     children: ReactNode;
   }) {
-    useGrade(grade);
+    useStageLight(light, { linger: lightLinger });
     const root = useRef<HTMLDivElement>(null);
     const on = Boolean(scope && css);
-    useCue(root, on && !plan, opening);
-    useQueue(root, on && Boolean(plan), plan ?? EMPTY_PLAN);
+    useCue(root, on, opening, inset);
     useTouch(root, on);
     const driver = useScrollDriver();
     useEffect(() => (scroll ? driver.tune(scroll) : undefined), [driver]);
@@ -1166,9 +870,24 @@ export function defineStage<
     );
   }
 
+  // The stage's stylesheet alone, for a surface that opens later: inserting
+  // a sheet with keyframes restyles every animated element on the page, so a
+  // surface puts it in ahead of time, while nothing is moving, instead of in
+  // the frame it opens. React keeps one sheet per href, so the root that
+  // renders it again later adds nothing.
+  function Style() {
+    if (!scope || !css) return null;
+    return (
+      <style href={`choreo-${scope}`} precedence="choreo">
+        {css}
+      </style>
+    );
+  }
+
   return {
     StageRoot: ChoreoRoot,
     SurfaceRoot,
+    Style,
     Part: Part as (props: PartProps<P>) => ReactNode,
     Section: Section as (props: SectionProps<S>) => ReactNode,
     Text: Text as (props: TextProps<P>) => ReactNode,

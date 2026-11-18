@@ -4,13 +4,13 @@ One material for everything that floats: the dock, modals, menus, tooltips,
 toasts, carousel arrows and controls laid over a picture. A related, lighter
 material covers controls lying on the page. Sources:
 
-| File                                   | What                                                      |
-| -------------------------------------- | --------------------------------------------------------- |
-| `src/design/styles/liquid.css`         | The classes: material, frost, lens, clear, control        |
-| `src/design/glass/` (`GlassEngine`)    | The engine: optics, materials, maps, per-surface filters  |
+| File                                   | What                                                        |
+| -------------------------------------- | ----------------------------------------------------------- |
+| `src/design/styles/liquid.css`         | The classes: material, frost, lens, clear, control          |
+| `src/design/glass/` (`GlassEngine`)    | The engine: optics, materials, maps, per-surface filters    |
 | `src/design/styles/themes.css`         | `--liquid-*` and `--glass-control-*` values (+ `.on-photo`) |
-| `src/design/liquid-touch.ts`           | Press and lean for `.liquid-touch` controls (section 4.1) |
-| `src/design/components/glass-thumb.ts` | Springs for thumbs that turn to glass (switch, segmented) |
+| `src/design/liquid-touch.ts`           | Press and lean for `.liquid-touch` controls (section 4.1)   |
+| `src/design/components/glass-thumb.ts` | Springs for thumbs that turn to glass (switch, segmented)   |
 
 `GlassEngine` and `LiquidTouch` are mounted once in `src/app/providers.tsx`.
 
@@ -18,17 +18,17 @@ material covers controls lying on the page. Sources:
 
 Combine a material class with what it does to the scene behind it.
 
-| Class                  | Effect                                                                                                                                      |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `liquid`               | The material: `--liquid-tint` fill, a 0.5px `--liquid-contour` just outside the edge, the layer shadow. No glint: a white rim tired the eye |
-| `liquid-flat`          | No shadow (contour stays): a control on a page or picture, or a card inside another layer                                                   |
-| `liquid-frost`         | Backdrop: `--liquid-frost` (blur, saturate, tone) in every browser                                                                          |
-| `liquid-lens`          | Backdrop: refraction at the bezel, then frost, then edge light, as one SVG filter (Chromium); elsewhere the frost                           |
-| `liquid-clear`         | The lens without frost; nothing at all outside Chromium (a drop of water: the cursor)                                                       |
-| `liquid-prism`         | On clear glass over a picture: the colour channels split at the rim                                                                         |
-| `liquid-fluid`         | No per-size maps; keeps the gradient rim (a surface that morphs every frame)                                                                |
-| `liquid-control`       | The page-control material (section 10.4)                                                                                                    |
-| `liquid-control-clear` | The page-control material with no tint until touched (`outline` buttons)                                                                    |
+| Class                  | Effect                                                                                                                        |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `liquid`               | The material: `--liquid-tint` fill, a 0.5px `--liquid-contour` just outside the edge, the layer shadow and the lit rim (10.5) |
+| `liquid-flat`          | No shadow (contour stays): a control on a page or picture, or a card inside another layer                                     |
+| `liquid-frost`         | Backdrop: `--liquid-frost` (blur, saturate, tone) in every browser                                                            |
+| `liquid-lens`          | Backdrop: refraction at the bezel, then frost, then edge light, as one SVG filter (Chromium); elsewhere the frost             |
+| `liquid-clear`         | The lens without frost or `--liquid-lens-tone` (the ink under it stays ink); nothing at all outside Chromium (a drop of water: the cursor, a segmented or switch thumb) |
+| `liquid-prism`         | On clear glass over a picture: the colour channels split at the rim                                                           |
+| `liquid-fluid`         | No per-size maps; keeps the gradient rim (a surface that morphs every frame)                                                  |
+| `liquid-control`       | The page-control material (section 10.4)                                                                                      |
+| `liquid-control-clear` | The page-control material with no tint until touched (`outline` buttons)                                                      |
 
 Variables a surface may set: `--liquid-bezel` (rim width, px), `--liquid-bend`
 (× the full lens strength), `--liquid-drop` (its own shadow; `liquid-flat`
@@ -58,12 +58,13 @@ gets its shadow back (`--liquid-drop: var(--liquid-shadow)`).
 
 | Token                      | Paper                                                        | `.on-photo`                                                |
 | -------------------------- | ------------------------------------------------------------ | ---------------------------------------------------------- |
-| `--liquid-tint` / `-hover` | white 22% / 38%                                              | page 16% / page 20% + ink 10%                              |
+| `--liquid-stain`          | 1: the lens takes the page's hue, keeps its light (not on clear glass) | 0 |
+| `--liquid-tint` / `-hover` | page 30% / white 38%                                         | page 16% / page 20% + ink 10%                              |
 | `--liquid-tint-dock`       | `--liquid-tint`                                              | page 6% (the picture shows through the dock)               |
 | `--liquid-contour`         | ink 9%                                                       | black 50%                                                  |
 | `--liquid-shadow`          | `var(--lift)`                                                | `0 2px 6px -2px` black 35% + `0 12px 32px -12px` black 55% |
 | `--liquid-frost`           | `blur(12px) saturate(1.25)`                                  | `blur(12px) saturate(1.6) brightness(0.92)`                |
-| `--liquid-lens-tone`       | levels 0.4–1: `saturate(1.1) contrast(.44) brightness(1.42)` | highlights to 0.72: `saturate(1.3) brightness(.72)`        |
+| `--liquid-lens-tone`       | levels 0.4–0.95, paper → paper: `saturate(1.7) contrast(.42) brightness(1.38)` | highlights to 0.72: `saturate(1.3) brightness(.72)`        |
 | `--liquid-well` / `-hover` | white 50% / 72%                                              | white 7% / 11%                                             |
 | `--liquid-well-shadow`     | ink 6% hairline + 1px ink 5% fall                            | none                                                       |
 
@@ -73,15 +74,15 @@ Under `prefers-reduced-transparency: reduce`, `.liquid` is `--plate` (solid).
 
 Buttons (`neutral`, `outline`), a select's trigger, an `Input` and a
 segmented track lying on the page are `liquid-control`: there is nothing
-behind them to bend, so no lens and no frost; a light glass, a bevel lit from
-above and a contour.
+behind them to bend, so no lens and no frost; a light glass, the lit rim
+(10.5) and a contour.
 
-| Token                                    | Paper                                         | `.on-photo`                                          |
-| ---------------------------------------- | --------------------------------------------- | ---------------------------------------------------- |
-| `--glass-control` / `-hover` / `-active` | white 50 / 72 / 90%                           | ink 6 / 10 / 14%                                     |
-| `--glass-control-bevel`                  | `#fff` top line, ink 5% foot, ink 7% hairline | white 7% top line, black 22% foot, white 3% hairline |
-| `--glass-control-contour`                | a 1px fall in the page's hue at 14%           | 0.5px black 55%                                      |
-| `--glass-control-focus`                  | inset 1px `--edge-focus`                      | the same                                             |
+| Token                                    | Paper                               | `.on-photo`       |
+| ---------------------------------------- | ----------------------------------- | ----------------- |
+| `--glass-control` / `-hover` / `-active` | white 50 / 72 / 90%                 | ink 6 / 10 / 14%  |
+| `--glass-control-bevel`                  | ink 7% hairline                     | white 3% hairline |
+| `--glass-control-contour`                | a 1px fall in the page's hue at 14% | 0.5px black 55%   |
+| `--glass-control-focus`                  | inset 1px `--edge-focus`            | the same          |
 
 | Tone / part                                                | Material                                                         |
 | ---------------------------------------------------------- | ---------------------------------------------------------------- |
@@ -103,6 +104,7 @@ stays. **Never glass on glass**: inside the dock a control is a `WELL`
 | `optics.ts`    | Pure maths: the rim's pull (a sphere's cap), Abbe dispersion               |
 | `materials.ts` | The kinds of glass as data: `shell`, `float`, `tip`, `clear`, `prism`      |
 | `maps.ts`      | Draws the bend and the edge light for a corner radius + bezel              |
+| `png.ts`       | Encodes the maps as PNG without a canvas; deflates them for storage        |
 | `engine.tsx`   | Fits every `.liquid` with its maps, builds its SVG filter, moves its light |
 
 A surface's glass is its `data-glass`, else read from its classes:
@@ -137,8 +139,8 @@ surfaces, the lens variant for thumbs and drops.
   from the bottom right (iOS's −45° / 135°, ±90° spread), in the scene's own
   colours. Straight sides glow, the top-left and bottom-right corners most,
   the other two go dark.
-- **No white glint.** A white hairline and sheen on the rim were removed: on a
-  dark page every edge read as a bright wire. Do not add one back.
+- **The rim is lit, never a wire.** No even white hairline all round and no
+  top-only line: the rim follows the two lights (10.5).
 - `--liquid-bend` overrides are × the full pull: the segmented thumb takes
   0.08, the switch knob 0.18, the cursor's card lens 0.32 (with a 10px rim).
 
@@ -149,6 +151,22 @@ surface's card and showed through it. The engine refits a surface when its
 
 The maps depend only on corner radius and bezel, are drawn once for a small
 square and laid out as nine slices, so a resizing surface keeps them exact.
+
+The engine's cost rules (measured; keep them when changing it):
+
+- **Read in the ResizeObserver, never mid-task.** Every fit reads in one
+  pass (one `getComputedStyle` per surface), then writes. A mutation or a
+  hydration retry does not fit on the spot: it observes the surface anew,
+  and the ResizeObserver reports it in the same frame, after layout and
+  before paint, where the read is free.
+- **Maps are pixels, not canvases.** `maps.ts` writes RGBA arrays and
+  `png.ts` encodes them (stored deflate): byte-for-byte the pixels the
+  canvas made, ~3.6× faster, no GPU readback.
+- **Maps outlive the page.** Drawn maps go to `localStorage`
+  (`guffin:glass-maps`, deflated in idle time, ≤ 64 keys) under a version
+  hashed from the drawing code and one probe map: a reload or a new tab fits
+  every lens without drawing. Change the drawing and the version changes
+  by itself.
 
 Measured facts the engine relies on:
 
@@ -184,3 +202,25 @@ a per-trip latch keeps the spring's overshoot from turning it back to glass.
   in hiding the ghost shows two panes of glass overlapping.
 - Check glass on paper and over a picture: paper hides rim differences, a
   bright picture shows them (`/tahoe` is a bare wallpaper page for this).
+
+### 10.5 Light
+
+One light rig for every glass edge: a **key** up and to the left, a weaker
+**fill** back from the lower right (Apple's −45° / 135°). Each stretch of edge
+is lit by where it faces; the edges between fall to a shade.
+
+`.liquid`, a `liquid-control` on the page and `.rim` (the `chosen` tone)
+draw it in `::after`: a `--rim-width` ring cut from a conic laid round the
+shape (`liquid.css`). A field (`input`, `textarea`) cannot carry a
+pseudo-element and takes the two lights as offset inset shadows.
+
+| Token         | Paper     | `.on-photo` |
+| ------------- | --------- | ----------- |
+| `--rim-width` | 1px       | the same    |
+| `--rim-key`   | white 95% | white 42%   |
+| `--rim-fill`  | white 60% | white 18%   |
+| `--rim-shade` | ink 7%    | black 20%   |
+
+In Chromium the lens adds its own edge light in the scene's colours, from
+the same two directions. Never light an edge from one side only, and never
+give `::after` to an element that takes the rim.

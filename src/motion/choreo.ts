@@ -10,12 +10,6 @@
 // - "ready": the nearest picture has loaded (`data-ready`).
 // Drift is the one scrubbed motion: a move tied directly to scrolling.
 // Touch states are transitions on translate, scale, rotate, opacity, filter.
-//
-// A queued stage (`compile(..., { queued: true })`) hands every entrance to
-// the stage's sequencer instead: a role plays when the sequencer marks it
-// `data-seen`, which it does in order, each one only once the roles two
-// before it have finished. `releases` tells the sequencer which animations
-// each role's mark sets going.
 
 export type Curve = readonly [number, number, number, number];
 
@@ -41,6 +35,9 @@ export interface Look {
 export interface Beat extends Look {
   duration: number;
   ease?: Curve;
+  // Seconds the move waits before it starts (one thing after another:
+  // a label that appears once its box has opened).
+  delay?: number;
 }
 
 export interface Enter {
@@ -110,12 +107,15 @@ export type Followed =
   | "opacity"
   | "width"
   | "height"
+  | "flex-grow"
+  | "visibility"
   | "grid-template-rows";
 
 export interface Follow {
   of: readonly Followed[];
   duration: number;
   ease?: Curve;
+  delay?: number;
 }
 
 export interface Moves {
@@ -127,7 +127,7 @@ export interface Moves {
   focus?: Beat | "hover";
   press?: Beat;
   // How the role returns to rest; defaults to the hover's curve, 1.5× slower.
-  rest?: { duration: number; ease?: Curve };
+  rest?: { duration: number; ease?: Curve; delay?: number };
   origin?: string;
   text?: TextMoves;
   slots?: Partial<Record<Slot, Omit<Moves, "slots" | "text">>>;
@@ -168,6 +168,10 @@ const SLOTS = {
   deck: '[data-slot="deck"]',
   leaf: '[data-slot="leaf"]',
   flap: '[data-slot="flap"]',
+  // A closed seat's name, run up its side, and the shade that dims a closed
+  // seat (the cast strip).
+  spine: '[data-slot="spine"]',
+  shade: '[data-slot="shade"]',
 } as const;
 
 export type Kind = keyof typeof KINDS;
@@ -222,8 +226,6 @@ interface Place {
   root: string;
   host: string;
   target: string;
-  queued?: boolean;
-  section?: boolean;
 }
 
 const below = (outer: string, inner: string) => inner.slice(outer.length + 1);
@@ -234,20 +236,6 @@ function gate(place: Place, enter: Enter): string {
   const { root, host, target } = place;
   const played = `${root}[data-play]`;
   const inside = (selector: string) => `${played} ${below(root, selector)}`;
-  if (place.queued) {
-    // A section's own entrance answers its mount (a tab swapped in), or,
-    // when it plays on view, the sequencer's mark like any role; every role
-    // waits for the sequencer's mark on it, a carousel item on its own.
-    if (place.section)
-      return enter.on === "view"
-        ? `${inside(target)}[data-seen]`
-        : inside(target);
-    if (enter.along === "section") return `${inside(target)}[data-seen]`;
-    const ready = enter.on === "ready" ? "[data-ready] " : "";
-    return host === target
-      ? `${played} ${ready}${below(root, target)}[data-seen]`
-      : `${played} ${ready}${below(root, host)}[data-seen] ${below(host, target)}`;
-  }
   if (enter.on === "load") return inside(target);
   if (enter.on === "ready")
     return `${played} [data-ready] ${below(root, target)}`;
@@ -344,6 +332,19 @@ function trackRules(selector: string, tracks: (Track | null)[]): string {
   ])}}`;
 }
 
+// The properties every touch glides (interaction.css `--soft-props`).
+const SOFT = [
+  "color",
+  "background-color",
+  "border-color",
+  "outline-color",
+  "outline-offset",
+  "text-decoration-color",
+  "fill",
+  "stroke",
+  "box-shadow",
+];
+
 function stateRules(
   host: string,
   target: string,
@@ -363,14 +364,40 @@ function stateRules(
   // Back at rest, a followed property keeps its own pace.
   const rest = moves.rest ??
     moves.follow ?? { duration: lead!.duration * 1.5, ease: lead!.ease };
-  const timing = (beat: { duration: number; ease?: Curve }) => [
-    `transition-duration: ${seconds(reduced ? Math.min(beat.duration, 0.2) : beat.duration)}`,
-    `transition-timing-function: ${curve(beat.ease)}`,
+  // The site's softness (interaction.css) rides along: a role's colour,
+  // fill and shadow still glide, at the soft pace, beside its own moves.
+  const soft = SOFT.filter((p) => !props.includes(p));
+  // A delay on one state is undone explicitly on the others.
+  const delayed =
+    !reduced &&
+    [rest, moves.hover, focus, moves.press].some((beat) => beat?.delay);
+  const timing = (
+    beat: { duration: number; ease?: Curve; delay?: number },
+    pace: "in" | "out",
+  ) => [
+    `transition-duration: ${[
+      ...props.map(() =>
+        seconds(reduced ? Math.min(beat.duration, 0.2) : beat.duration),
+      ),
+      ...soft.map(() => `var(--soft-${pace})`),
+    ].join(", ")}`,
+    `transition-timing-function: ${[
+      ...props.map(() => curve(beat.ease)),
+      ...soft.map(() => "var(--soft-ease)"),
+    ].join(", ")}`,
+    ...(delayed
+      ? [
+          `transition-delay: ${[
+            ...props.map(() => seconds(beat.delay ?? 0)),
+            ...soft.map(() => "0s"),
+          ].join(", ")}`,
+        ]
+      : []),
   ];
 
   let css = rule(target, [
-    `transition-property: ${props.join(", ")}`,
-    ...timing(rest),
+    `transition-property: ${[...props, ...soft].join(", ")}`,
+    ...timing(rest, "out"),
     ...(moves.origin ? [`transform-origin: ${moves.origin}`] : []),
   ]);
 
@@ -383,17 +410,17 @@ function stateRules(
   if (moves.hover)
     css += `@media (hover: hover){${rule(swap(":hover"), [
       ...declare(moves.hover, reduced),
-      ...timing(moves.hover),
+      ...timing(moves.hover, "in"),
     ])}}`;
   if (focus)
     css += rule(
       `:is(${swap(":focus-visible")}, ${swap(":has(:focus-visible)")})`,
-      [...declare(focus, reduced), ...timing(focus)],
+      [...declare(focus, reduced), ...timing(focus, "in")],
     );
   if (moves.press)
     css += rule(swap(":not(:disabled, [aria-disabled='true']):active"), [
       ...declare(moves.press, reduced),
-      ...timing(moves.press),
+      ...timing(moves.press, "in"),
     ]);
   return css;
 }
@@ -482,7 +509,6 @@ function movesRules(
 export function compile<P extends string, S extends string>(
   scope: string,
   choreo: Choreography<P, S>,
-  { queued = false }: { queued?: boolean } = {},
 ): string {
   const root = `[data-choreo="${scope}"]`;
   const groups: [
@@ -502,7 +528,7 @@ export function compile<P extends string, S extends string>(
         if (!moves) continue;
         const target = `${root} ${select(key)}`;
         css += movesRules(
-          { root, host: target, target, queued, section: tag === "s" },
+          { root, host: target, target },
           `c-${scope}-${tag}-${key}${reduced ? "-r" : ""}`,
           moves,
           reduced,
@@ -514,94 +540,70 @@ export function compile<P extends string, S extends string>(
   return `@media (prefers-reduced-motion: no-preference){${build(false)}}@media (prefers-reduced-motion: reduce){${build(true)}}`;
 }
 
-// What the sequencer of a queued stage releases. A host is a role whose mark
-// (`data-seen`) sets its entrances going, with their animation names (both
-// motion variants); `on` says whether it plays with the opening ("load") or
-// when it comes into view. An along target is a carousel item, released when
-// its nearest section is.
-export interface Release {
-  selector: string;
-  on: "load" | "view";
-  names: string[];
-  // A section that enters on view: everything inside it plays as one
-  // step with it.
-  cue?: boolean;
+// A stage's pace. `tempo` stretches every entrance and leave (duration,
+// delay, stagger, budget): √φ moves each beat half a step slower. `reach`
+// lengthens the distance an entrance travels (its px offsets): φ moves each
+// Fibonacci step one up (8 → 13, 13 → 21…). Touch, drift and follow are the
+// hand's and keep their own time.
+export interface Pace {
+  tempo?: number;
+  reach?: number;
 }
 
-export interface Releases {
-  hosts: Release[];
-  along: Omit<Release, "on">[];
-}
-
-export function releases<P extends string, S extends string>(
-  scope: string,
+export function paced<P extends string, S extends string>(
   choreo: Choreography<P, S>,
-): Releases {
-  const hosts = new Map<string, Release>();
-  const along = new Map<string, Omit<Release, "on">>();
-  const groups: [
-    string,
-    Partial<Record<string, Moves>> | undefined,
-    (k: string) => string,
-  ][] = [
-    ["p", choreo.parts, (k) => `[data-part="${k}"]`],
-    ["k", choreo.kinds, (k) => KINDS[k as Kind]],
-  ];
-
-  const walk = (
-    names: string[],
-    moves: Omit<Moves, "slots" | "text"> &
-      Partial<Pick<Moves, "slots" | "text">>,
-    host: string,
-    target: string,
-  ) => {
-    const enters: [string[], Enter][] = [];
-    if (moves.enter) enters.push([names, moves.enter]);
-    if (moves.text) enters.push([names.map((n) => `${n}-t`), moves.text.enter]);
-    for (const [named, enter] of enters) {
-      if (enter.along === "section") {
-        const entry = along.get(target) ?? { selector: target, names: [] };
-        entry.names.push(...named);
-        along.set(target, entry);
-        continue;
-      }
-      const entry = hosts.get(host) ?? {
-        selector: host,
-        on: "view",
-        names: [],
-      };
-      entry.names.push(...named);
-      if (enter.on !== "view") entry.on = "load";
-      hosts.set(host, entry);
-    }
-    for (const [slot, slotMoves] of Object.entries(moves.slots ?? {})) {
-      if (!slotMoves) continue;
-      walk(
-        names.map((n) => `${n}-${slot}`),
-        slotMoves,
-        host,
-        `${target} ${SLOTS[slot as Slot]}`,
-      );
-    }
+  { tempo = 1, reach = 1 }: Pace,
+): Choreography<P, S> {
+  if (tempo === 1 && reach === 1) return choreo;
+  const t = (v: number | undefined) =>
+    v === undefined ? undefined : Math.round(v * tempo * 1000) / 1000;
+  const far = (v: Offset | undefined) =>
+    typeof v === "number" ? Math.round(v * reach * 10) / 10 : v;
+  const enter = (e: Enter): Enter => ({
+    ...e,
+    from: { ...e.from, x: far(e.from.x), y: far(e.from.y) },
+    duration: t(e.duration)!,
+    delay: t(e.delay),
+    stagger: t(e.stagger),
+    budget: t(e.budget),
+  });
+  const moves = <M extends Omit<Moves, "slots" | "text">>(m: M): M => ({
+    ...m,
+    ...(m.enter ? { enter: enter(m.enter) } : {}),
+    ...(m.leave
+      ? { leave: { ...m.leave, duration: t(m.leave.duration)! } }
+      : {}),
+  });
+  const role = (m: Moves | undefined): Moves | undefined =>
+    m && {
+      ...moves(m),
+      ...(m.text
+        ? {
+            text: {
+              ...m.text,
+              stagger: t(m.text.stagger)!,
+              line: t(m.text.line),
+              budget: t(m.text.budget),
+              enter: enter(m.text.enter),
+            },
+          }
+        : {}),
+      ...(m.slots
+        ? {
+            slots: Object.fromEntries(
+              Object.entries(m.slots).map(([k, s]) => [k, s && moves(s)]),
+            ),
+          }
+        : {}),
+    };
+  const group = <K extends string>(g: Partial<Record<K, Moves>> | undefined) =>
+    g &&
+    (Object.fromEntries(
+      Object.entries(g).map(([k, m]) => [k, role(m as Moves)]),
+    ) as Partial<Record<K, Moves>>);
+  return {
+    parts: group(choreo.parts),
+    sections: group(choreo.sections),
+    kinds: group(choreo.kinds),
   };
-
-  for (const [tag, group, select] of groups)
-    for (const [key, moves] of Object.entries(group ?? {})) {
-      if (!moves) continue;
-      const base = `c-${scope}-${tag}-${key}`;
-      walk([base, `${base}-r`], moves, select(key), select(key));
-    }
-  for (const [key, moves] of Object.entries<Moves | undefined>(
-    choreo.sections ?? {},
-  )) {
-    if (moves?.enter?.on !== "view") continue;
-    const base = `c-${scope}-s-${key}`;
-    hosts.set(`[data-section="${key}"]`, {
-      selector: `[data-section="${key}"]`,
-      on: "view",
-      names: [base, `${base}-r`],
-      cue: true,
-    });
-  }
-  return { hosts: [...hosts.values()], along: [...along.values()] };
 }
