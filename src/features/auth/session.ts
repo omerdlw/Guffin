@@ -1,0 +1,30 @@
+import { getSiteUrl, trimToNull } from "@omerdlw/base-framework/utils";
+
+export { OAUTH_PROVIDERS, type OAuthProvider } from "@/lib/auth/shared";
+
+export type SignOutScope = "local" | "others";
+
+const AUTH_CALLBACK_PATH = "/auth/callback";
+
+export const SEED_EMAIL_DOMAIN = "guffin.test";
+
+export function sanitizeNextPath(
+  value: unknown,
+  fallback = "/account",
+): string {
+  const path = trimToNull(value);
+  if (!path || !/^\/(?!\/)[^\\\u0000-\u001f]*$/.test(path)) return fallback;
+  return path;
+}
+
+export function getAuthCallbackUrl(nextPath = "/account"): string {
+  const origin =
+    typeof window !== "undefined" ? window.location.origin : getSiteUrl();
+  const callback = new URL(AUTH_CALLBACK_PATH, origin);
+  callback.searchParams.set("next", sanitizeNextPath(nextPath));
+  return callback.toString();
+}
+
+export function isSeedLoginEnabled(): boolean {
+  return process.env.SEED_LOGIN === "1";
+}

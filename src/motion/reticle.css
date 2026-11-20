@@ -1,0 +1,20 @@
+html.reticle,
+html.reticle *:not([data-reticle-off], [data-reticle-off] *, nextjs-portal) {
+  cursor: none !important;
+}
+
+html.reticle nextjs-portal {
+  cursor: auto;
+}
+
+@layer base {
+  html.reticle [data-reticle-off] {
+    cursor: auto;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  [data-reticle] .liquid {
+    background-color: transparent;
+  }
+}

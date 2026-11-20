@@ -1,0 +1,464 @@
+import {
+  type PersonCastCredit,
+  type PersonCrewCredit,
+  type PersonDetails,
+  type PersonImage,
+  tmdbImageUrl,
+} from "@/lib/tmdb/shared";
+import {
+  type Career,
+  departmentRole,
+  type FilmographyCredit,
+  type FilmographyGroup,
+  type FilmographySort,
+  type TimelineCredit,
+  type TimelineYear,
+} from "./person";
+
+type SourceCredit = PersonCastCredit | PersonCrewCredit;
+
+type CreditLike = Pick<
+  SourceCredit,
+  | "id"
+  | "popularity"
+  | "posterPath"
+  | "releaseDate"
+  | "releaseYear"
+  | "title"
+  | "voteCount"
+>;
+
+interface CareerFilm {
+  id: number;
+  popularity: number;
+  title: string;
+  votes: number;
+  year: number;
+}
+
+const PERSON_GALLERY_LIMIT = 20;
+
+const PERSON_BACKDROP_LIMIT = 12;
+
+const PERSON_BACKDROP_MIN_VOTES = 50;
+
+const PERSON_CAREER_MIN_YEARS = 12;
+
+const GROUP_PRIORITY = ["Acting", "Directing", "Writing", "Production"];
+
+const DEPARTMENT_JOBS: Readonly<Record<string, RegExp>> = {
+  Directing: /^(?:co-)?director$/i,
+  Production: /producer/i,
+};
+
+const SHOWN_ALONGSIDE = ["Acting", "Directing"];
+
+const NOT_A_REAL_ROLE = /uncredited|cameo|self|archive/i;
+
+const byPopularity = (a: CreditLike, b: CreditLike) =>
+  b.popularity - a.popularity || b.voteCount - a.voteCount;
+
+const byNewest = (a: CreditLike, b: CreditLike) =>
+  (b.releaseDate ?? "").localeCompare(a.releaseDate ?? "") ||
+  byPopularity(a, b);
+
+function toCredit(movie: CreditLike, role: string | null): FilmographyCredit {
+  return {
+    id: movie.id,
+    key: String(movie.id),
+    popularity: movie.popularity,
+    posterPath: movie.posterPath,
+    releaseDate: movie.releaseDate,
+    role,
+    title: movie.title,
+    voteCount: movie.voteCount,
+    year: movie.releaseYear,
+  };
+}
+
+function mergeByMovie<T extends CreditLike>(
+  credits: readonly T[],
+  roleOf: (credit: T) => string | null,
+): FilmographyCredit[] {
+  const merged = new Map<number, { movie: T; roles: string[] }>();
+  for (const credit of credits) {
+    const role = roleOf(credit);
+    const existing = merged.get(credit.id);
+    if (!existing) {
+      merged.set(credit.id, { movie: credit, roles: role ? [role] : [] });
+    } else if (role && !existing.roles.includes(role)) {
+      existing.roles.push(role);
+    }
+  }
+  return [...merged.values()].map(({ movie, roles }) =>
+    toCredit(movie, roles.length > 0 ? roles.join(" / ") : null),
+  );
+}
+
+function makeGroup(
+  key: string,
+  label: string,
+  credits: FilmographyCredit[],
+): FilmographyGroup {
+  const withPoster = credits.filter((credit) => credit.posterPath);
+  return { credits: withPoster, key, label, total: withPoster.length };
+}
+
+function crewOfDepartment<T extends { job: string | null }>(
+  credits: readonly T[],
+  department: string,
+): T[] {
+  const jobs = DEPARTMENT_JOBS[department];
+  const defining = jobs
+    ? credits.filter((credit) => credit.job && jobs.test(credit.job))
+    : [];
+  return defining.length > 0 ? defining : [...credits];
+}
+
+function sortableTitle(title: string): string {
+  return title.replace(/^(?:the|a|an)\s+/i, "");
+}
+
+const byTitle = (a: FilmographyCredit, b: FilmographyCredit) =>
+  sortableTitle(a.title).localeCompare(sortableTitle(b.title), "en", {
+    sensitivity: "base",
+  });
+
+const byCreditPopularity = (a: FilmographyCredit, b: FilmographyCredit) =>
+  b.popularity - a.popularity || b.voteCount - a.voteCount;
+
+function describeCredits(
+  cast: readonly { character: string | null }[],
+  crew: readonly { department: string | null; job: string | null }[],
+): string | null {
+  const parts: string[] = [];
+  if (cast.length > 0) {
+    const characters = [
+      ...new Set(cast.map((c) => c.character).filter(Boolean)),
+    ];
+    parts.push(
+      characters.length > 0 ? `as ${characters.join(" / ")}` : "Actor",
+    );
+  }
+  const jobs = [
+    ...new Set(crew.map((c) => c.job ?? c.department).filter(Boolean)),
+  ];
+  if (jobs.length > 0) parts.push(jobs.join(", "));
+  return parts.length > 0 ? parts.join(" · ") : null;
+}
+
+function careerTitles(credits: readonly CreditLike[]): CareerFilm[] {
+  const films = new Map<number, CareerFilm>();
+  for (const credit of credits) {
+    if (credit.releaseYear === null || films.has(credit.id)) continue;
+    films.set(credit.id, {
+      id: credit.id,
+      popularity: credit.popularity,
+      title: credit.title,
+      votes: credit.voteCount,
+      year: credit.releaseYear,
+    });
+  }
+  return [...films.values()];
+}
+
+const byImpact = (a: CareerFilm, b: CareerFilm) =>
+  b.votes - a.votes || b.popularity - a.popularity;
+
+function backdropScore(credit: SourceCredit, kind: "cast" | "crew"): number {
+  let weight: number;
+  if (kind === "cast") {
+    const { order, character } = credit as PersonCastCredit;
+    weight = order === 0 ? 1.6 : order <= 2 ? 1.3 : order <= 5 ? 1 : 0.7;
+    if (order > 10) weight = 0.3;
+    if (character && NOT_A_REAL_ROLE.test(character)) weight *= 0.2;
+  } else {
+    weight = (credit as PersonCrewCredit).job === "Director" ? 1.3 : 0.5;
+  }
+  const impact =
+    Math.log10(Math.max(1, credit.voteCount)) * 25 +
+    Math.log10(Math.max(1, credit.popularity)) * 10;
+  return impact * weight;
+}
+
+function careerFilms(person: PersonDetails): CareerFilm[] {
+  return careerTitles([...person.credits.cast, ...person.credits.crew]);
+}
+
+function groupFilmography<
+  Cast extends CreditLike & { character: string | null },
+  Crew extends CreditLike & { department: string | null; job: string | null },
+>(
+  cast: readonly Cast[],
+  crew: readonly Crew[],
+  knownFor: string | null,
+): FilmographyGroup[] {
+  const groups: FilmographyGroup[] = [];
+
+  groups.push(
+    makeGroup(
+      "Acting",
+      departmentRole("Acting") ?? "Actor",
+      mergeByMovie([...cast].sort(byPopularity), (credit) => credit.character),
+    ),
+  );
+
+  const byDepartment = new Map<string, Crew[]>();
+  for (const credit of crew) {
+    const department = credit.department ?? "Crew";
+    byDepartment.set(department, [
+      ...(byDepartment.get(department) ?? []),
+      credit,
+    ]);
+  }
+  for (const [department, credits] of byDepartment) {
+    groups.push(
+      makeGroup(
+        department,
+        departmentRole(department) ?? department,
+        mergeByMovie(
+          crewOfDepartment(credits, department).sort(byPopularity),
+          (credit) => credit.job,
+        ),
+      ),
+    );
+  }
+
+  const present = groups.filter((group) => group.total > 0);
+  const shown = present
+    .filter(
+      (group) => group.key === knownFor || SHOWN_ALONGSIDE.includes(group.key),
+    )
+    .sort((a, b) => {
+      const rank = (group: FilmographyGroup) =>
+        group.key === knownFor ? -1 : SHOWN_ALONGSIDE.indexOf(group.key);
+      return rank(a) - rank(b);
+    });
+  if (shown.length > 0) return shown;
+
+  const priority = (group: FilmographyGroup) => {
+    const index = GROUP_PRIORITY.indexOf(group.key);
+    return index === -1 ? GROUP_PRIORITY.length : index;
+  };
+  const [largest] = present.sort(
+    (a, b) => b.total - a.total || priority(a) - priority(b),
+  );
+  return largest ? [largest] : [];
+}
+
+export function getFilmography(person: PersonDetails): FilmographyGroup[] {
+  return groupFilmography(
+    person.credits.cast,
+    person.credits.crew,
+    person.knownForDepartment,
+  );
+}
+
+export function sortFilmography(
+  credits: readonly FilmographyCredit[],
+  sort: FilmographySort,
+): FilmographyCredit[] {
+  const compare = (a: FilmographyCredit, b: FilmographyCredit): number => {
+    switch (sort) {
+      case "popularity":
+        return 0;
+      case "name":
+        return byTitle(a, b);
+      case "newest":
+      case "oldest": {
+        if (!a.releaseDate || !b.releaseDate) {
+          return Number(!a.releaseDate) - Number(!b.releaseDate);
+        }
+        const order = a.releaseDate.localeCompare(b.releaseDate);
+        return sort === "newest" ? -order : order;
+      }
+    }
+  };
+  return [...credits].sort((a, b) => compare(a, b) || byCreditPopularity(a, b));
+}
+
+export function getTimeline(person: PersonDetails): TimelineYear[] {
+  type Entry = {
+    cast: { character: string | null }[];
+    crew: { department: string | null; job: string | null }[];
+    title: CreditLike;
+  };
+  const titles = new Map<number, Entry>();
+  const entry = (title: CreditLike) => {
+    let found = titles.get(title.id);
+    if (!found) {
+      found = { cast: [], crew: [], title };
+      titles.set(title.id, found);
+    }
+    return found;
+  };
+  person.credits.cast.forEach((c) => entry(c).cast.push(c));
+  person.credits.crew.forEach((c) => entry(c).crew.push(c));
+
+  const years = new Map<
+    string | null,
+    { credit: TimelineCredit; title: CreditLike }[]
+  >();
+  for (const { cast, crew, title } of titles.values()) {
+    const year = title.releaseDate?.slice(0, 4) ?? null;
+    years.set(year, [
+      ...(years.get(year) ?? []),
+      {
+        credit: {
+          detail: describeCredits(cast, crew),
+          id: title.id,
+          key: String(title.id),
+          posterPath: title.posterPath,
+          title: title.title,
+        },
+        title,
+      },
+    ]);
+  }
+
+  return [...years.entries()]
+    .sort(([a], [b]) => {
+      if (a === null || b === null)
+        return Number(a === null) - Number(b === null);
+      return Number(b) - Number(a);
+    })
+    .map(([year, items]) => ({
+      credits: items
+        .sort((a, b) => byNewest(a.title, b.title))
+        .map((i) => i.credit),
+      year,
+    }));
+}
+
+export function getCareer(person: PersonDetails): Career | null {
+  return buildCareer(careerFilms(person));
+}
+
+function buildCareer(films: CareerFilm[]): Career | null {
+  if (films.length === 0) return null;
+
+  const first = Math.min(...films.map((film) => film.year));
+  const last = Math.max(...films.map((film) => film.year));
+  const end = Math.max(last, first + PERSON_CAREER_MIN_YEARS - 1);
+
+  const byYear = new Map<number, CareerFilm[]>();
+  for (const film of films) {
+    byYear.set(film.year, [...(byYear.get(film.year) ?? []), film]);
+  }
+  const height = (year: number) =>
+    (byYear.get(year) ?? []).reduce((n, f) => n + f.votes, 0);
+
+  let tallest = 0;
+  let peak = first;
+  for (let year = first; year <= end; year++) {
+    if (height(year) >= tallest && byYear.has(year)) {
+      tallest = height(year);
+      peak = year;
+    }
+  }
+
+  const years = [];
+  for (let year = first; year <= end; year++) {
+    const here = [...(byYear.get(year) ?? [])].sort(byImpact);
+    years.push({
+      count: here.length,
+      films: here.map((film) => film.title),
+      weight:
+        tallest > 0
+          ? Math.sqrt(height(year) / tallest)
+          : here.length > 0
+            ? 1
+            : 0,
+      year,
+    });
+  }
+  return { peak, years };
+}
+
+export function countFilms(
+  person: PersonDetails,
+  now: Date = new Date(),
+): number {
+  const today = now.getUTCFullYear();
+  return careerFilms(person).filter((film) => film.year <= today).length;
+}
+
+export function getBackdropPaths(
+  person: PersonDetails,
+  limit = PERSON_BACKDROP_LIMIT,
+): string[] {
+  const best = new Map<number, { path: string; score: number }>();
+  const consider = (credit: SourceCredit, kind: "cast" | "crew") => {
+    if (!credit.backdropPath || credit.voteCount < PERSON_BACKDROP_MIN_VOTES) {
+      return;
+    }
+    const score = backdropScore(credit, kind);
+    const known = best.get(credit.id);
+    if (!known || score > known.score) {
+      best.set(credit.id, { path: credit.backdropPath, score });
+    }
+  };
+  person.credits.cast.forEach((credit) => consider(credit, "cast"));
+  person.credits.crew.forEach((credit) => consider(credit, "crew"));
+
+  return [...best.values()]
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map(({ path }) => path);
+}
+
+export function getBackdropPath(person: PersonDetails): string | null {
+  return getBackdropPaths(person, 1)[0] ?? null;
+}
+
+export function personSwatch(
+  backdropPath: string | null,
+  photoPath: string | null,
+): string | null {
+  return (
+    tmdbImageUrl("backdrop", backdropPath, "w300") ??
+    tmdbImageUrl("profile", photoPath, "w185")
+  );
+}
+
+export function getGalleryImages(
+  person: PersonDetails,
+  limit = PERSON_GALLERY_LIMIT,
+): PersonImage[] {
+  return [...person.images.profiles]
+    .sort((a, b) => b.voteAverage - a.voteAverage || b.voteCount - a.voteCount)
+    .slice(0, limit);
+}
+
+export interface KnownTitle {
+  id: number;
+  posterPath: string;
+  title: string;
+}
+
+export function getKnownFor(
+  person: PersonDetails,
+  kind: "cast" | "crew",
+  skipId: number,
+  limit: number,
+): KnownTitle[] {
+  const best = new Map<number, KnownTitle & { score: number }>();
+  const consider = (credit: SourceCredit) => {
+    if (!credit.posterPath || credit.id === skipId) return;
+    const score = backdropScore(credit, kind);
+    const known = best.get(credit.id);
+    if (known && known.score >= score) return;
+    best.set(credit.id, {
+      id: credit.id,
+      posterPath: credit.posterPath,
+      score,
+      title: credit.title,
+    });
+  };
+  person.credits[kind].forEach(consider);
+
+  return [...best.values()]
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map(({ score: _score, ...title }) => title);
+}

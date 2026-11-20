@@ -1,0 +1,354 @@
+import { sql } from "drizzle-orm";
+import {
+  boolean,
+  date,
+  integer,
+  jsonb,
+  numeric,
+  pgTable,
+  real,
+  smallint,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
+import { timestamptz } from "./columns";
+
+const DB_DEFAULT = sql`DEFAULT`;
+const DB_GENERATED = sql``;
+
+export const accountActivity = pgTable("account_activity", {
+  id: uuid("id").primaryKey().default(DB_DEFAULT),
+  accountId: uuid("account_id").notNull(),
+  type: text("type").notNull(),
+  tmdbId: integer("tmdb_id"),
+  listId: uuid("list_id"),
+  reviewId: uuid("review_id"),
+  targetAccountId: uuid("target_account_id"),
+  payload: jsonb("payload").notNull().default(DB_DEFAULT),
+  dedupeKey: text("dedupe_key").notNull(),
+  createdAt: timestamptz("created_at").notNull().default(DB_DEFAULT),
+});
+
+export const accountDiary = pgTable("account_diary", {
+  id: uuid("id").primaryKey().default(DB_DEFAULT),
+  accountId: uuid("account_id").notNull(),
+  tmdbId: integer("tmdb_id").notNull(),
+  title: text("title").notNull(),
+  posterPath: text("poster_path"),
+  backdropPath: text("backdrop_path"),
+  releaseDate: date("release_date", { mode: "string" }),
+  watchedOn: date("watched_on", { mode: "string" })
+    .notNull()
+    .default(DB_DEFAULT),
+  watchedAt: timestamptz("watched_at").notNull().default(DB_DEFAULT),
+  isRewatch: boolean("is_rewatch").notNull().default(DB_DEFAULT),
+  createdAt: timestamptz("created_at").notNull().default(DB_DEFAULT),
+  updatedAt: timestamptz("updated_at").notNull().default(DB_DEFAULT),
+});
+
+export const accountEmails = pgTable("account_emails", {
+  id: uuid("id").primaryKey().default(DB_DEFAULT),
+  accountId: uuid("account_id").notNull(),
+  email: text("email").notNull(),
+  isPrimary: boolean("is_primary").notNull().default(DB_DEFAULT),
+  verifiedAt: timestamptz("verified_at"),
+  createdAt: timestamptz("created_at").notNull().default(DB_DEFAULT),
+});
+
+export const accountFavorites = pgTable("account_favorites", {
+  accountId: uuid("account_id").notNull(),
+  tmdbId: integer("tmdb_id").notNull(),
+  position: smallint("position").notNull(),
+  createdAt: timestamptz("created_at").notNull().default(DB_DEFAULT),
+});
+
+export const accountFollows = pgTable("account_follows", {
+  id: uuid("id").primaryKey().default(DB_DEFAULT),
+  followerId: uuid("follower_id").notNull(),
+  followingId: uuid("following_id").notNull(),
+  status: text("status").notNull().default(DB_DEFAULT),
+  respondedAt: timestamptz("responded_at"),
+  createdAt: timestamptz("created_at").notNull().default(DB_DEFAULT),
+  updatedAt: timestamptz("updated_at").notNull().default(DB_DEFAULT),
+});
+
+export const accountLikes = pgTable("account_likes", {
+  accountId: uuid("account_id").notNull(),
+  tmdbId: integer("tmdb_id").notNull(),
+  title: text("title").notNull(),
+  posterPath: text("poster_path"),
+  backdropPath: text("backdrop_path"),
+  releaseDate: date("release_date", { mode: "string" }),
+  payload: jsonb("payload").notNull().default(DB_DEFAULT),
+  createdAt: timestamptz("created_at").notNull().default(DB_DEFAULT),
+  updatedAt: timestamptz("updated_at").notNull().default(DB_DEFAULT),
+});
+
+export const accountStats = pgTable("account_stats", {
+  accountId: uuid("account_id").primaryKey(),
+  followersCount: integer("followers_count").notNull().default(DB_DEFAULT),
+  followingCount: integer("following_count").notNull().default(DB_DEFAULT),
+  watchedCount: integer("watched_count").notNull().default(DB_DEFAULT),
+  watchlistCount: integer("watchlist_count").notNull().default(DB_DEFAULT),
+  likesCount: integer("likes_count").notNull().default(DB_DEFAULT),
+  listsCount: integer("lists_count").notNull().default(DB_DEFAULT),
+  reviewsCount: integer("reviews_count").notNull().default(DB_DEFAULT),
+  diaryCount: integer("diary_count").notNull().default(DB_DEFAULT),
+  updatedAt: timestamptz("updated_at").notNull().default(DB_DEFAULT),
+});
+
+export const accountWatched = pgTable("account_watched", {
+  accountId: uuid("account_id").notNull(),
+  tmdbId: integer("tmdb_id").notNull(),
+  title: text("title").notNull(),
+  posterPath: text("poster_path"),
+  backdropPath: text("backdrop_path"),
+  releaseDate: date("release_date", { mode: "string" }),
+  payload: jsonb("payload").notNull().default(DB_DEFAULT),
+  firstWatchedAt: timestamptz("first_watched_at").notNull().default(DB_DEFAULT),
+  lastWatchedAt: timestamptz("last_watched_at").notNull().default(DB_DEFAULT),
+  createdAt: timestamptz("created_at").notNull().default(DB_DEFAULT),
+  updatedAt: timestamptz("updated_at").notNull().default(DB_DEFAULT),
+});
+
+export const accountWatchlist = pgTable("account_watchlist", {
+  accountId: uuid("account_id").notNull(),
+  tmdbId: integer("tmdb_id").notNull(),
+  title: text("title").notNull(),
+  posterPath: text("poster_path"),
+  backdropPath: text("backdrop_path"),
+  releaseDate: date("release_date", { mode: "string" }),
+  payload: jsonb("payload").notNull().default(DB_DEFAULT),
+  createdAt: timestamptz("created_at").notNull().default(DB_DEFAULT),
+  updatedAt: timestamptz("updated_at").notNull().default(DB_DEFAULT),
+});
+
+export const accounts = pgTable("accounts", {
+  id: uuid("id").primaryKey(),
+  username: text("username"),
+  displayName: text("display_name"),
+  avatarUrl: text("avatar_url"),
+  backgroundUrl: text("background_url"),
+  bio: text("bio"),
+  isPrivate: boolean("is_private").notNull().default(DB_DEFAULT),
+  isActive: boolean("is_active").notNull().default(DB_DEFAULT),
+  deactivatedAt: timestamptz("deactivated_at"),
+  status: text("status").generatedAlwaysAs(DB_GENERATED),
+  createdAt: timestamptz("created_at").notNull().default(DB_DEFAULT),
+  updatedAt: timestamptz("updated_at").notNull().default(DB_DEFAULT),
+});
+
+export const authAccounts = pgTable("auth_accounts", {
+  id: uuid("id").primaryKey().default(DB_DEFAULT),
+  userId: uuid("user_id").notNull(),
+  accountId: text("account_id").notNull(),
+  providerId: text("provider_id").notNull(),
+  accessToken: text("access_token"),
+  refreshToken: text("refresh_token"),
+  idToken: text("id_token"),
+  accessTokenExpiresAt: timestamp("access_token_expires_at", {
+    withTimezone: true,
+    mode: "date",
+  }),
+  refreshTokenExpiresAt: timestamp("refresh_token_expires_at", {
+    withTimezone: true,
+    mode: "date",
+  }),
+  scope: text("scope"),
+  password: text("password"),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
+    .notNull()
+    .default(DB_DEFAULT),
+  updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" })
+    .notNull()
+    .default(DB_DEFAULT),
+});
+
+export const authPasskeys = pgTable("auth_passkeys", {
+  id: uuid("id").primaryKey().default(DB_DEFAULT),
+  userId: uuid("user_id").notNull(),
+  name: text("name"),
+  publicKey: text("public_key").notNull(),
+  credentialId: text("credential_id").notNull(),
+  counter: integer("counter").notNull(),
+  deviceType: text("device_type").notNull(),
+  backedUp: boolean("backed_up").notNull(),
+  transports: text("transports"),
+  aaguid: text("aaguid"),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+    mode: "date",
+  }).default(DB_DEFAULT),
+});
+
+export const authSessions = pgTable("auth_sessions", {
+  id: uuid("id").primaryKey().default(DB_DEFAULT),
+  userId: uuid("user_id").notNull(),
+  token: text("token").notNull(),
+  expiresAt: timestamp("expires_at", {
+    withTimezone: true,
+    mode: "date",
+  }).notNull(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
+    .notNull()
+    .default(DB_DEFAULT),
+  updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" })
+    .notNull()
+    .default(DB_DEFAULT),
+});
+
+export const authUsers = pgTable("auth_users", {
+  id: uuid("id").primaryKey().default(DB_DEFAULT),
+  name: text("name").notNull().default(DB_DEFAULT),
+  email: text("email").notNull(),
+  emailVerified: boolean("email_verified").notNull().default(DB_DEFAULT),
+  image: text("image"),
+  isSeed: boolean("is_seed").notNull().default(DB_DEFAULT),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
+    .notNull()
+    .default(DB_DEFAULT),
+  updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" })
+    .notNull()
+    .default(DB_DEFAULT),
+});
+
+export const authVerifications = pgTable("auth_verifications", {
+  id: uuid("id").primaryKey().default(DB_DEFAULT),
+  identifier: text("identifier").notNull(),
+  value: text("value").notNull(),
+  expiresAt: timestamp("expires_at", {
+    withTimezone: true,
+    mode: "date",
+  }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
+    .notNull()
+    .default(DB_DEFAULT),
+  updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" })
+    .notNull()
+    .default(DB_DEFAULT),
+});
+
+export const filmCatalog = pgTable("film_catalog", {
+  tmdbId: integer("tmdb_id").primaryKey(),
+  title: text("title").notNull(),
+  originalTitle: text("original_title"),
+  posterPath: text("poster_path"),
+  backdropPath: text("backdrop_path"),
+  releaseDate: date("release_date", { mode: "string" }),
+  status: text("status"),
+  originalLanguage: text("original_language"),
+  originCountries: text("origin_countries")
+    .array()
+    .notNull()
+    .default(DB_DEFAULT),
+  genreIds: integer("genre_ids").array().notNull().default(DB_DEFAULT),
+  runtimeMinutes: integer("runtime_minutes"),
+  voteAverage: numeric("vote_average", { mode: "number" }),
+  voteCount: integer("vote_count").notNull().default(DB_DEFAULT),
+  popularity: numeric("popularity", { mode: "number" })
+    .notNull()
+    .default(DB_DEFAULT),
+  qualityScore: real("quality_score").notNull().default(DB_DEFAULT),
+  qualityFlags: text("quality_flags").array().notNull().default(DB_DEFAULT),
+  eligible: boolean("eligible").notNull().default(DB_DEFAULT),
+  fetchedAt: timestamptz("fetched_at").notNull().default(DB_DEFAULT),
+  updatedAt: timestamptz("updated_at").notNull().default(DB_DEFAULT),
+});
+
+export const filmCatalogOverrides = pgTable("film_catalog_overrides", {
+  tmdbId: integer("tmdb_id").primaryKey(),
+  verdict: text("verdict").notNull(),
+  note: text("note").notNull().default(DB_DEFAULT),
+  createdAt: timestamptz("created_at").notNull().default(DB_DEFAULT),
+});
+
+export const filmStats = pgTable("film_stats", {
+  tmdbId: integer("tmdb_id").primaryKey(),
+  watchedCount: integer("watched_count").notNull().default(DB_DEFAULT),
+  likedCount: integer("liked_count").notNull().default(DB_DEFAULT),
+  listedCount: integer("listed_count").notNull().default(DB_DEFAULT),
+  watchlistCount: integer("watchlist_count").notNull().default(DB_DEFAULT),
+  reviewsCount: integer("reviews_count").notNull().default(DB_DEFAULT),
+  ratings: integer("ratings").array().notNull().default(DB_DEFAULT),
+  ratingsCount: integer("ratings_count").generatedAlwaysAs(DB_GENERATED),
+  ratingAverage: numeric("rating_average", {
+    mode: "number",
+  }).generatedAlwaysAs(DB_GENERATED),
+  updatedAt: timestamptz("updated_at").notNull().default(DB_DEFAULT),
+});
+
+export const listItems = pgTable("list_items", {
+  listId: uuid("list_id").notNull(),
+  tmdbId: integer("tmdb_id").notNull(),
+  title: text("title").notNull(),
+  posterPath: text("poster_path"),
+  backdropPath: text("backdrop_path"),
+  releaseDate: date("release_date", { mode: "string" }),
+  payload: jsonb("payload").notNull().default(DB_DEFAULT),
+  position: integer("position").notNull().default(DB_DEFAULT),
+  createdAt: timestamptz("created_at").notNull().default(DB_DEFAULT),
+  updatedAt: timestamptz("updated_at").notNull().default(DB_DEFAULT),
+});
+
+export const listLikes = pgTable("list_likes", {
+  listId: uuid("list_id").notNull(),
+  accountId: uuid("account_id").notNull(),
+  createdAt: timestamptz("created_at").notNull().default(DB_DEFAULT),
+});
+
+export const lists = pgTable("lists", {
+  id: uuid("id").primaryKey().default(DB_DEFAULT),
+  accountId: uuid("account_id").notNull(),
+  slug: text("slug").notNull().default(DB_DEFAULT),
+  title: text("title").notNull(),
+  description: text("description").notNull().default(DB_DEFAULT),
+  posterPath: text("poster_path"),
+  backdropPath: text("backdrop_path"),
+  isRanked: boolean("is_ranked").notNull().default(DB_DEFAULT),
+  isPrivate: boolean("is_private").notNull().default(DB_DEFAULT),
+  itemsCount: integer("items_count").notNull().default(DB_DEFAULT),
+  likesCount: integer("likes_count").notNull().default(DB_DEFAULT),
+  reviewsCount: integer("reviews_count").notNull().default(DB_DEFAULT),
+  createdAt: timestamptz("created_at").notNull().default(DB_DEFAULT),
+  updatedAt: timestamptz("updated_at").notNull().default(DB_DEFAULT),
+});
+
+export const notifications = pgTable("notifications", {
+  id: uuid("id").primaryKey().default(DB_DEFAULT),
+  userId: uuid("user_id").notNull(),
+  actorId: uuid("actor_id"),
+  type: text("type").notNull(),
+  payload: jsonb("payload").notNull().default(DB_DEFAULT),
+  listId: uuid("list_id"),
+  reviewId: uuid("review_id"),
+  dedupeKey: text("dedupe_key"),
+  read: boolean("read").notNull().default(DB_DEFAULT),
+  readAt: timestamptz("read_at"),
+  createdAt: timestamptz("created_at").notNull().default(DB_DEFAULT),
+});
+
+export const reviewLikes = pgTable("review_likes", {
+  reviewId: uuid("review_id").notNull(),
+  accountId: uuid("account_id").notNull(),
+  createdAt: timestamptz("created_at").notNull().default(DB_DEFAULT),
+});
+
+export const reviews = pgTable("reviews", {
+  id: uuid("id").primaryKey().default(DB_DEFAULT),
+  accountId: uuid("account_id").notNull(),
+  tmdbId: integer("tmdb_id"),
+  listId: uuid("list_id"),
+  title: text("title"),
+  posterPath: text("poster_path"),
+  backdropPath: text("backdrop_path"),
+  releaseDate: date("release_date", { mode: "string" }),
+  content: text("content").notNull().default(DB_DEFAULT),
+  rating: numeric("rating", { mode: "number" }),
+  isSpoiler: boolean("is_spoiler").notNull().default(DB_DEFAULT),
+  likesCount: integer("likes_count").notNull().default(DB_DEFAULT),
+  createdAt: timestamptz("created_at").notNull().default(DB_DEFAULT),
+  updatedAt: timestamptz("updated_at").notNull().default(DB_DEFAULT),
+});

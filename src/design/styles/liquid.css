@@ -1,0 +1,142 @@
+@property --liquid-bezel {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+@property --liquid-bend {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+@layer components {
+  .liquid {
+    position: relative;
+    background-color: var(--liquid-tint);
+    background-image: var(--liquid-sheen);
+    box-shadow:
+      0 0 0 0.5px var(--liquid-contour),
+      var(--liquid-drop, var(--liquid-shadow));
+  }
+
+  @media (hover: hover) {
+    :is(a, button).liquid:hover {
+      background-color: var(--liquid-tint-hover);
+    }
+  }
+
+  .liquid-flat {
+    --liquid-drop: 0 0 #0000;
+  }
+  :is(.liquid, .rim)::after,
+  .liquid-control:not(
+      input,
+      textarea,
+      :where(.dock-root, .liquid, [role="dialog"]) *
+    )::after {
+    background: conic-gradient(
+      from 315deg,
+      var(--rim-key) 0deg,
+      var(--rim-shade) 75deg 105deg,
+      var(--rim-fill) 180deg,
+      var(--rim-shade) 255deg 285deg,
+      var(--rim-key) 360deg
+    );
+    border-radius: inherit;
+    content: "";
+    inset: 0;
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box exclude,
+      linear-gradient(#000 0 0);
+    padding: var(--rim-width);
+    pointer-events: none;
+    position: absolute;
+  }
+  .rim {
+    position: relative;
+  }
+
+  .liquid-control:not(:where(.dock-root, .liquid, [role="dialog"]) *) {
+    --rim-key: var(--rim-grade-key);
+    --rim-fill: var(--rim-grade-fill);
+    --rim-shade: var(--rim-grade-shade);
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    .liquid {
+      background-color: var(--plate);
+    }
+  }
+}
+
+@utility liquid-frost {
+  -webkit-backdrop-filter: var(--liquid-frost);
+  backdrop-filter: var(--liquid-frost);
+}
+
+@utility liquid-lens {
+  -webkit-backdrop-filter: var(--liquid-frost);
+  backdrop-filter: var(--liquid-lens, var(--liquid-frost));
+}
+
+@utility liquid-clear {
+  backdrop-filter: var(--liquid-lens, none);
+}
+
+@utility liquid-poster {
+  --liquid-tint: oklch(
+    from var(--poster) clamp(0.2, l, var(--liquid-poster-l))
+      min(c, var(--liquid-poster-c)) h / var(--liquid-poster-alpha)
+  );
+  --rated: oklch(
+    from var(--poster) var(--liquid-poster-star-l)
+      min(calc(c* 1.6), var(--liquid-poster-star-c)) h
+  );
+}
+
+.liquid-control:not(:where(.dock-root, .liquid, [role="dialog"]) *) {
+  background-color: var(--glass-control);
+  box-shadow: var(--glass-control-contour), var(--glass-control-bevel);
+
+  &.liquid-control-clear {
+    background-color: transparent;
+  }
+  &.ui-iris::before {
+    display: none;
+  }
+
+  @media (hover: hover) {
+    &:hover:not([role="tablist"]) {
+      background-color: var(--glass-control-hover);
+    }
+  }
+  &[aria-expanded="true"] {
+    background-color: var(--glass-control-hover);
+    box-shadow:
+      var(--glass-control-contour), var(--glass-control-bevel),
+      var(--glass-control-focus);
+  }
+  &:is(input, textarea) {
+    box-shadow:
+      var(--glass-control-contour),
+      var(--glass-control-bevel),
+      inset 1px 1px 0 var(--rim-key),
+      inset -1px -1px 0 var(--rim-fill);
+  }
+  &:is(input, textarea):focus {
+    background-color: var(--glass-control-hover);
+    box-shadow:
+      var(--glass-control-contour),
+      var(--glass-control-bevel),
+      inset 1px 1px 0 var(--rim-key),
+      inset -1px -1px 0 var(--rim-fill),
+      var(--glass-control-focus);
+  }
+  &:is(button, a[href], [role="button"]):active {
+    background-color: var(--glass-control-active);
+  }
+}

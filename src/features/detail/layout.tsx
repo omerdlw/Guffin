@@ -1,0 +1,335 @@
+import { DockClear } from "@/design/components/dock-clear";
+import type { JSX, ReactNode } from "react";
+import { Icon } from "@/design/components/icon";
+import { FactLink } from "@/design/components/link";
+import { Tooltip } from "@/design/components/tooltip";
+import {
+  ASIDE_CLASS,
+  COLUMNS_CLASS,
+  CONTAINER_CLASS,
+  FACT_ROW_TYPE,
+  HEADER_CLASS,
+  PAGE_CLASS,
+  pageBodyClass,
+  SIDEBAR_CLASS,
+} from "@/design/foundations/layout";
+import { TONE } from "@/design/foundations/tones";
+import type { Awards } from "@/lib/tmdb/shared";
+import { AwardsView } from "./awards";
+import {
+  type AwardsGrouping,
+  type AwardsLook,
+  type Fact,
+  type FactName,
+  hasAwards,
+  SIDEBAR_FACTS_CLASS,
+} from "./detail";
+import {
+  DetailExpose,
+  DetailHeader,
+  DetailPart,
+  DetailSection,
+  DetailWallStage,
+} from "./motion";
+import { FactsFold, StickyAside } from "./stage";
+
+const STAGE_LOOK: AwardsLook = {
+  button: "rounded-full",
+  logo: "rounded-thumb",
+  poster: "rounded-thumb",
+  shape: "pill",
+};
+
+function FactRow({
+  children,
+  index,
+  label,
+}: {
+  children: ReactNode;
+  index: number;
+  label: string;
+}) {
+  return (
+    <DetailPart
+      className="group/row relative flex py-3 first:pt-0 last:pb-0 sm:max-lg:grow-2 sm:max-lg:items-center sm:max-lg:first:grow sm:max-lg:first:items-start sm:max-lg:last:grow sm:max-lg:last:items-end"
+      index={index}
+      name="row"
+    >
+      <div className="flex w-full items-baseline justify-between gap-6">
+        <dt className={`shrink-0 ${TONE.label} text-ink-muted`}>
+          <DetailExpose index={index} part="label" text={label} />
+        </dt>
+        <dd
+          className={`min-w-0 text-right ${FACT_ROW_TYPE} font-medium text-ink tabular-nums`}
+        >
+          {children}
+        </dd>
+      </div>
+      <DetailPart
+        className={`absolute inset-x-0 bottom-0 h-px ${TONE.rule} group-last/row:hidden`}
+        index={index}
+        name="line"
+      />
+    </DetailPart>
+  );
+}
+
+function FactNames({
+  index,
+  max,
+  names,
+}: {
+  index: number;
+  max: number;
+  names: readonly FactName[];
+}) {
+  const visible = names.slice(0, max);
+  const hidden = names.slice(max);
+  return (
+    <>
+      {visible.map((name, at) => {
+        const text = (
+          <DetailExpose index={index} part="value" text={name.text} />
+        );
+        return (
+          <span key={`${name.text}-${at}`}>
+            {name.href ? (
+              <DetailPart as="span" index={index} name="value">
+                <FactLink href={name.href} label={name.text}>
+                  {text}
+                </FactLink>
+              </DetailPart>
+            ) : (
+              text
+            )}
+            {at < visible.length - 1 ? (
+              <>
+                <DetailExpose index={index} part="value" text="," />{" "}
+              </>
+            ) : null}
+          </span>
+        );
+      })}
+      {hidden.length > 0 ? (
+        <Tooltip
+          position="top"
+          text={hidden.map((name) => name.text).join(", ")}
+          triggerClassName="ml-1.5 inline-block cursor-help"
+        >
+          <DetailExpose
+            className="type-meta font-bold text-ink-body"
+            index={index}
+            part="value"
+            text={`+${hidden.length}`}
+          />
+        </Tooltip>
+      ) : null}
+    </>
+  );
+}
+
+function FactText({ children, index }: { children: string; index: number }) {
+  return <DetailExpose index={index} part="value" text={children} />;
+}
+
+export const namesFact = (
+  label: string,
+  max: number,
+  names: readonly FactName[],
+): Fact => ({
+  label,
+  value: (index) => <FactNames index={index} max={max} names={names} />,
+});
+
+export const textFact = (label: string, text: string): Fact => ({
+  label,
+  value: (index) => <FactText index={index}>{text}</FactText>,
+});
+
+function DetailFacts({ facts }: { facts: readonly Fact[] }) {
+  return (
+    <div className={SIDEBAR_FACTS_CLASS}>
+      <FactsFold count={facts.length}>
+        {facts.map((fact, index) => (
+          <FactRow index={index} key={fact.label} label={fact.label}>
+            {fact.value(index)}
+          </FactRow>
+        ))}
+      </FactsFold>
+    </div>
+  );
+}
+
+export function DetailTags({
+  tags,
+}: {
+  tags: readonly string[];
+}): JSX.Element | null {
+  if (tags.length === 0) return null;
+  return (
+    <ul aria-label="Tags" className="mt-6 flex flex-wrap gap-2">
+      {tags.map((tag, index) => (
+        <DetailPart
+          as="li"
+          className="center h-control-xs rounded-full bg-fill px-3 type-meta text-ink-body ring-1 ring-edge ring-inset"
+          index={index}
+          key={tag}
+          name="tag"
+        >
+          {tag}
+        </DetailPart>
+      ))}
+    </ul>
+  );
+}
+
+export function DetailLayout({
+  after,
+  backdrop,
+  className,
+  header,
+  intermission,
+  main,
+  sidebar,
+  wall,
+}: {
+  after?: ReactNode;
+  backdrop: ReactNode | null;
+  className: string;
+  header: ReactNode;
+  intermission: ReactNode;
+  main: ReactNode;
+  sidebar: ReactNode;
+  wall: ReactNode;
+}): JSX.Element {
+  return (
+    <main
+      id="main"
+      className={`${className} ui-scene overflow-x-clip ${PAGE_CLASS}`}
+      data-cinematic=""
+    >
+      <DockClear extra="2rem" />
+      {intermission}
+      <DetailWallStage cue="wall" wall={wall}>
+        <div className={CONTAINER_CLASS}>
+          {backdrop}
+
+          <div className={pageBodyClass(Boolean(backdrop))}>
+            <div className={COLUMNS_CLASS}>
+              <header className={HEADER_CLASS}>{header}</header>
+
+              <StickyAside className={ASIDE_CLASS}>{sidebar}</StickyAside>
+
+              {main}
+            </div>
+
+            {after}
+          </div>
+        </div>
+      </DetailWallStage>
+    </main>
+  );
+}
+
+export function DetailSidebar({
+  children,
+  facts,
+}: {
+  children: ReactNode;
+  facts: readonly Fact[];
+}): JSX.Element {
+  return (
+    <div className={SIDEBAR_CLASS}>
+      <div className="flex min-w-0 flex-col gap-3">{children}</div>
+      <DetailFacts facts={facts} />
+    </div>
+  );
+}
+
+export function Heading({
+  actions,
+  icon,
+  progress,
+  title,
+}: {
+  actions?: ReactNode;
+  icon: string;
+  progress?: number;
+  title: string;
+}) {
+  return (
+    <DetailHeader
+      actions={actions}
+      icon={<Icon icon={icon} size={18} />}
+      nameClassName={`min-w-0 ${TONE.label} text-ink-body`}
+      part="header"
+      progress={progress}
+      title={title}
+    />
+  );
+}
+
+export async function DetailAwards({
+  awards,
+  groupings,
+  showRecipients = false,
+}: {
+  awards: Promise<Awards | null>;
+  groupings: readonly AwardsGrouping[];
+  showRecipients?: boolean;
+}): Promise<JSX.Element | null> {
+  const resolved = await awards;
+  if (!hasAwards(resolved)) return null;
+
+  return (
+    <DetailSection className="flex w-full flex-col" cue="awards">
+      <Heading icon="solar:cup-star-bold" title="Awards" />
+      <DetailPart name="awards">
+        <AwardsView
+          awards={resolved}
+          groupings={groupings}
+          look={STAGE_LOOK}
+          showRecipients={showRecipients}
+        />
+      </DetailPart>
+    </DetailSection>
+  );
+}
+
+export function DetailReviewsLayout({
+  backdrop,
+  className,
+  header,
+  intermission,
+  main,
+}: {
+  backdrop: ReactNode | null;
+  className: string;
+  header: ReactNode;
+  intermission: ReactNode;
+  main: ReactNode;
+}): JSX.Element {
+  return (
+    <main
+      id="main"
+      className={`${className} ui-scene overflow-x-clip ${PAGE_CLASS}`}
+      data-cinematic=""
+    >
+      <DockClear extra="2rem" />
+      {intermission}
+      <DetailWallStage cue="wall" wall={null}>
+        <div className={CONTAINER_CLASS}>
+          {backdrop}
+          <div
+            className={`${pageBodyClass(Boolean(backdrop))} mx-auto max-w-3xl items-center`}
+          >
+            <header className="relative flex w-full min-w-0 flex-col items-center text-center">
+              {header}
+            </header>
+            <div className="flex w-full min-w-0 flex-col">{main}</div>
+          </div>
+        </div>
+      </DetailWallStage>
+    </main>
+  );
+}

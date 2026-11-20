@@ -1,0 +1,29 @@
+@layer components {
+  .in {
+    animation: in 500ms cubic-bezier(0.5, 0.05, 0.1, 1) both;
+  }
+  .out {
+    animation: out 309ms cubic-bezier(0.5, 0, 1, 1) both;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .in {
+      animation: none;
+    }
+    .out {
+      display: none;
+    }
+  }
+}
+
+@keyframes in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--from, 0.7em));
+  }
+}
+@keyframes out {
+  to {
+    opacity: 0;
+    transform: translateY(var(--to, -0.7em));
+  }
+}

@@ -1,0 +1,83 @@
+@layer base {
+  :root {
+    --soft-ease: cubic-bezier(0.382, 0.236, 0.146, 1);
+    --soft-in: 0.382s;
+    --soft-out: 0.618s;
+    --soft-props:
+      color, background-color, border-color, text-decoration-color, fill,
+      stroke, box-shadow;
+  }
+
+  :where(
+    button,
+    a[href],
+    summary,
+    label,
+    select,
+    input,
+    textarea,
+    [role="button"],
+    [role="link"],
+    [role="tab"],
+    [role="option"],
+    [role="menuitem"],
+    [role="switch"],
+    [role="checkbox"],
+    [role="radio"],
+    [class*="hover:"]
+  ) {
+    transition-property: var(--soft-props);
+    transition-duration: var(--soft-out);
+    transition-timing-function: var(--soft-ease);
+  }
+  :where([class*="hover:opacity"]) {
+    transition-property: var(--soft-props), opacity;
+  }
+
+  :where(
+      button,
+      a[href],
+      summary,
+      label,
+      [role="button"],
+      [role="link"],
+      [role="tab"],
+      [role="option"],
+      [role="menuitem"],
+      [role="switch"],
+      .group,
+      [class*="group/"]
+    ):where(:hover, :active)
+    :where([class*="hover:"]),
+  :where(
+    button,
+    a[href],
+    summary,
+    label,
+    input,
+    textarea,
+    select,
+    [role="button"],
+    [role="link"],
+    [role="tab"],
+    [role="option"],
+    [role="menuitem"],
+    [role="switch"],
+    [class*="hover:"]
+  ):where(:hover, :focus, :active) {
+    transition-duration: var(--soft-in);
+  }
+
+  :where([data-spring], [data-spring] *) {
+    transition: none;
+  }
+}
+
+@layer components {
+  .ui-iris::before {
+    transition: opacity var(--soft-out) var(--soft-ease);
+  }
+  .ui-iris:is(:hover, :active)::before {
+    transition-duration: var(--soft-in);
+  }
+}

@@ -1,0 +1,13 @@
+@layer components {
+  :global([data-cinematic]) .slide {
+    container-type: inline-size;
+  }
+  :global([data-cinematic]) .slide :global(.aspect-video) {
+    aspect-ratio: auto;
+    height: round(100cqw * 9 / 16, 1px);
+  }
+  :global([data-cinematic]) .slide :global(.aspect-\[2\/3\]) {
+    aspect-ratio: auto;
+    height: round(100cqw * 3 / 2, 1px);
+  }
+}

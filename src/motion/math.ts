@@ -1,0 +1,9 @@
+export const PHI = (1 + Math.sqrt(5)) / 2;
+
+export const clamp = (value: number, min: number, max: number) =>
+  Math.min(max, Math.max(min, value));
+
+export const within = (
+  progress: number,
+  [from, to]: readonly [number, number],
+) => clamp((progress - from) / (to - from), 0, 1);

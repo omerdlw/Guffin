@@ -1,0 +1,76 @@
+@layer components {
+  @media (prefers-reduced-motion: no-preference) {
+    @keyframes dock-arrive {
+      from {
+        translate: 0 calc(100% + 34px);
+        scale: 0.94;
+      }
+    }
+
+    .dock-root {
+      animation: dock-arrive 1.618s cubic-bezier(0.236, 0.382, 0.146, 1) 0.382s
+        backwards;
+    }
+
+    #dock-card-stack[data-controls-hidden="false"]
+      > .dock-card[data-ghost="true"],
+    #dock-card-stack:has(> .dock-card[data-anchored="true"])
+      > .dock-card[data-ghost="true"] {
+      transition: visibility 0s linear 0.618s;
+    }
+
+    #dock-card-stack:has(> .dock-card[data-anchored="true"])
+      > .dock-card[data-ghost="true"] {
+      min-height: var(--spacing-dock-shelf);
+    }
+
+    .dock-root :is(button, a[href]) {
+      transition-duration: var(--soft-out);
+      transition-property: var(--soft-props);
+      transition-timing-function: var(--soft-ease);
+    }
+    .dock-root :is(button, a[href]):is(:hover, :active) {
+      transition-duration: var(--soft-in);
+    }
+
+    @keyframes dock-action-arrive {
+      from {
+        opacity: 0;
+        translate: 0 13px;
+        scale: 0.96;
+      }
+    }
+
+    .dock-root .dock-action {
+      animation: dock-action-arrive 0.618s cubic-bezier(0.236, 0.382, 0.146, 1)
+        0.09s backwards;
+    }
+    .dock-root .dock-action:nth-child(2) {
+      animation-delay: 0.145s;
+    }
+    .dock-root .dock-action:nth-child(n + 3) {
+      animation-delay: 0.2s;
+    }
+
+    .dock-surface [data-part="item"]:nth-child(2 of [data-part="item"]) {
+      --i: 1;
+    }
+    .dock-surface [data-part="item"]:nth-child(3 of [data-part="item"]) {
+      --i: 2;
+    }
+    .dock-surface [data-part="item"]:nth-child(4 of [data-part="item"]) {
+      --i: 3;
+    }
+    .dock-surface [data-part="item"]:nth-child(n + 5 of [data-part="item"]) {
+      --i: 4;
+    }
+
+    .dock-root .ui-fade {
+      transition: opacity var(--soft-in) var(--soft-ease);
+    }
+  }
+
+  .dock-card[data-ghost="true"] {
+    visibility: hidden;
+  }
+}

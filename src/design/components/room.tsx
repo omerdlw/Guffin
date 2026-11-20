@@ -1,0 +1,87 @@
+"use client";
+
+import { useEffect, useSyncExternalStore } from "react";
+import { preload } from "react-dom";
+import { Signal } from "@/motion/engine";
+
+interface RoomProps {
+  black?: boolean;
+  grain?: boolean;
+  grainClassName?: string;
+}
+
+const GLASS = [
+  "radial-gradient(ellipse 125% 105% at 50% 45%, transparent 60%, rgb(var(--vignette-rgb) / var(--vignette-a)))",
+  "linear-gradient(to right, rgb(var(--vignette-rgb) / var(--vignette-edge)), transparent 6%, transparent 94%, rgb(var(--vignette-rgb) / var(--vignette-edge)))",
+  "linear-gradient(to bottom, rgb(var(--vignette-rgb) / var(--vignette-edge)), transparent 8%, transparent 92%, rgb(var(--vignette-rgb) / var(--vignette-edge)))",
+].join(", ");
+
+const HOUSE_LEVEL = 0.618;
+
+const GRAIN_TILE = "/grain.png";
+
+const GRAIN_SIZE = 256;
+
+const house = new Signal(0);
+
+export const houseDown = () => house.get() > 0;
+
+function show(): () => void {
+  house.set(house.get() + 1);
+  let shown = true;
+  return () => {
+    if (!shown) return;
+    shown = false;
+    house.set(house.get() - 1);
+  };
+}
+
+export function useShowing(on = true) {
+  useEffect(() => (on ? show() : undefined), [on]);
+}
+
+function HouseLights() {
+  const down = useSyncExternalStore(house.subscribe, houseDown, () => false);
+
+  return (
+    <div
+      aria-hidden="true"
+      className="pointer-events-none fixed inset-0 z-20 bg-page"
+      style={{ opacity: down ? HOUSE_LEVEL : 0 }}
+    />
+  );
+}
+
+function Grain({ className }: { className?: string }) {
+  preload(GRAIN_TILE, { as: "image", fetchPriority: "high" });
+
+  return (
+    <div
+      aria-hidden="true"
+      className={className ?? "pointer-events-none fixed inset-0 z-0 size-full"}
+      style={{
+        backgroundImage: `url(${GRAIN_TILE})`,
+        backgroundSize: `${GRAIN_SIZE}px`,
+      }}
+    />
+  );
+}
+
+export function Room({
+  black = false,
+  grain = true,
+  grainClassName,
+}: RoomProps) {
+  return (
+    <>
+      {black || !grain ? null : <Grain className={grainClassName} />}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-20"
+        data-part="vignette"
+        style={{ background: GLASS }}
+      />
+      <HouseLights />
+    </>
+  );
+}

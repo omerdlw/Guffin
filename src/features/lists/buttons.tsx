@@ -1,0 +1,106 @@
+"use client";
+
+import type { JSX } from "react";
+import {
+  useDockActionClass,
+  useDockActions,
+} from "@omerdlw/base-framework/dock";
+import { Button } from "@omerdlw/base-framework/ui";
+import { useRouter } from "next/navigation";
+import { ActionIcon, ActionLabel } from "@/design/components/action-content";
+import { useSurfacePreload } from "@/design/lazy-surface";
+import { useAuth } from "@/features/auth/provider";
+import { useOpenSignIn } from "@/features/auth/sign-in";
+import { useLikeToggle } from "@/features/reviews/controls";
+import { reviewEditorSurface } from "@/features/reviews/surfaces";
+import { setListLikeAction } from "./actions";
+
+interface ListCommentTarget {
+  content: string | null;
+  listId: string;
+  title: string;
+}
+
+export function ListCommentAction({
+  target,
+}: {
+  target: ListCommentTarget;
+}): JSX.Element | null {
+  const auth = useAuth();
+  const router = useRouter();
+  const actionClass = useDockActionClass();
+  const { openSurface } = useDockActions();
+  useSurfacePreload(reviewEditorSurface);
+  const openSignIn = useOpenSignIn();
+  if (!auth.isReady) return null;
+
+  const editing = target.content !== null;
+
+  const open = () => {
+    if (!auth.isAuthenticated) {
+      openSignIn();
+      return;
+    }
+    void reviewEditorSurface.open(openSurface, {
+      data: {
+        kind: "list",
+        listId: target.listId,
+        onSaved: () => router.refresh(),
+        review: editing ? { content: target.content ?? "" } : null,
+        title: target.title,
+      },
+    });
+  };
+
+  return (
+    <Button
+      className={actionClass({ className: "w-full" })}
+      onClick={open}
+      type="button"
+    >
+      <ActionIcon icon={editing ? "solar:pen-bold" : "solar:chat-round-bold"} />
+      <ActionLabel>{editing ? "Edit Comment" : "Add Comment"}</ActionLabel>
+    </Button>
+  );
+}
+
+export function ListLikeButton({
+  liked: initialLiked,
+  listId,
+  likesCount,
+  signedIn,
+}: {
+  liked: boolean;
+  likesCount: number;
+  listId: string;
+  signedIn: boolean;
+}): JSX.Element {
+  const actionClass = useDockActionClass();
+  const { busy, count, liked, toggle } = useLikeToggle({
+    count: likesCount,
+    liked: initialLiked,
+    name: "ListLikeButton",
+    save: (next) => setListLikeAction(listId, next),
+    signedIn,
+  });
+
+  return (
+    <Button
+      aria-label={liked ? "Unlike this list" : "Like this list"}
+      aria-pressed={liked}
+      className={actionClass({
+        className: "w-auto shrink-0 gap-1.5 px-3.5 disabled:cursor-wait",
+        isActive: liked,
+      })}
+      disabled={busy}
+      onClick={toggle}
+      type="button"
+    >
+      <ActionIcon
+        className={liked ? "center text-liked" : "center"}
+        icon={liked ? "solar:heart-bold" : "solar:heart-linear"}
+      />
+      <ActionLabel className="tabular-nums">{String(count)}</ActionLabel>
+    </Button>
+  );
+}

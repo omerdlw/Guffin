@@ -1,0 +1,65 @@
+{
+  "name": "guffin",
+  "version": "1.0.0",
+  "description": "Film diary: log, rate, review, build lists and follow people.",
+  "private": true,
+  "author": "Ömer Deliavcı",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/omerdlw/Guffin.git"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "db:migrate": "drizzle-kit migrate --config scripts/db/drizzle.config.ts",
+    "db:new": "drizzle-kit generate --config scripts/db/drizzle.config.ts --custom --name",
+    "seed": "node --max-old-space-size=8192 scripts/seed/run.mjs",
+    "seed:catalog": "node scripts/seed/catalog.mjs",
+    "seed:verify": "node scripts/seed/verify.mjs",
+    "seed:clean": "node scripts/seed/clean.mjs",
+    "seed:load": "node scripts/seed/load.mjs"
+  },
+  "dependencies": {
+    "@better-auth/passkey": "^1.7.25",
+    "@omerdlw/base-framework": "^3.3.0",
+    "@sentry/nextjs": "11.14.0",
+    "@upstash/ratelimit": "^2.2.1",
+    "@upstash/redis": "^1.41.0",
+    "better-auth": "^1.7.25",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "drizzle-orm": "^0.45.4",
+    "motion": "^13.5.1",
+    "next": "^16.4.6",
+    "nodemailer": "^7.0.13",
+    "pg": "^8.23.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "resend": "^6.38.1",
+    "server-only": "0.0.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.5",
+    "@types/node": "^26.6.6",
+    "@types/nodemailer": "^8.0.2",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "drizzle-kit": "^0.31.11",
+    "eslint": "^10.15.0",
+    "eslint-config-next": "^16.4.6",
+    "prettier": "^3.10.1",
+    "tailwindcss": "4.3.5",
+    "typescript": "npm:@typescript/typescript6@^6.0.2"
+  }
+}

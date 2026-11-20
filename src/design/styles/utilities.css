@@ -1,0 +1,11 @@
+:root {
+  --phi: 1.618034;
+}
+
+@utility lift {
+  --tw-shadow: var(--lift);
+  box-shadow:
+    var(--tw-inset-shadow, 0 0 #0000), var(--tw-inset-ring-shadow, 0 0 #0000),
+    var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000),
+    var(--tw-shadow);
+}

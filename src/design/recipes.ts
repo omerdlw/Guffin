@@ -1,0 +1,490 @@
+import { defineRecipe } from "@omerdlw/base-framework/recipes";
+import { LAYER, STATE, TONES } from "./foundations/tones";
+
+const BUTTON_TONES = {
+  ...TONES,
+  neutral: `${TONES.neutral} liquid-control`,
+  outline: `${TONES.outline} liquid-control liquid-control-clear`,
+} as const;
+
+export const BUTTON_SIZES = {
+  xs: "h-control-xs gap-1 px-2.5 type-label",
+  sm: "h-control-sm gap-1.5 px-3.5 type-meta",
+  chrome: "h-control-chrome gap-2 px-4 type-control",
+  md: "h-control-md gap-2 px-4 type-control",
+  lg: "h-control-lg gap-2.5 px-5 type-body",
+} as const;
+
+const buttonRoot = defineRecipe({
+  base: [
+    "choreo-button liquid-touch center relative inline-flex cursor-pointer items-center justify-center font-medium select-none outline-none",
+    STATE.disabled,
+    STATE.busy,
+  ],
+  variants: {
+    intent: BUTTON_TONES,
+    size: BUTTON_SIZES,
+    shape: {
+      card: "rounded-card",
+      pill: "rounded-full",
+      thumb: "rounded-thumb",
+    },
+    icon: { false: "", true: "shrink-0 px-0" },
+    width: { auto: "", full: "w-full", fill: "min-w-0 flex-1" },
+  },
+  compoundVariants: [
+    { icon: true, size: "xs", class: "size-control-xs" },
+    { icon: true, size: "sm", class: "size-control-sm" },
+    { icon: true, size: "chrome", class: "size-control-chrome" },
+    { icon: true, size: "md", class: "size-control-md" },
+    { icon: true, size: "lg", class: "size-control-lg" },
+  ],
+  defaultVariants: {
+    icon: false,
+    intent: "neutral",
+    shape: "card",
+    size: "md",
+    width: "auto",
+  },
+});
+
+const buttonBare = defineRecipe({
+  base: "disabled:cursor-not-allowed disabled:opacity-50 disabled:aria-busy:cursor-wait disabled:aria-busy:opacity-100",
+});
+
+const buttonBusy = defineRecipe({ base: "inline-grid place-items-center" });
+
+const stackedLabel = defineRecipe({
+  base: "invisible col-start-1 row-start-1 select-none",
+});
+
+const stackedOverlay = defineRecipe({ base: "center col-start-1 row-start-1" });
+
+const inputField = defineRecipe({
+  base: "w-full min-w-0 outline-none disabled:cursor-not-allowed disabled:opacity-50",
+  variants: {
+    appearance: {
+      field:
+        "liquid-control liquid-touch liquid-touch-field bg-fill text-ink ring-1 ring-edge ring-inset placeholder:text-ink-muted hover:bg-fill-hover focus:bg-fill-hover focus:ring-edge-focus",
+      bare: "",
+    },
+    size: {
+      sm: "h-control-sm px-3 type-meta",
+      md: "h-control-md px-4 type-body",
+      lg: "h-control-lg px-5 type-body",
+    },
+    shape: { card: "rounded-card", pill: "rounded-full" },
+  },
+  defaultVariants: { appearance: "field", shape: "card" },
+});
+
+const inputArea = defineRecipe({
+  base: "block min-h-control-lg px-4 py-3 type-body leading-6",
+});
+
+const switchTrack = defineRecipe({
+  base: [
+    "group/switch relative inline-flex shrink-0 cursor-pointer items-center rounded-full bg-fill-hover p-0.5 ring-1 ring-edge ring-inset",
+    "",
+    "hover:bg-fill-active hover:ring-edge-hover",
+    "data-[state=checked]:bg-primary data-[state=checked]:ring-primary data-[state=checked]:hover:bg-primary-hover",
+    "disabled:cursor-not-allowed disabled:opacity-50",
+  ],
+  variants: { size: { sm: "h-5 w-8", md: "h-6 w-10" } },
+  defaultVariants: { size: "md" },
+});
+
+const switchThumb = defineRecipe({
+  base: [
+    "pointer-events-none block translate-x-0 rounded-full bg-ink-body",
+    "group-hover/switch:bg-ink-lead",
+    "data-[state=checked]:bg-on-primary",
+  ],
+  variants: {
+    size: {
+      sm: "h-4 w-4 group-active/switch:w-5 data-[state=checked]:translate-x-3 group-active/switch:data-[state=checked]:translate-x-2",
+      md: "h-5 w-5 group-active/switch:w-6 data-[state=checked]:translate-x-4 group-active/switch:data-[state=checked]:translate-x-3",
+    },
+  },
+  defaultVariants: { size: "md" },
+});
+
+const checkboxRoot = defineRecipe({
+  base: "group inline-flex cursor-pointer items-center gap-2.5 type-body text-ink-body select-none hover:text-ink disabled:cursor-not-allowed disabled:opacity-50",
+});
+
+const checkboxBox = defineRecipe({
+  base: "center relative z-10 shrink-0 rounded-full ring-1 ring-inset",
+  variants: {
+    checked: {
+      true: "bg-accent text-on-accent ring-accent",
+      false: "text-transparent ring-edge-hover group-hover:ring-edge-focus",
+    },
+    reveal: { false: "", true: "" },
+    size: { sm: "size-5", md: "size-6" },
+  },
+  compoundVariants: [
+    {
+      checked: false,
+      reveal: true,
+      class: "group-hover:text-ink-faint",
+    },
+  ],
+  defaultVariants: { checked: false, reveal: false, size: "md" },
+});
+
+const checkboxGlyph = defineRecipe({
+  base: "ui-glyph center",
+  variants: {
+    reveal: { false: "", true: "" },
+    checked: { false: "", true: "" },
+    size: {
+      sm: "size-3.5 text-[length:14px]",
+      md: "size-4 text-[length:16px]",
+    },
+  },
+  defaultVariants: { size: "md" },
+  compoundVariants: [
+    { reveal: true, checked: true, class: "scale-100" },
+    { reveal: true, checked: false, class: "scale-75 group-hover:scale-90" },
+  ],
+});
+
+const segmentedRoot = defineRecipe({
+  base: "choreo-segmented relative max-w-full items-stretch gap-0.5 overflow-x-auto bg-fill p-0.5 ring-1 ring-edge ring-inset select-none scrollbar-none",
+  variants: {
+    size: { sm: "h-control-sm", md: "h-control-md" },
+    shape: { pill: "rounded-full", card: "rounded-card" },
+    width: { auto: "inline-flex w-fit", fill: "flex w-full" },
+  },
+  defaultVariants: { shape: "pill", size: "sm", width: "auto" },
+});
+
+const segmentedSegment = defineRecipe({
+  base: [
+    "ui-fade relative inline-flex min-w-fit cursor-pointer items-center justify-center gap-1.5 font-medium whitespace-nowrap outline-none",
+    "",
+  ],
+  variants: {
+    active: {
+      true: "text-ink",
+      false: "text-ink-body hover:text-ink",
+    },
+    size: { sm: "px-3.5 type-meta", md: "px-4 type-control" },
+    shape: { pill: "rounded-full", card: "rounded-tile" },
+    width: { auto: "", fill: "flex-1" },
+  },
+  defaultVariants: {
+    active: false,
+    shape: "pill",
+    size: "sm",
+    width: "auto",
+  },
+});
+
+const segmentedPill = defineRecipe({
+  base: "inset-y-0.5 bg-chosen",
+  variants: { shape: { pill: "rounded-full", card: "rounded-tile" } },
+  defaultVariants: { shape: "pill" },
+});
+
+const segmentedChosen = defineRecipe({ base: "bg-chosen" });
+
+const segmentedIcon = defineRecipe({
+  base: "center",
+  variants: {
+    size: {
+      sm: "size-3 text-[length:12px]",
+      md: "size-3.5 text-[length:14px]",
+    },
+  },
+  defaultVariants: { size: "sm" },
+});
+
+const segmentedCount = defineRecipe({ base: "-ml-0.5 tabular-nums" });
+
+const selectRoot = defineRecipe({
+  base: "relative inline-flex w-full flex-col gap-1.5",
+});
+
+const selectTrigger = defineRecipe({
+  base: [
+    "ui-fade liquid-control liquid-touch group relative flex w-full items-center justify-between gap-2 bg-fill text-left text-ink ring-1 ring-edge ring-inset",
+    "hover:bg-fill-hover hover:ring-edge-hover aria-expanded:bg-fill-hover aria-expanded:ring-edge-focus",
+    "disabled:cursor-not-allowed disabled:opacity-50",
+    "",
+  ],
+  variants: {
+    size: {
+      sm: "h-control-sm px-3 type-meta",
+      md: "h-control-md px-3.5 type-body",
+    },
+    shape: { card: "rounded-card", pill: "rounded-full" },
+  },
+  defaultVariants: { shape: "card", size: "md" },
+});
+
+const selectValue = defineRecipe({
+  base: "flex min-w-0 items-center gap-2 truncate",
+});
+
+const selectLabel = defineRecipe({ base: "truncate" });
+
+const selectText = defineRecipe({ base: "flex min-w-0 flex-col" });
+
+const glyph16 = "size-4 text-[length:16px]";
+
+const selectPlaceholder = defineRecipe({ base: "truncate text-ink-muted" });
+
+const selectChevron = defineRecipe({
+  base: [
+    "shrink-0 text-ink-muted group-hover:text-ink-body group-aria-expanded:text-ink",
+    glyph16,
+    "",
+  ],
+});
+
+const selectMenu = defineRecipe({
+  base: [
+    // eslint-disable-next-line no-restricted-syntax
+    "ui-motion fixed top-0 left-0 z-[150] overflow-hidden [--liquid-bezel:16]",
+    LAYER.shell,
+  ],
+  variants: {
+    size: { sm: "", md: "" },
+    shape: { card: "rounded-card", pill: "" },
+  },
+  compoundVariants: [
+    { shape: "pill", size: "sm", class: "rounded-card" },
+    { shape: "pill", size: "md", class: "rounded-panel" },
+  ],
+  defaultVariants: { shape: "card", size: "md" },
+});
+
+const selectOption = defineRecipe({
+  base: [
+    "relative isolate flex cursor-pointer items-center justify-between gap-2.5 text-ink-body select-none",
+    "data-[highlighted]:text-ink aria-selected:text-ink aria-disabled:cursor-not-allowed aria-disabled:opacity-50",
+  ],
+  variants: {
+    size: {
+      sm: "py-1.5 pr-2.5 pl-7.5 type-meta",
+      md: "py-2 pr-3 pl-8.5 type-body",
+    },
+    shape: { card: "", pill: "" },
+  },
+  compoundVariants: [
+    { shape: "card", size: "sm", class: "rounded-tile" },
+    { shape: "card", size: "md", class: "rounded-inset" },
+    { shape: "pill", size: "sm", class: "rounded-full" },
+    { shape: "pill", size: "md", class: "rounded-full" },
+  ],
+  defaultVariants: { shape: "card", size: "md" },
+});
+
+const selectHighlight = defineRecipe({
+  base: "pointer-events-none absolute top-0 left-0 bg-fill-lift",
+});
+
+const selectOptionBody = defineRecipe({
+  base: "relative z-10 flex min-w-0 items-center gap-2.5",
+});
+
+const selectDescription = defineRecipe({
+  base: "truncate type-meta text-ink-muted",
+});
+
+const selectIcon = defineRecipe({
+  base: ["ui-glyph shrink-0 text-ink-body", glyph16],
+});
+
+const selectCheck = defineRecipe({
+  base: [
+    "absolute top-1/2 left-2 z-10 shrink-0 -translate-y-1/2 text-ink",
+    glyph16,
+  ],
+});
+
+const selectEmpty = defineRecipe({
+  base: "px-3 py-2 text-center type-meta text-ink-muted",
+});
+
+const carouselRoot = defineRecipe({ base: "relative w-full" });
+
+const carouselTrack = defineRecipe({
+  base: "relative flex cursor-grab touch-pan-y gap-3 overflow-x-auto overflow-y-hidden overscroll-x-contain select-none data-[dragging=true]:cursor-grabbing",
+});
+
+const carouselSlide = defineRecipe({ base: "shrink-0" });
+
+const carouselArrow = defineRecipe({
+  base: [
+    "center absolute top-[var(--arrow-y,50%)] z-10 size-control-chrome -translate-y-1/2 cursor-pointer sm:size-control-md",
+    "liquid liquid-flat liquid-lens rounded-full text-ink",
+  ],
+  variants: {
+    side: { left: "left-2 sm:left-3", right: "right-2 sm:right-3" },
+    visible: {
+      true: "scale-100 opacity-100",
+      false: "pointer-events-none scale-75 opacity-0",
+    },
+  },
+  defaultVariants: { visible: true },
+});
+
+const carouselIcon = defineRecipe({
+  base: "center size-[18px] text-[length:18px]",
+});
+
+const tooltipContent = defineRecipe({
+  base: [
+    // eslint-disable-next-line no-restricted-syntax
+    "ui-tooltip relative z-[200] max-w-[min(16rem,calc(100vw-1.5rem))] rounded-card px-3 pt-1.5 pb-[7px] type-meta font-medium text-balance select-none",
+    LAYER.tip,
+  ],
+});
+
+const tooltipLabel = defineRecipe({ base: "ui-tooltip-label block" });
+
+const loaderRoot = defineRecipe({
+  base: "pointer-events-none shrink-0 leading-none select-none",
+  variants: {
+    over: {
+      false: "inline-flex h-[1em] items-center justify-center",
+      true: "inline-grid place-items-center",
+    },
+  },
+  defaultVariants: { over: false },
+});
+
+const loaderSpinner = defineRecipe({
+  base: "inline-flex items-center justify-center align-middle leading-none",
+});
+
+const loaderDots = defineRecipe({ base: "ui-dots [--loader-size:14px]" });
+
+const loaderDot = defineRecipe({ base: "ui-dot" });
+
+const loaderIcon = defineRecipe({
+  base: "center size-[15px] text-[length:15px]",
+});
+
+const skeletonBlock = defineRecipe({
+  base: "",
+  variants: {
+    tone: {
+      block: "ui-skeleton",
+      soft: "ui-skeleton-soft",
+      solid: "ui-skeleton-solid",
+    },
+  },
+  defaultVariants: { tone: "block" },
+});
+
+const skeletonLine = defineRecipe({ base: "flex h-[1lh] items-center" });
+
+const skeletonBar = defineRecipe({ base: "rounded-full" });
+
+const imageFrame = defineRecipe({
+  base: "relative overflow-hidden select-none",
+  variants: {
+    layout: {
+      fill: "h-full w-full bg-fill",
+      intrinsic: "inline-flex max-w-full",
+    },
+    loading: { false: "", true: "ui-skeleton" },
+  },
+  defaultVariants: { layout: "fill" },
+});
+
+const imagePicture = defineRecipe({
+  base: "opacity-0 data-[state=loaded]:opacity-100",
+  variants: {
+    layout: {
+      fill: "h-full w-full data-[fill]:absolute data-[fill]:inset-0 data-[fill]:select-none",
+      intrinsic: "block max-w-full",
+    },
+    fit: { cover: "object-cover", contain: "object-contain" },
+  },
+  defaultVariants: { fit: "cover", layout: "fill" },
+});
+
+const imageFallback = defineRecipe({
+  base: "relative h-full w-full overflow-hidden select-none",
+});
+
+const avatarRoot = defineRecipe({
+  base: "relative inline-flex size-9 shrink-0 items-center justify-center overflow-hidden bg-fill-hover text-ink-body select-none",
+});
+
+const avatarImage = defineRecipe({ base: "h-full w-full object-cover" });
+
+const avatarInitials = defineRecipe({
+  base: "flex h-full w-full items-center justify-center type-meta font-medium uppercase",
+});
+
+const highlightFill = defineRecipe({ base: "-z-10 rounded-card bg-fill" });
+
+export const PARTS = {
+  button: {
+    root: buttonRoot,
+    bare: buttonBare,
+    busy: buttonBusy,
+    busyLabel: stackedLabel,
+    busySpinner: stackedOverlay,
+  },
+  input: { field: inputField, area: inputArea },
+  switch: { track: switchTrack, thumb: switchThumb },
+  checkbox: { root: checkboxRoot, box: checkboxBox, glyph: checkboxGlyph },
+  segmented: {
+    root: segmentedRoot,
+    segment: segmentedSegment,
+    pill: segmentedPill,
+    chosen: segmentedChosen,
+    icon: segmentedIcon,
+    count: segmentedCount,
+  },
+  select: {
+    root: selectRoot,
+    trigger: selectTrigger,
+    value: selectValue,
+    label: selectLabel,
+    placeholder: selectPlaceholder,
+    chevron: selectChevron,
+    menu: selectMenu,
+    option: selectOption,
+    highlight: selectHighlight,
+    optionBody: selectOptionBody,
+    text: selectText,
+    description: selectDescription,
+    icon: selectIcon,
+    check: selectCheck,
+    empty: selectEmpty,
+  },
+  carousel: {
+    root: carouselRoot,
+    track: carouselTrack,
+    slide: carouselSlide,
+    arrow: carouselArrow,
+    icon: carouselIcon,
+  },
+  tooltip: { content: tooltipContent, label: tooltipLabel },
+  loader: {
+    root: loaderRoot,
+    label: stackedLabel,
+    overlay: stackedOverlay,
+    dots: loaderDots,
+    dot: loaderDot,
+    spinner: loaderSpinner,
+    icon: loaderIcon,
+  },
+  skeleton: {
+    block: skeletonBlock,
+    lines: defineRecipe({}),
+    line: skeletonLine,
+    bar: skeletonBar,
+  },
+  image: { frame: imageFrame, picture: imagePicture, fallback: imageFallback },
+  avatar: { root: avatarRoot, image: avatarImage, initials: avatarInitials },
+  highlight: { fill: highlightFill },
+} as const;

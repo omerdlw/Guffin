@@ -1,0 +1,124 @@
+@theme {
+  --color-*: initial;
+
+  --font-*: initial;
+
+  --text-*: initial;
+  --type-micro: 10px;
+  --type-micro--tracking: 0.02em;
+  --type-micro--line-height: 12px;
+  --type-label: 11px;
+  --type-label--tracking: 0.01em;
+  --type-label--line-height: 16px;
+  --type-meta: 12px;
+  --type-meta--tracking: 0.008em;
+  --type-meta--line-height: 16px;
+  --type-control: 13px;
+  --type-control--tracking: 0.004em;
+  --type-control--line-height: 16px;
+  --type-body: 14px;
+  --type-body--tracking: 0em;
+  --type-body--line-height: 20px;
+  --type-copy: 15px;
+  --type-copy--tracking: -0.002em;
+  --type-copy--line-height: 24px;
+  --type-base: 16px;
+  --type-base--tracking: -0.004em;
+  --type-base--line-height: 24px;
+  --type-prose: 16px;
+  --type-prose--tracking: -0.002em;
+  --type-prose--line-height: 26px;
+  --type-prose-wide: 17px;
+  --type-prose-wide--tracking: -0.003em;
+  --type-prose-wide--line-height: 28px;
+  --type-title: 18px;
+  --type-title--tracking: -0.008em;
+  --type-title--line-height: 28px;
+  --type-heading: 24px;
+  --type-heading--tracking: -0.014em;
+  --type-heading--line-height: 32px;
+  --type-display-xs: 36px;
+  --type-display-xs--line-height: 1;
+  --type-display-sm: 48px;
+  --type-display-sm--line-height: 1;
+  --type-display-md: 60px;
+  --type-display-md--line-height: 1;
+  --type-display-lg: 72px;
+  --type-display-lg--line-height: 1;
+  --type-display-xl: 96px;
+  --type-display-xl--line-height: 1;
+  --type-display-2xl: 128px;
+  --type-display-2xl--line-height: 1;
+
+  --leading-*: initial;
+
+  --tracking-*: initial;
+
+  --radius-*: initial;
+  --radius-mark: 3px;
+  --radius-thumb: 10px;
+  --radius-inset: 12px;
+  --radius-tile: 14px;
+  --radius-card: 18px;
+  --radius-panel: 24px;
+  --radius-sheet: 28px;
+  --radius-shell: 32px;
+
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+
+  --ease-*: initial;
+}
+
+@theme inline {
+  --font-sans:
+    var(--font-app, ui-sans-serif), ui-sans-serif, system-ui, sans-serif;
+
+  --color-page: var(--page);
+  --color-ink: var(--ink);
+  --color-ink-lead: var(--ink-lead);
+  --color-ink-body: var(--ink-body);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+
+  --color-fill: var(--fill);
+  --color-fill-hover: var(--fill-hover);
+  --color-fill-active: var(--fill-active);
+  --color-edge: var(--edge);
+  --color-edge-hover: var(--edge-hover);
+  --color-edge-focus: var(--edge-focus);
+  --color-rule: var(--rule);
+  --color-line: var(--line);
+  --color-plate: var(--plate);
+
+  --color-chosen: var(--chosen);
+  --color-chosen-hover: var(--chosen-hover);
+  --color-chosen-edge: var(--chosen-edge);
+  --color-chosen-edge-hover: var(--chosen-edge-hover);
+  --color-chosen-ink: var(--chosen-ink);
+
+  --color-heat-1: var(--heat-1);
+  --color-heat-2: var(--heat-2);
+  --color-heat-3: var(--heat-3);
+  --color-heat-4: var(--heat-4);
+
+  --color-glass: var(--glass);
+  --color-veil: var(--veil);
+  --color-dim: var(--dim);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-on-primary: var(--on-primary);
+  --color-on-accent: var(--on-accent);
+
+  --color-danger: var(--danger);
+}
+
+@theme static {
+  --spacing-control-xs: 1.5rem;
+  --spacing-control-sm: 2rem;
+  --spacing-control-chrome: 2.25rem;
+  --spacing-control-md: 2.5rem;
+  --spacing-control-lg: 3rem;
+}

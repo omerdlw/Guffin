@@ -1,0 +1,36 @@
+@theme {
+  --font-zuume: var(--font-zuume);
+
+  --leading-crop: 0.8;
+
+  --tracking-label: 0.14em;
+  --tracking-tagline: 0.12em;
+  --tracking-slate: 0.32em;
+}
+
+@theme inline {
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+
+  --color-grade: var(--grade);
+  --color-accent: var(--grade);
+
+  --color-watched: var(--watched);
+  --color-listed: var(--listed);
+  --color-liked: var(--liked);
+  --color-rated: var(--rated);
+  --color-rated-off: var(--rated-off);
+  --color-fill-lift: var(--fill-lift);
+  --color-award: var(--award);
+}
+
+@theme static {
+  --spacing-fib-1: 0.3125rem;
+  --spacing-fib-2: 0.5rem;
+  --spacing-fib-3: 0.8125rem;
+  --spacing-fib-4: 1.3125rem;
+  --spacing-fib-5: 2.125rem;
+  --spacing-fib-6: 3.4375rem;
+  --spacing-fib-7: 5.5625rem;
+
+  --spacing-dock-shelf: 96px;
+}
