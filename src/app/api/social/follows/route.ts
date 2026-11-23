@@ -2,14 +2,14 @@ import { UserError } from "@omerdlw/base-framework/utils";
 import { and, count, desc, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { getOptionalUser, requireUser } from "@/features/auth/server";
-import { pgErrorCode, viewer } from "@/lib/db/client";
-import { accountFollows, accounts } from "@/lib/db/schema";
-import { isUuid } from "@/lib/http";
+import { pgErrorCode, viewer } from "@/infrastructure/db/client";
+import { accountFollows, accounts } from "@/infrastructure/db/schema";
+import { isUuid } from "@/infrastructure/http";
 import {
   apiErrorResponse,
   assertSameOrigin,
   rateLimitResponse,
-} from "@/lib/security";
+} from "@/infrastructure/security";
 
 const FOLLOW_PAGE_SIZE = 50;
 const REQUESTS_LIMIT = 100;

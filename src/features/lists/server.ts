@@ -3,8 +3,8 @@ import "server-only";
 import { report } from "@omerdlw/base-framework/utils";
 import { and, desc, eq, exists, isNotNull } from "drizzle-orm";
 import { getViewerSession } from "@/features/auth/server";
-import type { Session } from "@/lib/db/client";
-import { accounts, listItems, lists } from "@/lib/db/schema";
+import type { Session } from "@/infrastructure/db/client";
+import { accounts, listItems, lists } from "@/infrastructure/db/schema";
 import type { PopularList } from "./list";
 
 interface PopularListRow {

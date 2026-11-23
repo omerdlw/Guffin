@@ -23,7 +23,7 @@ function describe(error: unknown): unknown {
 
 export async function register(): Promise<void> {
   const Sentry = await import("@sentry/nextjs");
-  const { sentryOptions, withSentry } = await import("@/lib/sentry");
+  const { sentryOptions, withSentry } = await import("@/infrastructure/sentry");
   Sentry.init(sentryOptions());
 
   if (process.env.NEXT_RUNTIME !== "nodejs") return;

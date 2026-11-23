@@ -15,6 +15,7 @@ import {
 import { REGISTRY_SOURCES } from "@omerdlw/base-framework/kernel";
 import { report } from "@omerdlw/base-framework/utils";
 import { usePathname } from "next/navigation";
+import { useKeepDockCard } from "@/design/dock-compact";
 import { useDockCommands } from "@/design/dock-commands";
 import { preloadOnIntent, useAheadOfOpen } from "@/design/lazy-surface";
 
@@ -96,6 +97,7 @@ export function SearchDockCommand(): ReactNode {
     [SearchAction, close, frontPath, open],
   );
   useDockRegistration(dock, SEARCH_REGISTRATION);
+  useKeepDockCard(open);
 
   const actions = useMemo(
     () => [

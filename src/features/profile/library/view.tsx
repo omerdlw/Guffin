@@ -1,6 +1,6 @@
 import type { JSX } from "react";
-import type { SearchParams } from "@/lib/http";
-import { accountHref } from "@/lib/project";
+import type { SearchParams } from "@/infrastructure/http";
+import { accountHref } from "@/shared/project";
 import {
   isNarrowed,
   readSort,

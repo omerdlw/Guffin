@@ -18,7 +18,7 @@ import { BOTTOM_COVER, SIDE_COVER } from "@/design/components/backdrop";
 import { MAIN_COLUMN_CLASS, VIEW_CLASS } from "@/design/foundations/layout";
 import { cn } from "@/design/ui";
 import { Room } from "@/design/components/room";
-import { tmdbImageUrl } from "@/lib/tmdb/shared";
+import { tmdbImageUrl } from "@/infrastructure/tmdb/shared";
 import { bezier } from "@/motion/curve";
 import { Marquee } from "@/motion/marquee";
 import { clamp } from "@/motion/math";

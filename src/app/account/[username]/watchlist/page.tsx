@@ -1,6 +1,6 @@
 import type { JSX } from "react";
 import { LibraryView } from "@/features/profile/library/view";
-import type { SearchParams } from "@/lib/http";
+import type { SearchParams } from "@/infrastructure/http";
 
 export default async function AccountWatchlistPage({
   params,

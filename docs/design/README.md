@@ -24,7 +24,7 @@ never raw values, so changing the system is changing one line.
 Each layer only reads from the layers above it.
 
 ```
-1. Tokens (CSS)           src/design/styles/system/tokens.css, styles/tokens.css
+1. Tokens (CSS)           src/design/styles/tokens.css, styles/tokens.css
    @theme: type-*, radius-*, spacing-control-*, spacing-fib-*, tracking-*;
    Tailwind's palette, sizes, radii, shadows and easings switched off.
         ↓ every colour token points at a CSS variable

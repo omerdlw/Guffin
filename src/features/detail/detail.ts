@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { MediaCardAspect } from "@/design/components/media-card";
-import type { Awards } from "@/lib/tmdb/shared";
+import type { Awards } from "@/infrastructure/tmdb/shared";
 
 export type AwardsGrouping = "board" | "organizations" | "timeline";
 

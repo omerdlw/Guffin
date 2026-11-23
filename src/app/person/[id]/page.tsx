@@ -2,21 +2,22 @@ import type { JSX } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import {
+  describePerson,
   getBackdropPath,
   getTimeline,
+  parsePersonId,
+  PersonPageChrome,
+  PersonView,
+  PersonViewProvider,
   personSwatch,
-} from "@/features/person/credits";
-import { PersonPageChrome } from "@/features/person/header";
-import { describePerson, parsePersonId } from "@/features/person/person";
-import { PersonView } from "@/features/person/view";
-import { PersonViewProvider } from "@/features/person/views";
-import { project, shareMetadata } from "@/lib/project";
+} from "@/features/person";
+import { project, shareMetadata } from "@/shared/project";
 import {
   getAmbientPalette,
   getPersonAwards,
   getPersonDetails,
-} from "@/lib/tmdb/server";
-import { tmdbImageUrl } from "@/lib/tmdb/shared";
+} from "@/infrastructure/tmdb/server";
+import { tmdbImageUrl } from "@/infrastructure/tmdb/shared";
 
 interface PersonPageProps {
   params: Promise<{ id: string }>;

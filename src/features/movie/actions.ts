@@ -3,8 +3,8 @@ import "server-only";
 
 import { report } from "@omerdlw/base-framework/utils";
 import { fail, type MutationResult, ok } from "@/features/auth/mutation";
-import { getMovieDetails } from "@/lib/tmdb/server";
-import { isTmdbId } from "@/lib/tmdb/transport";
+import { getMovieDetails } from "@/infrastructure/tmdb/server";
+import { isTmdbId } from "@/infrastructure/tmdb/transport";
 import type { ProviderEntry, RegionProviders } from "./movie";
 
 type WatchProvidersResult = MutationResult<{

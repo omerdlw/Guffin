@@ -7,7 +7,7 @@ import {
   withScope,
 } from "@sentry/nextjs";
 import { setReportSink } from "@omerdlw/base-framework/utils";
-import { sentryOptions, withSentry } from "@/lib/sentry";
+import { sentryOptions, withSentry } from "@/infrastructure/sentry";
 
 init({
   ...sentryOptions(),

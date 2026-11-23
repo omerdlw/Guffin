@@ -1,6 +1,11 @@
 import type { JSX } from "react";
-import { TunnelSkeleton } from "@/features/spotlights/skeleton";
+import { RouteLoading } from "@/design/components/route-loading";
+import { TunnelSkeleton } from "@/features/spotlights";
 
 export default function Loading(): JSX.Element {
-  return <TunnelSkeleton />;
+  return (
+    <RouteLoading>
+      <TunnelSkeleton />
+    </RouteLoading>
+  );
 }

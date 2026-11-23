@@ -3,7 +3,7 @@
 import { type JSX, type PointerEvent, useMemo, useRef, useState } from "react";
 import { TOOLTIP } from "@/design/components/tooltip";
 import { cn } from "@/design/ui";
-import { pluralize } from "@/lib/format";
+import { pluralize } from "@/shared/format";
 import type { ActivityDays } from "../stats";
 
 const DAY_MS = 86_400_000;

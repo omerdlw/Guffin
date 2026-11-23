@@ -1,4 +1,4 @@
-import { requestJson } from "@/lib/http";
+import { requestJson } from "@/infrastructure/http";
 import {
   type CurrentAccount,
   FOLLOWS_URL,

@@ -1,5 +1,5 @@
 import { trimToNull } from "@omerdlw/base-framework/utils";
-import { readParam, type SearchParams } from "@/lib/http";
+import { readParam, type SearchParams } from "@/infrastructure/http";
 
 export const ACTIVITY_PAGE_SIZE = 30;
 

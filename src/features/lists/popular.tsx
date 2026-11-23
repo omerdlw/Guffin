@@ -4,8 +4,8 @@ import { Icon } from "@/design/components/icon";
 import { DockLink } from "@/design/components/link";
 import { TONE } from "@/design/foundations/tones";
 import { PosterStack } from "@/features/lists/poster-stack";
-import { pluralize } from "@/lib/format";
-import { accountHref, listHref } from "@/lib/project";
+import { pluralize } from "@/shared/format";
+import { accountHref, listHref } from "@/shared/project";
 import { Header, Part, Section } from "@/motion/stage";
 import type { PopularList } from "./list";
 

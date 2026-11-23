@@ -19,6 +19,7 @@ import { Input } from "@/design/components/input";
 import { SurfacePart, SurfaceStage } from "@/design/components/surface";
 import {
   SURFACE_META,
+  SURFACE_PANEL,
   SURFACE_STACK,
   SURFACE_TEXT,
   SURFACE_TILE_END,
@@ -26,10 +27,11 @@ import {
   SURFACE_TITLE,
   tileVariants,
 } from "@/design/components/surface-classes";
+import { WELL, WELL_HOVER } from "@/design/foundations/tones";
 import { useSurfacePreload } from "@/design/lazy-surface";
 import { defineSurface } from "@/design/surface-definition";
-import { cn, ui } from "@/design/ui";
-import { accountHref, listHref } from "@/lib/project";
+import { cn } from "@/design/ui";
+import { accountHref, listHref } from "@/shared/project";
 import { deleteListAction, saveListAction } from "./actions";
 import {
   LIST_DESCRIPTION_MAX,
@@ -81,7 +83,7 @@ function TileText({
   );
 }
 
-function Toggle({
+function Option({
   checked,
   description,
   disabled,
@@ -96,23 +98,42 @@ function Toggle({
   label: string;
   onChange: (value: boolean) => void;
 }): JSX.Element {
-  const highlight = useHighlight(label, "-z-10 rounded-card bg-fill");
-
   return (
     <label
-      className={cn(LIST_TILE_CLASS, "cursor-pointer")}
-      {...highlight.props}
+      onClick={(event) => {
+        if ((event.target as Element).closest('[role="switch"]') || disabled)
+          return;
+        event.preventDefault();
+        onChange(!checked);
+      }}
+      className={cn(
+        "group relative flex h-full cursor-pointer flex-col gap-3 rounded-card p-3 select-none",
+        checked
+          ? "bg-chosen ring-1 ring-chosen-edge ring-inset hover:bg-chosen-hover hover:ring-chosen-edge-hover"
+          : `${WELL} ${WELL_HOVER}`,
+      )}
     >
-      {highlight.node}
-      <TileMark icon={icon} />
-      <TileText description={description} label={label} />
-      <span className="relative z-10">
+      <span className="flex items-center justify-between">
+        <span
+          className={cn(
+            "center size-control-md rounded-full",
+            checked
+              ? "bg-chosen-hover text-chosen-ink"
+              : "bg-fill text-ink-body",
+          )}
+        >
+          <Icon className="ui-glyph center" icon={icon} size={18} />
+        </span>
         <Switch
           aria-label={label}
           checked={checked}
           disabled={disabled}
           onCheckedChange={onChange}
         />
+      </span>
+      <span className="flex min-w-0 flex-col px-0.5">
+        <span className={SURFACE_TITLE}>{label}</span>
+        <span className="type-meta text-ink-muted">{description}</span>
       </span>
     </label>
   );
@@ -226,13 +247,14 @@ function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
       <form onSubmit={save}>
         <HighlightGroup>
           <div className={SURFACE_STACK}>
-            <SurfacePart name="item">
+            <SurfacePart
+              className={cn(SURFACE_PANEL, "flex flex-col")}
+              name="item"
+            >
               <Input
                 aria-label="List name"
-                className={cn(
-                  ui.parts.input.field(),
-                  "h-control-md w-full px-4 type-body",
-                )}
+                appearance="bare"
+                className="h-13 bg-transparent px-4 type-title font-semibold text-ink placeholder:font-medium placeholder:text-ink-faint"
                 disabled={disabled}
                 maxLength={LIST_TITLE_MAX}
                 onChange={(event) => updateDraft({ title: event.target.value })}
@@ -240,18 +262,15 @@ function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
                 value={draft.title}
                 {...resetHighlight}
               />
-            </SurfacePart>
-            <SurfacePart name="item">
+              <span aria-hidden="true" className="mx-4 h-px bg-rule" />
               <Textarea
                 aria-label="Description"
-                className={cn(
-                  ui.parts.input.field(),
-                  "w-full px-4 py-3 type-body leading-6",
-                )}
+                appearance="bare"
+                className="w-full resize-none bg-transparent px-4 py-3 type-body leading-6 text-ink-body placeholder:text-ink-muted"
                 disabled={disabled}
                 maxHeight={180}
                 maxLength={LIST_DESCRIPTION_MAX}
-                minHeight={96}
+                minHeight={84}
                 onChange={(event) =>
                   updateDraft({ description: event.target.value })
                 }
@@ -260,26 +279,28 @@ function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
                 {...resetHighlight}
               />
             </SurfacePart>
-            <SurfacePart name="item">
-              <Toggle
-                checked={draft.isRanked}
-                description="Number the films in the order you keep them"
-                disabled={disabled}
-                icon="solar:ranking-bold"
-                label="Ranked"
-                onChange={(isRanked) => updateDraft({ isRanked })}
-              />
-            </SurfacePart>
-            <SurfacePart name="item">
-              <Toggle
-                checked={draft.isPrivate}
-                description="Only you see it, and it stays out of your activity"
-                disabled={disabled}
-                icon="solar:lock-keyhole-bold"
-                label="Private"
-                onChange={(isPrivate) => updateDraft({ isPrivate })}
-              />
-            </SurfacePart>
+            <div className="grid grid-cols-2 gap-2.5">
+              <SurfacePart name="item">
+                <Option
+                  checked={draft.isRanked}
+                  description="Numbered, in your order"
+                  disabled={disabled}
+                  icon="solar:ranking-bold"
+                  label="Ranked"
+                  onChange={(isRanked) => updateDraft({ isRanked })}
+                />
+              </SurfacePart>
+              <SurfacePart name="item">
+                <Option
+                  checked={draft.isPrivate}
+                  description="Only you can see it"
+                  disabled={disabled}
+                  icon="solar:lock-keyhole-bold"
+                  label="Private"
+                  onChange={(isPrivate) => updateDraft({ isPrivate })}
+                />
+              </SurfacePart>
+            </div>
             {canOrder ? (
               <SurfacePart name="item">
                 <FilmOrderLink

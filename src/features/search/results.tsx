@@ -9,9 +9,14 @@ import { RADIUS } from "@/design/foundations/geometry";
 import { useArtworkPath } from "@/features/artwork/artwork";
 import { departmentRole } from "@/features/person/person";
 import { RatingStars } from "@/features/reviews/rating";
-import { pluralize } from "@/lib/format";
-import { accountHref, listHref, personHref, reviewHref } from "@/lib/project";
-import { tmdbImageSrcSet, tmdbImageUrl } from "@/lib/tmdb/shared";
+import { pluralize } from "@/shared/format";
+import {
+  accountHref,
+  listHref,
+  personHref,
+  reviewHref,
+} from "@/shared/project";
+import { tmdbImageSrcSet, tmdbImageUrl } from "@/infrastructure/tmdb/shared";
 import { useSearchPart } from "./motion";
 import {
   folded,
@@ -80,7 +85,7 @@ function ResultRow({
   return (
     <DockLink
       aria-label={label}
-      className="group relative z-10 flex h-16 items-center gap-3 rounded-card p-2 pr-4 outline-none"
+      className="group relative z-10 flex h-16 items-center gap-3 rounded-tile p-2 pr-4 outline-none"
       href={href}
       onNavigated={onNavigated}
     >
@@ -372,7 +377,7 @@ export function ResultSheet({
     <span
       {...part}
       aria-hidden="true"
-      className="pointer-events-none absolute top-0 left-0 z-0 rounded-card bg-grade/15 opacity-0 ring-1 ring-grade/25 ring-inset data-[kind=tile]:ring-grade/50"
+      className="pointer-events-none absolute top-0 left-0 z-0 rounded-tile bg-grade/15 data-[kind=tile]:rounded-card opacity-0 ring-1 ring-grade/25 ring-inset data-[kind=tile]:ring-grade/50"
       ref={sheet}
     />
   );

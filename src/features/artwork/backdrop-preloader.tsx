@@ -2,7 +2,7 @@
 
 import { useNavigationIntent } from "@omerdlw/base-framework/navigation";
 import { report } from "@omerdlw/base-framework/utils";
-import { tmdbImageUrl } from "@/lib/tmdb/shared";
+import { tmdbImageUrl } from "@/infrastructure/tmdb/shared";
 import { readable } from "@/motion/gl";
 import { artworkKey, type ArtworkKind, artworkStore } from "./store";
 

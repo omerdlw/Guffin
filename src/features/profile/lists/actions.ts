@@ -2,7 +2,7 @@
 import "server-only";
 
 import { getViewerSession } from "@/features/auth/server";
-import { isUuid } from "@/lib/http";
+import { isUuid } from "@/infrastructure/http";
 import { cleanTitleFilters } from "../filters";
 import { loadProfile } from "../server";
 import {

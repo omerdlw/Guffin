@@ -22,8 +22,8 @@ import {
   movieHref,
   movieReviewsHref,
   reviewHref,
-} from "@/lib/project";
-import { tmdbImageSrcSet, tmdbImageUrl } from "@/lib/tmdb/shared";
+} from "@/shared/project";
+import { tmdbImageSrcSet, tmdbImageUrl } from "@/infrastructure/tmdb/shared";
 import type { ActivityGroup, ActivityItem, ActivityPage } from "./activity";
 import { loadActivityPage } from "./actions";
 

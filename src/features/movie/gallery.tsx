@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useModal } from "@omerdlw/base-framework/modal";
+import { defineModal, useModal } from "@omerdlw/base-framework/modal";
+import { useShowing } from "@/design/components/room";
 import { SegmentedControl } from "@/design/components/segmented-control";
 import { Carousel } from "@/design/components/carousel";
 import { Icon } from "@/design/components/icon";
@@ -22,8 +23,29 @@ import {
   type MovieVideo,
   tmdbImageSrcSet,
   tmdbImageUrl,
-} from "@/lib/tmdb/shared";
-import { VideoModal } from "./video-modal";
+} from "@/infrastructure/tmdb/shared";
+import type { CastModalProps, VideoModalData } from "./movie";
+
+function VideoModalView({ data }: CastModalProps<VideoModalData>) {
+  useShowing();
+  return (
+    <div className="aspect-video w-[min(92vw,64rem)] overflow-hidden rounded-sheet bg-page ring-1 ring-edge-hover ring-inset">
+      <iframe
+        allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+        className="size-full"
+        referrerPolicy="strict-origin-when-cross-origin"
+        src={`https://www.youtube-nocookie.com/embed/${encodeURIComponent(data.key)}?autoplay=1&rel=0`}
+        title={data.name}
+      />
+    </div>
+  );
+}
+
+const VideoModal = defineModal({
+  chrome: "bare",
+  component: VideoModalView,
+  position: "center",
+});
 
 type GalleryTab = "backdrops" | "posters";
 

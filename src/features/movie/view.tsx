@@ -36,20 +36,20 @@ import { MoviePopularLists } from "@/features/lists/popular";
 import { getMoviePopularLists } from "@/features/lists/server";
 import type { MovieReviewSort } from "@/features/reviews/review";
 import { MovieSocialProof } from "@/features/social/proof";
-import { pluralize } from "@/lib/format";
-import { movieHref, personHref } from "@/lib/project";
+import { pluralize } from "@/shared/format";
+import { movieHref, personHref } from "@/shared/project";
 import {
   getAmbientPalette,
   getMovieAwards,
   getMovieDetails,
   getMovieImages,
-} from "@/lib/tmdb/server";
+} from "@/infrastructure/tmdb/server";
 import {
   type Awards,
   type MovieDetails,
   type MovieImages,
   tmdbImageUrl,
-} from "@/lib/tmdb/shared";
+} from "@/infrastructure/tmdb/shared";
 import { MoviePeople } from "./cast";
 import { MovieCollectionActions } from "./collection";
 import { MovieGallery, MovieGalleryWall, MovieVideos } from "./gallery";
@@ -85,7 +85,11 @@ import {
   MoviePosterLink,
   MovieStage,
 } from "./stage";
-import { MovieViewProvider, MovieViews, ReelProvider } from "./views";
+import {
+  MovieViewProvider,
+  MovieViews,
+  ReelProvider,
+} from "./view-context";
 
 type AwardsRequest = Promise<Awards | null>;
 

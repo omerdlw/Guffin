@@ -7,8 +7,8 @@ import {
 import { DiaryMonthView } from "@/features/profile/diary/month";
 import { getDiaryMonth } from "@/features/profile/diary/server";
 import { loadProfile } from "@/features/profile/server";
-import type { SearchParams } from "@/lib/http";
-import { accountHref } from "@/lib/project";
+import type { SearchParams } from "@/infrastructure/http";
+import { accountHref } from "@/shared/project";
 
 export default async function AccountDiaryPage({
   params,

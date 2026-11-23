@@ -9,12 +9,12 @@ import {
   ok,
 } from "@/features/auth/mutation";
 import { getOptionalUser, mutate } from "@/features/auth/server";
-import { isUuid } from "@/lib/http";
+import { isUuid } from "@/infrastructure/http";
 import { and, eq, sql } from "drizzle-orm";
-import { viewer } from "@/lib/db/client";
-import { lists, reviewLikes, reviews } from "@/lib/db/schema";
-import { getMovieDetails, movieSnapshot } from "@/lib/tmdb/server";
-import { isTmdbId } from "@/lib/tmdb/transport";
+import { viewer } from "@/infrastructure/db/client";
+import { lists, reviewLikes, reviews } from "@/infrastructure/db/schema";
+import { getMovieDetails, movieSnapshot } from "@/infrastructure/tmdb/server";
+import { isTmdbId } from "@/infrastructure/tmdb/transport";
 import {
   getReviewValidationError,
   isMovieReviewFilter,

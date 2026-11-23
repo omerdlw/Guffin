@@ -6,7 +6,7 @@ try {
 
 export default defineConfig({
   dialect: "postgresql",
-  schema: "./src/lib/db/schema.ts",
+  schema: "./src/infrastructure/db/schema.ts",
   out: "./scripts/db/migrations",
   dbCredentials: { url: process.env.DATABASE_URL ?? "" },
   schemaFilter: ["public"],

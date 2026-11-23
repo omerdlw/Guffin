@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  type CSSProperties,
   type FormEvent,
   type JSX,
   memo,
@@ -30,8 +31,8 @@ import { WELL, WELL_HOVER } from "@/design/foundations/tones";
 import { variants } from "@/design/foundations/variants";
 import { defineSurface } from "@/design/surface-definition";
 import { cn, ui } from "@/design/ui";
-import { pluralize } from "@/lib/format";
-import { tmdbImageUrl } from "@/lib/tmdb/shared";
+import { pluralize } from "@/shared/format";
+import { tmdbImageUrl } from "@/infrastructure/tmdb/shared";
 import {
   createMovieListAction,
   getMovieListsAction,
@@ -59,12 +60,18 @@ const listCardVariants = variants(
     variants: {
       chosen: {
         false: `${WELL} ${WELL_HOVER} text-ink-body hover:text-ink`,
-        true: `${WELL} text-ink ring-2 ring-grade ring-inset`,
+        true: "bg-chosen text-ink ring-1 ring-chosen-edge-hover ring-inset hover:bg-chosen-hover",
       },
     },
     defaultVariants: { chosen: false },
   },
 );
+
+const FAN: Record<number, readonly number[]> = {
+  1: [0],
+  2: [-0.5, 0.5],
+  3: [-1, 1, 0],
+};
 
 export const listPickerSurface = defineSurface<{ data: ListPickerData }>({
   component: ListPickerSurface,
@@ -74,30 +81,49 @@ export const listPickerSurface = defineSurface<{ data: ListPickerData }>({
 });
 
 function ListCover({ list }: { list: MovieListSummary }): JSX.Element {
-  const posters = previewPosters(list).slice(0, COVER_POSTERS);
+  const posters = previewPosters(list)
+    .slice(0, COVER_POSTERS)
+    .map((path) => tmdbImageUrl("poster", path, "original"))
+    .filter((src): src is string => Boolean(src));
+  const fan = FAN[posters.length] ?? [];
+  const order = posters.length === 3 ? [0, 2, 1] : posters.map((_, i) => i);
 
   return (
-    <span className="grid aspect-[2/1] w-full grid-cols-3 gap-px overflow-hidden rounded-inset bg-fill">
-      {Array.from({ length: COVER_POSTERS }, (_, index) => {
-        const src = tmdbImageUrl("poster", posters[index], "original");
-        return src ? (
+    <span className="relative grid aspect-[2/1] w-full place-items-center overflow-hidden rounded-inset bg-fill">
+      {posters[0] ? (
+        <Image
+          alt=""
+          className="size-full scale-125 object-cover opacity-50 blur-xl saturate-150 select-none pointer-events-none"
+          decoding="async"
+          loading="lazy"
+          src={posters[0]}
+          wrapperClassName="absolute inset-0"
+        />
+      ) : (
+        <Icon className="text-ink-faint" icon="solar:folder-bold" size={22} />
+      )}
+      {order.map((index, slot) => (
+        <span
+          className="col-start-1 row-start-1 aspect-[2/3] h-[80%] overflow-hidden rounded-thumb shadow-(--lift) ring-1 ring-edge ring-inset [rotate:calc(var(--fan)*7deg)] [translate:calc(var(--fan)*58%)_0]"
+          data-slot="leaf"
+          key={index}
+          style={
+            {
+              "--fan": fan[slot],
+              "--fan-lift": fan[slot] === 0 ? 1 : 0,
+            } as CSSProperties
+          }
+        >
           <Image
             alt=""
             className="size-full object-cover select-none pointer-events-none"
             decoding="async"
-            key={index}
             loading="lazy"
-            src={src}
+            src={posters[index]!}
             wrapperClassName="size-full bg-fill"
           />
-        ) : (
-          <span className="center size-full bg-fill text-ink-faint" key={index}>
-            {index === 1 && posters.length === 0 ? (
-              <Icon icon="solar:folder-bold" size={18} />
-            ) : null}
-          </span>
-        );
-      })}
+        </span>
+      ))}
     </span>
   );
 }
@@ -124,7 +150,7 @@ const ListCard = memo(function ListCard({
       <span className="relative block w-full">
         <ListCover list={list} />
         {pending || inList ? (
-          <span className="absolute top-1.5 right-1.5 center size-6 rounded-full bg-grade text-on-accent">
+          <span className="absolute top-1.5 right-1.5 center size-6 rounded-full bg-grade text-on-accent shadow-(--lift)">
             {pending ? (
               <Spinner size={12} />
             ) : (
@@ -356,11 +382,11 @@ function ListPickerSurface({ data }: { data: ListPickerData }): JSX.Element {
     <SurfaceStage>
       <div className={SURFACE_STACK}>
         <SurfacePart name="item">
-          <form className="flex items-center gap-2.5" onSubmit={create}>
+          <form className="relative flex items-center" onSubmit={create}>
             <Input
               aria-label="New list name"
               className={ui.parts.input.field({
-                className: "h-control-md min-w-0 flex-1 px-4 type-body",
+                className: "h-control-md min-w-0 flex-1 pr-20 pl-4 type-body",
               })}
               disabled={creating}
               maxLength={LIST_TITLE_MAX}
@@ -373,37 +399,44 @@ function ListPickerSurface({ data }: { data: ListPickerData }): JSX.Element {
               placeholder="New list"
               value={draft.title}
             />
-            <Button
-              aria-label={draft.isPrivate ? "Private list" : "Public list"}
-              aria-pressed={draft.isPrivate}
-              icon
-              intent={draft.isPrivate ? "chosen" : "neutral"}
-              onClick={() =>
-                setDraft((current) => ({
-                  ...current,
-                  isPrivate: !current.isPrivate,
-                }))
-              }
-            >
-              <ActionIcon
-                icon={
-                  draft.isPrivate
-                    ? "solar:lock-bold"
-                    : "solar:lock-unlocked-linear"
+            <span className="absolute inset-y-1 right-1 flex items-center gap-1">
+              <Button
+                aria-label={draft.isPrivate ? "Private list" : "Public list"}
+                aria-pressed={draft.isPrivate}
+                icon
+                intent={draft.isPrivate ? "chosen" : "ghost"}
+                shape="pill"
+                size="sm"
+                title={draft.isPrivate ? "Private" : "Public"}
+                onClick={() =>
+                  setDraft((current) => ({
+                    ...current,
+                    isPrivate: !current.isPrivate,
+                  }))
                 }
-                size={16}
-              />
-            </Button>
-            <Button
-              aria-label="Create list and add this movie"
-              intent="primary"
-              icon
-              disabled={!draft.title.trim()}
-              loading={creating}
-              type="submit"
-            >
-              <Icon icon="solar:add-circle-bold" size={18} />
-            </Button>
+              >
+                <ActionIcon
+                  icon={
+                    draft.isPrivate
+                      ? "solar:lock-bold"
+                      : "solar:lock-unlocked-linear"
+                  }
+                  size={16}
+                />
+              </Button>
+              <Button
+                aria-label="Create list and add this movie"
+                intent="primary"
+                icon
+                shape="pill"
+                size="sm"
+                disabled={!draft.title.trim()}
+                loading={creating}
+                type="submit"
+              >
+                <Icon icon="solar:add-linear" size={16} />
+              </Button>
+            </span>
           </form>
         </SurfacePart>
 

@@ -14,8 +14,8 @@ import { TONE } from "@/design/foundations/tones";
 import { cn } from "@/design/ui";
 import { useArtworkPath } from "@/features/artwork/artwork";
 import { DetailExpose } from "@/features/detail/motion";
-import { personHref } from "@/lib/project";
-import { tmdbImageUrl } from "@/lib/tmdb/shared";
+import { personHref } from "@/shared/project";
+import { tmdbImageUrl } from "@/infrastructure/tmdb/shared";
 import {
   type CastModalProps,
   type PeopleModalData,

@@ -2,6 +2,7 @@
 
 import type { Curve, Enter, Look, Moves } from "@/motion/choreo";
 import { defineStage } from "@/motion/stage";
+import { HERO, OPENING, TEMPO } from "@/motion/pace";
 
 const PHI = 1.618034;
 const beat = (n: number) => Math.round(PHI ** n * 1000) / 1000;
@@ -14,17 +15,22 @@ const LEAVE: Curve = [0.618, 0, 0.854, 0.382];
 const TOUCH: Curve = [0.382, 0.236, 0.146, 1];
 const PRESS: Curve = [0.382, 0, 0.236, 1];
 const SPRING: Curve = [0.382, 0.618, 0.236, 1.146];
+// Backdrop opening: the camera pulls back from a dark close-up (dolly, most
+// travel early, long settle) while the lens racks into focus and the frame
+// develops from grey to full colour.
+const DOLLY: Curve = [0.146, 0.618, 0.146, 1];
+const FOCUS: Curve = [0.236, 0, 0.146, 1];
 
 const AT = {
   picture: 0,
   kicker: beat(-5),
   title: beat(-5),
-  poster: beat(-4),
+  poster: beat(-5),
   rule: beat(-3),
   along: beat(-3) + beat(-5),
-  tagline: beat(-3) + beat(-5),
-  overview: beat(-2),
-  tags: beat(-2) + beat(-4),
+  tagline: beat(-2) + beat(-6),
+  overview: beat(-2) + beat(-4),
+  tags: HERO,
 };
 
 const load = (from: Look, more: Partial<Enter> = {}): Enter => ({
@@ -51,37 +57,20 @@ const lift: Moves = {
   press,
 };
 
-const drawn = (enter: Enter): Moves => ({ origin: "left center", enter });
-
-const words = (enter: Enter, budget: number) => ({
-  by: "word" as const,
-  stagger: STAGGER.word,
-  budget,
-  enter,
-});
-
-const flicker = (enter: Enter) => ({
-  by: "char" as const,
-  order: "random" as const,
-  stagger: STAGGER.char / 2,
-  budget: beat(-4),
-  enter,
-});
-
 const HEADING = {
-  title: { at: beat(-5), budget: beat(-4) },
-  rule: { at: beat(-4) },
-  actions: { at: beat(-3) },
+  rule: { at: beat(-6) },
+  actions: { at: beat(-6) },
 };
 
-const dealt: Moves = {
-  enter: reveal({ opacity: 0, x: 21 }, { duration: beat(-2) }),
-  leave: { to: { opacity: 0, x: -21 }, duration: beat(-3), ease: LEAVE },
+const soft: Moves = {
+  enter: reveal({ opacity: 0, blur: 12 }, { duration: beat(-1) }),
+  leave: { to: { opacity: 0, blur: 8 }, duration: beat(-2), ease: SETTLE },
 };
 
 const DETAIL = defineStage({
   scope: "detail",
-  opening: beat(-2),
+  tempo: TEMPO,
+  opening: OPENING,
   inset: 0.05,
   scroll: { period: beat(-1), gain: 1 },
   glide: { duration: beat(-1), ease: SWEEP },
@@ -91,16 +80,21 @@ const DETAIL = defineStage({
         scroll: { to: { y: "13%" }, range: ["0px", "100vh"] },
         slots: {
           screen: {
+            origin: "center 38%",
             enter: load(
-              { scale: 1.09 },
-              { delay: AT.picture, duration: beat(0), ease: DEVELOP },
+              { opacity: 0, scale: 1.236 },
+              {
+                delay: AT.picture,
+                duration: beat(0) + beat(-2),
+                ease: DOLLY,
+              },
             ),
             scroll: { to: { scale: 1.055 }, range: ["0px", "100vh"] },
           },
           picture: {
             enter: load(
-              { opacity: 0, bright: 0.382 },
-              { delay: AT.picture, ease: DEVELOP },
+              { blur: 34, bright: 0.236, saturate: 0 },
+              { delay: AT.picture, duration: beat(0), ease: FOCUS },
             ),
           },
         },
@@ -109,155 +103,95 @@ const DETAIL = defineStage({
         enter: load({ opacity: 0 }, { delay: AT.picture, ease: DEVELOP }),
       },
       kicker: {
-        enter: load({ opacity: 0, y: 8 }, { delay: AT.kicker }),
+        enter: load({ opacity: 0, blur: 8 }, { delay: AT.kicker }),
       },
       title: {
-        text: {
-          by: "char",
-          stagger: STAGGER.char,
-          budget: beat(-3),
-          enter: load(
-            { opacity: 0, y: "0.382em" },
-            { delay: AT.title, duration: beat(-1) },
-          ),
-        },
+        enter: load({ opacity: 0, blur: 12 }, { delay: AT.title }),
       },
       poster: {
-        enter: load(
-          { clip: "inset(100% 0 0 0)", y: 13, bright: 0.618 },
-          { delay: AT.poster, ease: DEVELOP },
-        ),
+        enter: load({ opacity: 0, blur: 12 }, { delay: AT.poster }),
       },
-      rule: drawn(load({ scale: [0, 1] }, { delay: AT.rule, ease: SWEEP })),
+      rule: {
+        enter: load({ opacity: 0, blur: 6 }, { delay: AT.rule }),
+      },
       role: {
-        text: flicker(
-          load({ opacity: 0 }, { delay: AT.along, duration: beat(-3) }),
-        ),
+        enter: load({ opacity: 0, blur: 8 }, { delay: AT.along }),
       },
       link: {
-        enter: load(
-          { opacity: 0, scale: 0.786 },
-          {
-            delay: AT.along,
-            stagger: STAGGER.word,
-            duration: beat(-2),
-            ease: SPRING,
-          },
-        ),
+        enter: load({ opacity: 0, blur: 8 }, { delay: AT.along }),
         hover: { y: -3, duration: beat(-3), ease: TOUCH },
         rest: { duration: beat(-2), ease: SETTLE },
         press,
       },
       stat: {
         enter: load(
-          { opacity: 0, x: 13 },
+          { opacity: 0, blur: 8 },
           { delay: AT.along, stagger: STAGGER.item, duration: beat(-2) },
         ),
       },
       tagline: {
-        text: words(
-          load({ opacity: 0, y: 8 }, { delay: AT.tagline }),
-          beat(-4),
-        ),
+        enter: load({ opacity: 0, blur: 10 }, { delay: AT.tagline }),
       },
       overview: {
-        text: words(
-          load({ opacity: 0, y: 8 }, { delay: AT.overview }),
-          beat(-3),
-        ),
+        enter: load({ opacity: 0, blur: 10 }, { delay: AT.overview }),
       },
       more: {
-        enter: load({ opacity: 0, y: 8 }, { delay: AT.tags }),
+        enter: load({ opacity: 0, blur: 8 }, { delay: AT.tags }),
       },
       tag: {
         enter: load(
-          { opacity: 0, y: 8, scale: 0.854 },
-          {
-            delay: AT.tags,
-            stagger: STAGGER.word,
-            duration: beat(-2),
-            ease: SPRING,
-          },
+          { opacity: 0, blur: 8 },
+          { delay: AT.tags, stagger: STAGGER.char, duration: beat(-2) },
         ),
       },
       action: {
-        enter: reveal(
-          { opacity: 0, y: 8, scale: 0.944 },
-          { stagger: STAGGER.word, duration: beat(-2), ease: SPRING },
-        ),
+        enter: reveal({ opacity: 0, blur: 8 }, { duration: beat(-2) }),
       },
       resume: {
-        enter: reveal({ opacity: 0, y: 13 }, { delay: beat(-4) }),
+        enter: reveal({ opacity: 0, blur: 8 }),
         slots: {
-          rule: drawn(
-            reveal({ scale: [0, 1] }, { delay: beat(-3), ease: SWEEP }),
-          ),
+          rule: {
+            enter: reveal({ opacity: 0, blur: 6 }),
+          },
         },
       },
       proof: {
-        enter: reveal({ opacity: 0, y: 13 }, { delay: beat(-4) }),
+        enter: reveal({ opacity: 0, blur: 8 }),
       },
       row: {
-        enter: reveal(
-          { opacity: 0, x: 8 },
-          { stagger: STAGGER.word, duration: beat(-2) },
-        ),
+        enter: reveal({ opacity: 0, blur: 8 }, { duration: beat(-2) }),
       },
       label: {
-        text: flicker(reveal({ opacity: 0 }, { duration: beat(-3) })),
+        enter: reveal({ opacity: 0, blur: 8 }, { duration: beat(-3) }),
       },
       value: {
-        text: {
-          by: "word",
-          mask: true,
-          stagger: STAGGER.word,
-          budget: beat(-4),
-          enter: reveal({ y: "110%" }, { delay: beat(-5), duration: beat(-2) }),
-        },
+        enter: reveal({ opacity: 0, blur: 8 }, { duration: beat(-2) }),
       },
-      line: drawn(
-        reveal(
-          { scale: [0, 1] },
-          { delay: beat(-5), stagger: STAGGER.word, ease: SWEEP },
-        ),
-      ),
+      line: {
+        enter: reveal({ opacity: 0, blur: 6 }),
+      },
       header: {
-        text: {
-          by: "char",
-          order: "center",
-          stagger: STAGGER.char,
-          budget: HEADING.title.budget,
-          enter: reveal(
-            { opacity: 0, y: "0.382em" },
-            { delay: HEADING.title.at, duration: beat(-2) },
-          ),
-        },
+        enter: reveal({ opacity: 0, blur: 10 }, { duration: beat(-2) }),
         slots: {
           icon: {
-            enter: reveal(
-              { opacity: 0, scale: 0.618, rotate: -21 },
-              { duration: beat(-2), ease: SPRING },
-            ),
+            enter: reveal({ opacity: 0, blur: 6 }, { duration: beat(-2) }),
           },
-          rule: drawn(
-            reveal({ scale: [0, 1] }, { delay: HEADING.rule.at, ease: SWEEP }),
-          ),
+          rule: {
+            enter: reveal({ opacity: 0, blur: 6 }, { delay: HEADING.rule.at }),
+          },
           actions: {
             enter: reveal(
-              { opacity: 0, x: 13 },
+              { opacity: 0, blur: 8 },
               { delay: HEADING.actions.at, duration: beat(-2) },
             ),
           },
         },
       },
       control: {
-        enter: reveal({ opacity: 0, x: 13 }, { duration: beat(-2) }),
+        enter: reveal({ opacity: 0, blur: 8 }, { duration: beat(-2) }),
       },
       person: {
-        enter: reveal(
-          { opacity: 0, x: "var(--gather)", y: 13 },
-          { stagger: STAGGER.item },
-        ),
+        enter: reveal({ opacity: 0, blur: 12 }),
         follow: { of: ["flex-grow"], duration: beat(-1), ease: SETTLE },
         slots: {
           picture: {
@@ -306,10 +240,7 @@ const DETAIL = defineStage({
         },
       },
       cameo: {
-        enter: reveal(
-          { opacity: 0, y: 8 },
-          { stagger: STAGGER.word, duration: beat(-2) },
-        ),
+        enter: reveal({ opacity: 0, blur: 8 }, { duration: beat(-2) }),
         hover: { y: -2, duration: beat(-3), ease: TOUCH },
         rest: { duration: beat(-2), ease: SETTLE },
         slots: {
@@ -325,45 +256,29 @@ const DETAIL = defineStage({
         },
       },
       credit: {
-        enter: reveal(
-          { opacity: 0, y: 8 },
-          { delay: beat(-4), stagger: STAGGER.word, duration: beat(-2) },
-        ),
+        enter: reveal({ opacity: 0, blur: 8 }, { duration: beat(-2) }),
       },
       slide: {
-        enter: reveal(
-          { opacity: 0, x: 34 },
-          { along: "section", stagger: STAGGER.word, wrap: 8 },
-        ),
+        enter: reveal({ opacity: 0, blur: 12 }, {}),
       },
       review: {
-        enter: reveal(
-          { opacity: 0, y: 21 },
-          { stagger: STAGGER.item, wrap: 3 },
-        ),
+        enter: reveal({ opacity: 0, blur: 12 }, {}),
       },
       star: {
-        enter: reveal(
-          { opacity: 0, scale: 0.618 },
-          { delay: beat(-4), stagger: STAGGER.char, duration: beat(-3) },
-        ),
+        enter: reveal({ opacity: 0, blur: 6 }, { duration: beat(-3) }),
       },
       list: {
         ...lift,
-        enter: reveal(
-          { opacity: 0, y: 21 },
-          { stagger: STAGGER.item, wrap: 3 },
-        ),
+        enter: reveal({ opacity: 0, blur: 12 }, {}),
       },
       awards: {
-        enter: reveal({ opacity: 0, y: 13 }),
+        enter: reveal({ opacity: 0, blur: 12 }),
       },
-      meter: drawn(reveal({ scale: [0, 1] }, { delay: beat(-4), ease: SWEEP })),
+      meter: {
+        enter: reveal({ opacity: 0, blur: 6 }),
+      },
       laurel: {
-        enter: reveal(
-          { opacity: 0, y: 8 },
-          { stagger: STAGGER.word, wrap: 12, duration: beat(-2) },
-        ),
+        enter: reveal({ opacity: 0, blur: 8 }, { duration: beat(-2) }),
       },
       fold: {
         follow: {
@@ -376,29 +291,19 @@ const DETAIL = defineStage({
         follow: { of: ["transform"], duration: beat(-2), ease: SETTLE },
       },
       tile: {
-        enter: reveal(
-          { opacity: 0, y: 13 },
-          { stagger: STAGGER.char, wrap: 8 },
-        ),
+        enter: reveal({ opacity: 0, blur: 12 }, {}),
       },
       readout: {
-        enter: reveal({ opacity: 0, y: 8 }, { duration: beat(-2) }),
+        enter: reveal({ opacity: 0, blur: 8 }, { duration: beat(-2) }),
       },
       tick: {
-        enter: reveal({ opacity: 0 }, { duration: beat(-2) }),
+        enter: reveal({ opacity: 0, blur: 6 }, { duration: beat(-2) }),
       },
       bar: {
-        enter: reveal(
-          { clip: "inset(100% 0 0 0)" },
-          { along: "section", ease: DEVELOP },
-        ),
+        enter: reveal({ opacity: 0, blur: 6 }),
       },
       spine: {
-        origin: "center top",
-        enter: reveal(
-          { scale: [1, 0] },
-          { along: "section", duration: beat(0), ease: SWEEP },
-        ),
+        enter: reveal({ opacity: 0, blur: 6 }, { duration: beat(0) }),
       },
       trace: {
         follow: {
@@ -408,27 +313,31 @@ const DETAIL = defineStage({
         },
       },
       stamp: {
-        enter: reveal(
-          { opacity: 0, scale: 0.618 },
-          { duration: beat(-2), ease: SPRING },
-        ),
+        enter: reveal({ opacity: 0, blur: 8 }, { duration: beat(-2) }),
       },
       entry: {
-        enter: reveal(
-          { opacity: 0, x: -13 },
-          { stagger: STAGGER.char, wrap: 10, duration: beat(-2) },
-        ),
+        enter: reveal({ opacity: 0, blur: 8 }, { duration: beat(-2) }),
       },
     },
     sections: {
       view: {
-        enter: load({ opacity: 0, x: 21 }, { duration: beat(-2) }),
+        enter: reveal({ opacity: 0, blur: 12 }, { duration: beat(-1) }),
+        leave: {
+          to: { opacity: 0, blur: 8 },
+          duration: beat(-2),
+          ease: SETTLE,
+        },
       },
-      cast: dealt,
-      slides: dealt,
-      tiles: dealt,
-      reviews: dealt,
-      chart: dealt,
+      shelf: soft,
+      cast: soft,
+      slides: soft,
+      row: soft,
+      reviews: soft,
+      board: soft,
+      lists: soft,
+      awards: soft,
+      tiles: soft,
+      chart: soft,
     },
     kinds: {
       media: {
@@ -456,7 +365,7 @@ const DETAIL = defineStage({
       },
       arrow: {
         enter: reveal(
-          { opacity: 0, scale: 0.786 },
+          { opacity: 0, blur: 6 },
           { along: "section", delay: beat(-3), duration: beat(-3) },
         ),
         hover: { scale: 1.09, opacity: 1, duration: beat(-3), ease: TOUCH },

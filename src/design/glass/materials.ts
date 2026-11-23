@@ -59,10 +59,6 @@ export function materialOf(element: Element): MaterialName | null {
   return list.contains("liquid-flat") ? "float" : "shell";
 }
 
-const BEZEL_STEP = 2;
-const WIDE_STEP = 4;
-const WIDE = 20;
-
 export function bezelFor(material: Material, width: number, height: number) {
   const short = Math.min(width, height);
   const { share, min, max, grow } = material.bezel;
@@ -70,10 +66,11 @@ export function bezelFor(material: Material, width: number, height: number) {
   if (grow && short > grow.from) {
     wanted = Math.min(wanted + (short - grow.from) * grow.share, grow.max);
   }
-  const step = wanted > WIDE ? WIDE_STEP : BEZEL_STEP;
-  const stepped = Math.round(wanted / step) * step;
-  return Math.max(1, Math.floor(Math.min(stepped, short / 2)));
+  return Math.max(1, Math.floor(Math.min(Math.round(wanted), short / 2)));
 }
+
+export const widestBezel = ({ bezel }: Material) =>
+  bezel.grow ? Math.max(bezel.max, bezel.grow.max) : bezel.max;
 
 const FROST_STEP = 0.25;
 const FROST_SMALL = 48;

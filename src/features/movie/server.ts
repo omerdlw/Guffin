@@ -5,8 +5,8 @@ import { eq } from "drizzle-orm";
 import { unstable_rethrow } from "next/navigation";
 import { getViewerSession } from "@/features/auth/server";
 import { getKnownFor } from "@/features/person/credits";
-import { filmStats } from "@/lib/db/schema";
-import { getPersonDetails } from "@/lib/tmdb/server";
+import { filmStats } from "@/infrastructure/db/schema";
+import { getPersonDetails } from "@/infrastructure/tmdb/server";
 import {
   type FilmStats,
   type KnownForMap,

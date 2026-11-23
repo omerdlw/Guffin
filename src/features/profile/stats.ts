@@ -1,8 +1,8 @@
 import "server-only";
 
 import { and, countDistinct, eq, gte, sql } from "drizzle-orm";
-import type { Session } from "@/lib/db/client";
-import { accountActivity, accountDiary, accountStats } from "@/lib/db/schema";
+import type { Session } from "@/infrastructure/db/client";
+import { accountActivity, accountDiary, accountStats } from "@/infrastructure/db/schema";
 
 const DAY_MS = 86_400_000;
 

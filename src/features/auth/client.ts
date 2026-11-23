@@ -1,6 +1,6 @@
 import { UserError } from "@omerdlw/base-framework/utils";
-import { authClient } from "@/lib/auth/client";
-import { requestJson } from "@/lib/http";
+import { authClient } from "@/infrastructure/auth/client";
+import { requestJson } from "@/infrastructure/http";
 import type { OAuthProvider } from "./session";
 
 export interface LinkedIdentity {

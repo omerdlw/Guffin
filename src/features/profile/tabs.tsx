@@ -4,7 +4,7 @@ import type { JSX } from "react";
 import { usePathname } from "next/navigation";
 import { PageNav } from "@/design/components/page-nav";
 import { Z_INDEX } from "@/design/foundations/z-index";
-import { accountHref } from "@/lib/project";
+import { accountHref } from "@/shared/project";
 
 const SECTIONS = [
   { key: "", label: "Overview" },
@@ -33,6 +33,7 @@ export function ProfileTabs({ username }: { username: string }): JSX.Element {
   return (
     <div
       className="pointer-events-none fixed inset-x-0 top-0 flex justify-center px-4 pt-fib-5 sm:px-6"
+      data-part="tabs"
       style={{ zIndex: Z_INDEX.UI_ELEMENT }}
     >
       <PageNav

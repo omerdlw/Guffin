@@ -3,7 +3,8 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import localFont from "next/font/local";
 import { connection } from "next/server";
-import { project } from "@/lib/project";
+import { LOADING_HANDOFF_SCRIPT } from "@/design/components/loading-ghost";
+import { project } from "@/shared/project";
 import "./globals.css";
 import { Providers } from "./providers";
 
@@ -45,6 +46,7 @@ export default async function RootLayout({
         className={`${geist.variable} ${geist.className} ${zuume.variable} bg-page text-ink antialiased`}
         suppressHydrationWarning
       >
+        <script dangerouslySetInnerHTML={{ __html: LOADING_HANDOFF_SCRIPT }} />
         <Providers>{children}</Providers>
       </body>
     </html>

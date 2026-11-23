@@ -10,6 +10,8 @@ export interface Look {
   tilt?: number | string;
   opacity?: number;
   bright?: number | string;
+  saturate?: number | string;
+  blur?: number | string;
   clip?: string;
 }
 
@@ -64,6 +66,7 @@ export type Followed =
   | "translate"
   | "scale"
   | "opacity"
+  | "filter"
   | "width"
   | "height"
   | "flex-grow"
@@ -147,7 +150,14 @@ function declare(look: Look, reduced: boolean): string[] {
   if (look.tilt !== undefined) out.push(`rotate: x ${degrees(look.tilt)}`);
   else if (look.rotate !== undefined)
     out.push(`rotate: ${degrees(look.rotate)}`);
-  if (look.bright !== undefined) out.push(`filter: brightness(${look.bright})`);
+  const filters: string[] = [];
+  if (look.bright !== undefined) filters.push(`brightness(${look.bright})`);
+  if (look.saturate !== undefined) filters.push(`saturate(${look.saturate})`);
+  if (look.blur !== undefined)
+    filters.push(
+      `blur(${typeof look.blur === "number" ? `${look.blur}px` : look.blur})`,
+    );
+  if (filters.length) out.push(`filter: ${filters.join(" ")}`);
   if (look.clip !== undefined) out.push(`clip-path: ${look.clip}`);
   return out;
 }
@@ -178,9 +188,11 @@ function gate(place: Place, enter: Enter): string {
   const inside = (selector: string) => `${played} ${below(root, selector)}`;
   if (enter.on === "load") return inside(target);
   if (enter.on === "ready")
-    return `${played} [data-ready] ${below(root, target)}`;
+    return `${inside(target)}:is([data-ready], [data-ready] *)`;
+  // Nearest section only: an outer section's cue must not open a role that
+  // still sits inside an unseen inner one.
   if (enter.along === "section")
-    return `${played} [data-section][data-seen] ${below(root, target)}`;
+    return `${inside(target)}:not([data-section]:not([data-seen]) *)`;
   return host === target
     ? `${inside(target)}[data-seen]`
     : `${inside(host)}[data-seen] ${below(host, target)}`;
@@ -201,17 +213,28 @@ function enterTrack(
   reduced: boolean,
   order = "var(--i, 0)",
   line = 0,
+  text = false,
 ): Track | null {
   const from = declare(enter.from, reduced);
   if (!from.length) return null;
   const duration = reduced ? Math.min(enter.duration, 0.3) : enter.duration;
   const at = enter.wrap ? `mod(${order}, ${enter.wrap})` : order;
   const parts = [seconds(enter.delay ?? 0)];
-  if (enter.stagger && enter.budget)
+  // View roles take their beat from the cue (reading order, see useCue), so
+  // position, not index, orders a released row; section-borne roles and text
+  // units fan out by index after their host's beat.
+  const cued = enter.on === "view";
+  const own = cued && enter.along !== "section" && !text;
+  if (cued)
+    parts.push(
+      enter.along === "section" ? "var(--lead, 0s)" : "var(--cue, 0s)",
+    );
+  if (!own && enter.stagger && enter.budget)
     parts.push(
       `${at} * min(${seconds(enter.stagger)}, ${seconds(enter.budget)} / max(var(--n, 1) - 1, 1))`,
     );
-  else if (enter.stagger) parts.push(`${at} * ${seconds(enter.stagger)}`);
+  else if (!own && enter.stagger)
+    parts.push(`${at} * ${seconds(enter.stagger)}`);
   if (line) parts.push(`var(--i, 0) * ${seconds(line)}`);
   const delay = parts.length > 1 ? `calc(${parts.join(" + ")})` : parts[0];
   const open = enter.from.clip !== undefined && !reduced;
@@ -405,6 +428,7 @@ function textRules(
       reduced,
       order,
       text.line ?? 0,
+      true,
     ),
   ]);
   return css;

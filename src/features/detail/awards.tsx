@@ -9,13 +9,13 @@ import { Select } from "@/design/components/select";
 import { TONE } from "@/design/foundations/tones";
 import { cn } from "@/design/ui";
 import { PosterThumb } from "@/features/artwork/artwork";
-import { pluralize } from "@/lib/format";
-import { movieHref, personHref } from "@/lib/project";
+import { pluralize } from "@/shared/format";
+import { movieHref, personHref } from "@/shared/project";
 import {
   type AwardRecipient,
   type Awards,
   tmdbImageUrl,
-} from "@/lib/tmdb/shared";
+} from "@/infrastructure/tmdb/shared";
 import { Foil, type TiltLight } from "@/motion/tilt";
 import { CRAFT_ORDER, craftOf, prestigeOf, shortName } from "./award-board";
 import type { AwardsGrouping, AwardsLook } from "./detail";

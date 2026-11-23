@@ -18,6 +18,7 @@ import {
   MATERIALS,
   type MaterialName,
   materialOf,
+  widestBezel,
 } from "./materials";
 import { channelSpread, rimShift } from "./optics";
 
@@ -27,6 +28,11 @@ const FLUID = "liquid-fluid";
 const MIN_SIDE = 16;
 const EDGE_REACH = 12;
 const HYDRATION_RETRY_MS = 250;
+// After a density change the old filters stay until the new lenses decode.
+const RETIRE_MS = 1000;
+
+let count = 0;
+const densityNow = () => Math.min(window.devicePixelRatio || 1, 2);
 
 const hydrated = (element: Element) =>
   Object.keys(element).some((key) => key.startsWith("__reactFiber$"));
@@ -61,10 +67,15 @@ const CHANNEL = [
 
 type LensMaps = { slice: number; map: Pieces };
 
+type Bend = { node: SVGElement; factor: number };
+
 type Lens = {
   key: string;
   filter: SVGFilterElement;
   slice: number;
+  bezel: number;
+  wanted: number;
+  bends: Bend[];
   margin: number;
   map: Record<Piece, SVGElement>;
   flat: SVGElement;
@@ -170,9 +181,7 @@ const compacted = new Map<string, string>();
 
 async function saveMaps(version: string, maps: Map<string, LensMaps>) {
   const kept: Record<string, LensMaps> = {};
-  let count = 0;
-  for (const [key, value] of maps) {
-    if (++count > STORE_LIMIT) break;
+  for (const [key, value] of [...maps].slice(-STORE_LIMIT)) {
     const map = {} as Pieces;
     for (const piece of PIECES) {
       const url = value.map[piece];
@@ -199,7 +208,7 @@ const idle = (task: () => void) => {
   } else setTimeout(task, 200);
 };
 
-function startGlass(lensing: boolean) {
+function startGlass(lensing: boolean, density: number) {
   const defs = document.createElementNS(SVG_NS, "svg");
   defs.setAttribute("aria-hidden", "true");
   defs.setAttribute("width", "0");
@@ -208,7 +217,6 @@ function startGlass(lensing: boolean) {
   defs.style.pointerEvents = "none";
   document.body.append(defs);
 
-  const density = Math.min(window.devicePixelRatio || 1, 2);
   const version = lensing ? `${mapsVersion(density)}@${density}` : "";
   const maps = lensing ? loadMaps(version) : new Map<string, LensMaps>();
   let saving = false;
@@ -221,19 +229,51 @@ function startGlass(lensing: boolean) {
     });
   }
   const lenses = new Map<Element, Lens>();
+  const pending = new Map<Element, Lens>();
   const sizes = new WeakMap<Element, { width: number; height: number }>();
   const timers = new Map<Element, number>();
-  let count = 0;
 
-  function mapsFor(key: string, slice: number, radius: number, bezel: number) {
+  const edges = new Map<string, ReturnType<typeof drawEdgeLight>>();
+  function mapsFor(slice: number, radius: number, bezel: number) {
+    const key = `${slice}r${radius}b${bezel}`;
     const known = maps.get(key);
-    if (known) return known;
+    if (known) {
+      maps.delete(key);
+      maps.set(key, known);
+      return known;
+    }
+    const shape = `${slice}r${radius}`;
+    let edge = edges.get(shape);
+    if (!edge) {
+      edge = drawEdgeLight(slice, radius, density);
+      edges.set(shape, edge);
+    }
     const refraction = drawRefraction(slice, radius, bezel, density);
-    const edge = drawEdgeLight(slice, radius, density);
     const value = { slice, map: fold(refraction, edge, slice) };
     maps.set(key, value);
     remember();
     return value;
+  }
+
+  // A new feImage href paints nothing until its image is decoded, so a lens
+  // only takes new maps once all nine pieces are ready; the old ones stay
+  // on screen meanwhile.
+  const decoded = new Map<string, HTMLImageElement>();
+  function whenReady(map: Pieces, then: () => void) {
+    const missing = PIECES.map((piece) => map[piece]).filter(
+      (url) => !decoded.has(url),
+    );
+    if (!missing.length) return then();
+    void Promise.all(
+      missing.map((url) => {
+        const image = new Image();
+        image.src = url;
+        return image.decode().then(
+          () => void decoded.set(url, image),
+          () => void decoded.set(url, image),
+        );
+      }),
+    ).then(then);
   }
 
   function buildLens(
@@ -277,10 +317,11 @@ function startGlass(lensing: boolean) {
     }
 
     const scale = 2 * material.reach * bezel * material.bend;
+    const bends: Bend[] = [];
     if (material.abbe > 0) {
       const spread = channelSpread(material.ior, material.abbe);
       spread.forEach((factor, channel) => {
-        set(filter, "feDisplacementMap", {
+        const node = set(filter, "feDisplacementMap", {
           in: "SourceGraphic",
           in2: "map",
           scale: (scale * factor).toFixed(2),
@@ -288,6 +329,7 @@ function startGlass(lensing: boolean) {
           yChannelSelector: "G",
           result: `bent${channel}`,
         });
+        bends.push({ node, factor });
         set(filter, "feColorMatrix", {
           in: `bent${channel}`,
           type: "matrix",
@@ -308,7 +350,7 @@ function startGlass(lensing: boolean) {
         result: "bent",
       });
     } else {
-      set(filter, "feDisplacementMap", {
+      const node = set(filter, "feDisplacementMap", {
         in: "SourceGraphic",
         in2: "map",
         scale: scale.toFixed(2),
@@ -316,6 +358,7 @@ function startGlass(lensing: boolean) {
         yChannelSelector: "G",
         result: "bent",
       });
+      bends.push({ node, factor: 1 });
     }
     const frost = clear
       ? null
@@ -414,6 +457,9 @@ function startGlass(lensing: boolean) {
       key,
       filter,
       slice: found.slice,
+      bezel,
+      wanted: bezel,
+      bends,
       margin,
       map,
       flat,
@@ -459,11 +505,41 @@ function startGlass(lensing: boolean) {
     }
   }
 
-  function dropLens(element: HTMLElement) {
+  // Same lens, new rim width: swap the maps and the displacement in place so
+  // the rim widens smoothly while a surface grows, without a new filter.
+  function rebend(lens: Lens, radius: number, bezel: number) {
+    if (lens.wanted === bezel) return;
+    lens.wanted = bezel;
+    const found = mapsFor(lens.slice, radius, bezel);
+    whenReady(found.map, () => {
+      if (lens.wanted !== bezel || lens.bezel === bezel) return;
+      lens.bezel = bezel;
+      for (const piece of PIECES) {
+        lens.map[piece].setAttribute("href", found.map[piece]);
+      }
+      const scale = 2 * lens.material.reach * bezel * lens.material.bend;
+      for (const { node, factor } of lens.bends) {
+        node.setAttribute("scale", (scale * factor).toFixed(2));
+      }
+    });
+  }
+
+  function forget(element: Element) {
+    const waiting = pending.get(element);
+    if (waiting) {
+      waiting.filter.remove();
+      pending.delete(element);
+    }
     const lens = lenses.get(element);
-    if (!lens) return;
-    lens.filter.remove();
-    lenses.delete(element);
+    if (lens) {
+      lens.filter.remove();
+      lenses.delete(element);
+    }
+  }
+
+  function dropLens(element: HTMLElement) {
+    if (!lenses.has(element) && !pending.has(element)) return;
+    forget(element);
     element.style.removeProperty("--liquid-lens");
   }
 
@@ -492,38 +568,52 @@ function startGlass(lensing: boolean) {
   function apply(element: HTMLElement, reading: Reading) {
     const { width, height, radius, name, material, stain, glint } = reading;
     const asked = reading.bezel;
+    const short = Math.min(width, height);
     const bezel = Math.round(
-      asked
-        ? Math.min(asked, Math.min(width, height) / 2)
-        : bezelFor(material, width, height),
+      asked ? Math.min(asked, short / 2) : bezelFor(material, width, height),
     );
+    // The slice fits the widest rim this element can grow to, so a resize
+    // only changes the rim (rebend), never the filter.
     const slice = Math.max(
       Math.min(
-        Math.ceil(Math.max(radius, bezel, EDGE_REACH)),
-        Math.floor(Math.min(width, height) / 2),
+        Math.ceil(Math.max(radius, asked ?? widestBezel(material), EDGE_REACH)),
+        Math.floor(short / 2),
       ),
       Math.ceil(radius),
     );
-    const key = `${name}:${slice}r${radius}b${bezel}x${material.bend}s${stain}${glint}`;
-    let lens = lenses.get(element);
-    if (lens?.key !== key) {
-      const found = mapsFor(
-        `${slice}r${radius}b${bezel}`,
-        slice,
-        radius,
-        bezel,
-      );
-      if (lens) lens.filter.remove();
-      lens = buildLens(found, material, bezel, stain, glint, key);
-      lenses.set(element, lens);
+    const key = `${name}:${slice}r${radius}x${material.bend}s${stain}${glint}`;
+    const live = lenses.get(element);
+    if (live?.key === key) {
+      pending.get(element)?.filter.remove();
+      pending.delete(element);
+      rebend(live, radius, bezel);
+      place(live, width, height);
+      return;
+    }
+    if (live) place(live, width, height);
+    const waiting = pending.get(element);
+    if (waiting?.key === key) {
+      rebend(waiting, radius, bezel);
+      place(waiting, width, height);
+      return;
+    }
+    waiting?.filter.remove();
+    const found = mapsFor(slice, radius, bezel);
+    const next = buildLens(found, material, bezel, stain, glint, key);
+    pending.set(element, next);
+    place(next, width, height);
+    whenReady(found.map, () => {
+      if (pending.get(element) !== next) return;
+      pending.delete(element);
+      lenses.get(element)?.filter.remove();
+      lenses.set(element, next);
       element.style.setProperty(
         "--liquid-lens",
         material.frost.large === 0
-          ? `url(#${lens.filter.id})`
-          : `var(--liquid-lens-tone) url(#${lens.filter.id})`,
+          ? `url(#${next.filter.id})`
+          : `var(--liquid-lens-tone) url(#${next.filter.id})`,
       );
-    }
-    place(lens, width, height);
+    });
   }
 
   function fit(elements: Iterable<HTMLElement>) {
@@ -575,11 +665,7 @@ function startGlass(lensing: boolean) {
       if (element.isConnected) continue;
       observer.unobserve(element);
       watched.delete(element);
-      const lens = lenses.get(element);
-      if (lens) {
-        lens.filter.remove();
-        lenses.delete(element);
-      }
+      forget(element);
     }
   }
 
@@ -610,16 +696,43 @@ function startGlass(lensing: boolean) {
     subtree: true,
   });
 
-  return () => {
+  return (linger = 0) => {
     additions.disconnect();
     observer.disconnect();
     timers.forEach((timer) => window.clearTimeout(timer));
     timers.clear();
-    defs.remove();
+    if (linger) window.setTimeout(() => defs.remove(), linger);
+    else defs.remove();
   };
 }
 
+// Maps are drawn per device pixel. Windows windows often move between a 150%
+// laptop panel and a 100% monitor, so redraw them when the density changes.
 export function GlassEngine(): null {
-  useEffect(() => startGlass(refracts()), []);
+  useEffect(() => {
+    const lensing = refracts();
+    let density = densityNow();
+    let stop = startGlass(lensing, density);
+    let query: MediaQueryList | undefined;
+    // The resolution query is the signal; resize also fires on a monitor move.
+    function check() {
+      query?.removeEventListener("change", check);
+      query = matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
+      query.addEventListener("change", check);
+      const next = densityNow();
+      if (next === density) return;
+      density = next;
+      const retire = stop;
+      stop = startGlass(lensing, density);
+      retire(RETIRE_MS);
+    }
+    check();
+    window.addEventListener("resize", check);
+    return () => {
+      query?.removeEventListener("change", check);
+      window.removeEventListener("resize", check);
+      stop();
+    };
+  }, []);
   return null;
 }

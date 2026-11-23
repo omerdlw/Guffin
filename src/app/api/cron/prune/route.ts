@@ -1,8 +1,8 @@
 import { report } from "@omerdlw/base-framework/utils";
 import { sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { admin } from "@/lib/db/client";
-import { isCronRequest } from "@/lib/security";
+import { admin } from "@/infrastructure/db/client";
+import { isCronRequest } from "@/infrastructure/security";
 
 export const dynamic = "force-dynamic";
 

@@ -6,7 +6,7 @@ import {
   type MovieImage,
   type MovieImages,
   tmdbImageUrl,
-} from "@/lib/tmdb/shared";
+} from "@/infrastructure/tmdb/shared";
 import { readable } from "@/motion/gl";
 
 export interface PersonEntry {

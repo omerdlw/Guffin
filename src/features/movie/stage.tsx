@@ -21,11 +21,11 @@ import {
 import { DetailAction as Action, DetailStage } from "@/features/detail/stage";
 import { MovieAction } from "@/features/reviews/movie-action";
 import { describeReviewStats, useReviewsPager } from "@/features/reviews/pager";
-import { movieHref } from "@/lib/project";
-import { tmdbImageSrcSet, tmdbImageUrl } from "@/lib/tmdb/shared";
+import { movieHref } from "@/shared/project";
+import { tmdbImageSrcSet, tmdbImageUrl } from "@/infrastructure/tmdb/shared";
 import { COLLECTION_ICONS, type MovieArtwork, movieSwatch } from "./movie";
 import { watchProvidersSurface } from "./surfaces";
-import { useMovieView, useReel } from "./views";
+import { useMovieView, useReel } from "./view-context";
 
 interface MoviePosterLinkProps {
   movie: {

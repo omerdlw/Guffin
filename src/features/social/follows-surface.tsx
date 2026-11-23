@@ -47,7 +47,7 @@ import {
   StatusTile,
 } from "@/features/account/tiles";
 import { useAuth } from "@/features/auth/provider";
-import { accountHref } from "@/lib/project";
+import { accountHref } from "@/shared/project";
 import { fetchFollowPage } from "./client";
 import {
   loadRequests,
@@ -90,6 +90,11 @@ const SOCIAL_TAB_LABELS: Record<SocialTab, string> = {
 };
 
 const SOCIAL_BUTTON = "min-w-[5.5rem]";
+
+const REVEAL =
+  "ui-fade pointer-events-none opacity-0 group-hover/user:pointer-events-auto group-hover/user:opacity-100 pointer-coarse:pointer-events-auto pointer-coarse:opacity-100";
+
+const SWAP_DANGER = "hover:bg-danger/15 hover:text-danger hover:ring-danger/25";
 
 const SOCIAL_ROW = groupRowVariants();
 
@@ -243,9 +248,24 @@ const UserAction = memo(function UserAction({
     );
   }
   if (ownProfile) {
-    return tab === "following"
-      ? button("unfollow", "Unfollow", "outline")
-      : button("remove", "Remove", "outline");
+    return (
+      <span className={REVEAL}>
+        <Button
+          aria-label={tab === "following" ? "Unfollow" : "Remove"}
+          className={cn(SOCIAL_BUTTON, SWAP_DANGER)}
+          disabled={busy}
+          intent="neutral"
+          loading={pending === (tab === "following" ? "unfollow" : "remove")}
+          onClick={() => void act(tab === "following" ? "unfollow" : "remove")}
+          shape="pill"
+          size="sm"
+        >
+          <ActionLabel>
+            {tab === "following" ? "Unfollow" : "Remove"}
+          </ActionLabel>
+        </Button>
+      </span>
+    );
   }
   if (!showFollow) return null;
 
@@ -505,7 +525,7 @@ function AccountSocialSurface({
   }
 
   return (
-    <SurfaceStage className="flex flex-col overflow-hidden">
+    <SurfaceStage className="flex flex-col overflow-clip [overflow-clip-margin:var(--spacing-swell)]">
       <SurfaceSegmentedControl
         ariaLabel="Followers and following"
         items={tabs}

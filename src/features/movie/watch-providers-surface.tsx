@@ -1,11 +1,11 @@
 "use client";
 
 import { type JSX, type ReactNode, useEffect, useMemo, useState } from "react";
-import { Loader } from "@omerdlw/base-framework/ui";
 import { report } from "@omerdlw/base-framework/utils";
 import { Icon } from "@/design/components/icon";
 import { ExternalLink } from "@/design/components/link";
 import { MediaCard } from "@/design/components/media-card";
+import { SKELETON } from "@/design/components/skeleton";
 import { SurfaceSegmentedControl } from "@/design/components/segmented-control";
 import { Select } from "@/design/components/select";
 import {
@@ -14,13 +14,17 @@ import {
   SurfaceSwap,
 } from "@/design/components/surface";
 import {
+  SURFACE_META,
   SURFACE_SCROLL,
   SURFACE_STACK,
   SURFACE_TEXT,
   SURFACE_TITLE,
 } from "@/design/components/surface-classes";
+import { RADIUS } from "@/design/foundations/geometry";
+import { WELL, WELL_HOVER } from "@/design/foundations/tones";
+import { cn } from "@/design/ui";
 import { defineSurface } from "@/design/surface-definition";
-import { tmdbImageUrl } from "@/lib/tmdb/shared";
+import { tmdbImageUrl } from "@/infrastructure/tmdb/shared";
 import { getWatchProvidersAction } from "./actions";
 import { flagOf, pickRegion, regionName, useWatchRegion } from "./region";
 import type { ProviderEntry, RegionProviders } from "./movie";
@@ -70,10 +74,20 @@ const PROVIDER_SEARCH_URLS: readonly [RegExp, (q: string) => string][] = [
   [/crunchyroll/i, (q) => `https://www.crunchyroll.com/search?q=${q}`],
 ];
 
-const PROVIDER_ROW =
-  "group/tile flex rounded-card ring-1 ring-edge ring-inset hover:bg-fill";
-const PROVIDER_TILE_CLASS =
-  "flex min-w-0 flex-1 items-center gap-3 rounded-card p-1.5 pr-4.5 text-ink-body outline-none group-hover/tile:text-ink";
+const PROVIDER_GRID = ["grid-cols-1", "grid-cols-2", "grid-cols-3"] as const;
+
+const PROVIDER_TILE =
+  "group/tile relative flex min-w-0 rounded-card text-ink-body hover:text-ink";
+
+const PROVIDER_LAYOUT = {
+  hero: "items-center gap-4 p-3 pr-5",
+  grid: "flex-col items-center gap-3 px-2 pt-5 pb-4",
+} as const;
+
+const PROVIDER_LOGO = {
+  hero: "size-16",
+  grid: "size-14",
+} as const;
 
 function providerHref(
   provider: ProviderEntry,
@@ -147,48 +161,73 @@ export const watchProvidersSurface = defineSurface<{
 
 function ProviderTile({
   href,
+  layout,
   provider,
 }: {
   href: string | null;
+  layout: keyof typeof PROVIDER_LAYOUT;
   provider: ProviderEntry;
 }): JSX.Element {
+  const hero = layout === "hero";
+  const className = cn(
+    PROVIDER_TILE,
+    PROVIDER_LAYOUT[layout],
+    href && "cursor-pointer",
+  );
   const content = (
     <>
       <MediaCard
         aspect="free"
-        className="shrink-0"
+        className="shrink-0 shadow-(--lift)"
         fallbackIcon="solar:tv-bold"
-        fallbackIconSize={16}
-        frameClassName="size-10"
+        fallbackIconSize={20}
+        frameClassName={cn(
+          PROVIDER_LOGO[layout],
+          "ring-1 ring-edge ring-inset",
+        )}
         framed={false}
         image={{
-          sizes: "40px",
+          sizes: hero ? "64px" : "56px",
           src: tmdbImageUrl("logo", provider.logoPath, "original"),
         }}
-        radius={10}
+        radius={hero ? RADIUS.card : RADIUS.tile}
       />
-      <div className={SURFACE_TEXT}>
-        <span className={SURFACE_TITLE}>{provider.name}</span>
-      </div>
+      {hero ? (
+        <span className={SURFACE_TEXT}>
+          <span className={SURFACE_TITLE}>{provider.name}</span>
+          {href ? (
+            <span className={SURFACE_META} data-slot="caption">
+              Open in {provider.name}
+            </span>
+          ) : null}
+        </span>
+      ) : (
+        <span
+          className="line-clamp-2 w-full text-center type-meta font-medium text-balance"
+          data-slot="caption"
+        >
+          {provider.name}
+        </span>
+      )}
+      {href ? (
+        <Icon
+          className={cn(
+            "center text-ink-muted opacity-60",
+            !hero && "absolute top-2.5 right-2.5",
+          )}
+          data-slot="icon"
+          icon="solar:arrow-right-up-linear"
+          size={hero ? 16 : 13}
+        />
+      ) : null}
     </>
   );
 
-  if (!href) {
-    return <div className={PROVIDER_TILE_CLASS}>{content}</div>;
-  }
+  if (!href) return <div className={className}>{content}</div>;
 
   return (
-    <ExternalLink
-      className={`${PROVIDER_TILE_CLASS} cursor-pointer`}
-      href={href}
-    >
+    <ExternalLink className={className} href={href}>
       {content}
-      <Icon
-        className="center group-hover/tile:translate-x-px group-hover/tile:-translate-y-px"
-        data-slot="icon"
-        icon="solar:arrow-right-up-linear"
-        size={14}
-      />
     </ExternalLink>
   );
 }
@@ -307,9 +346,23 @@ function WatchProvidersSurface({
             <p className="type-body text-ink-body">{source.error}</p>
           </WatchProvidersNote>
         ) : source.status === "loading" ? (
-          <WatchProvidersNote>
-            <Loader />
-          </WatchProvidersNote>
+          <SurfacePart
+            className={cn(
+              PROVIDER_LAYOUT.hero,
+              "flex rounded-card",
+              WELL,
+              SKELETON.pulse,
+            )}
+            name="note"
+          >
+            <span
+              className={cn(SKELETON.block, PROVIDER_LOGO.hero, "rounded-card")}
+            />
+            <span className="flex flex-1 flex-col gap-2">
+              <span className={cn(SKELETON.block, "h-3.5 w-32 rounded-full")} />
+              <span className={cn(SKELETON.soft, "h-3 w-44 rounded-full")} />
+            </span>
+          </SurfacePart>
         ) : !region || status === "empty" ? (
           <WatchProvidersNote className="min-h-40 flex-col gap-1.5 text-center">
             <p className="type-body font-medium text-ink-body">Not available</p>
@@ -326,20 +379,26 @@ function WatchProvidersSurface({
               >
                 {activeProviders.length > 0 ? (
                   <SurfaceSwap
-                    className="flex flex-col gap-2.5"
+                    className={cn(
+                      "grid gap-2.5",
+                      PROVIDER_GRID[Math.min(activeProviders.length, 3) - 1],
+                    )}
                     cue="rows"
                     id={`${selectedRegion}-${activeCategory}`}
                     now
                   >
                     {activeProviders.map((provider, index) => (
                       <SurfacePart
-                        className={PROVIDER_ROW}
+                        className={`rounded-card ${WELL} ${WELL_HOVER}`}
                         index={index}
                         key={provider.id}
                         name="tile"
                       >
                         <ProviderTile
                           href={providerHref(provider, data.title, region)}
+                          layout={
+                            activeProviders.length === 1 ? "hero" : "grid"
+                          }
                           provider={provider}
                         />
                       </SurfacePart>

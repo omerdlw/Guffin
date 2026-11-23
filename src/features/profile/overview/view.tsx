@@ -8,9 +8,9 @@ import { cn } from "@/design/ui";
 import { FAVORITES_MAX, type PublicAccount } from "@/features/account/account";
 import { RatingStars, Star } from "@/features/reviews/rating";
 import { isRated, REVIEW_ICON } from "@/features/reviews/review";
-import { pluralize } from "@/lib/format";
-import { accountHref, movieHref, reviewHref } from "@/lib/project";
-import { tmdbImageSrcSet, tmdbImageUrl } from "@/lib/tmdb/shared";
+import { pluralize } from "@/shared/format";
+import { accountHref, movieHref, reviewHref } from "@/shared/project";
+import { tmdbImageSrcSet, tmdbImageUrl } from "@/infrastructure/tmdb/shared";
 import { ActivityCalendar } from "../activity/calendar";
 import { ListsShelf } from "../lists/shelf";
 import { ReviewsList } from "../reviews/list";
@@ -299,6 +299,7 @@ function Ratings({
                   "flex-1 rounded-t-mark",
                   total > 0 ? "bg-rated" : "bg-fill",
                 )}
+                data-part="bar"
                 key={step}
                 style={{ height: `${Math.max(6, (total / peak) * 100)}%` }}
                 title={`${(step + 1) / 2} stars: ${total}`}

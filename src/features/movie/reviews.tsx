@@ -38,7 +38,7 @@ import {
   REVIEWS_PAGE_SIZE,
 } from "@/features/reviews/review";
 import { reviewEditorSurface } from "@/features/reviews/surfaces";
-import { accountHref, movieReviewsHref } from "@/lib/project";
+import { accountHref, movieReviewsHref } from "@/shared/project";
 
 interface ReviewDigest {
   mine: MovieReview | null;
@@ -59,8 +59,6 @@ interface ReviewsPage {
   total: number;
   viewerId: string | null;
 }
-
-const DIGEST_LIGHTS = 6;
 
 const DIGEST_SHOWN = 4;
 
@@ -92,22 +90,9 @@ function useReviewRefresh(): number {
   return version;
 }
 
-function LitStar({ fill, index }: { fill: number; index: number }) {
+function LitFilmLike({ author }: { author: string }) {
   return (
-    <DetailPart as="span" className="inline-flex" index={index} name="star">
-      <Star fill={fill} size={14} />
-    </DetailPart>
-  );
-}
-
-function LitFilmLike({ author, index }: { author: string; index: number }) {
-  return (
-    <DetailPart
-      as="span"
-      className="inline-flex shrink-0"
-      index={index}
-      name="star"
-    >
+    <DetailPart as="span" className="inline-flex shrink-0" name="star">
       <Icon
         aria-label={`${author} liked this film`}
         className="text-liked"
@@ -119,25 +104,25 @@ function LitFilmLike({ author, index }: { author: string; index: number }) {
 }
 
 function LitStars({
-  first,
   rating,
 }: {
-  first: number;
   rating: number | null;
 }): JSX.Element {
   if (!isRated(rating)) return <RatingStars rating={rating} />;
   const value = Math.min(5, rating);
   return (
-    <span
-      aria-label={`${value} out of 5`}
-      className="inline-flex items-center gap-1"
-      role="img"
-      title={`${value} out of 5`}
-    >
-      {Array.from({ length: 5 }, (_, index) => (
-        <LitStar fill={value - index} index={first + index} key={index} />
-      ))}
-    </span>
+    <DetailPart as="span" className="inline-flex items-center" name="star">
+      <span
+        aria-label={`${value} out of 5`}
+        className="inline-flex items-center gap-1"
+        role="img"
+        title={`${value} out of 5`}
+      >
+        {Array.from({ length: 5 }, (_, index) => (
+          <Star fill={value - index} key={index} size={14} />
+        ))}
+      </span>
+    </DetailPart>
   );
 }
 
@@ -154,7 +139,6 @@ function ReviewRow({
   title: string;
   viewerId: string | null;
 }): JSX.Element {
-  const first = index * DIGEST_LIGHTS;
   const router = useRouter();
   const { openSurface } = useDockActions();
   useSurfacePreload(reviewEditorSurface);
@@ -206,16 +190,11 @@ function ReviewRow({
         leadShape="avatar"
         marks={
           review.authorLiked ? (
-            <LitFilmLike
-              author={review.author.displayName}
-              index={first + (hasRating ? 5 : 0)}
-            />
+            <LitFilmLike author={review.author.displayName} />
           ) : null
         }
         rating={review.rating}
-        stars={
-          hasRating ? <LitStars first={first} rating={review.rating} /> : null
-        }
+        stars={hasRating ? <LitStars rating={review.rating} /> : null}
         title={review.author.displayName}
       />
     </DetailPart>

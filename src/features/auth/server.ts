@@ -9,10 +9,10 @@ import {
 import { and, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect, unstable_rethrow } from "next/navigation";
-import { auth } from "@/lib/auth/server";
-import { admin, type Session, viewer } from "@/lib/db/client";
-import { authUsers } from "@/lib/db/schema";
-import { checkRateLimit } from "@/lib/security";
+import { auth } from "@/infrastructure/auth/server";
+import { admin, type Session, viewer } from "@/infrastructure/db/client";
+import { authUsers } from "@/infrastructure/db/schema";
+import { checkRateLimit } from "@/infrastructure/security";
 import { fail, type MutationResult } from "./mutation";
 import { SEED_EMAIL_DOMAIN } from "./session";
 

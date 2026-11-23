@@ -51,10 +51,11 @@ const eslintConfig = defineConfig([
     [
       "src/design/**/*.{ts,tsx}",
       "src/motion/**/*.{ts,tsx}",
-      "src/lib/**/*.{ts,tsx}",
+      "src/infrastructure/**/*.{ts,tsx}",
+      "src/shared/**/*.{ts,tsx}",
     ],
     ["@/app/**", "@/features/**"],
-    "design, motion and lib cannot depend on features or the app layer.",
+    "Infrastructure, shared code, design and motion cannot depend on features or the app layer.",
   ),
   {
     files: ["src/**/*.{js,jsx,ts,tsx}"],

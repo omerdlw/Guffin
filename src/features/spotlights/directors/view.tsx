@@ -29,8 +29,8 @@ import {
   useSyncedSearchParam,
 } from "@/features/spotlights/shell";
 import type { Director } from "@/features/spotlights/spotlights";
-import { DIRECTORS_HREF, movieHref, personHref } from "@/lib/project";
-import { tmdbImageSrcSet, tmdbImageUrl } from "@/lib/tmdb/shared";
+import { DIRECTORS_HREF, movieHref, personHref } from "@/shared/project";
+import { tmdbImageSrcSet, tmdbImageUrl } from "@/infrastructure/tmdb/shared";
 
 interface DirectorsLayout {
   cellHeight: number;

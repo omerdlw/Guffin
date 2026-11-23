@@ -1,6 +1,6 @@
 import { FOLLOWS_URL, SILENT_UNAUTHORIZED } from "@/features/account/account";
 import { respondToFollow, sendJson } from "@/features/account/client";
-import { requestJson } from "@/lib/http";
+import { requestJson } from "@/infrastructure/http";
 import type { FollowUser } from "./social";
 
 export interface FollowCursor {

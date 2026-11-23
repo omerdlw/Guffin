@@ -24,6 +24,12 @@
       min-height: var(--spacing-dock-shelf);
     }
 
+    #dock-card-stack
+      > .dock-card.dock-card[data-ghost="true"][data-peek="true"] {
+      visibility: visible;
+      transition-delay: 0s;
+    }
+
     .dock-root :is(button, a[href]) {
       transition-duration: var(--soft-out);
       transition-property: var(--soft-props);
@@ -70,7 +76,7 @@
     }
   }
 
-  .dock-card[data-ghost="true"] {
+  .dock-card[data-ghost="true"]:not([data-peek="true"]) {
     visibility: hidden;
   }
 }

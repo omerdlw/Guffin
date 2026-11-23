@@ -17,10 +17,10 @@ import {
   accountMeta,
 } from "@/features/account/account";
 import { type Inbox, useAccount, useInbox } from "@/features/account/provider";
-import { accountSettingsSurface } from "@/features/settings/surfaces";
+import { accountSettingsSurface } from "@/features/account/surfaces";
 import { followsSurface } from "@/features/social/surfaces";
 import { useProfileFollow } from "./follow";
-import { accountHref } from "@/lib/project";
+import { accountHref } from "@/shared/project";
 
 type ProfileTab = "films" | "inbox";
 

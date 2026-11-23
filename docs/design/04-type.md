@@ -11,7 +11,7 @@
 
 ### Scale
 
-Sizes are `type-*` utilities (`styles/system/utilities.css`), never `text-*`.
+Sizes are `type-*` utilities (`styles/utilities.css`), never `text-*`.
 Tailwind's sizes (`text-sm` …) and arbitrary ones (`text-[13px]`) are off.
 Each step carries its own line height and tracking.
 

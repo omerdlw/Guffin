@@ -2,8 +2,8 @@ import { eq } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
 import { getOptionalUser } from "@/features/auth/server";
 import { sanitizeNextPath } from "@/features/auth/session";
-import { admin } from "@/lib/db/client";
-import { accounts } from "@/lib/db/schema";
+import { admin } from "@/infrastructure/db/client";
+import { accounts } from "@/infrastructure/db/schema";
 
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);

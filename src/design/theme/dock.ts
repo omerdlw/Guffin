@@ -14,6 +14,8 @@ import { dockMotion } from "./dock-motion";
 
 const INNER = "rounded-card";
 
+const SWELL_CLIP = "overflow-clip [overflow-clip-margin:var(--spacing-swell)]";
+
 const WELL = `${WELL_FILL} ${WELL_HOVER}`;
 
 const CONTROL_BUTTON = `ui-iris center relative size-control-chrome shrink-0 cursor-pointer text-ink-body hover:text-ink ${FLOAT}`;
@@ -31,11 +33,11 @@ export const dockThemeConfig = defineTheme(dockTheme, {
 
     card: [
       "dock-card group @container absolute h-auto w-full overflow-hidden rounded-shell p-3 cursor-pointer liquid liquid-flat liquid-lens [--liquid-tint:var(--liquid-tint-dock)] data-[placement=top]:[--liquid-drop:var(--liquid-shadow)]",
-      "data-[anchored=true]:cursor-default",
+      "data-[anchored=true]:cursor-default data-[compact=true]:rounded-full",
       "data-[placement=top]:inset-0 data-[placement=top]:h-full data-[placement=bottom]:bottom-0 data-[placement=float]:top-0 data-[placement=float]:[#dock-card-stack[data-controls-hidden=false]_&]:h-full",
     ].join(" "),
-    cardContent: "flow-root w-full overflow-clip [overflow-clip-margin:4px]",
-    cardSurface: `w-full overflow-hidden ${INNER}`,
+    cardContent: `flow-root w-full ${SWELL_CLIP}`,
+    cardSurface: `w-full ${SWELL_CLIP} ${INNER}`,
     cardStandard: "w-full",
     cardHud: "relative flex w-full items-center justify-between",
     cardBody: "relative flex h-auto w-full flex-col gap-2.5",
@@ -86,15 +88,17 @@ export const dockThemeConfig = defineTheme(dockTheme, {
     commandBadge:
       "center bg-grade absolute -right-0.5 -top-0.5 h-4 min-w-4 px-1 rounded-full type-micro leading-none font-semibold tabular-nums text-on-accent",
 
+    compact: "mx-auto flex min-h-12 w-max items-center",
+
     statusCard: GLASS,
     statusIcon: "bg-fill text-ink",
     statusTitle: "text-ink",
     statusDescription: "text-ink-body",
 
-    surfaceHost: `@container relative w-full overflow-hidden ${INNER}`,
+    surfaceHost: `@container relative w-full ${SWELL_CLIP} ${INNER}`,
     surfaceHostInner: "w-full",
-    surfaceShell: `@container relative flex flex-col overflow-hidden ${INNER}`,
-    surfaceBody: ` @container w-full overflow-hidden ${INNER}`,
+    surfaceShell: `@container relative flex flex-col ${SWELL_CLIP} ${INNER}`,
+    surfaceBody: `@container w-full ${SWELL_CLIP} ${INNER}`,
 
     controls:
       "pointer-events-none absolute inset-x-0 bottom-[calc(100%+12px)] select-none flex items-center justify-center gap-1",

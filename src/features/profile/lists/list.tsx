@@ -23,9 +23,9 @@ import { ListCommentAction, ListLikeButton } from "@/features/lists/buttons";
 import { listFormSurface } from "@/features/lists/surfaces";
 import { ReviewActions, ReviewBody } from "@/features/reviews/controls";
 import { reviewEditorSurface } from "@/features/reviews/surfaces";
-import { pluralize } from "@/lib/format";
-import { accountHref, listHref, movieHref } from "@/lib/project";
-import { tmdbImageSrcSet, tmdbImageUrl } from "@/lib/tmdb/shared";
+import { pluralize } from "@/shared/format";
+import { accountHref, listHref, movieHref } from "@/shared/project";
+import { tmdbImageSrcSet, tmdbImageUrl } from "@/infrastructure/tmdb/shared";
 import { loadListEntries } from "./actions";
 import type {
   EntryFilters,

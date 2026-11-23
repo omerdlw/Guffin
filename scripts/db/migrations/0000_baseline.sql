@@ -6,7 +6,7 @@ SELECT pg_catalog.set_config('search_path', '', true);
 
 -- Roles. The application connects as the database owner and, for every
 -- request made on someone's behalf, switches into one of these two roles for
--- the length of a transaction (see src/lib/db/client.ts). Grants and row level
+-- the length of a transaction (see src/infrastructure/db/client.ts). Grants and row level
 -- security are written against them; the owner itself is used only by the auth
 -- library, seeds and maintenance jobs.
 DO $$

@@ -18,6 +18,7 @@ import {
   type Choreography,
   compile,
   type Curve,
+  type Moves,
   paced,
   type TextMoves,
   LEAVING,
@@ -562,11 +563,48 @@ const CURTAIN_LIMIT_MS = 12000;
 
 const INSET = 0.16;
 
+/** Rows of one release closer than this (px) share a beat. */
+const ROW_SLACK = 12;
+
+export interface Cadence {
+  /** Gap between two rows released in a burst (s). */
+  row: number;
+  /** Gap between neighbours in one row (s). */
+  item: number;
+  /** Longest a single row may take to fan out (s). */
+  spread: number;
+  /** Queue depth after which later rows join the last one (s). */
+  lag: number;
+}
+
+const CADENCE: Cadence = { row: 0.089, item: 0.055, spread: 0.236, lag: 0.618 };
+
+interface Arrival {
+  node: Element;
+  top: number;
+  left: number;
+}
+
+const measure = (node: Element): Arrival => {
+  const rect = node.getBoundingClientRect();
+  return { node, top: rect.top, left: rect.left };
+};
+
+/**
+ * Viewport cue for every role, in reading order. A role plays once, when its
+ * top reaches the reveal line. Roles that cross together are ordered top to
+ * bottom (rows) and left to right (inside a row); each row starts no earlier
+ * than the row before it, so nothing below ever opens ahead of what is above.
+ * A role nested in another part of the same release keeps its host's beat. A
+ * role scrolled past above the viewport, unseen, lands finished.
+ */
 function useCue(
   root: { current: HTMLElement | null },
   on: boolean,
   opening: number,
   inset = INSET,
+  cadence: Cadence = CADENCE,
+  cued = "",
 ) {
   useEffect(() => {
     const element = root.current;
@@ -574,42 +612,129 @@ function useCue(
 
     let open = opening <= 0;
     let hold: ReturnType<typeof setTimeout> | undefined;
-    const held = new Set<Element>();
-    const mark = (node: Element) => {
-      if (open) node.setAttribute("data-seen", "");
-      else held.add(node);
+    let lane = -Infinity;
+    const held: Element[] = [];
+    const done = new WeakSet<Element>();
+
+    const forget = (node: Element) => {
+      done.add(node);
+      seen.unobserve(node);
+      near.unobserve(node);
+      past.unobserve(node);
+      showing.delete(node);
+    };
+
+    const play = (batch: Element[]) => {
+      const fresh = [...new Set(batch)].filter(
+        (node) => !node.hasAttribute("data-seen"),
+      );
+      if (!fresh.length) return;
+      // Rects from the moment of release (held nodes crossed at other scroll
+      // offsets); every read happens here, before any write below.
+      const queued = (
+        cued ? fresh.filter((node) => node.matches(cued)) : fresh
+      ).map(measure);
+      const nodes = new Set(queued.map(({ node }) => node));
+      const leads = queued.filter(({ node }) => {
+        for (
+          let up = node.parentElement?.closest("[data-part]");
+          up && element.contains(up);
+          up = up.parentElement?.closest("[data-part]")
+        )
+          if (nodes.has(up)) return false;
+        return true;
+      });
+      leads.sort((a, b) => a.top - b.top || a.left - b.left);
+      const now = performance.now() / 1000;
+      const rows: Arrival[][] = [];
+      for (const arrival of leads) {
+        const row = rows.at(-1);
+        if (row && arrival.top - row[0]!.top <= ROW_SLACK) row.push(arrival);
+        else rows.push([arrival]);
+      }
+      for (const row of rows) {
+        row.sort((a, b) => a.left - b.left);
+        const behind = lane - now;
+        const start =
+          behind > cadence.lag ? lane : Math.max(now, lane + cadence.row);
+        const step =
+          row.length > 1
+            ? Math.min(cadence.item, cadence.spread / (row.length - 1))
+            : 0;
+        lane = start + (row.length - 1) * step;
+        row.forEach(({ node }, column) => {
+          const wait = `${Math.round((start - now + column * step) * 1000)}ms`;
+          const style = (node as HTMLElement).style;
+          style.setProperty("--cue", wait);
+          if (node.hasAttribute("data-section"))
+            style.setProperty("--lead", wait);
+        });
+      }
+      for (const node of fresh) {
+        node.setAttribute("data-seen", "");
+        forget(node);
+      }
+    };
+
+    const land = (nodes: Element[]) => {
+      for (const node of nodes) {
+        node.setAttribute("data-seen", "");
+        forget(node);
+      }
+      for (const node of nodes)
+        for (const animation of node.getAnimations({ subtree: true }))
+          if (
+            animation instanceof CSSAnimation &&
+            animation.timeline === document.timeline &&
+            !animation.animationName.endsWith(LEAVING)
+          )
+            animation.finish();
+    };
+
+    const release = (batch: Element[]) => {
+      if (open) play(batch);
+      else held.push(...batch);
+    };
+
+    const unhold = () => {
+      if (open) return;
+      clearTimeout(hold);
+      open = true;
+      play(held.splice(0));
     };
     const start = () => {
       element.setAttribute("data-play", "");
       if (open || hold) return;
-      hold = setTimeout(() => {
-        open = true;
-        held.forEach((node) => node.setAttribute("data-seen", ""));
-        held.clear();
-      }, opening * 1000);
+      hold = setTimeout(unhold, opening * 1000);
     };
 
     const stopLift = whenLifted(element, start);
 
-    const release = (node: Element) => {
-      mark(node);
-      seen.unobserve(node);
-      near.unobserve(node);
-      showing.delete(node);
-    };
     const seen = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries)
-          if (entry.isIntersecting) release(entry.target);
-      },
+      (entries) =>
+        release(entries.filter((e) => e.isIntersecting).map((e) => e.target)),
       { rootMargin: `0px 0px -${inset * 100}% 0px` },
+    );
+    const past = new IntersectionObserver(
+      (entries) =>
+        land(
+          entries
+            .filter(
+              (e) =>
+                e.isIntersecting &&
+                e.boundingClientRect.bottom <= 0 &&
+                !done.has(e.target),
+            )
+            .map((e) => e.target),
+        ),
+      { rootMargin: "1000000px 0px -100% 0px" },
     );
     const showing = new Set<Element>();
     const atEnd = () =>
       window.scrollY + window.innerHeight >=
       document.documentElement.scrollHeight - 2;
     const settle = () => {
-      if (showing.size && atEnd()) [...showing].forEach(release);
+      if (showing.size && atEnd()) release([...showing]);
     };
     const settleLater = afterFrame(settle);
     const near = new IntersectionObserver((entries) => {
@@ -624,6 +749,7 @@ function useCue(
         if (target.hasAttribute("data-seen")) return;
         seen.observe(target);
         near.observe(target);
+        past.observe(target);
       };
       if (node.matches(ROLES)) observe(node);
       node.querySelectorAll(ROLES).forEach(observe);
@@ -643,11 +769,12 @@ function useCue(
       clearTimeout(hold);
       seen.disconnect();
       near.disconnect();
+      past.disconnect();
       window.removeEventListener("scroll", settleLater);
       settleLater.cancel();
       added.disconnect();
     };
-  }, [root, on, opening, inset]);
+  }, [root, on, opening, inset, cadence, cued]);
 }
 
 function whenLifted(element: HTMLElement, start: () => void) {
@@ -736,6 +863,30 @@ function useTouch(root: { current: HTMLElement | null }, on: boolean) {
   }, [root, on]);
 }
 
+/** Roles whose entrance waits for the viewport: only these join the cue. */
+function viewRoles(motion: Choreography<string, string> | undefined): string {
+  const waits = (moves: Moves | undefined): boolean =>
+    Boolean(
+      moves &&
+      (moves.enter?.on === "view" ||
+        moves.text?.enter.on === "view" ||
+        Object.values(moves.slots ?? {}).some(
+          (slot) => slot?.enter?.on === "view",
+        )),
+    );
+  const pick = (
+    group: Partial<Record<string, Moves>> | undefined,
+    attr: string,
+  ) =>
+    Object.entries(group ?? {})
+      .filter(([, moves]) => waits(moves))
+      .map(([key]) => `[${attr}="${key}"]`);
+  return [
+    ...pick(motion?.parts, "data-part"),
+    ...pick(motion?.sections, "data-section"),
+  ].join(", ");
+}
+
 export function defineStage<
   const P extends string,
   const S extends string = never,
@@ -743,7 +894,14 @@ export function defineStage<
   const { scope, scroll, glide = null, inset, tempo = 1, reach = 1 } = roles;
   const motion = roles.motion && paced(roles.motion, { tempo, reach });
   const opening = (roles.opening ?? 0) * tempo;
+  const cadence: Cadence = {
+    row: CADENCE.row * tempo,
+    item: CADENCE.item * tempo,
+    spread: CADENCE.spread * tempo,
+    lag: CADENCE.lag * tempo,
+  };
   const css = scope && motion ? compile(scope, motion) : "";
+  const cued = viewRoles(motion);
   const texts = Object.fromEntries(
     Object.entries(motion?.parts ?? {}).map(([key, moves]) => [
       key,
@@ -763,7 +921,7 @@ export function defineStage<
     useStageLight(light, { linger: lightLinger });
     const root = useRef<HTMLDivElement>(null);
     const on = Boolean(scope && css);
-    useCue(root, on, opening, inset);
+    useCue(root, on, opening, inset, cadence, cued);
     useTouch(root, on);
     const driver = useScrollDriver();
     useEffect(() => (scroll ? driver.tune(scroll) : undefined), [driver]);

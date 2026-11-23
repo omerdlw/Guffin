@@ -46,7 +46,7 @@ type EmailResult =
   | { error: string; success: false }
   | null;
 
-const SIGN_IN_SURFACE_WIDTH = 250;
+const SIGN_IN_SURFACE_WIDTH = 340;
 
 const REDIRECT_TIMEOUT_MS = 12000;
 
@@ -108,17 +108,15 @@ function MethodButton({
   const { icon, label } = SIGN_IN_METHODS[method];
   return (
     <Button
-      aria-label={`Continue with ${label}`}
       intent={primary ? "primary" : "neutral"}
-      width="full"
+      aria-label={`Continue with ${label}`}
+      onClick={() => onSelect(method)}
       disabled={disabled}
       loading={busy}
-      onClick={() => onSelect(method)}
+      width="full"
     >
       <Icon className="shrink-0" icon={icon} size={16} />
-      <span className="truncate">
-        {primary ? `Continue with ${label}` : label}
-      </span>
+      <span className="truncate">{`Continue with ${label}`}</span>
     </Button>
   );
 }
@@ -193,7 +191,7 @@ function SignInSurface({ close, data = {} }: SignInSurfaceProps) {
           primary
         />
       </SurfacePart>
-      <SurfacePart className="grid w-full grid-cols-2 gap-2.5" name="item">
+      <SurfacePart className="grid w-full gap-2.5" name="item">
         {(["email", ...OAUTH_PROVIDERS] as const).map((method) => (
           <MethodButton
             busy={active === method}

@@ -10,8 +10,8 @@ import { cn } from "@/design/ui";
 import { formatShortDate } from "@/features/account/account";
 import { listFormSurface } from "@/features/lists/surfaces";
 import { PosterStack } from "@/features/lists/poster-stack";
-import { pluralize } from "@/lib/format";
-import { listHref } from "@/lib/project";
+import { pluralize } from "@/shared/format";
+import { listHref } from "@/shared/project";
 import { loadListsPage } from "./actions";
 import type { ListSort, ListsPage, ProfileList } from "./lists";
 
@@ -65,7 +65,7 @@ function ListCard({
     <li className="flex min-w-0 flex-col gap-fib-3" data-part="list">
       <DockLink
         aria-label={list.title}
-        className="block ui-fade hover:opacity-80"
+        className="block hover:opacity-80"
         data-cursor-fit="snug"
         href={href}
       >

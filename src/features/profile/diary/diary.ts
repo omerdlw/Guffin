@@ -1,4 +1,4 @@
-import { readParam, type SearchParams } from "@/lib/http";
+import { readParam, type SearchParams } from "@/infrastructure/http";
 
 export const DIARY_PARAM = "month";
 

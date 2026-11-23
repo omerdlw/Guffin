@@ -9,15 +9,15 @@ import {
   ok,
 } from "@/features/auth/mutation";
 import { mutate, requireUser } from "@/features/auth/server";
-import { isUuid } from "@/lib/http";
+import { isUuid } from "@/infrastructure/http";
 import { and, asc, desc, eq, inArray } from "drizzle-orm";
-import { pgErrorCode, type Session, viewer } from "@/lib/db/client";
-import { pick } from "@/lib/db/pick";
-import { listItems, listLikes, lists } from "@/lib/db/schema";
-import { checkRateLimit } from "@/lib/security";
-import { getMovieDetails, movieSnapshot } from "@/lib/tmdb/server";
-import type { MovieDetails } from "@/lib/tmdb/shared";
-import { isTmdbId } from "@/lib/tmdb/transport";
+import { pgErrorCode, type Session, viewer } from "@/infrastructure/db/client";
+import { pick } from "@/infrastructure/db/pick";
+import { listItems, listLikes, lists } from "@/infrastructure/db/schema";
+import { checkRateLimit } from "@/infrastructure/security";
+import { getMovieDetails, movieSnapshot } from "@/infrastructure/tmdb/server";
+import type { MovieDetails } from "@/infrastructure/tmdb/shared";
+import { isTmdbId } from "@/infrastructure/tmdb/transport";
 import {
   LIST_DESCRIPTION_MAX,
   LIST_TITLE_MAX,

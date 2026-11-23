@@ -141,7 +141,6 @@ function ReviewEditorSurface({
               />
             </SurfacePart>
           ) : null}
-
           <SurfacePart className="w-full" name="item">
             <label className="flex w-full cursor-text flex-col rounded-card ring-1 ring-edge-hover ring-inset hover:ring-edge-focus has-[textarea:focus]:ring-edge-focus has-[textarea:disabled]:opacity-50">
               <Textarea

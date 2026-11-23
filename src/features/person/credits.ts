@@ -4,7 +4,7 @@ import {
   type PersonDetails,
   type PersonImage,
   tmdbImageUrl,
-} from "@/lib/tmdb/shared";
+} from "@/infrastructure/tmdb/shared";
 import {
   type Career,
   departmentRole,

@@ -15,9 +15,9 @@ import {
 import { revalidateAccount } from "@/features/account/server";
 import { fail, type MutationResult, ok } from "@/features/auth/mutation";
 import { getOptionalUser } from "@/features/auth/server";
-import { type Session, viewer } from "@/lib/db/client";
-import { accountFollows } from "@/lib/db/schema";
-import { isTmdbId } from "@/lib/tmdb/transport";
+import { type Session, viewer } from "@/infrastructure/db/client";
+import { accountFollows } from "@/infrastructure/db/schema";
+import { isTmdbId } from "@/infrastructure/tmdb/transport";
 import { type Friend, type MovieSocialProof, toPerson } from "./social";
 
 interface MovieProofRow {

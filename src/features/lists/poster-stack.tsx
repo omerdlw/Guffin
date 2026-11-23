@@ -1,7 +1,7 @@
 import type { JSX } from "react";
 import { Image } from "@omerdlw/base-framework/ui";
 import { cn } from "@/design/ui";
-import { tmdbImageUrl } from "@/lib/tmdb/shared";
+import { tmdbImageUrl } from "@/infrastructure/tmdb/shared";
 
 export const POSTER_STACK_SLOTS = 5;
 

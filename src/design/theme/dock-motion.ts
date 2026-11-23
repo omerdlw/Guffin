@@ -22,15 +22,15 @@ export const DOCK_WIDTH = 520;
 
 const DOCK_PADDING = 12;
 
-const GLIDE = spring(beat(-1));
-const FAN = spring(beat(-1), 0.12);
+const GLIDE = spring(beat(-0.5));
+const FAN = spring(beat(-0.5));
 const NUDGE = spring(beat(-2));
 
 const resize = (distancePx: number) =>
   spring(
     Math.min(
       beat(0),
-      Math.max(beat(-2), beat(-1) * Math.sqrt(Math.max(distancePx, 0) / 233)),
+      Math.max(beat(-1.5), beat(-1) * Math.sqrt(Math.max(distancePx, 0) / 233)),
     ),
   );
 
@@ -41,7 +41,7 @@ const lift = (travel: number, enter = tween(beat(-2), SETTLE)) => ({
 });
 
 const SURFACE_IN = tween(beat(-1), SETTLE, beat(-4));
-const SURFACE_OUT = tween(beat(-3), LEAVE);
+const SURFACE_OUT = tween(beat(-2.5), DEVELOP);
 
 const HEADER_RETURN = tween(beat(-1), SETTLE, STAGGER.line);
 
@@ -55,6 +55,24 @@ const REST_PHASE: DockSurfacePhaseMotion = {
 };
 
 const INHALE = 0.985;
+
+// Hovering the front card fans the page cards out behind it as a stack, so
+// the dock shows there is more than the current page. At rest the back cards
+// sit tucked behind the front one, small and clear; on hover each grows and
+// rises to its place in the stack.
+const STACK_REST = { offsetY: -10, scale: 0.8 } as const;
+// Every back card shows the same strip above the one in front of it, and
+// shrinks by exactly that strip on each side, so the cards step back as even,
+// concentric bands.
+const STACK_PEEK = { gap: 8, fade: 0.78 } as const;
+
+const peek = (position: number) => ({
+  lift: position * (STACK_PEEK.gap + STACK_REST.offsetY),
+  scale:
+    (1 - (position * STACK_PEEK.gap * 2) / DOCK_WIDTH) /
+    STACK_REST.scale ** position,
+  opacity: STACK_PEEK.fade ** position,
+});
 
 const controlSlot = {
   hidden: { opacity: 0, width: 0, marginRight: -2, transform: at(0, 0.6) },
@@ -185,15 +203,20 @@ export const dockMotion: DockMotion = {
         transition: tween(beat(-3), LEAVE),
       },
     },
+    compact: {
+      hidden: away(0, 0.92),
+      visible: { ...here(), transition: tween(beat(-1), SETTLE, beat(-4)) },
+      exit: { ...away(0, 0.96), transition: tween(beat(-3), LEAVE) },
+    },
     backdrop: {
       hidden: { opacity: 0 },
       visible: { opacity: 1, transition: tween(beat(-1), DEVELOP) },
       exit: { opacity: 0, transition: tween(beat(-2), LEAVE) },
     },
     surfaceBody: {
-      hidden: away(TRAVEL.rise),
+      hidden: away(TRAVEL.rise, 0.985),
       visible: here(),
-      exit: away(TRAVEL.step),
+      exit: away(TRAVEL.nudge, 0.99),
     },
     controlsContainer: {
       hidden: (y: unknown = 0) => ({
@@ -205,7 +228,7 @@ export const dockMotion: DockMotion = {
         transform: at(Number(y) || 0),
         transition: {
           opacity: tween(beat(-3), SETTLE, beat(-4)),
-          transform: spring(beat(-1), 0.15),
+          transform: spring(beat(-1)),
         },
       }),
       exit: (y: unknown = 0) => ({
@@ -254,8 +277,8 @@ export const dockMotion: DockMotion = {
     },
     expandBody: {
       ...REST_PHASE,
-      deck: spring(beat(-1)),
-      transform: spring(beat(-1), 0.12),
+      deck: resize,
+      transform: spring(beat(-1)),
       body: SURFACE_IN,
     },
     open: { ...REST_PHASE, deck: resize },
@@ -268,7 +291,7 @@ export const dockMotion: DockMotion = {
     collapseBody: {
       ...REST_PHASE,
       deck: GLIDE,
-      transform: spring(beat(-1), 0.1),
+      transform: spring(beat(-1)),
       headerReturn: HEADER_RETURN,
     },
     restoreHeader: { ...REST_PHASE, deck: GLIDE },
@@ -278,7 +301,7 @@ export const dockMotion: DockMotion = {
       rest: "none",
       elevated: "none",
     },
-    peek: () => ({ lift: 0, scale: 1 }),
+    peek,
     exit: ({ y, scale }) => ({
       opacity: 0,
       transform: gpuTransform(y, scale ?? 1),
@@ -288,8 +311,8 @@ export const dockMotion: DockMotion = {
     heightVar: false,
     stacking: {
       collapsed: {
-        offsetY: -10,
-        scale: 0.88,
+        offsetY: STACK_REST.offsetY,
+        scale: STACK_REST.scale,
         opacityStep: 0.2,
         opacityMin: 0.1,
       },
@@ -321,8 +344,8 @@ export const dockMotion: DockMotion = {
     restoreHeader: beat(-3),
     expandStagger: STAGGER.item,
     expandStaggerCap: beat(-4),
-    peekStagger: 0,
-    peekStaggerCap: 0,
+    peekStagger: STAGGER.item,
+    peekStaggerCap: beat(-4),
     staggerExponent: 1,
     pendingSkeleton: beat(-4),
   },

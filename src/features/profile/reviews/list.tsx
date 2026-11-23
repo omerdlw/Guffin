@@ -12,9 +12,9 @@ import { REVIEW_ROW, ReviewCard, ReviewMeta } from "@/features/reviews/card";
 import { ReviewActions } from "@/features/reviews/controls";
 import { RatingStars, Star } from "@/features/reviews/rating";
 import { isRated } from "@/features/reviews/review";
-import { pluralize } from "@/lib/format";
-import { reviewHref } from "@/lib/project";
-import { tmdbImageSrcSet, tmdbImageUrl } from "@/lib/tmdb/shared";
+import { pluralize } from "@/shared/format";
+import { reviewHref } from "@/shared/project";
+import { tmdbImageSrcSet, tmdbImageUrl } from "@/infrastructure/tmdb/shared";
 import { loadReviewsPage } from "./actions";
 import {
   KIND_PARAM,
@@ -231,7 +231,7 @@ function Row({
   const href = reviewHref(review.tmdbId, username);
 
   return (
-    <li className={REVIEW_ROW} data-part="row">
+    <li className={REVIEW_ROW} data-part="review">
       <ReviewCard
         actions={
           <ReviewActions

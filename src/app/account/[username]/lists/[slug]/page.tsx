@@ -21,8 +21,8 @@ import {
 } from "@/features/profile/lists/server";
 import { ListsToolbar } from "@/features/profile/toolbar";
 import { loadProfile } from "@/features/profile/server";
-import type { SearchParams } from "@/lib/http";
-import { listHref } from "@/lib/project";
+import type { SearchParams } from "@/infrastructure/http";
+import { listHref } from "@/shared/project";
 
 export default async function AccountListPage({
   params,

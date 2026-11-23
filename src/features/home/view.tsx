@@ -1,19 +1,22 @@
-import { DockClear } from "@/design/components/dock-clear";
 import type { JSX } from "react";
+import { DockClear } from "@/design/components/dock-clear";
 import { CONTAINER_CLASS, PAGE_CLASS } from "@/design/foundations/layout";
-import { HomeShowing } from "./cinema";
-import { HomeCircle } from "./circle";
-import { HomeCraft } from "./craft";
 import type { HomeFeed } from "./feed";
-import { HomeCanon, HomePopular } from "./films";
-import { HomeJoin } from "./join";
-import { HomeLists } from "./lists";
-import { HomeLogged } from "./logged";
-import { HomeMembers } from "./members";
 import { HomeStage } from "./motion";
-import { HomePitch } from "./pitch";
 import { HomeReel } from "./reel";
-import { HomeReviews } from "./reviews";
+import {
+  HomeCanon,
+  HomeCircle,
+  HomeCraft,
+  HomeJoin,
+  HomeLists,
+  HomeLogged,
+  HomeMembers,
+  HomePitch,
+  HomePopular,
+  HomeReviews,
+  HomeShowing,
+} from "./sections";
 
 export function HomeView({ feed }: { feed: HomeFeed }): JSX.Element {
   const { circle } = feed;

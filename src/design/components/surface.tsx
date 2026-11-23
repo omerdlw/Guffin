@@ -15,6 +15,7 @@ const beat = (n: number) => Math.round(PHI ** n * 1000) / 1000;
 const SETTLE: Curve = [0.236, 0.382, 0.146, 1];
 const LEAVE: Curve = [0.618, 0, 0.854, 0.382];
 const LINE = 0.055;
+const STAGGER_METER = 0.089;
 const AFTER_GLASS = beat(-3);
 
 const rise = (from: Look, more: Partial<Enter> = {}): Enter => ({
@@ -35,6 +36,26 @@ const glow = (of: Followed[]) => ({
 
 const lift = { to: { opacity: 0, y: -5 }, duration: beat(-4), ease: LEAVE };
 
+const REST = { duration: beat(0), ease: GLIDE };
+const lifted = (y: number, scale = 1) => ({
+  hover: { y, scale, duration: beat(-1), ease: GLIDE },
+  rest: REST,
+});
+const fan = {
+  hover: {
+    x: "calc(var(--fan, 0) * 78%)",
+    y: "calc(var(--fan-lift, 0) * -4%)",
+    rotate: "calc(var(--fan, 0) * 11deg)",
+    duration: beat(-1),
+    ease: GLIDE,
+  },
+  rest: REST,
+};
+const nudge = {
+  hover: { x: 2, y: -2, opacity: 1, duration: beat(-1), ease: GLIDE },
+  rest: REST,
+};
+
 const SURFACE = defineStage({
   scope: "surface",
   tempo: 1.236,
@@ -42,20 +63,33 @@ const SURFACE = defineStage({
   motion: {
     parts: {
       item: { enter: rise({ opacity: 0, y: 8 }) },
-      row: { enter: rise({ opacity: 0, y: 8 }, { wrap: 8 }) },
-      tile: {
+      row: {
         enter: rise({ opacity: 0, y: 8 }, { wrap: 8 }),
+        slots: { leaf: fan },
+      },
+      tile: {
+        enter: rise({ opacity: 0, y: 8, scale: 0.96 }, { wrap: 9 }),
         ...glow(["background-color"]),
-        slots: { caption: glow(["color"]), icon: glow(["color"]) },
+        slots: {
+          caption: glow(["color"]),
+          icon: nudge,
+          frame: lifted(-3, 1.04),
+        },
       },
       note: { enter: rise({ opacity: 0, y: 5 }) },
+      meter: {
+        enter: rise(
+          { clip: "inset(0 100% 0 0 round 999px)" },
+          { duration: beat(0), stagger: STAGGER_METER },
+        ),
+      },
     },
     sections: {
       items: { leave: lift },
       rows: { leave: lift },
     },
   },
-  parts: ["item", "row", "tile", "note"],
+  parts: ["item", "row", "tile", "note", "meter"],
   sections: ["items", "rows"],
 });
 
@@ -78,7 +112,7 @@ export function SurfaceStage({
   return (
     <SurfaceRoot>
       <div
-        className={cn("dock-surface ui-scene w-full", className)}
+        className={cn("dock-surface ui-scene flow-root w-full", className)}
         data-cinematic=""
       >
         <SurfaceAnchor />
@@ -99,13 +133,15 @@ export function SurfaceToolbar({
 }) {
   return (
     <div
-      className="flex w-full min-w-0 shrink-0 items-center select-none"
+      className="flex min-w-0 shrink-0 items-center select-none"
       data-kind="toolbar"
       style={{
+        margin: -SWELL_REACH,
         marginBottom: stacked
           ? -SWELL_REACH
           : `calc(${TOOLBAR_GAP} - ${SWELL_REACH}px)`,
         padding: SWELL_REACH,
+        width: `calc(100% + ${SWELL_REACH * 2}px)`,
       }}
     >
       {children}

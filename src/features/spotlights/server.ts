@@ -4,15 +4,15 @@ import { cache } from "react";
 import { report } from "@omerdlw/base-framework/utils";
 import { unstable_rethrow } from "next/navigation";
 import { after } from "next/server";
-import { toLogline } from "@/lib/format";
-import { getRedisClient } from "@/lib/security";
+import { toLogline } from "@/shared/format";
+import { getRedisClient } from "@/infrastructure/security";
 import {
   findMovieByImdb,
   getMovieDetails,
   getPersonDetails,
   searchMovies,
-} from "@/lib/tmdb/server";
-import type { MovieSearchPage, PersonCrewCredit } from "@/lib/tmdb/shared";
+} from "@/infrastructure/tmdb/server";
+import type { MovieSearchPage, PersonCrewCredit } from "@/infrastructure/tmdb/shared";
 import { BEST_PICTURE, CANON, DIRECTORS } from "./catalog";
 import {
   type CanonFilm,

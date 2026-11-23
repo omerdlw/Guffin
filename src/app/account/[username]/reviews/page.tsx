@@ -14,8 +14,8 @@ import {
   getReviewsPage,
 } from "@/features/profile/reviews/server";
 import { loadProfile } from "@/features/profile/server";
-import type { SearchParams } from "@/lib/http";
-import { accountHref } from "@/lib/project";
+import type { SearchParams } from "@/infrastructure/http";
+import { accountHref } from "@/shared/project";
 
 export default async function AccountReviewsPage({
   params,

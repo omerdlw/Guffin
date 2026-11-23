@@ -1,13 +1,12 @@
 import type { JSX } from "react";
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
-import { parseMovieId } from "@/features/movie/movie";
-import { MoviePageContent } from "@/features/movie/view";
+import { MoviePageContent, parseMovieId } from "@/features/movie";
 import { isMovieReviewSort } from "@/features/reviews/review";
-import { readParam, type SearchParams } from "@/lib/http";
-import { project, reviewHref, shareMetadata } from "@/lib/project";
-import { getMovieDetails } from "@/lib/tmdb/server";
-import { tmdbImageUrl } from "@/lib/tmdb/shared";
+import { readParam, type SearchParams } from "@/infrastructure/http";
+import { project, reviewHref, shareMetadata } from "@/shared/project";
+import { getMovieDetails } from "@/infrastructure/tmdb/server";
+import { tmdbImageUrl } from "@/infrastructure/tmdb/shared";
 
 interface Props {
   params: Promise<{ id: string }>;

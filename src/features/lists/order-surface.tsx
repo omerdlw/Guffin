@@ -27,7 +27,7 @@ import {
 } from "@/design/components/surface-classes";
 import { defineSurface } from "@/design/surface-definition";
 import { cn } from "@/design/ui";
-import { tmdbImageUrl } from "@/lib/tmdb/shared";
+import { tmdbImageUrl } from "@/infrastructure/tmdb/shared";
 import { Reorder, useDragControls } from "@/motion/lib";
 import { getListOrderAction, reorderListAction } from "./actions";
 import type { ListOrderItem } from "./list";

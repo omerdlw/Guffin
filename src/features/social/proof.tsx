@@ -28,6 +28,7 @@ import {
   groupRowVariants,
   SURFACE_GROUP,
   SURFACE_META,
+  SURFACE_PANEL,
   SURFACE_SCROLL,
   SURFACE_STACK,
   SURFACE_TEXT,
@@ -40,8 +41,8 @@ import { cn } from "@/design/ui";
 import { useAuth } from "@/features/auth/provider";
 import { COLLECTION_MARKS } from "@/features/movie/movie";
 import { RatingStars } from "@/features/reviews/rating";
-import { pluralize } from "@/lib/format";
-import { accountHref, reviewHref } from "@/lib/project";
+import { pluralize } from "@/shared/format";
+import { accountHref, reviewHref } from "@/shared/project";
 import { Part } from "@/motion/stage";
 import { getMovieSocialProofAction } from "./actions";
 import type {
@@ -234,6 +235,80 @@ const VERDICTS: readonly Verdict[] = [
   },
 ];
 
+const VERDICT_TONE: Record<string, string> = {
+  disliked: "bg-heat-1",
+  liked: "bg-heat-3",
+  loved: "bg-heat-4",
+  mixed: "bg-heat-2",
+  seen: "bg-fill-active",
+  waiting: "bg-fill-hover",
+};
+
+function ProofPulse({ proof }: { proof: MovieSocialProof }): JSX.Element {
+  const slices = VERDICTS.map((verdict) => ({
+    ...verdict,
+    count: proof.friends.filter(verdict.take).length,
+  })).filter((slice) => slice.count > 0);
+  const average = proof.averageRating;
+
+  return (
+    <SurfacePart
+      className={cn(SURFACE_PANEL, "flex items-center gap-4 p-3.5")}
+      name="item"
+    >
+      <span className="flex w-16 shrink-0 flex-col items-center gap-1">
+        <span className="type-heading font-semibold text-ink tabular-nums">
+          {average !== null ? average.toFixed(1) : proof.friends.length}
+        </span>
+        {average !== null ? (
+          <RatingStars rating={average} size={9} />
+        ) : (
+          <span className="type-label text-ink-muted">
+            {proof.friends.length === 1 ? "friend" : "friends"}
+          </span>
+        )}
+      </span>
+      <span aria-hidden="true" className="h-10 w-px shrink-0 bg-rule" />
+      <span className="flex min-w-0 flex-1 flex-col gap-2.5">
+        <span className="flex h-2 w-full gap-1">
+          {slices.map((slice, index) => (
+            <span
+              className="h-full min-w-2"
+              key={slice.key}
+              style={{ flexGrow: slice.count }}
+            >
+              <SurfacePart
+                className={cn(
+                  "size-full rounded-full",
+                  VERDICT_TONE[slice.key],
+                )}
+                index={index}
+                name="meter"
+              />
+            </span>
+          ))}
+        </span>
+        <span className="flex flex-wrap gap-x-3.5 gap-y-1">
+          {slices.map((slice) => (
+            <span
+              className="flex items-center gap-1.5 type-meta text-ink-muted"
+              key={slice.key}
+            >
+              <span
+                className={cn("size-1.5 rounded-full", VERDICT_TONE[slice.key])}
+              />
+              {slice.label}
+              <span className="font-medium text-ink-body tabular-nums">
+                {slice.count}
+              </span>
+            </span>
+          ))}
+        </span>
+      </span>
+    </SurfacePart>
+  );
+}
+
 const SIGNAL_INK = "text-ink-muted group-hover:text-ink-body";
 
 function FriendRow({
@@ -337,6 +412,7 @@ function SocialProofSurface({
 
   return (
     <SurfaceStage className={SURFACE_STACK}>
+      <ProofPulse proof={data.proof} />
       {tabs.length > 2 ? (
         <SurfaceSegmentedControl
           ariaLabel="Filter by what they did"

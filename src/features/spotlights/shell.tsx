@@ -20,6 +20,7 @@ import { DockAction } from "@/design/components/surface";
 import { Room } from "@/design/components/room";
 import { MotionConfig } from "@/motion/lib";
 import { defineStage } from "@/motion/stage";
+import { TEMPO } from "@/motion/pace";
 import type { Engine } from "@/motion/engine";
 import { mountScene } from "@/motion/scene";
 import { DEVELOP, beat } from "./motion";
@@ -41,7 +42,7 @@ const URL_SYNC_DELAY_MS = 500;
 
 const SALON = defineStage({
   scope: "salon",
-  tempo: 1.272,
+  tempo: TEMPO,
   reach: 1.618,
   parts: ["scene", "chrome"],
   motion: {
@@ -49,7 +50,7 @@ const SALON = defineStage({
       chrome: {
         enter: {
           on: "load",
-          from: { opacity: 0 },
+          from: { opacity: 0, blur: 8 },
           delay: beat(-2),
           duration: beat(1),
           ease: DEVELOP,

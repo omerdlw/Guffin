@@ -12,8 +12,8 @@ import {
   type SQL,
   sql,
 } from "drizzle-orm";
-import type { Session } from "@/lib/db/client";
-import { accountLikes, accounts, reviewLikes, reviews } from "@/lib/db/schema";
+import type { Session } from "@/infrastructure/db/client";
+import { accountLikes, accounts, reviewLikes, reviews } from "@/infrastructure/db/schema";
 import type {
   MovieReview,
   MovieReviewFilter,

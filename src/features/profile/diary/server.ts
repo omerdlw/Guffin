@@ -1,8 +1,8 @@
 import "server-only";
 
 import { and, asc, desc, eq, gte, inArray, lt } from "drizzle-orm";
-import type { Session } from "@/lib/db/client";
-import { accountDiary, reviews } from "@/lib/db/schema";
+import type { Session } from "@/infrastructure/db/client";
+import { accountDiary, reviews } from "@/infrastructure/db/schema";
 import { type DiaryMonth, shiftMonth } from "./diary";
 
 const MONTH_LIMIT = 400;

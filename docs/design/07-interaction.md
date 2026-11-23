@@ -88,7 +88,7 @@ complete answer to rest and hover, written against roles only.
 keyboard navigation. `Tab` is swallowed globally (`src/design/no-tab.tsx`,
 mounted in `src/app/providers.tsx`) and nothing ever draws a focus outline,
 ring or fill: `outline: none` on every `:focus` / `:focus-visible`
-(`styles/system/interaction.css`). So:
+(`styles/interaction.css`). So:
 
 - no `focus-visible:`, `group-focus-visible:`, `group-has-focus-visible:`
   classes, and no `:focus-visible` in CSS or choreography (`Moves` has no

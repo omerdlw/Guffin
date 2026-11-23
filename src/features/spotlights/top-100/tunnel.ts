@@ -4,7 +4,7 @@ import type {
   Loop,
   LoopFactory,
 } from "@/features/spotlights/spotlights";
-import { tmdbImageUrl } from "@/lib/tmdb/shared";
+import { tmdbImageUrl } from "@/infrastructure/tmdb/shared";
 import { readable } from "@/motion/gl";
 
 async function loadBitmap(

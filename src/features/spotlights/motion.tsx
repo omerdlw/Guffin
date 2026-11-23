@@ -5,6 +5,7 @@ import type { Curve, Moves } from "@/motion/choreo";
 import { MotionConfig } from "@/motion/lib";
 import { Room } from "@/design/components/room";
 import { defineStage } from "@/motion/stage";
+import { TEMPO } from "@/motion/pace";
 
 const PHI = 1.618034;
 export const beat = (n: number) => Math.round(PHI ** n * 1000) / 1000;
@@ -29,6 +30,7 @@ const media: Moves = {
 
 const DIRECTORS = defineStage({
   scope: "directors",
+  tempo: TEMPO,
   parts: ["portrait", "poster"],
   sections: ["director"],
   motion: {
@@ -36,7 +38,7 @@ const DIRECTORS = defineStage({
       portrait: {
         enter: {
           on: "load",
-          from: { opacity: 0, scale: 1.055, bright: 0.382 },
+          from: { opacity: 0, blur: 12, bright: 0.382 },
           duration: beat(0),
           ease: DEVELOP,
         },
@@ -44,7 +46,7 @@ const DIRECTORS = defineStage({
       poster: {
         enter: {
           on: "load",
-          from: { opacity: 0, y: 8, scale: 0.944 },
+          from: { opacity: 0, blur: 8 },
           delay: beat(-3),
           stagger: STAGGER.char,
           duration: beat(-1),
@@ -54,7 +56,7 @@ const DIRECTORS = defineStage({
     },
     sections: {
       director: {
-        leave: { to: { opacity: 0 }, duration: beat(-3), ease: LEAVE },
+        leave: { to: { opacity: 0, blur: 8 }, duration: beat(-3), ease: LEAVE },
       },
     },
     kinds: { media },

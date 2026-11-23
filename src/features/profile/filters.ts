@@ -1,4 +1,4 @@
-import { readParam, type SearchParams } from "@/lib/http";
+import { readParam, type SearchParams } from "@/infrastructure/http";
 import type { ToolbarField } from "./toolbar";
 
 const SORT_PARAM = "sort";

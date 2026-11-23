@@ -8,7 +8,7 @@ decides which rows exist for them. Domain rules that must always hold
 
 ## Three kinds of session
 
-`src/lib/db/client.ts` hands out a `Session`: a Drizzle database plus a
+`src/infrastructure/db/client.ts` hands out a `Session`: a Drizzle database plus a
 typed `call()` for SQL functions.
 
 ```mermaid

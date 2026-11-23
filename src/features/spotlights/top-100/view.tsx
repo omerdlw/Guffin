@@ -35,8 +35,8 @@ import {
   SeenPanel,
   WallAction,
 } from "@/features/spotlights/wall";
-import { CANON_HREF, movieHref } from "@/lib/project";
-import { tmdbImageUrl } from "@/lib/tmdb/shared";
+import { CANON_HREF, movieHref } from "@/shared/project";
+import { tmdbImageUrl } from "@/infrastructure/tmdb/shared";
 import { useReducedMotion } from "@/motion/lib";
 import { useEngine } from "@/motion/react";
 import styles from "./top-100.module.css";

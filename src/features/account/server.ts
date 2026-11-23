@@ -3,11 +3,11 @@ import "server-only";
 import { report, UserError } from "@omerdlw/base-framework/utils";
 import { and, eq, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { pgErrorCode, type Session } from "@/lib/db/client";
-import { pick, type SnakeRow } from "@/lib/db/pick";
-import { accountEmails, accounts, accountWatched } from "@/lib/db/schema";
-import { isUuid } from "@/lib/http";
-import { accountHref } from "@/lib/project";
+import { pgErrorCode, type Session } from "@/infrastructure/db/client";
+import { pick, type SnakeRow } from "@/infrastructure/db/pick";
+import { accountEmails, accounts, accountWatched } from "@/infrastructure/db/schema";
+import { isUuid } from "@/infrastructure/http";
+import { accountHref } from "@/shared/project";
 import type {
   AccountPatchInput,
   CurrentAccount,

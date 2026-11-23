@@ -25,7 +25,7 @@ import {
   type PersonImage,
   tmdbImageSrcSet,
   tmdbImageUrl,
-} from "@/lib/tmdb/shared";
+} from "@/infrastructure/tmdb/shared";
 
 type GalleryTab = "portraits" | "backdrops";
 

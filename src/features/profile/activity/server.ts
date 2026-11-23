@@ -2,8 +2,8 @@ import "server-only";
 
 import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
-import type { Session } from "@/lib/db/client";
-import { accountActivity, accounts, lists } from "@/lib/db/schema";
+import type { Session } from "@/infrastructure/db/client";
+import { accountActivity, accounts, lists } from "@/infrastructure/db/schema";
 import {
   ACTIVITY_GROUPS,
   ACTIVITY_PAGE_SIZE,

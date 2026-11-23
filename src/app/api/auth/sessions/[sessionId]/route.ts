@@ -1,9 +1,9 @@
 import { and, eq } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
 import { requireUser } from "@/features/auth/server";
-import { admin } from "@/lib/db/client";
-import { authSessions } from "@/lib/db/schema";
-import { apiErrorResponse, assertSameOrigin } from "@/lib/security";
+import { admin } from "@/infrastructure/db/client";
+import { authSessions } from "@/infrastructure/db/schema";
+import { apiErrorResponse, assertSameOrigin } from "@/infrastructure/security";
 
 export async function DELETE(
   request: NextRequest,

@@ -1,7 +1,6 @@
 import type { JSX } from "react";
 import type { Metadata } from "next";
-import { PRIVACY } from "@/features/legal/documents";
-import { LegalPage } from "@/features/legal/view";
+import { LegalPage, PRIVACY } from "@/features/legal";
 
 export const metadata: Metadata = {
   alternates: { canonical: PRIVACY.path },

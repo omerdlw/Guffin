@@ -14,8 +14,8 @@ import {
   DetailSwap,
 } from "@/features/detail/motion";
 import { Trace, TRACE_ROW, useTrace } from "@/features/detail/trace";
-import { pluralize } from "@/lib/format";
-import { movieHref } from "@/lib/project";
+import { pluralize } from "@/shared/format";
+import { movieHref } from "@/shared/project";
 import { clamp } from "@/motion/math";
 import { useEngine } from "@/motion/react";
 import {
@@ -25,7 +25,7 @@ import {
   type TimelineCredit,
   type TimelineYear,
 } from "./person";
-import { usePersonView } from "./views";
+import { usePersonView } from "./view-context";
 
 function layoutTop(element: HTMLElement): number {
   let top = 0;

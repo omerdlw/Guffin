@@ -12,7 +12,7 @@ import {
   sql,
 } from "drizzle-orm";
 import { readListPreviews } from "@/features/lists/server";
-import type { Session } from "@/lib/db/client";
+import type { Session } from "@/infrastructure/db/client";
 import {
   accounts,
   listItems,
@@ -21,7 +21,7 @@ import {
   filmCatalog,
   reviewLikes,
   reviews,
-} from "@/lib/db/schema";
+} from "@/infrastructure/db/schema";
 import type { TitleFacets } from "../filters";
 import { contains, genreIds, titleConditions, toFacets } from "../titles";
 import {

@@ -6,7 +6,7 @@ import {
   assertSameOrigin,
   getClientIp,
   rateLimitResponse,
-} from "@/lib/security";
+} from "@/infrastructure/security";
 
 export async function POST(request: NextRequest) {
   if (!isSeedLoginEnabled()) return new NextResponse(null, { status: 404 });

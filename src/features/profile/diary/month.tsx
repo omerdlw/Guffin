@@ -12,9 +12,9 @@ import { cn } from "@/design/ui";
 import { deleteDiaryEntryAction } from "@/features/account/actions";
 import { RatingStars, Star } from "@/features/reviews/rating";
 import { isRated, REVIEW_ICON_LINEAR } from "@/features/reviews/review";
-import { pluralize } from "@/lib/format";
-import { movieHref, reviewHref } from "@/lib/project";
-import { tmdbImageSrcSet, tmdbImageUrl } from "@/lib/tmdb/shared";
+import { pluralize } from "@/shared/format";
+import { movieHref, reviewHref } from "@/shared/project";
+import { tmdbImageSrcSet, tmdbImageUrl } from "@/infrastructure/tmdb/shared";
 import { useScrollDriver } from "@/motion/react";
 import type { DiaryEntry } from "./diary";
 
@@ -234,7 +234,7 @@ function PosterCalendar({
           }
 
           return (
-            <li key={date}>
+            <li data-part="tile" key={date}>
               <MediaCard
                 fallbackIcon="solar:clapperboard-play-bold"
                 fallbackIconSize={10}
@@ -349,6 +349,7 @@ function Entry({
         first && "border-t border-rule first:border-t-0",
       )}
       id={first ? dayId(entry.watchedOn) : undefined}
+      data-part="entry"
     >
       {first ? (
         <time className="flex flex-col items-center" dateTime={entry.watchedOn}>

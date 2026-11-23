@@ -3,7 +3,7 @@
 ### 3.4 Radius
 
 Corners sit on a 4px grid and are named by what they round. CSS
-`--radius-*` in `styles/system/tokens.css`; the TypeScript mirror is `RADIUS`
+`--radius-*` in `styles/tokens.css`; the TypeScript mirror is `RADIUS`
 in `foundations/geometry.ts` (for props that take a number and inline
 styles).
 

@@ -1,14 +1,14 @@
 import "server-only";
 
 import { and, desc, eq, type SQL, sql } from "drizzle-orm";
-import type { Session } from "@/lib/db/client";
+import type { Session } from "@/infrastructure/db/client";
 import {
   accountFavorites,
   accountLikes,
   accountWatched,
   accountWatchlist,
   filmCatalog,
-} from "@/lib/db/schema";
+} from "@/infrastructure/db/schema";
 import type { TitleFacets } from "../filters";
 import { genreIds, titleConditions, toFacets } from "../titles";
 import {

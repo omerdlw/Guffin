@@ -24,8 +24,8 @@ import { useAuth } from "@/features/auth/provider";
 import { useOpenSignIn } from "@/features/auth/sign-in";
 import { BackdropProjection } from "@/features/detail/stage";
 import { AvatarStack } from "@/features/social/proof";
-import { accountHref, movieHref } from "@/lib/project";
-import { tmdbImageUrl } from "@/lib/tmdb/shared";
+import { accountHref, movieHref } from "@/shared/project";
+import { tmdbImageUrl } from "@/infrastructure/tmdb/shared";
 import {
   ambientImage,
   type Feature,

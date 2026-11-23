@@ -79,14 +79,16 @@ flowchart TB
     motion["motion.tsx<br/>choreography"]
     surfaces["surfaces.ts<br/>dock surfaces"]
   end
-  features --> lib
+  features --> infrastructure
+  features --> shared
   features --> design
   features --> motionlib
-  subgraph lib["src/lib"]
+  subgraph infrastructure["src/infrastructure"]
     tmdb["tmdb/<br/>client + zod schemas"]
     db["db/<br/>sessions, schema, functions"]
     authlib["auth/<br/>Better Auth"]
   end
+  shared["src/shared<br/>format, project links, ambient"]
   design["src/design<br/>tokens, recipes, glass"]
   motionlib["src/motion<br/>stage, choreo, WebGL"]
   db --> drizzle["drizzle/*.sql<br/>the schema's source"]

@@ -2,16 +2,16 @@ import "server-only";
 
 import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { FAVORITES_MAX } from "@/features/account/account";
-import type { Session } from "@/lib/db/client";
+import type { Session } from "@/infrastructure/db/client";
 import {
   accountFavorites,
   accountLikes,
   accountWatched,
   accountWatchlist,
   reviews,
-} from "@/lib/db/schema";
-import { getAmbientPalette } from "@/lib/tmdb/server";
-import { tmdbImageUrl } from "@/lib/tmdb/shared";
+} from "@/infrastructure/db/schema";
+import { getAmbientPalette } from "@/infrastructure/tmdb/server";
+import { tmdbImageUrl } from "@/infrastructure/tmdb/shared";
 import { getListsPage } from "../lists/server";
 import type { ProfileList } from "../lists/lists";
 import { getReviewSummary, getReviewsPage } from "../reviews/server";

@@ -17,7 +17,7 @@ import {
   signedInStatus,
 } from "@/features/account/account";
 import { useAccount } from "@/features/account/provider";
-import { authClient } from "@/lib/auth/client";
+import { authClient } from "@/infrastructure/auth/client";
 import { resetRouterCache } from "./actions";
 import { signOut as signOutClient, signOutOtherSessions } from "./client";
 import type { SignOutScope } from "./session";

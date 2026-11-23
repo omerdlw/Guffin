@@ -6,8 +6,8 @@ import { cache } from "react";
 import type { PublicAccount } from "@/features/account/account";
 import { getPublicAccount } from "@/features/account/server";
 import { getOptionalUser } from "@/features/auth/server";
-import { type Session, viewer } from "@/lib/db/client";
-import { accountStats } from "@/lib/db/schema";
+import { type Session, viewer } from "@/infrastructure/db/client";
+import { accountStats } from "@/infrastructure/db/schema";
 
 interface ProfileContext {
   account: PublicAccount;

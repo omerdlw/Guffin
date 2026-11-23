@@ -8,7 +8,7 @@ import { SurfacePart, SurfaceStage } from "@/design/components/surface";
 import { defineSurface } from "@/design/surface-definition";
 import { useAuth } from "@/features/auth/provider";
 import { AUTH_INPUT_CLASS } from "@/features/auth/sign-in";
-import { accountHref } from "@/lib/project";
+import { accountHref } from "@/shared/project";
 import { updateAccountAction } from "./actions";
 
 type SetupResult =

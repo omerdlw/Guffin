@@ -1,12 +1,12 @@
 "use client";
 
 import { memo, type ReactNode } from "react";
-import { useDockActionClass } from "@omerdlw/base-framework/dock";
 import { Button } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
 import { SkeletonBlock } from "@/design/components/skeleton";
 import { RADIUS } from "@/design/foundations/geometry";
-import { TONE } from "@/design/foundations/tones";
+import { TONE, WELL } from "@/design/foundations/tones";
+import { cn } from "@/design/ui";
 import {
   MoviePosterLink,
   MoviePosterPlaceholder,
@@ -36,7 +36,7 @@ const SEARCH_GROUP_LABELS: Readonly<Record<SearchType, string>> = {
 
 const RESULT_POSTER_GRID = "grid grid-cols-4 gap-2.5";
 
-const RESULT_ROW_LIST = "flex flex-col gap-1";
+const RESULT_ROW_LIST = cn("flex flex-col gap-0.5 rounded-card p-1", WELL);
 
 function Option({
   active,
@@ -135,6 +135,7 @@ function rowsOf(
 export const Section = memo(function Section({
   active,
   lead,
+  onMore,
   onNavigated,
   onOptionPointerEnter,
   optionId,
@@ -147,6 +148,7 @@ export const Section = memo(function Section({
 }: {
   active: number;
   lead: number;
+  onMore?: () => void;
   onNavigated: () => void;
   onOptionPointerEnter: (index: number) => void;
   optionId: (index: number) => string;
@@ -208,10 +210,7 @@ export const Section = memo(function Section({
 
   return (
     <div className="flex flex-col gap-2">
-      <div
-        aria-hidden="true"
-        className="flex h-4 items-center justify-between px-1 text-ink-muted"
-      >
+      <div className="flex h-4 items-center justify-between px-1 text-ink-muted">
         <SearchText
           className={TONE.label}
           index={lead}
@@ -224,7 +223,20 @@ export const Section = memo(function Section({
           index={lead}
           name="count"
         >
-          {total}
+          {onMore && total > section.hits.length ? (
+            <button
+              aria-label={`See all ${total} ${label.toLowerCase()}`}
+              className="flex items-center gap-1 text-ink-muted hover:text-ink"
+              data-slot="more"
+              onClick={onMore}
+              type="button"
+            >
+              {total}
+              <Icon icon="solar:alt-arrow-right-linear" size={12} />
+            </button>
+          ) : (
+            total
+          )}
         </SearchPart>
       </div>
       {list}
@@ -273,7 +285,7 @@ function SkeletonPosters({ count }: { count: number }) {
 export function ResultsSkeleton({ scope }: { scope: SearchScope }) {
   if (scope === "all") {
     return (
-      <div aria-hidden="true" className="flex flex-col gap-4 p-1">
+      <div aria-hidden="true" className="-mx-1 flex flex-col gap-4 p-1">
         <div className="flex flex-col gap-2">
           <SkeletonHeader />
           <SkeletonPosters count={SEARCH_OVERVIEW.movies} />
@@ -286,7 +298,7 @@ export function ResultsSkeleton({ scope }: { scope: SearchScope }) {
     );
   }
   return (
-    <div aria-hidden="true" className="p-1">
+    <div aria-hidden="true" className="-mx-1 p-1">
       {scope === "movies" ? (
         <SkeletonPosters count={SEARCH_PER_PAGE[scope]} />
       ) : (
@@ -305,16 +317,16 @@ export function PagerButton({
   disabled: boolean;
   onClick: () => void;
 }) {
-  const actionClass = useDockActionClass();
   return (
     <Button
       aria-label={direction === "next" ? "Next page" : "Previous page"}
-      className={actionClass({
-        className:
-          "size-8 shrink-0 px-0 disabled:pointer-events-none disabled:opacity-50",
-      })}
+      className="disabled:pointer-events-none disabled:opacity-40"
       disabled={disabled}
+      icon
+      intent="neutral"
       onClick={onClick}
+      shape="pill"
+      size="sm"
       type="button"
     >
       <Icon

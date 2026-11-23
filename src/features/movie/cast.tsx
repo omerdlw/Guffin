@@ -18,8 +18,8 @@ import {
   DetailSection,
   DetailSwap,
 } from "@/features/detail/motion";
-import { movieHref, personHref } from "@/lib/project";
-import { tmdbImageUrl } from "@/lib/tmdb/shared";
+import { movieHref, personHref } from "@/shared/project";
+import { tmdbImageUrl } from "@/infrastructure/tmdb/shared";
 import styles from "./cast.module.css";
 import {
   CAST_SEATS,

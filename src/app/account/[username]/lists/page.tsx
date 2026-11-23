@@ -5,8 +5,8 @@ import { getListsPage } from "@/features/profile/lists/server";
 import { ListsShelf } from "@/features/profile/lists/shelf";
 import { ListsToolbar } from "@/features/profile/toolbar";
 import { loadProfile } from "@/features/profile/server";
-import type { SearchParams } from "@/lib/http";
-import { accountHref } from "@/lib/project";
+import type { SearchParams } from "@/infrastructure/http";
+import { accountHref } from "@/shared/project";
 
 export default async function AccountListsPage({
   params,

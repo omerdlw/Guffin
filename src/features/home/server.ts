@@ -7,22 +7,22 @@ import { unstable_rethrow } from "next/navigation";
 import { after } from "next/server";
 import { and, desc, eq, inArray, isNotNull } from "drizzle-orm";
 import { getOptionalUser, getViewerSession } from "@/features/auth/server";
-import { toLogline } from "@/lib/format";
-import { getRedisClient } from "@/lib/security";
-import { admin } from "@/lib/db/client";
-import { accountDiary, accounts, filmStats } from "@/lib/db/schema";
+import { toLogline } from "@/shared/format";
+import { getRedisClient } from "@/infrastructure/security";
+import { admin } from "@/infrastructure/db/client";
+import { accountDiary, accounts, filmStats } from "@/infrastructure/db/schema";
 import {
   getMovieDetails,
   getMovieList,
   getTrendingMovies,
-} from "@/lib/tmdb/server";
+} from "@/infrastructure/tmdb/server";
 import type {
   FeaturedMovie,
   FeaturedMoviePage,
   MovieDetails,
-} from "@/lib/tmdb/shared";
-import { pickLogo } from "@/lib/tmdb/shared";
-import type { TmdbError } from "@/lib/tmdb/transport";
+} from "@/infrastructure/tmdb/shared";
+import { pickLogo } from "@/infrastructure/tmdb/shared";
+import type { TmdbError } from "@/infrastructure/tmdb/transport";
 import {
   type Circle,
   type Feature,

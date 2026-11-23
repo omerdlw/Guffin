@@ -5,9 +5,9 @@ import {
   requireRecentAuthentication,
   requireUser,
 } from "@/features/auth/server";
-import { admin, viewer } from "@/lib/db/client";
-import { authUsers } from "@/lib/db/schema";
-import { apiErrorResponse, assertSameOrigin } from "@/lib/security";
+import { admin, viewer } from "@/infrastructure/db/client";
+import { authUsers } from "@/infrastructure/db/schema";
+import { apiErrorResponse, assertSameOrigin } from "@/infrastructure/security";
 
 export async function GET(): Promise<NextResponse> {
   try {

@@ -9,8 +9,8 @@ import { RADIUS } from "@/design/foundations/geometry";
 import { TONES } from "@/design/foundations/tones";
 import { cn } from "@/design/ui";
 import { setFavoriteAction } from "@/features/account/actions";
-import { movieHref } from "@/lib/project";
-import { tmdbImageSrcSet, tmdbImageUrl } from "@/lib/tmdb/shared";
+import { movieHref } from "@/shared/project";
+import { tmdbImageSrcSet, tmdbImageUrl } from "@/infrastructure/tmdb/shared";
 import { loadLibraryPage } from "./actions";
 import type {
   LibraryFilters,

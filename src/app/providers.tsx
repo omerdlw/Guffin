@@ -20,6 +20,7 @@ import { CoreProvider } from "@omerdlw/base-framework/provider";
 import { ThemeProvider } from "@omerdlw/base-framework/theme";
 import { TooltipProvider, UiProvider } from "@omerdlw/base-framework/ui";
 import { ActionArrival } from "@/design/components/action-content";
+import { DockCompact } from "@/design/dock-compact";
 import { Logo } from "@/design/components/logo";
 import { SurfaceStyle } from "@/design/components/surface";
 import { GlassEngine } from "@/design/glass/engine";
@@ -37,8 +38,8 @@ import {
 import { BackdropPreloader } from "@/features/artwork/backdrop-preloader";
 import { AuthListener, AuthProvider } from "@/features/auth/provider";
 import { SearchDockCommand } from "@/features/search/search-command";
-import { AMBIENT_ANALYSIS } from "@/lib/ambient";
-import { project } from "@/lib/project";
+import { AMBIENT_ANALYSIS } from "@/shared/ambient";
+import { project } from "@/shared/project";
 import { Cursor } from "@/motion/cursor";
 import { EngineProvider } from "@/motion/react";
 import { TintedFavicon } from "@/motion/screen";
@@ -135,6 +136,7 @@ export function Providers({ children }: { children: ReactNode }): JSX.Element {
         <AuthListener />
         <AccountGuard />
         <SearchDockCommand />
+        <DockCompact />
         <SurfaceStyle />
         <SocialSync />
         <BackdropPreloader />

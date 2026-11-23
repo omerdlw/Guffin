@@ -1,6 +1,11 @@
 import type { JSX } from "react";
-import { PersonSkeleton } from "@/features/person/skeleton";
+import { RouteLoading } from "@/design/components/route-loading";
+import { PersonSkeleton } from "@/features/person";
 
 export default function PersonLoading(): JSX.Element {
-  return <PersonSkeleton />;
+  return (
+    <RouteLoading>
+      <PersonSkeleton />
+    </RouteLoading>
+  );
 }

@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useDockActions } from "@omerdlw/base-framework/dock";
 import { report } from "@omerdlw/base-framework/utils";
 import { usePathname } from "next/navigation";
-import { parseReviewHref } from "@/lib/project";
+import { parseReviewHref } from "@/shared/project";
 import { reviewSurface } from "./surfaces";
 
 export function ReviewLinks(): null {

@@ -18,8 +18,8 @@ import {
   useSyncedSearchParam,
 } from "@/features/spotlights/shell";
 import type { Laureate } from "@/features/spotlights/spotlights";
-import { movieHref, OSCARS_HREF } from "@/lib/project";
-import { tmdbImageUrl } from "@/lib/tmdb/shared";
+import { movieHref, OSCARS_HREF } from "@/shared/project";
+import { tmdbImageUrl } from "@/infrastructure/tmdb/shared";
 import { useMotionValue } from "@/motion/lib";
 import styles from "./oscars.module.css";
 

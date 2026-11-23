@@ -16,11 +16,16 @@ import {
 import { useToast } from "@omerdlw/base-framework/notification";
 import { Loader } from "@omerdlw/base-framework/ui";
 import { Input } from "@/design/components/input";
-import { SurfaceStage, useSurfacePart } from "@/design/components/surface";
+import {
+  SurfacePart,
+  SurfaceStage,
+  useSurfacePart,
+} from "@/design/components/surface";
 import { useSurfacePreload } from "@/design/lazy-surface";
 import { defineSurface } from "@/design/surface-definition";
 import { cn } from "@/design/ui";
 import { accountSetupSurface } from "@/features/account/surfaces";
+import { AnimatePresence, motion, useReducedMotion } from "@/motion/lib";
 import {
   confirmEmailChange,
   hasAccountUsername,
@@ -30,7 +35,6 @@ import {
 } from "./client";
 import { getAuthErrorMessage } from "./errors";
 import { sanitizeNextPath } from "./session";
-import styles from "./verification-surface.module.css";
 
 interface VerificationData {
   email: string;
@@ -60,17 +64,9 @@ interface VerificationSurfaceProps {
 }
 
 const OTP_LENGTH = 6;
-
 const RESEND_COOLDOWN_SECONDS = 60;
-
 const ERROR_RESET_DELAY_MS = 700;
-
-const OTP_BOX_STYLES = {
-  BASE: "center h-11 @[280px]:h-14 rounded-card type-base @[280px]:type-title font-semibold text-ink-body ring-1 ring-inset ring-edge hover:text-ink",
-  ERROR: "bg-fill-hover text-ink ring-edge-focus hover:bg-fill-active",
-  ACTIVE: "bg-fill text-ink ring-edge-hover hover:bg-fill-hover",
-  SUCCESS: "bg-fill-active text-ink ring-edge-focus",
-};
+const VERIFICATION_SURFACE_WIDTH = 400;
 
 const INITIAL_OTP_STATE: OtpState = {
   code: "",
@@ -84,7 +80,11 @@ function normalizeOtpValue(value?: string): string {
 
 export const verificationSurface = defineSurface<{ data: VerificationData }>({
   component: VerificationSurface,
-  title: "Verify email",
+  description: ({ data }) => data.email,
+  icon: "solar:shield-check-bold",
+  title: ({ data }) =>
+    data.purpose === "change-email" ? "Confirm email" : "Verify email",
+  width: VERIFICATION_SURFACE_WIDTH,
 });
 
 function useResendCooldown(cooldownSeconds: number) {
@@ -118,14 +118,18 @@ function OtpBoxes({
 }: OtpBoxesProps) {
   const activeIndex = Math.min(code.length, OTP_LENGTH - 1);
   const row = useSurfacePart("row");
+  const shouldReduceMotion = useReducedMotion();
 
   return (
-    <div className="relative" onClick={() => inputRef.current?.focus?.()}>
+    <div
+      className="group/otp relative w-full"
+      onClick={() => inputRef.current?.focus?.()}
+    >
       <Input
         ref={inputRef}
         aria-label="Verification code"
         autoComplete="one-time-code"
-        className="absolute inset-0 z-10 size-full cursor-text rounded-none bg-transparent px-0 py-0 text-transparent opacity-0 outline-none ring-0 focus:bg-transparent focus:ring-0"
+        className="absolute inset-0 z-10 size-full cursor-text rounded-none bg-transparent px-0 py-0 text-transparent caret-transparent opacity-0 outline-none ring-0 focus:bg-transparent focus:ring-0"
         disabled={disabled}
         inputMode="numeric"
         maxLength={OTP_LENGTH}
@@ -139,10 +143,21 @@ function OtpBoxes({
         type="text"
         value={code}
       />
-      <div className="grid grid-cols-6 gap-1.5 @[280px]:gap-2.5 overflow-visible">
+      <motion.div
+        animate={
+          invalid && !shouldReduceMotion
+            ? {
+                x: [0, -8, 8, -5, 5, -2, 2, 0],
+                transition: { duration: 0.38, ease: "easeInOut" },
+              }
+            : { x: 0 }
+        }
+        className="grid grid-cols-6 gap-2 @[280px]:gap-2.5 overflow-visible"
+      >
         {Array.from({ length: OTP_LENGTH }).map((_, index) => {
           const digit = code[index] || "";
-          const isActive = focused && activeIndex === index;
+          const isActive = focused && activeIndex === index && !digit;
+          const isFilled = Boolean(digit);
 
           return (
             <div
@@ -150,31 +165,62 @@ function OtpBoxes({
               key={`otp-box-${index}`}
               style={{ "--i": index } as CSSProperties}
               className={cn(
-                OTP_BOX_STYLES.BASE,
-                invalid && digit && OTP_BOX_STYLES.ERROR,
-                isActive && !digit && OTP_BOX_STYLES.ACTIVE,
-                digit && !invalid && OTP_BOX_STYLES.SUCCESS,
+                "relative center h-control-lg rounded-inset select-none isolate",
+                // Idle empty state
+                !isFilled &&
+                  !isActive &&
+                  !invalid &&
+                  "bg-fill text-ink-body ring-1 ring-edge ring-inset hover:bg-fill-hover hover:text-ink hover:ring-edge-hover",
+                // Active focused empty slot
+                isActive &&
+                  !invalid &&
+                  "bg-fill-hover text-ink ring-1 ring-edge-focus ring-inset",
+                // Filled slot (valid)
+                isFilled &&
+                  !invalid &&
+                  "bg-fill-active text-ink ring-1 ring-edge-focus ring-inset",
+                // Invalid / error state
+                invalid &&
+                  "bg-fill-hover text-danger ring-1 ring-danger/40 ring-inset",
               )}
             >
-              {digit ? (
-                <span className="" key={digit}>
-                  {digit}
-                </span>
-              ) : isActive ? (
-                <span
-                  aria-hidden="true"
-                  className={cn(
-                    styles.caret,
-                    "h-[1.1em] w-0.5 rounded-full bg-primary",
-                  )}
-                />
-              ) : (
-                <span className="invisible">0</span>
-              )}
+              <AnimatePresence mode="popLayout" initial={false}>
+                {digit ? (
+                  <motion.span
+                    key={`digit-${digit}`}
+                    initial={
+                      shouldReduceMotion
+                        ? { opacity: 0 }
+                        : { opacity: 0, scale: 0.8 }
+                    }
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={
+                      shouldReduceMotion
+                        ? { opacity: 0 }
+                        : { opacity: 0, scale: 0.8 }
+                    }
+                    transition={{
+                      duration: 0.12,
+                      ease: [0.236, 0.382, 0.146, 1],
+                    }}
+                    className={cn(
+                      "select-none font-semibold type-title tabular-nums",
+                      invalid ? "text-danger" : "text-ink",
+                    )}
+                  >
+                    {digit}
+                  </motion.span>
+                ) : isActive ? (
+                  <span
+                    aria-hidden="true"
+                    className="h-4.5 w-0.5 rounded-full bg-ink-body"
+                  />
+                ) : null}
+              </AnimatePresence>
             </div>
           );
         })}
-      </div>
+      </motion.div>
     </div>
   );
 }
@@ -203,6 +249,13 @@ function VerificationSurface({ close, data }: VerificationSurfaceProps) {
     };
   }, []);
 
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      inputRef.current?.focus?.();
+    }, 60);
+    return () => window.clearTimeout(timer);
+  }, []);
+
   const resendCode = async () => {
     if (busy || !cooldown.canResend) return;
 
@@ -212,6 +265,7 @@ function VerificationSurface({ close, data }: VerificationSurfaceProps) {
       else await requestEmailCode(email);
       setOtp(INITIAL_OTP_STATE);
       cooldown.restart();
+      toast("Verification code sent to your email");
     } catch (error) {
       toast(
         getAuthErrorMessage(
@@ -277,8 +331,12 @@ function VerificationSurface({ close, data }: VerificationSurfaceProps) {
   };
 
   const changeCode = (value?: string) => {
+    if (resetErrorTimeout.current) {
+      window.clearTimeout(resetErrorTimeout.current);
+      resetErrorTimeout.current = null;
+    }
     const code = normalizeOtpValue(value);
-    setOtp((current) => ({ ...current, code }));
+    setOtp({ code, focused: true, invalid: false });
     if (code.length === OTP_LENGTH) void completeVerification(code);
   };
 
@@ -297,24 +355,26 @@ function VerificationSurface({ close, data }: VerificationSurfaceProps) {
         </DockSurfaceHeaderButton>
       </DockSurfaceAction>
 
-      <SurfaceStage>
+      <SurfaceStage className="px-3.5 py-1.5">
         <form
           aria-busy={Boolean(busy)}
-          className="flex flex-col gap-2.5"
+          className="flex flex-col"
           onSubmit={(event) => {
             event.preventDefault();
             void completeVerification(otp.code);
           }}
         >
-          <OtpBoxes
-            {...otp}
-            disabled={Boolean(busy)}
-            inputRef={inputRef}
-            onCodeChange={changeCode}
-            onFocusChange={(focused) =>
-              setOtp((current) => ({ ...current, focused }))
-            }
-          />
+          <SurfacePart name="item">
+            <OtpBoxes
+              {...otp}
+              disabled={Boolean(busy)}
+              inputRef={inputRef}
+              onCodeChange={changeCode}
+              onFocusChange={(focused) =>
+                setOtp((current) => ({ ...current, focused }))
+              }
+            />
+          </SurfacePart>
         </form>
       </SurfaceStage>
     </>

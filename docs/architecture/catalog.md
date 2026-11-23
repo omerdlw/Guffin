@@ -6,7 +6,7 @@ on library rows and an optional `film_catalog` mirror.
 
 ## The TMDB transport
 
-Every call goes through one transport (`src/lib/tmdb/transport.ts`). Domain
+Every call goes through one transport (`src/infrastructure/tmdb/transport.ts`). Domain
 clients (`movies`, `people`, `discover`, `awards`) only describe a
 path, a zod schema and a cache lifetime.
 

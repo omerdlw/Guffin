@@ -1,19 +1,20 @@
+"use client";
+
 import type { Curve, Enter, Look } from "@/motion/choreo";
 import { defineStage } from "@/motion/stage";
+import { HERO, OPENING, TEMPO } from "@/motion/pace";
 
 const PHI = 1.618034;
 const beat = (n: number) => Math.round(PHI ** n * 1000) / 1000;
-const STAGGER = { char: 0.021, item: 0.055 };
 
 const SETTLE: Curve = [0.236, 0.382, 0.146, 1];
-const SWEEP: Curve = [0.618, 0, 0.382, 1];
 
 const AT = {
   eyebrow: 0,
   title: beat(-5),
-  intro: beat(-2),
-  rule: beat(-3),
-  links: beat(-2) + beat(-4),
+  intro: beat(-3),
+  links: beat(-2),
+  rule: HERO,
 };
 
 const load = (from: Look, more: Partial<Enter> = {}): Enter => ({
@@ -34,7 +35,8 @@ const reveal = (from: Look, more: Partial<Enter> = {}): Enter => ({
 
 export const LEGAL = defineStage({
   scope: "legal",
-  opening: beat(-2),
+  tempo: TEMPO,
+  opening: OPENING,
   inset: 0.05,
   scroll: { period: beat(-1), gain: 1 },
   parts: [
@@ -51,46 +53,28 @@ export const LEGAL = defineStage({
   motion: {
     parts: {
       eyebrow: {
-        enter: load({ opacity: 0, x: -8 }, { delay: AT.eyebrow }),
+        enter: load({ opacity: 0, blur: 8 }, { delay: AT.eyebrow }),
       },
       title: {
-        text: {
-          by: "char",
-          stagger: STAGGER.char,
-          budget: beat(-3),
-          enter: load({ opacity: 0, y: "0.382em" }, { delay: AT.title }),
-          line: beat(-4),
-        },
+        enter: load({ opacity: 0, blur: 12 }, { delay: AT.title }),
       },
       intro: {
-        enter: load({ opacity: 0, y: 8 }, { delay: AT.intro }),
+        enter: load({ opacity: 0, blur: 10 }, { delay: AT.intro }),
       },
       links: {
-        enter: load({ opacity: 0, y: 8 }, { delay: AT.links }),
+        enter: load({ opacity: 0, blur: 8 }, { delay: AT.links }),
       },
       rule: {
-        origin: "left center",
-        enter: load({ scale: [0, 1] }, { delay: AT.rule, ease: SWEEP }),
+        enter: load({ opacity: 0, blur: 6 }, { delay: AT.rule }),
       },
       index: {
-        enter: reveal(
-          { opacity: 0, x: -13 },
-          { delay: beat(-4), duration: beat(-2) },
-        ),
+        enter: reveal({ opacity: 0, blur: 8 }, { duration: beat(-2) }),
       },
       heading: {
-        enter: reveal({ opacity: 0, y: 8 }, { along: "section" }),
+        enter: reveal({ opacity: 0, blur: 10 }),
       },
       prose: {
-        enter: reveal(
-          { opacity: 0, y: 8 },
-          {
-            along: "section",
-            delay: beat(-4),
-            stagger: STAGGER.item,
-            wrap: 6,
-          },
-        ),
+        enter: reveal({ opacity: 0, blur: 8 }),
       },
     },
   },

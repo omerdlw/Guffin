@@ -11,3 +11,7 @@ export const accountNotificationsSurface = lazySurface(() =>
 export const accountSetupSurface = lazySurface(() =>
   import("./setup-surface").then((m) => m.accountSetupSurface),
 );
+
+export const accountSettingsSurface = lazySurface(() =>
+  import("./settings/surface").then((m) => m.accountSettingsSurface),
+);

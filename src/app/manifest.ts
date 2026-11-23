@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { project } from "@/lib/project";
+import { project } from "@/shared/project";
 
 const PAGE = "#0a0a0a";
 

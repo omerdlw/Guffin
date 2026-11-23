@@ -13,9 +13,9 @@ import {
   type Awards,
   type MovieDetails,
   tmdbImageUrl,
-} from "@/lib/tmdb/shared";
+} from "@/infrastructure/tmdb/shared";
 import { formatMoney, type MovieArtwork, readableUrl } from "./movie";
-import { useReel } from "./views";
+import { useReel } from "./view-context";
 
 const REEL_IMAGE_SIZE = "w1280";
 

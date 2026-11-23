@@ -25,7 +25,7 @@ import { useSurfacePreload } from "@/design/lazy-surface";
 import { useAuth } from "@/features/auth/provider";
 import { signInSurface } from "@/features/auth/surfaces";
 import { followsSurface } from "@/features/social/surfaces";
-import { accountHref } from "@/lib/project";
+import { accountHref } from "@/shared/project";
 import {
   accountMeta,
   type CurrentAccount,

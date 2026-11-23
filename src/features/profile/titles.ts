@@ -1,8 +1,8 @@
 import "server-only";
 
 import { type AnyColumn, type SQL, sql } from "drizzle-orm";
-import { filmCatalog } from "@/lib/db/schema";
-import { TMDB_GENRES } from "@/lib/tmdb/genres";
+import { filmCatalog } from "@/infrastructure/db/schema";
+import { TMDB_GENRES } from "@/infrastructure/tmdb/genres";
 import type { TitleFacets, TitleFilters } from "./filters";
 
 export function contains(text: string): string {

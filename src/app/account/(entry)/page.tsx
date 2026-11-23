@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getCurrentAccount } from "@/features/account/server";
 import { getOptionalUser } from "@/features/auth/server";
-import { viewer } from "@/lib/db/client";
-import { accountHref } from "@/lib/project";
+import { viewer } from "@/infrastructure/db/client";
+import { accountHref } from "@/shared/project";
 
 export const metadata: Metadata = { title: "Account" };
 

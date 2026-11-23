@@ -1,5 +1,5 @@
-import { pluralize } from "@/lib/format";
-import type { PersonDetails } from "@/lib/tmdb/shared";
+import { pluralize } from "@/shared/format";
+import type { PersonDetails } from "@/infrastructure/tmdb/shared";
 
 export interface FilmographyCredit {
   id: number;

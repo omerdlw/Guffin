@@ -5,7 +5,7 @@
 Tailwind's palette is switched off (`--color-*: initial`): every colour is a
 role. A role is a CSS variable valued once in
 `src/design/styles/themes.css`, exposed to Tailwind as a `--color-*` token in
-`styles/system/tokens.css` or `styles/tokens.css`.
+`src/design/styles/tokens.css`.
 
 #### Where the colours come from
 

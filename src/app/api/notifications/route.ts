@@ -2,15 +2,15 @@ import { UserError } from "@omerdlw/base-framework/utils";
 import { and, count, desc, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { requireUser } from "@/features/auth/server";
-import { viewer } from "@/lib/db/client";
-import { pickAll } from "@/lib/db/pick";
-import { accounts, notifications } from "@/lib/db/schema";
-import { isUuid } from "@/lib/http";
+import { viewer } from "@/infrastructure/db/client";
+import { pickAll } from "@/infrastructure/db/pick";
+import { accounts, notifications } from "@/infrastructure/db/schema";
+import { isUuid } from "@/infrastructure/http";
 import {
   apiErrorResponse,
   assertSameOrigin,
   rateLimitResponse,
-} from "@/lib/security";
+} from "@/infrastructure/security";
 
 const DONE = { success: true };
 

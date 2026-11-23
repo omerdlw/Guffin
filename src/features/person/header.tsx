@@ -45,7 +45,7 @@ import {
   type Awards,
   type PersonDetails,
   tmdbImageUrl,
-} from "@/lib/tmdb/shared";
+} from "@/infrastructure/tmdb/shared";
 import { readable } from "@/motion/gl";
 import { countFilms, getBackdropPath, personSwatch } from "./credits";
 import { describePerson, PERSON_LINKS_CLASS, type SocialLink } from "./person";

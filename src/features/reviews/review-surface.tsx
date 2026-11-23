@@ -24,7 +24,7 @@ import { useSurfacePreload } from "@/design/lazy-surface";
 import { defineSurface } from "@/design/surface-definition";
 import { cn } from "@/design/ui";
 import { formatShortDate } from "@/features/account/account";
-import { accountHref, movieReviewsHref } from "@/lib/project";
+import { accountHref, movieReviewsHref } from "@/shared/project";
 import { getMemberReviewAction } from "./actions";
 import { ReviewActions, ReviewBody } from "./controls";
 import { RatingStars } from "./rating";

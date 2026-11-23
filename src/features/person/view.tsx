@@ -7,13 +7,13 @@ import {
   namesFact,
   textFact,
 } from "@/features/detail/layout";
-import { movieHref } from "@/lib/project";
+import { movieHref } from "@/shared/project";
 import {
   type Awards,
   type PersonDetails,
   type PersonExternalIds,
   tmdbImageUrl,
-} from "@/lib/tmdb/shared";
+} from "@/infrastructure/tmdb/shared";
 import { PersonCareer, PersonTimeline } from "./career";
 import {
   getBackdropPath,
@@ -34,7 +34,7 @@ import {
   PersonStage,
 } from "./header";
 import { type Career, departmentRole, type SocialLink } from "./person";
-import { PersonViewActions, PersonViews } from "./views";
+import { PersonViewActions, PersonViews } from "./view-context";
 
 const PERSON_BIO_CLAMP_LENGTH = 300;
 

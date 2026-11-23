@@ -14,7 +14,7 @@ import {
   SIDEBAR_CLASS,
 } from "@/design/foundations/layout";
 import { TONE } from "@/design/foundations/tones";
-import type { Awards } from "@/lib/tmdb/shared";
+import type { Awards } from "@/infrastructure/tmdb/shared";
 import { AwardsView } from "./awards";
 import {
   type AwardsGrouping,

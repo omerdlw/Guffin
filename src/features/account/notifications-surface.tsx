@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  type CSSProperties,
   memo,
   type MouseEvent,
   type ReactNode,
@@ -40,10 +41,11 @@ import {
   SURFACE_TILE_INNER,
   SURFACE_TITLE,
 } from "@/design/components/surface-classes";
+import { TONE } from "@/design/foundations/tones";
 import { defineSurface } from "@/design/surface-definition";
 import { cn } from "@/design/ui";
 import { useAuth } from "@/features/auth/provider";
-import { accountHref } from "@/lib/project";
+import { accountHref } from "@/shared/project";
 import {
   type NotificationItem,
   NOTIFICATIONS_ICON,
@@ -87,6 +89,53 @@ const NOTIFICATION_ICONS: Record<string, string> = {
   SYSTEM_ANNOUNCEMENT: "solar:info-circle-bold",
 };
 
+const KIND_TONE = {
+  follow: "bg-ink text-on-primary",
+  like: "bg-liked text-on-accent",
+  talk: "bg-listed text-on-accent",
+} as const;
+
+const NOTIFICATION_KINDS: Record<
+  string,
+  { icon: string; tone: keyof typeof KIND_TONE }
+> = {
+  FOLLOW_ACCEPTED: { icon: "solar:user-check-bold", tone: "follow" },
+  FOLLOW_REQUEST: { icon: "solar:user-plus-bold", tone: "follow" },
+  LIST_COMMENT: { icon: "solar:chat-round-bold", tone: "talk" },
+  LIST_LIKE: { icon: "solar:heart-bold", tone: "like" },
+  MENTION: { icon: "solar:mention-circle-bold", tone: "talk" },
+  NEW_FOLLOWER: { icon: "solar:user-plus-bold", tone: "follow" },
+  REVIEW_LIKE: { icon: "solar:heart-bold", tone: "like" },
+};
+
+const AVATAR = 40;
+const BADGE = 20;
+const BADGE_GAP = 2;
+const BADGE_SPILL = 3;
+const BADGE_CENTRE = BADGE / 2 - BADGE_SPILL;
+const BADGE_CUT: CSSProperties = (() => {
+  const mask = `radial-gradient(circle at calc(100% - ${BADGE_CENTRE}px) calc(100% - ${BADGE_CENTRE}px), transparent ${BADGE / 2 + BADGE_GAP}px, #000 ${BADGE / 2 + BADGE_GAP + 0.5}px)`;
+  return { WebkitMaskImage: mask, maskImage: mask };
+})();
+
+const DAY = 86400000;
+
+const DAY_GROUPS = [
+  { key: "today", label: "Today", within: 1 },
+  { key: "week", label: "This week", within: 7 },
+  { key: "month", label: "This month", within: 31 },
+  { key: "earlier", label: "Earlier", within: Infinity },
+] as const;
+
+function dayGroupOf(value: string): (typeof DAY_GROUPS)[number]["key"] {
+  const date = parseDate(value);
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  const days = date ? (start.getTime() - date.getTime()) / DAY + 1 : Infinity;
+  return (DAY_GROUPS.find((group) => days <= group.within) ?? DAY_GROUPS[3])
+    .key;
+}
+
 const NOTIFICATION_DATE_FORMAT = new Intl.DateTimeFormat("en-US", {
   day: "numeric",
   month: "short",
@@ -96,10 +145,10 @@ function formatNotificationAge(value: string): string {
   const date = parseDate(value);
   if (!date) return "";
   const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
-  if (seconds < 60) return "Just now";
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-  if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
+  if (seconds < 60) return "Now";
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h`;
+  if (seconds < 604800) return `${Math.floor(seconds / 86400)}d`;
   return NOTIFICATION_DATE_FORMAT.format(date);
 }
 
@@ -153,7 +202,10 @@ function NotificationSkeleton() {
             </div>
           </div>
           <div
-            className={`${SKELETON.block} size-control-chrome shrink-0 ${SURFACE_TILE_INNER}`}
+            className={cn(
+              SKELETON.block,
+              "mr-2 h-2.5 w-7 shrink-0 rounded-full",
+            )}
           />
         </div>
       ))}
@@ -178,37 +230,48 @@ const NotificationRow = memo(function NotificationRow({
   const headline = notificationHeadline(notification);
   const age = formatNotificationAge(notification.created_at);
 
+  const kind = NOTIFICATION_KINDS[notification.type];
+
   const content: ReactNode = (
     <>
-      <span className="relative shrink-0">
-        <AvatarTile>
-          {actor ? (
-            <AccountAvatarImage
-              account={{
-                avatarUrl: actor.avatar_url,
-                displayName: actor.display_name,
-                username: actor.username,
-              }}
-              alt={headline}
-            />
-          ) : (
-            <div className="center size-full text-ink-body">
-              <Icon
-                icon={
-                  NOTIFICATION_ICONS[notification.type] ?? NOTIFICATIONS_ICON
-                }
-                size={20}
+      <span className="relative shrink-0" style={{ width: AVATAR }}>
+        <span className="block" style={kind && actor ? BADGE_CUT : undefined}>
+          <AvatarTile>
+            {actor ? (
+              <AccountAvatarImage
+                account={{
+                  avatarUrl: actor.avatar_url,
+                  displayName: actor.display_name,
+                  username: actor.username,
+                }}
+                alt={headline}
               />
-            </div>
-          )}
-        </AvatarTile>
-        {notification.read ? null : (
+            ) : (
+              <div className="center size-full text-ink-body">
+                <Icon
+                  icon={
+                    NOTIFICATION_ICONS[notification.type] ?? NOTIFICATIONS_ICON
+                  }
+                  size={20}
+                />
+              </div>
+            )}
+          </AvatarTile>
+        </span>
+        {kind && actor ? (
           <span
-            aria-label="Unread"
-            className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-grade"
-            role="img"
-          />
-        )}
+            aria-hidden="true"
+            className={cn("center absolute rounded-full", KIND_TONE[kind.tone])}
+            style={{
+              bottom: -BADGE_SPILL,
+              height: BADGE,
+              right: -BADGE_SPILL,
+              width: BADGE,
+            }}
+          >
+            <Icon icon={kind.icon} size={12} />
+          </span>
+        ) : null}
       </span>
       <div className={`${SURFACE_TEXT} h-full`}>
         <span
@@ -221,7 +284,6 @@ const NotificationRow = memo(function NotificationRow({
         </span>
         <span className={SURFACE_META}>
           {notificationSummary(notification)}
-          {age ? ` · ${age}` : ""}
         </span>
       </div>
     </>
@@ -250,31 +312,43 @@ const NotificationRow = memo(function NotificationRow({
         </div>
       )}
 
-      <div className="relative z-10 flex shrink-0 items-center gap-0.5">
-        {notification.read ? null : (
+      <div className="relative z-10 grid shrink-0 items-center justify-items-end *:col-start-1 *:row-start-1">
+        <span className="ui-fade flex items-center gap-2 pr-2 type-meta text-ink-muted tabular-nums group-hover/user:opacity-0 pointer-coarse:hidden">
+          {age}
+          {notification.read ? null : (
+            <span
+              aria-label="Unread"
+              className="size-2 rounded-full bg-grade"
+              role="img"
+            />
+          )}
+        </span>
+        <div className="ui-fade pointer-events-none flex items-center gap-0.5 opacity-0 group-hover/user:pointer-events-auto group-hover/user:opacity-100 pointer-coarse:pointer-events-auto pointer-coarse:opacity-100">
+          {notification.read ? null : (
+            <Button
+              aria-label="Mark as read"
+              className={SURFACE_TILE_INNER}
+              icon
+              intent="ghost"
+              size="chrome"
+              onClick={(event) => onMarkRead(notification.id, event)}
+              title="Mark as read"
+            >
+              <Icon icon="solar:check-read-linear" size={18} />
+            </Button>
+          )}
           <Button
-            aria-label="Mark as read"
+            aria-label="Delete notification"
             className={SURFACE_TILE_INNER}
             icon
             intent="ghost"
             size="chrome"
-            onClick={(event) => onMarkRead(notification.id, event)}
-            title="Mark as read"
+            onClick={(event) => onDelete(notification.id, event)}
+            title="Delete notification"
           >
-            <Icon icon="solar:check-read-linear" size={18} />
+            <Icon icon="solar:trash-bin-minimalistic-linear" size={18} />
           </Button>
-        )}
-        <Button
-          aria-label="Delete notification"
-          className={SURFACE_TILE_INNER}
-          icon
-          intent="ghost"
-          size="chrome"
-          onClick={(event) => onDelete(notification.id, event)}
-          title="Delete notification"
-        >
-          <Icon icon="solar:trash-bin-minimalistic-linear" size={18} />
-        </Button>
+        </div>
       </div>
     </div>
   );
@@ -497,26 +571,45 @@ function NotificationList({
       className={`${SURFACE_SCROLL} max-h-[min(56dvh,26rem)] w-full touch-pan-y`}
       data-scroll-native
     >
-      <HighlightGroup className={SURFACE_GROUP}>
-        <SurfaceSwap
-          className="flex min-h-[48px] w-full flex-col justify-center overflow-visible"
-          cue="rows"
-          id={filter}
-        >
-          {notifications.map((notification, index) => (
-            <SurfacePart index={index} key={notification.id} name="row">
-              <NotificationRow
-                notification={notification}
-                onDelete={onDelete}
-                onMarkRead={onMarkRead}
-                onNavigate={onClose}
-              />
-            </SurfacePart>
-          ))}
-        </SurfaceSwap>
-      </HighlightGroup>
+      <SurfaceSwap className="flex flex-col gap-4" cue="rows" id={filter}>
+        {groupByDay(notifications).map((group, index) => (
+          <SurfacePart
+            className="flex flex-col gap-2"
+            index={index}
+            key={group.key}
+            name="row"
+          >
+            <p className={cn(TONE.label, "px-3 text-ink-muted")}>
+              {group.label}
+            </p>
+            <HighlightGroup className={SURFACE_GROUP}>
+              {group.items.map((notification) => (
+                <NotificationRow
+                  key={notification.id}
+                  notification={notification}
+                  onDelete={onDelete}
+                  onMarkRead={onMarkRead}
+                  onNavigate={onClose}
+                />
+              ))}
+            </HighlightGroup>
+          </SurfacePart>
+        ))}
+      </SurfaceSwap>
     </div>
   );
+}
+
+function groupByDay(items: readonly NotificationItem[]) {
+  const buckets = new Map<string, NotificationItem[]>();
+  for (const item of items) {
+    const key = dayGroupOf(item.created_at);
+    buckets.set(key, [...(buckets.get(key) ?? []), item]);
+  }
+  return DAY_GROUPS.filter((group) => buckets.has(group.key)).map((group) => ({
+    ...group,
+    items: buckets.get(group.key)!,
+  }));
 }
 
 const notificationText = (item: NotificationItem) =>
@@ -550,7 +643,7 @@ function AccountNotificationsSurface({ close }: { close?: () => void }) {
           : `empty-${filter}`;
 
   return (
-    <SurfaceStage className="flex flex-col overflow-hidden">
+    <SurfaceStage className="flex flex-col overflow-clip [overflow-clip-margin:var(--spacing-swell)]">
       <SurfaceSegmentedControl
         ariaLabel="Filter notifications"
         items={[
@@ -561,18 +654,28 @@ function AccountNotificationsSurface({ close }: { close?: () => void }) {
         trailing={
           feed.items.length > 0 ? (
             <>
-              {unreadCount > 0 ? (
-                <Button
-                  intent="ghost"
-                  shape="pill"
-                  size="sm"
-                  onClick={markAllRead}
-                >
-                  <span>Mark read</span>
-                </Button>
-              ) : null}
-              <Button intent="ghost" shape="pill" size="sm" onClick={removeAll}>
-                <span>Clear all</span>
+              <Button
+                aria-label="Mark all as read"
+                disabled={unreadCount === 0}
+                icon
+                intent="neutral"
+                onClick={markAllRead}
+                shape="pill"
+                size="sm"
+                title="Mark all as read"
+              >
+                <Icon icon="solar:check-read-linear" size={16} />
+              </Button>
+              <Button
+                aria-label="Clear all notifications"
+                icon
+                intent="neutral"
+                onClick={removeAll}
+                shape="pill"
+                size="sm"
+                title="Clear all"
+              >
+                <Icon icon="solar:trash-bin-minimalistic-linear" size={16} />
               </Button>
             </>
           ) : null

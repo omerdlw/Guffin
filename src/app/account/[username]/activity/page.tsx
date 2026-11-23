@@ -9,8 +9,8 @@ import { getActivityPage } from "@/features/profile/activity/server";
 import { ActivityTimeline } from "@/features/profile/activity/timeline";
 import { loadProfile } from "@/features/profile/server";
 import { getProfileNumbers } from "@/features/profile/stats";
-import type { SearchParams } from "@/lib/http";
-import { accountHref } from "@/lib/project";
+import type { SearchParams } from "@/infrastructure/http";
+import { accountHref } from "@/shared/project";
 
 export default async function AccountActivityPage({
   params,

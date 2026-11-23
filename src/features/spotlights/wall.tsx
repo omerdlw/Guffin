@@ -9,8 +9,8 @@ import { Icon } from "@/design/components/icon";
 import { Link, TextButton } from "@/design/components/link";
 import { DockAction } from "@/design/components/surface";
 import { cn } from "@/design/ui";
-import { movieHref } from "@/lib/project";
-import { tmdbImageUrl } from "@/lib/tmdb/shared";
+import { movieHref } from "@/shared/project";
+import { tmdbImageUrl } from "@/infrastructure/tmdb/shared";
 import type { CanonFilm, Filter } from "./spotlights";
 
 const TOP_100_FILTERS: readonly { label: string; value: Filter }[] = [

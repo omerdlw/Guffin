@@ -3,16 +3,16 @@ import "server-only";
 import { err, ok, type Result } from "@omerdlw/base-framework/result";
 import { report, USER_MESSAGES } from "@omerdlw/base-framework/utils";
 import { NextResponse } from "next/server";
-import { getClientIp, rateLimitResponse } from "@/lib/security";
+import { getClientIp, rateLimitResponse } from "@/infrastructure/security";
 import { getViewerSession } from "@/features/auth/server";
-import { admin } from "@/lib/db/client";
+import { admin } from "@/infrastructure/db/client";
 import {
   discoverMovies,
   getPersonDetails,
   searchMovies,
   searchPeople,
-} from "@/lib/tmdb/server";
-import type { TmdbError } from "@/lib/tmdb/transport";
+} from "@/infrastructure/tmdb/server";
+import type { TmdbError } from "@/infrastructure/tmdb/transport";
 import {
   foldText,
   isSearchable,

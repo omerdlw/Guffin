@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { RouteLoading } from "@/design/components/route-loading";
 import {
   OverviewSkeleton,
   ProfileFrameSkeleton,
@@ -6,8 +7,10 @@ import {
 
 export default function Loading(): JSX.Element {
   return (
-    <ProfileFrameSkeleton>
-      <OverviewSkeleton />
-    </ProfileFrameSkeleton>
+    <RouteLoading>
+      <ProfileFrameSkeleton>
+        <OverviewSkeleton />
+      </ProfileFrameSkeleton>
+    </RouteLoading>
   );
 }

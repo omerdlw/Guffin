@@ -26,7 +26,7 @@ import {
   movieHref,
   personHref,
   reviewHref,
-} from "@/lib/project";
+} from "@/shared/project";
 import styles from "./search-action.module.css";
 import { SearchPart, SearchStage, SearchSwap, useSearchPart } from "./motion";
 
@@ -316,6 +316,7 @@ export function SearchAction({ onClose }: { onClose?: () => void } = {}) {
       }
       key={section.kind}
       lead={starts[index] + index}
+      onMore={titled ? () => handleScope(section.kind) : undefined}
       onNavigated={handleClear}
       onOptionPointerEnter={pointTo}
       optionId={optionId}
@@ -379,17 +380,17 @@ export function SearchAction({ onClose }: { onClose?: () => void } = {}) {
           type="text"
           value={input}
         />
-        <div className="absolute top-1/2 right-2 -translate-y-1/2">
+        <div className="absolute top-1/2 right-1 -translate-y-1/2">
           {input ? (
             <Button
               aria-label="Clear search"
-              className="size-7 rounded-inset text-ink-muted"
               icon
               intent="ghost"
-              size="xs"
               onClick={handleClear}
+              shape="pill"
+              size="sm"
             >
-              <Icon icon="material-symbols:close-rounded" size={16} />
+              <Icon icon="solar:close-circle-bold" size={16} />
             </Button>
           ) : null}
         </div>
@@ -455,7 +456,7 @@ export function SearchAction({ onClose }: { onClose?: () => void } = {}) {
                 aria-label="Search results"
                 className={cn(
                   SURFACE_SCROLL,
-                  "relative isolate flex max-h-[min(56dvh,34rem)] scroll-p-1 flex-col gap-4 p-1 aria-busy:opacity-60",
+                  "relative isolate -mx-1 flex max-h-[min(56dvh,34rem)] scroll-p-1 flex-col gap-4 p-1 aria-busy:opacity-60",
                 )}
                 id={listId}
                 onPointerLeave={() => {
@@ -475,25 +476,24 @@ export function SearchAction({ onClose }: { onClose?: () => void } = {}) {
 
               {hasPager ? (
                 <SearchPart
-                  className="flex h-8 items-center justify-between pl-1"
+                  className="flex items-center justify-between"
                   index={hitCount + view.sections.length + 1}
                   name="footer"
                 >
-                  <span className="type-meta text-ink-muted tabular-nums">
-                    {`${from}–${to} of ${view.total}`}
+                  <PagerButton
+                    direction="previous"
+                    disabled={view.page === 0}
+                    onClick={() => setPage(view.page - 1)}
+                  />
+                  <span className="flex flex-col items-center type-meta text-ink-muted tabular-nums">
+                    <span className="font-semibold text-ink">{`${from}–${to}`}</span>
+                    <span>of {view.total}</span>
                   </span>
-                  <span className="flex items-center gap-1">
-                    <PagerButton
-                      direction="previous"
-                      disabled={view.page === 0}
-                      onClick={() => setPage(view.page - 1)}
-                    />
-                    <PagerButton
-                      direction="next"
-                      disabled={view.page >= view.pages - 1}
-                      onClick={() => setPage(view.page + 1)}
-                    />
-                  </span>
+                  <PagerButton
+                    direction="next"
+                    disabled={view.page >= view.pages - 1}
+                    onClick={() => setPage(view.page + 1)}
+                  />
                 </SearchPart>
               ) : null}
             </>

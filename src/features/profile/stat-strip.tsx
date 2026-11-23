@@ -7,7 +7,7 @@ import { DockLink } from "@/design/components/link";
 import type { PublicAccount } from "@/features/account/account";
 import { useAccount } from "@/features/account/provider";
 import { followsSurface } from "@/features/social/surfaces";
-import { accountHref } from "@/lib/project";
+import { accountHref } from "@/shared/project";
 import type { ProfileStats } from "./stats";
 
 const COMPACT = new Intl.NumberFormat("en-US", {

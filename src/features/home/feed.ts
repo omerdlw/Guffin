@@ -1,4 +1,4 @@
-import { tmdbImageUrl } from "@/lib/tmdb/shared";
+import { tmdbImageUrl } from "@/infrastructure/tmdb/shared";
 
 export interface HomeFilm {
   backdropPath: string | null;
