@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "@better-auth/passkey": "^1.7.25",
-    "@omerdlw/base-framework": "^3.3.0",
+    "@omerdlw/base-framework": "^3.4.0",
     "@sentry/nextjs": "11.14.0",
     "@upstash/ratelimit": "^2.2.1",
     "@upstash/redis": "^1.41.0",
