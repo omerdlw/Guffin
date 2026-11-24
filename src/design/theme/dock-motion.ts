@@ -206,7 +206,9 @@ export const dockMotion: DockMotion = {
     compact: {
       hidden: away(0, 0.92),
       visible: { ...here(), transition: tween(beat(-1), SETTLE, beat(-4)) },
-      exit: { ...away(0, 0.96), transition: tween(beat(-3), LEAVE) },
+      // Shorter than the dismiss-action phase: a surface opening from the
+      // compact row clears it before the card grows.
+      exit: { ...away(0, 0.96), transition: tween(beat(-4), LEAVE) },
     },
     backdrop: {
       hidden: { opacity: 0 },

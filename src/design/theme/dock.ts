@@ -25,6 +25,14 @@ const MEDIA_ICON_BUTTON = `ui-iris center relative size-control-sm cursor-pointe
 const TONE_MUTED = `text-ink-body hover:text-ink ${WELL}`;
 const TIP_SHAPE = "rounded-full px-3 py-1.5 type-meta font-medium";
 
+// The card's action in the compact row: the same controls, drawn as small
+// pills at the command height so the row stays one line.
+const COMPACT_ACTIONS = [
+  "flex shrink-0 items-center gap-1.5",
+  "[&_.dock-surface]:w-auto [&_.w-full]:w-auto [&_.flex-1]:flex-none",
+  "[&_.h-control-md]:h-control-chrome [&_.dock-action]:h-control-chrome [&_.dock-action]:rounded-full [&_.dock-action]:px-3.5 [&_.dock-action]:type-meta",
+].join(" ");
+
 export const dockThemeConfig = defineTheme(dockTheme, {
   slots: {
     stack:
@@ -88,7 +96,15 @@ export const dockThemeConfig = defineTheme(dockTheme, {
     commandBadge:
       "center bg-grade absolute -right-0.5 -top-0.5 h-4 min-w-4 px-1 rounded-full type-micro leading-none font-semibold tabular-nums text-on-accent",
 
-    compact: "mx-auto flex min-h-12 w-max items-center",
+    compactFrame: "flex w-full justify-center",
+    compact: "flex w-max shrink-0 items-center",
+    compactView: "flex items-center",
+    compactActions: COMPACT_ACTIONS,
+    compactDivider: "mx-2 h-5 w-px shrink-0 rounded-full bg-line last:hidden",
+    compactStatus: "flex min-w-0 items-center gap-2.5 pe-3",
+    compactStatusIcon:
+      "shrink-0 [&_.size-12]:size-control-chrome [&_.size-12]:rounded-full",
+    compactStatusText: "max-w-72 truncate type-body font-medium text-ink",
 
     statusCard: GLASS,
     statusIcon: "bg-fill text-ink",

@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import {
+  useDockActions,
   useDockRegistration,
   useDockSelector,
 } from "@omerdlw/base-framework/dock";
@@ -17,7 +18,11 @@ import { report } from "@omerdlw/base-framework/utils";
 import { usePathname } from "next/navigation";
 import { useKeepDockCard } from "@/design/dock-compact";
 import { useDockCommands } from "@/design/dock-commands";
-import { preloadOnIntent, useAheadOfOpen } from "@/design/lazy-surface";
+import {
+  lazySurface,
+  preloadOnIntent,
+  useAheadOfOpen,
+} from "@/design/lazy-surface";
 
 type SearchActionComponent = ComponentType<{ onClose?: () => void }>;
 
@@ -38,6 +43,12 @@ const SEARCH_REGISTRATION = {
   priority: 1000,
   source: REGISTRY_SOURCES.DYNAMIC,
 } as const;
+
+// From the compact dock, search opens as a surface instead of unfolding the
+// card: the dock grows straight out of the compact row and folds back into it.
+const searchSurface = lazySurface(() =>
+  import("./search-surface").then((m) => m.searchSurface),
+);
 
 let pending: Promise<SearchModule> | null = null;
 
@@ -60,11 +71,13 @@ export function SearchDockCommand(): ReactNode {
   const SearchAction = loaded?.SearchAction ?? null;
   const open = openPath === pathname && SearchAction !== null;
   const frontPath = useDockSelector((state) => state.activeItem?.path ?? null);
+  const compact = useDockSelector((state) => state.compact && !state.expanded);
+  const { openSurface } = useDockActions();
 
   useEffect(
     () =>
       preloadOnIntent(
-        [{ preload: () => loadSearchAction().then(setLoaded) }],
+        [{ preload: () => loadSearchAction().then(setLoaded) }, searchSurface],
         window,
       ),
     [],
@@ -75,6 +88,12 @@ export function SearchDockCommand(): ReactNode {
       setOpenPath(null);
       return;
     }
+    if (compact) {
+      searchSurface
+        .open(openSurface)
+        .catch((error: unknown) => report("SearchDockCommand", error));
+      return;
+    }
     loadSearchAction().then(
       (module) => {
         setLoaded(module);
@@ -82,7 +101,7 @@ export function SearchDockCommand(): ReactNode {
       },
       (error: unknown) => report("SearchDockCommand", error),
     );
-  }, [openPath, pathname]);
+  }, [compact, openPath, openSurface, pathname]);
 
   const close = useCallback(() => setOpenPath(null), []);
 
