@@ -1,12 +1,12 @@
 import { type JSX, type ReactNode, Suspense } from "react";
-import { DockClear } from "@/design/components/dock-clear";
+import { DockClear } from "@/design/dock/clear";
 import { PAGE_CLASS } from "@/design/foundations/layout";
-import { ProfileDock } from "@/features/profile/dock";
-import { ProfileHero } from "@/features/profile/hero";
+import { ProfileDock } from "@/features/profile/components/dock";
+import { ProfileHero } from "@/features/profile/components/hero";
 import { profileBackdrop, profileSwatch } from "@/features/profile/media";
-import { loadProfile } from "@/features/profile/server";
-import { ProfileHeadSkeleton } from "@/features/profile/skeleton";
-import { ProfileTabs } from "@/features/profile/tabs";
+import { loadProfile } from "@/features/profile/queries";
+import { ProfileHeadSkeleton } from "@/features/profile/components/skeleton";
+import { ProfileTabs } from "@/features/profile/components/tabs";
 import { ProfileStageRoot } from "@/features/profile/motion";
 import { getAmbientPalette } from "@/infrastructure/tmdb/server";
 

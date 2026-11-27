@@ -3,9 +3,9 @@ import type {
   FilmMarks,
   Loop,
   LoopFactory,
-} from "@/features/spotlights/spotlights";
-import { tmdbImageUrl } from "@/infrastructure/tmdb/shared";
-import { readable } from "@/motion/gl";
+} from "@/features/spotlights/model";
+import { tmdbImageUrl } from "@/infrastructure/tmdb/model";
+import { readable } from "@/motion/webgl/gl";
 
 async function loadBitmap(
   src: string,

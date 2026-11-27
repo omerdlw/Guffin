@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
-import { parseMovieId } from "@/features/movie/movie";
+import { parseMovieId } from "@/features/movie/model";
 import { getBackdropPath } from "@/features/person/credits";
-import { parsePersonId } from "@/features/person/person";
+import { parsePersonId } from "@/features/person/model";
 import { getClientIp, rateLimitResponse } from "@/infrastructure/security";
-import { getMovieDetails, getPersonDetails } from "@/infrastructure/tmdb/server";
+import {
+  getMovieDetails,
+  getPersonDetails,
+} from "@/infrastructure/tmdb/server";
 
 const CACHE_CONTROL =
   "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800";

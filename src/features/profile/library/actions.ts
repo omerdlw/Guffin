@@ -2,14 +2,14 @@
 import "server-only";
 
 import { cleanTitleFilters } from "../filters";
-import { loadProfile } from "../server";
+import { loadProfile } from "../queries";
 import {
   LIBRARY_SORTS,
   type LibraryFilters,
   type LibraryKind,
   type LibraryPage,
-} from "./library";
-import { getLibraryPage } from "./server";
+} from "./model";
+import { getLibraryPage } from "./queries";
 
 const KINDS: readonly LibraryKind[] = ["likes", "watched", "watchlist"];
 

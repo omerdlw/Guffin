@@ -20,12 +20,12 @@ import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
 import { REGISTRY_SOURCES } from "@omerdlw/base-framework/kernel";
 import { getCurrentPath } from "@omerdlw/base-framework/utils";
 import { usePathname, useRouter } from "next/navigation";
-import { useDockCommands } from "@/design/dock-commands";
-import { useSurfacePreload } from "@/design/lazy-surface";
+import { useDockCommands } from "@/design/dock/commands";
+import { useSurfacePreload } from "@/design/surface/lazy";
 import { useAuth } from "@/features/auth/provider";
 import { signInSurface } from "@/features/auth/surfaces";
 import { followsSurface } from "@/features/social/surfaces";
-import { accountHref } from "@/shared/project";
+import { accountHref } from "@/shared/site";
 import {
   accountMeta,
   type CurrentAccount,
@@ -33,12 +33,8 @@ import {
   NOTIFICATIONS_ICON,
   NOTIFICATIONS_TITLE,
   SOCIAL_EVENTS,
-} from "./account";
-import {
-  fetchCurrentAccount,
-  fetchInboxCount,
-  fetchUnreadCount,
-} from "./client";
+} from "./model";
+import { fetchCurrentAccount, fetchInboxCount, fetchUnreadCount } from "./api";
 import { accountNotificationsSurface, accountSetupSurface } from "./surfaces";
 
 interface AccountState {

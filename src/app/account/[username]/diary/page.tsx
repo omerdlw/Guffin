@@ -3,12 +3,12 @@ import {
   DIARY_PARAM,
   readDiaryMonth,
   shiftMonth,
-} from "@/features/profile/diary/diary";
-import { DiaryMonthView } from "@/features/profile/diary/month";
-import { getDiaryMonth } from "@/features/profile/diary/server";
-import { loadProfile } from "@/features/profile/server";
-import type { SearchParams } from "@/infrastructure/http";
-import { accountHref } from "@/shared/project";
+} from "@/features/profile/diary/model";
+import { DiaryMonthView } from "@/features/profile/diary/components/diary-month";
+import { getDiaryMonth } from "@/features/profile/diary/queries";
+import { loadProfile } from "@/features/profile/queries";
+import type { SearchParams } from "@/shared/http";
+import { accountHref } from "@/shared/site";
 
 export default async function AccountDiaryPage({
   params,

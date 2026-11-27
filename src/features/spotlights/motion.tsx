@@ -1,11 +1,11 @@
 "use client";
 
 import type { ReactNode } from "react";
-import type { Curve, Moves } from "@/motion/choreo";
+import type { Curve, Moves } from "@/motion/choreography/choreo";
 import { MotionConfig } from "@/motion/lib";
 import { Room } from "@/design/components/room";
-import { defineStage } from "@/motion/stage";
-import { TEMPO } from "@/motion/pace";
+import { defineStage } from "@/motion/choreography/stage";
+import { TEMPO } from "@/motion/choreography/pace";
 
 const PHI = 1.618034;
 export const beat = (n: number) => Math.round(PHI ** n * 1000) / 1000;

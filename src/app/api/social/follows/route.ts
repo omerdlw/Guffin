@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { getOptionalUser, requireUser } from "@/features/auth/server";
 import { pgErrorCode, viewer } from "@/infrastructure/db/client";
 import { accountFollows, accounts } from "@/infrastructure/db/schema";
-import { isUuid } from "@/infrastructure/http";
+import { isUuid } from "@/shared/http";
 import {
   apiErrorResponse,
   assertSameOrigin,

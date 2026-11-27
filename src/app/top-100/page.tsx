@@ -1,8 +1,8 @@
 import type { JSX } from "react";
 import type { Metadata } from "next";
 import { getCanon, TunnelView } from "@/features/spotlights";
-import { readParam, type SearchParams } from "@/infrastructure/http";
-import { shareMetadata } from "@/shared/project";
+import { readParam, type SearchParams } from "@/shared/http";
+import { shareMetadata } from "@/shared/site";
 
 interface CanonPageProps {
   searchParams: Promise<SearchParams>;

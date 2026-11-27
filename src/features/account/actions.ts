@@ -16,9 +16,9 @@ import {
   type MutationResult as ActionResult,
   type MutationResult,
   ok,
-} from "@/features/auth/mutation";
+} from "@/shared/result";
 import { getOptionalUser, mutate, requireUser } from "@/features/auth/server";
-import { isUuid } from "@/infrastructure/http";
+import { isUuid } from "@/shared/http";
 import { and, eq, inArray } from "drizzle-orm";
 import {
   pgError,
@@ -36,7 +36,7 @@ import {
 } from "@/infrastructure/db/schema";
 import { checkRateLimit } from "@/infrastructure/security";
 import { getMovieDetails, movieSnapshot } from "@/infrastructure/tmdb/server";
-import type { MovieDetails } from "@/infrastructure/tmdb/shared";
+import type { MovieDetails } from "@/infrastructure/tmdb/model";
 import { isTmdbId } from "@/infrastructure/tmdb/transport";
 import {
   type AccountPatchInput,
@@ -46,12 +46,12 @@ import {
   MOVIE_LIBRARY_KINDS,
   type MovieLibraryKind,
   type MovieLibraryState,
-} from "./account";
+} from "./model";
 import {
   rememberWatchedPayload,
   revalidateAccount,
   updateAccount,
-} from "./server";
+} from "./queries";
 
 type MovieLibraryResult = MutationResult<{ state: MovieLibraryState }>;
 

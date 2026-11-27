@@ -1,5 +1,5 @@
-import { readParam, type SearchParams } from "@/infrastructure/http";
-import type { ToolbarField } from "./toolbar";
+import { readParam, type SearchParams } from "@/shared/http";
+import type { ToolbarField } from "./components/toolbar";
 
 const SORT_PARAM = "sort";
 export const QUERY_PARAM = "q";

@@ -15,12 +15,12 @@ import {
   clearLastKnownAccount,
   saveLastKnownAccount,
   signedInStatus,
-} from "@/features/account/account";
+} from "@/features/account/model";
 import { useAccount } from "@/features/account/provider";
 import { authClient } from "@/infrastructure/auth/client";
 import { resetRouterCache } from "./actions";
-import { signOut as signOutClient, signOutOtherSessions } from "./client";
-import type { SignOutScope } from "./session";
+import { signOut as signOutClient, signOutOtherSessions } from "./api";
+import type { SignOutScope } from "./model";
 
 export interface AuthUser {
   email: string;

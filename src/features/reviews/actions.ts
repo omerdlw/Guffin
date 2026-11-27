@@ -2,14 +2,10 @@
 import "server-only";
 
 import { report, toUserMessage } from "@omerdlw/base-framework/utils";
-import { rememberWatchedPayload } from "@/features/account/server";
-import {
-  fail,
-  type MutationResult as ReviewResult,
-  ok,
-} from "@/features/auth/mutation";
+import { rememberWatchedPayload } from "@/features/account/queries";
+import { fail, type MutationResult as ReviewResult, ok } from "@/shared/result";
 import { getOptionalUser, mutate } from "@/features/auth/server";
-import { isUuid } from "@/infrastructure/http";
+import { isUuid } from "@/shared/http";
 import { and, eq, sql } from "drizzle-orm";
 import { viewer } from "@/infrastructure/db/client";
 import { lists, reviewLikes, reviews } from "@/infrastructure/db/schema";
@@ -25,8 +21,8 @@ import {
   type ReviewInput,
   REVIEWS_PAGE_SIZE,
   type ReviewStats,
-} from "./review";
-import { getMovieReviews, getReviewStats } from "./server";
+} from "./model";
+import { getMovieReviews, getReviewStats } from "./queries";
 
 function normalizeReviewInput(input: ReviewInput): ReviewInput {
   const content =

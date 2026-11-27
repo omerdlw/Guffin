@@ -19,7 +19,7 @@ import type {
 } from "./discover";
 import type { MovieDetailsOptions, MovieSearchOptions } from "./movies";
 import type { PersonDetailsOptions, PersonSearchOptions } from "./people";
-import { TMDB_IMAGE_BASE_URL } from "./shared";
+import { TMDB_IMAGE_BASE_URL } from "./model";
 
 let client: TmdbClient | undefined;
 

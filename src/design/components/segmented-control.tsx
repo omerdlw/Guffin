@@ -10,7 +10,7 @@ import {
   useState,
 } from "react";
 import { Icon } from "@/design/components/icon";
-import { SurfaceToolbar } from "@/design/components/surface";
+import { SurfaceToolbar } from "@/design/surface/surface";
 import {
   clamp,
   drive,
@@ -22,7 +22,7 @@ import {
   SWELL_MAX,
   swellBox,
   thumbTransform,
-} from "@/design/components/glass-thumb";
+} from "@/design/glass/spring";
 import { cn } from "@/design/ui";
 
 interface SegmentedItem<K extends string> {

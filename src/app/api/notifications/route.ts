@@ -5,7 +5,7 @@ import { requireUser } from "@/features/auth/server";
 import { viewer } from "@/infrastructure/db/client";
 import { pickAll } from "@/infrastructure/db/pick";
 import { accounts, notifications } from "@/infrastructure/db/schema";
-import { isUuid } from "@/infrastructure/http";
+import { isUuid } from "@/shared/http";
 import {
   apiErrorResponse,
   assertSameOrigin,

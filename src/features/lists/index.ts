@@ -1,7 +1,7 @@
-export * from "./list";
-export * from "./poster-stack";
+export * from "./model";
+export * from "./components/poster-stack";
 export * from "./surfaces";
-export * from "./buttons";
-export * from "./popular";
+export * from "./components/list-buttons";
+export * from "./components/popular-lists";
 export * from "./actions";
-export { getMoviePopularLists, readListPreviews } from "./server";
+export { getMoviePopularLists, readListPreviews } from "./queries";

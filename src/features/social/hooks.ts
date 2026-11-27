@@ -11,20 +11,20 @@ import {
 import { globalEvents } from "@omerdlw/base-framework/events";
 import { useToast } from "@omerdlw/base-framework/notification";
 import { toUserMessage, UserError } from "@omerdlw/base-framework/utils";
-import { SOCIAL_EVENTS } from "@/features/account/account";
+import { SOCIAL_EVENTS } from "@/features/account/model";
 import { followUserAction, unfollowUserAction } from "./actions";
 import {
   acceptFollowRequest,
   fetchFollowRequests,
   rejectFollowRequest,
   removeFollower,
-} from "./client";
+} from "./api";
 import type {
   FollowUser,
   SocialAction,
   SocialCollection,
   SocialPageLoader,
-} from "./social";
+} from "./model";
 
 interface SocialCollectionController {
   loadMore: () => void;

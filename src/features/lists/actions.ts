@@ -7,16 +7,16 @@ import {
   type MutationResult as ActionResult,
   type MutationResult,
   ok,
-} from "@/features/auth/mutation";
+} from "@/shared/result";
 import { mutate, requireUser } from "@/features/auth/server";
-import { isUuid } from "@/infrastructure/http";
+import { isUuid } from "@/shared/http";
 import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { pgErrorCode, type Session, viewer } from "@/infrastructure/db/client";
 import { pick } from "@/infrastructure/db/pick";
 import { listItems, listLikes, lists } from "@/infrastructure/db/schema";
 import { checkRateLimit } from "@/infrastructure/security";
 import { getMovieDetails, movieSnapshot } from "@/infrastructure/tmdb/server";
-import type { MovieDetails } from "@/infrastructure/tmdb/shared";
+import type { MovieDetails } from "@/infrastructure/tmdb/model";
 import { isTmdbId } from "@/infrastructure/tmdb/transport";
 import {
   LIST_DESCRIPTION_MAX,
@@ -24,8 +24,8 @@ import {
   type ListDraft,
   type ListOrderItem,
   type MovieListSummary,
-} from "./list";
-import { readListPreviews } from "./server";
+} from "./model";
+import { readListPreviews } from "./queries";
 
 type MovieListsResult = MutationResult<{
   lists: MovieListSummary[];

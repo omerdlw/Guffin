@@ -12,13 +12,13 @@ import {
   requireFollowTarget,
   runAccountAction,
 } from "@/features/account/actions";
-import { revalidateAccount } from "@/features/account/server";
-import { fail, type MutationResult, ok } from "@/features/auth/mutation";
+import { revalidateAccount } from "@/features/account/queries";
+import { fail, type MutationResult, ok } from "@/shared/result";
 import { getOptionalUser } from "@/features/auth/server";
 import { type Session, viewer } from "@/infrastructure/db/client";
 import { accountFollows } from "@/infrastructure/db/schema";
 import { isTmdbId } from "@/infrastructure/tmdb/transport";
-import { type Friend, type MovieSocialProof, toPerson } from "./social";
+import { type Friend, type MovieSocialProof, toPerson } from "./model";
 
 interface MovieProofRow {
   account_id: string;

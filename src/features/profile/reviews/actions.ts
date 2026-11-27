@@ -1,15 +1,15 @@
 "use server";
 import "server-only";
 
-import { loadProfile } from "../server";
+import { loadProfile } from "../queries";
 import {
   REVIEW_KINDS,
   REVIEW_SORTS,
   type ReviewKind,
   type ReviewSort,
   type ReviewsPage,
-} from "./reviews";
-import { getReviewsPage } from "./server";
+} from "./model";
+import { getReviewsPage } from "./queries";
 
 export async function loadReviewsPage({
   kind,

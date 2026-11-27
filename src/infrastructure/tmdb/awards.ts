@@ -19,7 +19,7 @@ import {
   TMDB_REVALIDATE,
   TMDB_WEBSITE_URL,
   tmdbCacheTag,
-} from "./shared";
+} from "./model";
 
 const EMPTY_AWARDS: Awards = Object.freeze({
   nominations: 0,

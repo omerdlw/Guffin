@@ -2,9 +2,9 @@
 import "server-only";
 
 import { getViewerSession } from "@/features/auth/server";
-import { isUuid } from "@/infrastructure/http";
+import { isUuid } from "@/shared/http";
 import { cleanTitleFilters } from "../filters";
-import { loadProfile } from "../server";
+import { loadProfile } from "../queries";
 import {
   ENTRY_SORTS,
   type EntryFilters,
@@ -12,8 +12,8 @@ import {
   type ListEntriesPage,
   type ListSort,
   type ListsPage,
-} from "./lists";
-import { getListEntries, getListsPage } from "./server";
+} from "./model";
+import { getListEntries, getListsPage } from "./queries";
 
 const toOffset = (offset: number) => Math.max(0, Math.floor(offset) || 0);
 

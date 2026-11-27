@@ -3,19 +3,19 @@ import {
   ReviewsFilters,
   ReviewsList,
   ReviewsSummary,
-} from "@/features/profile/reviews/list";
+} from "@/features/profile/reviews/components/reviews-list";
 import {
   REVIEW_KINDS,
   readReviewKind,
   readReviewSort,
-} from "@/features/profile/reviews/reviews";
+} from "@/features/profile/reviews/model";
 import {
   getReviewSummary,
   getReviewsPage,
-} from "@/features/profile/reviews/server";
-import { loadProfile } from "@/features/profile/server";
-import type { SearchParams } from "@/infrastructure/http";
-import { accountHref } from "@/shared/project";
+} from "@/features/profile/reviews/queries";
+import { loadProfile } from "@/features/profile/queries";
+import type { SearchParams } from "@/shared/http";
+import { accountHref } from "@/shared/site";
 
 export default async function AccountReviewsPage({
   params,

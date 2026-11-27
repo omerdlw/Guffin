@@ -10,8 +10,11 @@ import {
   useMemo,
   useState,
 } from "react";
-import { DetailAction, DetailViews } from "@/features/detail/stage";
-import type { Awards } from "@/infrastructure/tmdb/shared";
+import {
+  DetailAction,
+  DetailViews,
+} from "@/features/detail-page/components/stage";
+import type { Awards } from "@/infrastructure/tmdb/model";
 
 type PersonViewKey = "main" | "timeline" | "awards";
 

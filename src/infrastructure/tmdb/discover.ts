@@ -6,7 +6,7 @@ import {
   TMDB_DEFAULT_LANGUAGE,
   TMDB_REVALIDATE,
   tmdbCacheTag,
-} from "./shared";
+} from "./model";
 import {
   checkLanguage,
   checkPage,

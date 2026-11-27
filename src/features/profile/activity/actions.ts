@@ -1,13 +1,13 @@
 "use server";
 import "server-only";
 
-import { loadProfile } from "../server";
+import { loadProfile } from "../queries";
 import {
   ACTIVITY_GROUPS,
   type ActivityGroup,
   type ActivityPage,
-} from "./activity";
-import { getActivityPage } from "./server";
+} from "./model";
+import { getActivityPage } from "./queries";
 
 export async function loadActivityPage({
   group,

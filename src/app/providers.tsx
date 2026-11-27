@@ -20,29 +20,29 @@ import { CoreProvider } from "@omerdlw/base-framework/provider";
 import { ThemeProvider } from "@omerdlw/base-framework/theme";
 import { TooltipProvider, UiProvider } from "@omerdlw/base-framework/ui";
 import { ActionArrival } from "@/design/components/action-content";
-import { DockCompact } from "@/design/dock-compact";
+import { DockCompact } from "@/design/dock/compact";
 import { Logo } from "@/design/components/logo";
-import { SurfaceStyle } from "@/design/components/surface";
+import { SurfaceStyle } from "@/design/surface/surface";
 import { GlassEngine } from "@/design/glass/engine";
-import { LiquidTouch } from "@/design/liquid-touch";
-import { NoTab } from "@/design/no-tab";
-import { ReviewLinks } from "@/features/reviews/review-links";
+import { LiquidTouch } from "@/design/glass/liquid-touch";
+import { NoTab } from "@/design/components/no-tab";
+import { ReviewLinks } from "@/features/reviews/components/review-links";
 import { themes } from "@/design/theme";
 import { ui } from "@/design/ui";
-import { DEFAULT_ACCOUNT_ICON } from "@/features/account/account";
+import { DEFAULT_ACCOUNT_ICON } from "@/features/account/model";
 import {
   AccountGuard,
   AccountProvider,
   SocialSync,
 } from "@/features/account/provider";
-import { BackdropPreloader } from "@/features/artwork/backdrop-preloader";
+import { BackdropPreloader } from "@/features/artwork/components/backdrop-preloader";
 import { AuthListener, AuthProvider } from "@/features/auth/provider";
-import { SearchDockCommand } from "@/features/search/search-command";
+import { SearchDockCommand } from "@/features/search/components/search-command";
 import { AMBIENT_ANALYSIS } from "@/shared/ambient";
-import { project } from "@/shared/project";
-import { Cursor } from "@/motion/cursor";
-import { EngineProvider } from "@/motion/react";
-import { TintedFavicon } from "@/motion/screen";
+import { project } from "@/shared/site";
+import { Cursor } from "@/motion/effects/cursor";
+import { EngineProvider } from "@/motion/core/provider";
+import { TintedFavicon } from "@/motion/effects/intermission";
 import { moduleMotion } from "@/design/theme/motion";
 
 const APP_REGISTRY_ENTRIES: readonly AppRegistryEntry[] = Object.freeze([

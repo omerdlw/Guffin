@@ -11,13 +11,13 @@ import {
   PersonViewProvider,
   personSwatch,
 } from "@/features/person";
-import { project, shareMetadata } from "@/shared/project";
+import { project, shareMetadata } from "@/shared/site";
 import {
   getAmbientPalette,
   getPersonAwards,
   getPersonDetails,
 } from "@/infrastructure/tmdb/server";
-import { tmdbImageUrl } from "@/infrastructure/tmdb/shared";
+import { tmdbImageUrl } from "@/infrastructure/tmdb/model";
 
 interface PersonPageProps {
   params: Promise<{ id: string }>;

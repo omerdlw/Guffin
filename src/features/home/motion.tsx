@@ -3,10 +3,10 @@
 import { createContext, type ReactNode, use, useMemo, useState } from "react";
 import { cn } from "@/design/ui";
 import { Room } from "@/design/components/room";
-import type { Curve, Enter, Look, Moves } from "@/motion/choreo";
-import { defineStage } from "@/motion/stage";
-import { HERO, OPENING, TEMPO } from "@/motion/pace";
-import { ambientImage } from "./feed";
+import type { Curve, Enter, Look, Moves } from "@/motion/choreography/choreo";
+import { defineStage } from "@/motion/choreography/stage";
+import { HERO, OPENING, TEMPO } from "@/motion/choreography/pace";
+import { ambientImage } from "./model";
 
 const PHI = 1.618034;
 const beat = (n: number) => Math.round(PHI ** n * 1000) / 1000;

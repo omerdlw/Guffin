@@ -3,7 +3,7 @@
 import { type ReactElement, useEffect } from "react";
 import { useDockSelector } from "@omerdlw/base-framework/dock";
 import { Tooltip } from "@omerdlw/base-framework/ui";
-import { pieces, shapeOf } from "@/design/action-text";
+import { pieces, shapeOf } from "@/design/components/action-text";
 import { Icon, type IconProps } from "@/design/components/icon";
 import { DOCK_TOOLTIP } from "@/design/theme/dock";
 import { cn } from "@/design/ui";

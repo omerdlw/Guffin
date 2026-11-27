@@ -4,7 +4,7 @@ import { Geist } from "next/font/google";
 import localFont from "next/font/local";
 import { connection } from "next/server";
 import { LOADING_HANDOFF_SCRIPT } from "@/design/components/loading-ghost";
-import { project } from "@/shared/project";
+import { project } from "@/shared/site";
 import "./globals.css";
 import { Providers } from "./providers";
 

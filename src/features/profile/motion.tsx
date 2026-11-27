@@ -1,8 +1,8 @@
 "use client";
 
-import type { Curve, Enter, Look } from "@/motion/choreo";
-import { defineStage } from "@/motion/stage";
-import { TEMPO } from "@/motion/pace";
+import type { Curve, Enter, Look } from "@/motion/choreography/choreo";
+import { defineStage } from "@/motion/choreography/stage";
+import { TEMPO } from "@/motion/choreography/pace";
 
 const PHI = 1.618034;
 const beat = (n: number) => Math.round(PHI ** n * 1000) / 1000;

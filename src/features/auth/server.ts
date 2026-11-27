@@ -13,8 +13,8 @@ import { auth } from "@/infrastructure/auth/server";
 import { admin, type Session, viewer } from "@/infrastructure/db/client";
 import { authUsers } from "@/infrastructure/db/schema";
 import { checkRateLimit } from "@/infrastructure/security";
-import { fail, type MutationResult } from "./mutation";
-import { SEED_EMAIL_DOMAIN } from "./session";
+import { fail, type MutationResult } from "@/shared/result";
+import { SEED_EMAIL_DOMAIN } from "./model";
 
 interface AuthUser {
   email: string;

@@ -1,4 +1,4 @@
-import { TMDB_IMAGE_BASE_URL } from "@/infrastructure/tmdb/shared";
+import { TMDB_IMAGE_BASE_URL } from "@/infrastructure/tmdb/model";
 
 export function profileBackdrop(url: string | null | undefined): string | null {
   const value = url?.trim() ?? "";

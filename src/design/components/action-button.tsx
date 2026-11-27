@@ -3,7 +3,7 @@
 import type { JSX, ReactNode } from "react";
 import { Button } from "@omerdlw/base-framework/ui";
 import { cn } from "@/design/ui";
-import { Magnet } from "@/motion/tilt";
+import { Magnet } from "@/motion/effects/tilt";
 import { Icon } from "./icon";
 
 interface ActionButtonProps {

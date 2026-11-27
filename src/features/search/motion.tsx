@@ -2,8 +2,8 @@
 
 import { COMPACT_SEARCH_WIDTH } from "@/design/theme/dock-motion";
 import type { ReactNode } from "react";
-import type { Curve, Enter, Look, Moves } from "@/motion/choreo";
-import { defineStage } from "@/motion/stage";
+import type { Curve, Enter, Look, Moves } from "@/motion/choreography/choreo";
+import { defineStage } from "@/motion/choreography/stage";
 import { cn } from "@/design/ui";
 
 const PHI = 1.618034;

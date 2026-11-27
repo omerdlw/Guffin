@@ -1,10 +1,10 @@
-export * from "./account";
+export * from "./model";
 export * from "./actions";
 export * from "./provider";
 export * from "./surfaces";
-export * from "./tiles";
+export * from "./components/tiles";
 export {
   getCurrentAccount,
   getPublicAccount,
   revalidateAccount,
-} from "./server";
+} from "./queries";
