@@ -1,7 +1,7 @@
 import type { JSX } from "react";
 import type { Metadata } from "next";
 import { getLaureates, OscarsView } from "@/features/spotlights";
-import { shareMetadata } from "@/shared/project";
+import { shareMetadata } from "@/shared/site";
 
 export const metadata: Metadata = shareMetadata({
   description:

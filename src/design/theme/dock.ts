@@ -25,12 +25,19 @@ const MEDIA_ICON_BUTTON = `ui-iris center relative size-control-sm cursor-pointe
 const TONE_MUTED = `text-ink-body hover:text-ink ${WELL}`;
 const TIP_SHAPE = "rounded-full px-3 py-1.5 type-meta font-medium";
 
+/** The dock's command tooltip; also on actions drawn icon-only in compact. */
+export const DOCK_TOOLTIP = `${TOOLTIP.dock} ${TIP_SHAPE} ${TIP}`;
+
 // The card's action in the compact row: the same controls, drawn as small
-// pills at the command height so the row stays one line.
+// pills at the command height so the row stays one line. Only the first
+// keeps its label; the rest shrink to their icon, a circle, so the row
+// stays short.
 const COMPACT_ACTIONS = [
   "flex shrink-0 items-center gap-1.5",
-  "[&_.dock-surface]:w-auto [&_.w-full]:w-auto [&_.flex-1]:flex-none",
-  "[&_.h-control-md]:h-control-chrome [&_.dock-action]:h-control-chrome [&_.dock-action]:rounded-full [&_.dock-action]:px-3.5 [&_.dock-action]:type-meta",
+  // Search opened in the row keeps the card's own sizes.
+  "[&_.dock-surface]:w-auto [&_.w-full:not(input):not([data-part=compact-search]_*)]:w-auto [&_.flex-1:not([data-part=compact-search]_*)]:flex-none",
+  "[&_.h-control-md:not([data-part=compact-search]_*)]:h-control-chrome [&_.dock-action]:h-control-chrome [&_.dock-action]:rounded-full [&_.dock-action]:px-3.5 [&_.dock-action]:type-meta",
+  "[&_.dock-action:nth-child(n+2)]:aspect-square [&_.dock-action:nth-child(n+2)]:px-0 [&_.dock-action:nth-child(n+2)_[data-part=action-label]]:hidden",
 ].join(" ");
 
 export const dockThemeConfig = defineTheme(dockTheme, {
@@ -41,7 +48,7 @@ export const dockThemeConfig = defineTheme(dockTheme, {
 
     card: [
       "dock-card group @container absolute h-auto w-full overflow-hidden rounded-shell p-3 cursor-pointer liquid liquid-flat liquid-lens [--liquid-tint:var(--liquid-tint-dock)] data-[placement=top]:[--liquid-drop:var(--liquid-shadow)]",
-      "data-[anchored=true]:cursor-default data-[compact=true]:rounded-full",
+      "data-[anchored=true]:cursor-default data-[compact=true]:rounded-compact",
       "data-[placement=top]:inset-0 data-[placement=top]:h-full data-[placement=bottom]:bottom-0 data-[placement=float]:top-0 data-[placement=float]:[#dock-card-stack[data-controls-hidden=false]_&]:h-full",
     ].join(" "),
     cardContent: `flow-root w-full ${SWELL_CLIP}`,
@@ -90,17 +97,23 @@ export const dockThemeConfig = defineTheme(dockTheme, {
     iconOverlayGlyph: "center text-ink",
 
     commandBar: "flex shrink-0 items-center",
-    commandTooltip: `${TOOLTIP.dock} ${TIP_SHAPE} ${TIP}`,
+    commandTooltip: DOCK_TOOLTIP,
     command:
-      "ui-iris center relative size-control-chrome cursor-pointer rounded-full bg-transparent text-ink-body hover:text-ink select-none data-[banner=true]:[--iris:var(--color-fill-hover)]",
+      "dock-command ui-iris center relative size-control-chrome cursor-pointer rounded-full bg-transparent text-ink-body hover:text-ink select-none data-[banner=true]:[--iris:var(--color-fill-hover)]",
     commandBadge:
       "center bg-grade absolute -right-0.5 -top-0.5 h-4 min-w-4 px-1 rounded-full type-micro leading-none font-semibold tabular-nums text-on-accent",
 
     compactFrame: "flex w-full justify-center",
-    compact: "flex w-max shrink-0 items-center",
+    // The press lens (compact-lens.ts) rides inside the row; horizontal
+    // drags are its, not the page's. While search is open in the row the
+    // commands step aside (search has its own close), and so does the
+    // press lens left from the tap.
+    compact:
+      "dock-compact relative flex w-max shrink-0 items-center touch-pan-y has-[[data-part=compact-search]]:[&_.dock-command]:hidden has-[[data-part=compact-search]]:[&_.dock-compact-gap]:hidden has-[[data-part=compact-search]]:[&_[data-part=compact-lens]]:hidden",
     compactView: "flex items-center",
     compactActions: COMPACT_ACTIONS,
-    compactDivider: "mx-2 h-5 w-px shrink-0 rounded-full bg-line last:hidden",
+    // Space, not a rule, between the action and the commands.
+    compactDivider: "dock-compact-gap w-2 shrink-0 last:hidden",
     compactStatus: "flex min-w-0 items-center gap-2.5 pe-3",
     compactStatusIcon:
       "shrink-0 [&_.size-12]:size-control-chrome [&_.size-12]:rounded-full",
@@ -123,7 +136,7 @@ export const dockThemeConfig = defineTheme(dockTheme, {
     controlClose: "pointer-events-auto shrink-0",
     controlButton: CONTROL_BUTTON,
     controlBackIcon: "rtl:rotate-180",
-    controlHeaderButton: `pointer-events-auto ${CONTROL_BUTTON} disabled:opacity-50 disabled:pointer-events-none data-[text=true]:h-control-chrome data-[text=true]:px-4 data-[text=true]:type-control data-[text=true]:font-medium data-[text=true]:whitespace-nowrap`,
+    controlHeaderButton: `pointer-events-auto ${CONTROL_BUTTON} disabled:opacity-50 disabled:pointer-events-none data-[text=true]:h-control-chrome data-[text=true]:w-auto data-[text=true]:px-4 data-[text=true]:type-control data-[text=true]:font-medium data-[text=true]:whitespace-nowrap`,
     controlRadiusSingle: "rounded-full",
     controlRadiusFirst: "rounded-full",
     controlRadiusLast: "rounded-full",

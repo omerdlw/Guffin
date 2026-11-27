@@ -9,8 +9,8 @@ import {
   useMemo,
   useState,
 } from "react";
-import { DetailViews } from "@/features/detail/stage";
-import { useScrollDriver } from "@/motion/react";
+import { DetailViews } from "@/features/detail-page/components/stage";
+import { useScrollDriver } from "@/motion/core/provider";
 
 interface ReelState {
   project: (path: string | null) => void;

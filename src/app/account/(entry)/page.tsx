@@ -1,10 +1,10 @@
 import type { JSX } from "react";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { getCurrentAccount } from "@/features/account/server";
+import { getCurrentAccount } from "@/features/account/queries";
 import { getOptionalUser } from "@/features/auth/server";
 import { viewer } from "@/infrastructure/db/client";
-import { accountHref } from "@/shared/project";
+import { accountHref } from "@/shared/site";
 
 export const metadata: Metadata = { title: "Account" };
 

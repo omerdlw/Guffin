@@ -1,13 +1,5 @@
 import { err, ok, type Result } from "@omerdlw/base-framework/result";
 import {
-  checkLanguage,
-  isExpectedTmdbError,
-  isTmdbId,
-  type NextFetchInit,
-  type TmdbError,
-  tmdbErrors,
-} from "./transport";
-import {
   type Award,
   type AwardOrganization,
   type AwardRecipient,
@@ -19,7 +11,15 @@ import {
   TMDB_REVALIDATE,
   TMDB_WEBSITE_URL,
   tmdbCacheTag,
-} from "./shared";
+} from "./model";
+import {
+  checkLanguage,
+  isExpectedTmdbError,
+  isTmdbId,
+  type NextFetchInit,
+  type TmdbError,
+  tmdbErrors,
+} from "./transport";
 
 const EMPTY_AWARDS: Awards = Object.freeze({
   nominations: 0,

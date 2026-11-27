@@ -1,9 +1,9 @@
-export * from "./spotlights";
+export * from "./model";
 export * from "./catalog";
 export * from "./marks";
-export * from "./shell";
-export * from "./skeleton";
-export * from "./server";
-export { DirectorsView } from "./directors/view";
-export { OscarsView } from "./oscars/view";
-export { TunnelView } from "./top-100/view";
+export * from "./components/shell";
+export * from "./components/skeleton";
+export * from "./queries";
+export { DirectorsView } from "./directors/directors-view";
+export { OscarsView } from "./oscars/oscars-view";
+export { TunnelView } from "./top-100/top-100-view";

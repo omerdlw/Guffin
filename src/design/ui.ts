@@ -1,4 +1,5 @@
 import { defineUi } from "@omerdlw/base-framework/recipes";
+import { PARTS } from "./recipes";
 import {
   INSTANT,
   LEAVE,
@@ -10,7 +11,6 @@ import {
   spring,
   tween,
 } from "./theme/motion";
-import { PARTS } from "./recipes";
 
 const MENU_CLIP = {
   above: "inset(80% 12% 0% 12% round 24px)",

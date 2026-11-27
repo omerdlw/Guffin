@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { parseMovieId } from "@/features/movie/movie";
+import { parseMovieId } from "@/features/movie/model";
 import { getBackdropPath } from "@/features/person/credits";
-import { parsePersonId } from "@/features/person/person";
+import { parsePersonId } from "@/features/person/model";
 import { getClientIp, rateLimitResponse } from "@/infrastructure/security";
 import {
   getMovieDetails,

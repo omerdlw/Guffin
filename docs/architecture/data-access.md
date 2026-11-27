@@ -116,7 +116,7 @@ await session.call("reorder_list_items", {
 
 ## Mutations: one wrapper
 
-Server actions that write go through `mutate()` (`src/features/auth/server.ts`):
+Server actions that write go through `mutate()` (`src/features/auth/server.ts`); reads go through its twin, `query()`, which runs for signed-out visitors too and turns a thrown error into the same reported `{ success: false, error }` result:
 
 ```mermaid
 sequenceDiagram
@@ -145,6 +145,6 @@ user-safe message. Known database codes become specific ones.
 
 ## Migrations
 
-`drizzle/*.sql` is the schema's source of truth, written by hand:
+`scripts/db/migrations/*.sql` is the schema's source of truth, written by hand:
 `db:new <name>` → write SQL → `db:migrate` → `db:schema`. `0000_baseline.sql`
 holds the full, film-only schema. Later migrations change it in small steps.

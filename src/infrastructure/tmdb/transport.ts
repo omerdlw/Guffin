@@ -6,7 +6,7 @@ import {
   TMDB_RETRY,
   TMDB_SEARCH_LIMITS,
   TMDB_TIMEOUT_MS,
-} from "./shared";
+} from "./model";
 
 export type TmdbError =
   | { kind: "misconfigured"; message: string }

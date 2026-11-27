@@ -137,6 +137,12 @@
   --spacing-control-md: 2.5rem;
   --spacing-control-lg: 3rem;
 
+  /* The compact dock row is a pill: half its height (a chrome control plus
+     the card's p-3 padding). A fixed radius, not rounded-full, so a card
+     still tall from a surface keeps card corners instead of an ellipse, and
+     the glass lens keeps one shape while the height animates. */
+  --radius-compact: calc(var(--spacing-control-chrome) / 2 + 0.75rem);
+
   --spacing-fib-1: 0.3125rem;
   --spacing-fib-2: 0.5rem;
   --spacing-fib-3: 0.8125rem;

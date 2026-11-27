@@ -1,15 +1,16 @@
 "use server";
 import "server-only";
 
-import { loadProfile } from "../server";
+import { isKeyOf, readOffset } from "@/shared/http";
+import { loadProfile } from "../queries";
 import {
   REVIEW_KINDS,
   REVIEW_SORTS,
   type ReviewKind,
   type ReviewSort,
   type ReviewsPage,
-} from "./reviews";
-import { getReviewsPage } from "./server";
+} from "./model";
+import { getReviewsPage } from "./queries";
 
 export async function loadReviewsPage({
   kind,
@@ -25,10 +26,10 @@ export async function loadReviewsPage({
   const { account, session, viewerId } = await loadProfile(username);
   return getReviewsPage({
     accountId: account.id,
-    kind: kind in REVIEW_KINDS ? kind : "all",
-    offset: Math.max(0, Math.floor(offset) || 0),
+    kind: isKeyOf(REVIEW_KINDS, kind) ? kind : "all",
+    offset: readOffset(offset),
     session,
-    sort: sort in REVIEW_SORTS ? sort : "newest",
+    sort: isKeyOf(REVIEW_SORTS, sort) ? sort : "newest",
     viewerId,
   });
 }

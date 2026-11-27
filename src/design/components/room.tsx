@@ -2,7 +2,7 @@
 
 import { useEffect, useSyncExternalStore } from "react";
 import { preload } from "react-dom";
-import { Signal } from "@/motion/engine";
+import { Signal } from "@/motion/core/engine";
 
 interface RoomProps {
   black?: boolean;

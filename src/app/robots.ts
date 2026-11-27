@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { project } from "@/shared/project";
+import { project } from "@/shared/site";
 
 const BLOCKED_BOTS = [
   "AhrefsBot",

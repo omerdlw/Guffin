@@ -4,13 +4,13 @@ One material for everything that floats: the dock, modals, menus, tooltips,
 toasts, carousel arrows and controls laid over a picture. A related, lighter
 material covers controls lying on the page. Sources:
 
-| File                                   | What                                                        |
-| -------------------------------------- | ----------------------------------------------------------- |
-| `src/design/styles/liquid.css`         | The classes: material, frost, lens, clear, control          |
-| `src/design/glass/` (`GlassEngine`)    | The engine: optics, materials, maps, per-surface filters    |
-| `src/design/styles/themes.css`         | `--liquid-*` and `--glass-control-*` values (+ `.on-photo`) |
-| `src/design/liquid-touch.ts`           | Press and lean for `.liquid-touch` controls (section 4.1)   |
-| `src/design/components/glass-thumb.ts` | Springs for thumbs that turn to glass (switch, segmented)   |
+| File                                | What                                                        |
+| ----------------------------------- | ----------------------------------------------------------- |
+| `src/design/styles/liquid.css`      | The classes: material, frost, lens, clear, control          |
+| `src/design/glass/` (`GlassEngine`) | The engine: optics, materials, maps, per-surface filters    |
+| `src/design/styles/themes.css`      | `--liquid-*` and `--glass-control-*` values (+ `.on-photo`) |
+| `src/design/glass/liquid-touch.ts`  | Press and lean for `.liquid-touch` controls (section 4.1)   |
+| `src/design/glass/spring.ts`        | Springs for thumbs that turn to glass (switch, segmented)   |
 
 `GlassEngine` and `LiquidTouch` are mounted once in `src/app/providers.tsx`.
 
@@ -185,7 +185,7 @@ Pressed, dragged, or crossing to a new choice, they swell into clear liquid
 glass that bends what lies under them, and settle solid again. One element
 with `liquid liquid-lens`; the swell is `scale` with a constant height (so its
 maps stay cached); solid → glass is an inline
-`color-mix(var(--rest) X%, var(--liquid-tint))`. `glass-thumb.ts` steps the
+`color-mix(var(--rest) X%, var(--liquid-tint))`. `glass/spring.ts` steps the
 springs at a fixed rate on one frame loop that stops when everything rests;
 a per-trip latch keeps the spring's overshoot from turning it back to glass.
 

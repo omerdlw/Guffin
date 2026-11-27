@@ -2,37 +2,32 @@
 import "server-only";
 
 import { report, toUserMessage } from "@omerdlw/base-framework/utils";
-import {
-  fail,
-  type MutationResult as ActionResult,
-  type MutationResult,
-  ok,
-} from "@/features/auth/mutation";
-import { mutate, requireUser } from "@/features/auth/server";
-import { isUuid } from "@/infrastructure/http";
 import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { mutate, requireUser } from "@/features/auth/server";
 import { pgErrorCode, type Session, viewer } from "@/infrastructure/db/client";
 import { pick } from "@/infrastructure/db/pick";
 import { listItems, listLikes, lists } from "@/infrastructure/db/schema";
 import { checkRateLimit } from "@/infrastructure/security";
+import type { MovieDetails } from "@/infrastructure/tmdb/model";
 import { getMovieDetails, movieSnapshot } from "@/infrastructure/tmdb/server";
-import type { MovieDetails } from "@/infrastructure/tmdb/shared";
 import { isTmdbId } from "@/infrastructure/tmdb/transport";
+import { isUuid } from "@/shared/http";
+import { fail, type ActionResult, ok } from "@/shared/result";
 import {
   LIST_DESCRIPTION_MAX,
   LIST_TITLE_MAX,
   type ListDraft,
   type ListOrderItem,
   type MovieListSummary,
-} from "./list";
-import { readListPreviews } from "./server";
+} from "./model";
+import { readListPreviews } from "./queries";
 
-type MovieListsResult = MutationResult<{
+type MovieListsResult = ActionResult<{
   lists: MovieListSummary[];
   memberships: string[];
 }>;
 
-type MovieListChangeResult = MutationResult<{
+type MovieListChangeResult = ActionResult<{
   inList: boolean;
   list: MovieListSummary;
 }>;

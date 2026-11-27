@@ -1,7 +1,7 @@
-import { eq } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
+import { eq } from "drizzle-orm";
+import { sanitizeNextPath } from "@/features/auth/model";
 import { getOptionalUser } from "@/features/auth/server";
-import { sanitizeNextPath } from "@/features/auth/session";
 import { admin } from "@/infrastructure/db/client";
 import { accounts } from "@/infrastructure/db/schema";
 

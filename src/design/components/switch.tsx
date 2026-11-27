@@ -16,7 +16,7 @@ import {
   type Goal,
   spring,
   swellBox,
-} from "@/design/components/glass-thumb";
+} from "@/design/glass/spring";
 import { cn } from "@/design/ui";
 
 interface SwitchProps extends Omit<

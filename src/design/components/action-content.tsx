@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect } from "react";
-import { pieces, shapeOf } from "@/design/action-text";
+import { type ReactElement, useEffect } from "react";
+import { useDockSelector } from "@omerdlw/base-framework/dock";
+import { Tooltip } from "@omerdlw/base-framework/ui";
+import { pieces, shapeOf } from "@/design/components/action-text";
 import { Icon, type IconProps } from "@/design/components/icon";
+import { DOCK_TOOLTIP } from "@/design/theme/dock";
 import { cn } from "@/design/ui";
+import { LEAVE, SETTLE } from "@/motion/choreography/pace";
 import { AnimatePresence, motion, useReducedMotion } from "@/motion/lib";
 
-type Ease = [number, number, number, number];
-
-const SETTLE: Ease = [0.236, 0.382, 0.146, 1];
-const LEAVE: Ease = [0.618, 0, 0.854, 0.382];
 const IN = { duration: 0.382, ease: SETTLE };
 const OUT = { duration: 0.236, ease: LEAVE };
 const LINE = "100%";
@@ -49,6 +49,29 @@ export function ActionIcon({ size = 16, ...props }: IconProps) {
   );
 }
 
+/**
+ * A card action that is not the first: the compact row draws it as its icon
+ * alone, so there it names itself in the dock's tooltip.
+ */
+export function ActionTip({
+  children,
+  text,
+}: {
+  children: ReactElement;
+  text: string;
+}) {
+  const compact = useDockSelector((state) => state.compact && !state.expanded);
+  return (
+    <Tooltip
+      className={DOCK_TOOLTIP}
+      sideOffset={6}
+      text={compact ? text : undefined}
+    >
+      {children}
+    </Tooltip>
+  );
+}
+
 export function ActionLabel({
   children,
   className = "truncate",
@@ -58,7 +81,10 @@ export function ActionLabel({
 }) {
   const moves = useReducedMotion() ? cut : roll;
   return (
-    <span className={cn("relative overflow-hidden", className)}>
+    <span
+      className={cn("relative overflow-hidden", className)}
+      data-part="action-label"
+    >
       <AnimatePresence initial={false} mode="wait">
         <motion.span
           className="inline-block whitespace-pre"

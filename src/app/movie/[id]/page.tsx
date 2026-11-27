@@ -2,9 +2,9 @@ import type { JSX } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { MoviePageContent, parseMovieId } from "@/features/movie";
-import { project, shareMetadata } from "@/shared/project";
+import { tmdbImageUrl } from "@/infrastructure/tmdb/model";
 import { getMovieDetails } from "@/infrastructure/tmdb/server";
-import { tmdbImageUrl } from "@/infrastructure/tmdb/shared";
+import { project, shareMetadata } from "@/shared/site";
 
 interface MoviePageProps {
   params: Promise<{ id: string }>;

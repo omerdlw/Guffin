@@ -1,13 +1,13 @@
 import { err } from "@omerdlw/base-framework/result";
 import type { Result } from "@omerdlw/base-framework/result";
-import { personDetailsSchema, personSearchPageSchema } from "./schemas";
 import {
   type PersonDetails,
   type PersonSearchPage,
   TMDB_DEFAULT_LANGUAGE,
   TMDB_REVALIDATE,
   tmdbCacheTag,
-} from "./shared";
+} from "./model";
+import { personDetailsSchema, personSearchPageSchema } from "./schemas";
 import {
   checkLanguage,
   checkSearchInput,

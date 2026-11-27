@@ -4,7 +4,7 @@ import {
   type PersonDetails,
   type PersonImage,
   tmdbImageUrl,
-} from "@/infrastructure/tmdb/shared";
+} from "@/infrastructure/tmdb/model";
 import {
   type Career,
   departmentRole,
@@ -13,7 +13,7 @@ import {
   type FilmographySort,
   type TimelineCredit,
   type TimelineYear,
-} from "./person";
+} from "./model";
 
 type SourceCredit = PersonCastCredit | PersonCrewCredit;
 

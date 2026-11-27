@@ -1,3 +1,3 @@
-export * from "./artwork";
-export * from "./backdrop-preloader";
+export * from "./components/artwork";
+export * from "./components/backdrop-preloader";
 export * from "./store";

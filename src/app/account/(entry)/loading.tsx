@@ -3,7 +3,7 @@ import { RouteLoading } from "@/design/components/route-loading";
 import {
   OverviewSkeleton,
   ProfileFrameSkeleton,
-} from "@/features/profile/skeleton";
+} from "@/features/profile/components/skeleton";
 
 export default function Loading(): JSX.Element {
   return (

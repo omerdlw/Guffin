@@ -9,7 +9,54 @@
   initial-value: 0;
 }
 
+@property --touch-glow-x {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --touch-glow-y {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --touch-glow-r {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --touch-glow-a {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+@property --touch-wash-a {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
 @layer components {
+  /* Press glow (liquid-touch.ts): a light that follows the pointer over the
+     control's own background, plus a faint wash across it. */
+  [data-touch-glow][data-touch-glow] {
+    background-image:
+      radial-gradient(
+        circle var(--touch-glow-r) at var(--touch-glow-x) var(--touch-glow-y),
+        rgb(
+          from var(--liquid-touch-glow) r g b /
+            calc(alpha * var(--touch-glow-a))
+        ),
+        transparent
+      ),
+      linear-gradient(
+        rgb(
+            from var(--liquid-touch-wash) r g b /
+              calc(alpha * var(--touch-wash-a))
+          )
+          0 0
+      );
+  }
+
   .liquid {
     position: relative;
     background-color: var(--liquid-tint);
@@ -35,7 +82,7 @@
       :where(.dock-root, .liquid, [role="dialog"]) *
     )::after {
     background: conic-gradient(
-      from 315deg,
+      from 0deg,
       var(--rim-key) 0deg,
       var(--rim-shade) 75deg 105deg,
       var(--rim-fill) 180deg,

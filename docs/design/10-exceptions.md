@@ -11,7 +11,7 @@ places the rules above bend:
   `#fcfcfb` and may use raw rgb, because it is light on the picture.
 - **A member's backdrop** washed behind a notification: 25, 40 on hover.
 - **Pointer followers** (the cursor and reticle, glass touch in
-  `liquid-touch.ts`, glass thumbs in `glass-thumb.ts`) run their own frame
+  `glass/liquid-touch.ts`, glass thumbs in `glass/spring.ts`) run their own frame
   loop, because they track the pointer.
 - **The liquid glass** (`liquid.css`, `glass/`, `--liquid-*`,
   `--glass-control-*`): raw white and black, off-grid alphas, real shadows and

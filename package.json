@@ -21,12 +21,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "db:migrate": "drizzle-kit migrate --config scripts/db/drizzle.config.ts",
-    "db:new": "drizzle-kit generate --config scripts/db/drizzle.config.ts --custom --name",
-    "seed": "node --max-old-space-size=8192 scripts/seed/run.mjs",
-    "seed:catalog": "node scripts/seed/catalog.mjs",
-    "seed:verify": "node scripts/seed/verify.mjs",
-    "seed:clean": "node scripts/seed/clean.mjs",
-    "seed:load": "node scripts/seed/load.mjs"
+    "db:new": "drizzle-kit generate --config scripts/db/drizzle.config.ts --custom --name"
   },
   "dependencies": {
     "@better-auth/passkey": "^1.7.25",
