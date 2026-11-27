@@ -31,12 +31,30 @@ export interface Session {
 
 const globalPool = globalThis as typeof globalThis & { guffinPool?: pg.Pool };
 
+// Without these a dropped network (sleep, Wi-Fi change, EHOSTUNREACH) leaves
+// pooled sockets half-open: connect() and queries then wait forever and the
+// route never leaves its loading skeleton. Bounded waits turn that into an
+// error the page can render, and a broken client is discarded, not reused.
+const CONNECT_TIMEOUT_MS = 10_000;
+const QUERY_TIMEOUT_MS = 15_000;
+
 function getPool(): pg.Pool {
-  globalPool.guffinPool ??= new pg.Pool({
-    connectionString: requireDatabaseUrl(),
-    idleTimeoutMillis: 30_000,
-    max: 10,
-  });
+  if (!globalPool.guffinPool) {
+    const pool = new pg.Pool({
+      connectionString: requireDatabaseUrl(),
+      connectionTimeoutMillis: CONNECT_TIMEOUT_MS,
+      idleTimeoutMillis: 30_000,
+      keepAlive: true,
+      max: 10,
+      query_timeout: QUERY_TIMEOUT_MS,
+    });
+    // An idle client's socket error is otherwise an uncaughtException; the
+    // pool already drops that client.
+    pool.on("error", (error) => {
+      console.warn("[db] idle client error:", error.message);
+    });
+    globalPool.guffinPool = pool;
+  }
   return globalPool.guffinPool;
 }
 
@@ -64,16 +82,19 @@ async function inScope<T>(
 ): Promise<T> {
   const scope = scopeStatement(viewerId);
   const client = await getPool().connect();
+  let broken = false;
   try {
     await client.query(scope);
     const result = await work(client);
     await client.query("commit");
     return result;
   } catch (error) {
-    await client.query("rollback").catch(() => {});
+    await client.query("rollback").catch(() => {
+      broken = true;
+    });
     throw error;
   } finally {
-    client.release();
+    client.release(broken);
   }
 }
 

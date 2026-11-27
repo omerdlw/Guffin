@@ -142,6 +142,8 @@
     --liquid-poster-star-l: 0.86;
     --liquid-poster-star-c: 0.17;
     --liquid-glint: rgb(255 255 255 / 0.12);
+    --liquid-touch-glow: rgb(255 255 255 / 0.16);
+    --liquid-touch-wash: rgb(255 255 255 / 0.05);
     --liquid-sheen: none;
 
     --glass-control: rgb(var(--ink-rgb) / 0.06);

@@ -184,7 +184,15 @@ function hrefsOf(item: SearchSection): string[] {
   }
 }
 
-export function SearchAction({ onClose }: { onClose?: () => void } = {}) {
+/**
+ * The search field and its results. `compact` is search opened in place in
+ * the compact dock row: a pill the row's height, focused on open, with the
+ * results rising above it (the dock sits at the bottom).
+ */
+export function SearchAction({
+  compact = false,
+  onClose,
+}: { compact?: boolean; onClose?: () => void } = {}) {
   const { navigate } = useDockActions();
   const actionClass = useDockActionClass();
   const drawerPart = useSearchPart("drawer");
@@ -341,60 +349,139 @@ export function SearchAction({ onClose }: { onClose?: () => void } = {}) {
           : "idle";
 
   return (
-    <SearchStage className="flex flex-col">
-      <form
-        className={cn(styles.scan, "group/field relative w-full rounded-card")}
-        data-busy={isLoading ? "" : undefined}
-        onSubmit={handleSubmit}
-        role="search"
-      >
-        <Icon
-          className={cn(
-            "pointer-events-none absolute top-1/2 left-4 -translate-y-1/2",
-            input
-              ? "text-grade"
-              : "text-ink-muted group-focus-within/field:text-ink",
-          )}
-          icon="solar:magnifer-linear"
-          size={16}
-        />
-        <Input
-          aria-activedescendant={active >= 0 ? optionId(active) : undefined}
-          aria-autocomplete="list"
-          aria-controls={listId}
-          aria-expanded={hitCount > 0}
-          aria-label="Search movies, people, users, lists and reviews"
-          autoCapitalize="off"
-          autoComplete="off"
-          autoCorrect="off"
-          className="pr-12 pl-11"
-          enterKeyHint="search"
-          maxLength={SEARCH_MAX_QUERY_LENGTH}
-          name="search"
-          onChange={(event) => handleInput(event.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Search movies, people, users, lists…"
-          ref={inputRef}
-          role="combobox"
-          spellCheck={false}
-          type="text"
-          value={input}
-        />
-        <div className="absolute top-1/2 right-1 -translate-y-1/2">
-          {input ? (
-            <Button
-              aria-label="Clear search"
-              icon
-              intent="ghost"
-              onClick={handleClear}
-              shape="pill"
-              size="sm"
-            >
-              <Icon icon="solar:close-circle-bold" size={16} />
-            </Button>
-          ) : null}
+    <SearchStage className="flex flex-col" compact={compact}>
+      {compact ? (
+        // In the compact row the dock's commands step aside; search carries
+        // its own close beside the field.
+        <div className="flex w-full items-center gap-2">
+          <form
+            className={cn(
+              styles.scan,
+              "group/field relative w-full rounded-card",
+              compact && "min-w-0 flex-1",
+            )}
+            data-busy={isLoading ? "" : undefined}
+            onSubmit={handleSubmit}
+            role="search"
+          >
+            <Icon
+              className={cn(
+                "pointer-events-none absolute top-1/2 left-4 -translate-y-1/2",
+                input
+                  ? "text-grade"
+                  : "text-ink-muted group-focus-within/field:text-ink",
+              )}
+              icon="solar:magnifer-linear"
+              size={16}
+            />
+            <Input
+              aria-activedescendant={active >= 0 ? optionId(active) : undefined}
+              aria-autocomplete="list"
+              aria-controls={listId}
+              aria-expanded={hitCount > 0}
+              aria-label="Search movies, people, users, lists and reviews"
+              autoCapitalize="off"
+              autoComplete="off"
+              autoCorrect="off"
+              autoFocus={compact}
+              className="pr-12 pl-11"
+              enterKeyHint="search"
+              maxLength={SEARCH_MAX_QUERY_LENGTH}
+              name="search"
+              onChange={(event) => handleInput(event.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Search movies, people, users, lists…"
+              ref={inputRef}
+              role="combobox"
+              spellCheck={false}
+              type="text"
+              value={input}
+            />
+            <div className="absolute top-1/2 right-1 -translate-y-1/2">
+              {input ? (
+                <Button
+                  aria-label="Clear search"
+                  icon
+                  intent="ghost"
+                  onClick={handleClear}
+                  shape="pill"
+                  size="sm"
+                >
+                  <Icon icon="solar:close-circle-bold" size={16} />
+                </Button>
+              ) : null}
+            </div>
+          </form>
+          <Button
+            aria-label="Close search"
+            icon
+            intent="ghost"
+            onClick={onClose}
+            shape="pill"
+          >
+            <Icon icon="solar:close-bold" size={16} />
+          </Button>
         </div>
-      </form>
+      ) : (
+        <form
+          className={cn(
+            styles.scan,
+            "group/field relative w-full rounded-card",
+            compact && "min-w-0 flex-1",
+          )}
+          data-busy={isLoading ? "" : undefined}
+          onSubmit={handleSubmit}
+          role="search"
+        >
+          <Icon
+            className={cn(
+              "pointer-events-none absolute top-1/2 left-4 -translate-y-1/2",
+              input
+                ? "text-grade"
+                : "text-ink-muted group-focus-within/field:text-ink",
+            )}
+            icon="solar:magnifer-linear"
+            size={16}
+          />
+          <Input
+            aria-activedescendant={active >= 0 ? optionId(active) : undefined}
+            aria-autocomplete="list"
+            aria-controls={listId}
+            aria-expanded={hitCount > 0}
+            aria-label="Search movies, people, users, lists and reviews"
+            autoCapitalize="off"
+            autoComplete="off"
+            autoCorrect="off"
+            autoFocus={compact}
+            className="pr-12 pl-11"
+            enterKeyHint="search"
+            maxLength={SEARCH_MAX_QUERY_LENGTH}
+            name="search"
+            onChange={(event) => handleInput(event.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Search movies, people, users, lists…"
+            ref={inputRef}
+            role="combobox"
+            spellCheck={false}
+            type="text"
+            value={input}
+          />
+          <div className="absolute top-1/2 right-1 -translate-y-1/2">
+            {input ? (
+              <Button
+                aria-label="Clear search"
+                icon
+                intent="ghost"
+                onClick={handleClear}
+                shape="pill"
+                size="sm"
+              >
+                <Icon icon="solar:close-circle-bold" size={16} />
+              </Button>
+            ) : null}
+          </div>
+        </form>
+      )}
 
       <div
         {...drawerPart}

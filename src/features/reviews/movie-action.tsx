@@ -9,7 +9,11 @@ import {
 import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
 import { Button } from "@omerdlw/base-framework/ui";
 import { report } from "@omerdlw/base-framework/utils";
-import { ActionIcon, ActionLabel } from "@/design/components/action-content";
+import {
+  ActionIcon,
+  ActionLabel,
+  ActionTip,
+} from "@/design/components/action-content";
 import { DockAction } from "@/design/components/surface";
 import { useSurfacePreload } from "@/design/lazy-surface";
 import { useAuth } from "@/features/auth/provider";
@@ -89,40 +93,44 @@ export function MovieAction({
 
   const more =
     reviews && pager && pager.left > 0 ? (
-      <Button
-        className={actionClass({
-          className: userId ? slots.actionFill : "w-full",
-        })}
-        disabled={pager.loading}
-        onClick={pager.more}
-        type="button"
-      >
-        <ActionIcon
-          icon={
-            pager.loading
-              ? "svg-spinners:90-ring-with-bg"
-              : "solar:alt-arrow-down-bold"
-          }
-        />
-        <ActionLabel className={slots.actionLabel}>
-          {`More reviews (${pager.left})`}
-        </ActionLabel>
-      </Button>
+      <ActionTip text={`More reviews (${pager.left})`}>
+        <Button
+          className={actionClass({
+            className: userId ? slots.actionFill : "w-full",
+          })}
+          disabled={pager.loading}
+          onClick={pager.more}
+          type="button"
+        >
+          <ActionIcon
+            icon={
+              pager.loading
+                ? "svg-spinners:90-ring-with-bg"
+                : "solar:alt-arrow-down-bold"
+            }
+          />
+          <ActionLabel className={slots.actionLabel}>
+            {`More reviews (${pager.left})`}
+          </ActionLabel>
+        </Button>
+      </ActionTip>
     ) : null;
 
   const providers = reviews ? (
     more
   ) : hasProviders ? (
-    <Button
-      className={actionClass({
-        className: userId ? slots.actionFill : "w-full",
-      })}
-      onClick={onOpenProviders}
-      type="button"
-    >
-      <ActionIcon icon="solar:tv-bold" />
-      <ActionLabel className={slots.actionLabel}>Where to watch?</ActionLabel>
-    </Button>
+    <ActionTip text="Where to watch?">
+      <Button
+        className={actionClass({
+          className: userId ? slots.actionFill : "w-full",
+        })}
+        onClick={onOpenProviders}
+        type="button"
+      >
+        <ActionIcon icon="solar:tv-bold" />
+        <ActionLabel className={slots.actionLabel}>Where to watch?</ActionLabel>
+      </Button>
+    </ActionTip>
   ) : null;
 
   const wrap = (content: JSX.Element | null) =>

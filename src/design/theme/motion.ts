@@ -39,7 +39,7 @@ export const spring = (visualDuration: number, bounce = 0) => ({
   bounce,
 });
 
-export const at = (y = 0, scale = 1) => gpuTransform(y, scale);
+export const at = (y = 0, scale = 1, x = 0) => gpuTransform(y, scale, x);
 
 export const away = (y = 0, scale = 1) => ({
   opacity: 0,

@@ -1,5 +1,6 @@
 "use client";
 
+import { COMPACT_SEARCH_WIDTH } from "@/design/theme/dock-motion";
 import type { ReactNode } from "react";
 import type { Curve, Enter, Look, Moves } from "@/motion/choreo";
 import { defineStage } from "@/motion/stage";
@@ -149,13 +150,20 @@ export const SearchStyle = SEARCH.Style;
 export function SearchStage({
   children,
   className,
+  compact = false,
 }: {
   children: ReactNode;
   className?: string;
+  compact?: boolean;
 }) {
   return (
     <SearchRoot>
-      <div className={cn("ui-scene w-full", className)} data-cinematic="">
+      <div
+        className={cn("ui-scene w-full", className)}
+        data-cinematic=""
+        data-part={compact ? "compact-search" : undefined}
+        style={compact ? { width: COMPACT_SEARCH_WIDTH } : undefined}
+      >
         {children}
       </div>
     </SearchRoot>

@@ -20,7 +20,12 @@ import {
 import { getOptionalUser, mutate, requireUser } from "@/features/auth/server";
 import { isUuid } from "@/infrastructure/http";
 import { and, eq, inArray } from "drizzle-orm";
-import { pgError, pgErrorCode, type Session, viewer } from "@/infrastructure/db/client";
+import {
+  pgError,
+  pgErrorCode,
+  type Session,
+  viewer,
+} from "@/infrastructure/db/client";
 import {
   accountDiary,
   accountFavorites,

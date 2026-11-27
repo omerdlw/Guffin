@@ -3,7 +3,7 @@
 import { memo, type ReactNode } from "react";
 import { Button } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
-import { SkeletonBlock } from "@/design/components/skeleton";
+import { SKELETON, SkeletonBlock } from "@/design/components/skeleton";
 import { RADIUS } from "@/design/foundations/geometry";
 import { TONE, WELL } from "@/design/foundations/tones";
 import { cn } from "@/design/ui";
@@ -36,7 +36,11 @@ const SEARCH_GROUP_LABELS: Readonly<Record<SearchType, string>> = {
 
 const RESULT_POSTER_GRID = "grid grid-cols-4 gap-2.5";
 
-const RESULT_ROW_LIST = cn("flex flex-col gap-0.5 rounded-card p-1", WELL);
+const ROW_LIST = "flex flex-col gap-0.5 rounded-card p-1";
+const RESULT_ROW_LIST = cn(ROW_LIST, WELL);
+// Skeletons carry no border or shadow: the well's rim and drop shadow read as
+// an extra band below the placeholder.
+const SKELETON_ROW_LIST = cn(ROW_LIST, SKELETON.soft);
 
 function Option({
   active,
@@ -255,7 +259,7 @@ function SkeletonHeader() {
 
 function SkeletonRows({ count }: { count: number }) {
   return (
-    <div className={RESULT_ROW_LIST}>
+    <div className={SKELETON_ROW_LIST}>
       {Array.from({ length: count }, (_, index) => (
         <div className="flex h-16 items-center gap-3 p-2 pr-4" key={index}>
           <SkeletonBlock className="h-12 w-8 shrink-0 rounded-thumb" />

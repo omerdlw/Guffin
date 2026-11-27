@@ -146,34 +146,39 @@ export function Projection({
       data-cursor-stage=""
       data-slot="screen"
     >
-      <div className="absolute inset-0" data-slot="picture" style={mask}>
-        <motion.img
-          alt=""
-          className="absolute inset-0 size-full object-cover"
-          crossOrigin={plain ? undefined : "anonymous"}
-          decoding="async"
-          fetchPriority="high"
-          key={plain ? "plain" : "read"}
-          onError={() => {
-            if (plain) onReady?.();
-            else setPlain(true);
-          }}
-          onLoad={plain ? onReady : undefined}
-          ref={image}
-          src={plain ? (reel ?? src) : readable(src)}
-          style={{
-            filter: live ? undefined : softened,
-            objectPosition: position,
-            visibility: live ? "hidden" : undefined,
-          }}
-        />
-        {plain ? null : (
-          <canvas
-            className="absolute inset-0 size-full"
-            ref={canvas}
-            style={{ opacity: live ? 1 : 0 }}
+      {/* The mask sits on its own layer above the filtered picture: with both
+          on one element Chromium drops the mask on the edge pixel while the
+          canvas redraws under the load blur (a flashing hairline). */}
+      <div className="absolute inset-0" style={mask}>
+        <div className="absolute inset-0" data-slot="picture">
+          <motion.img
+            alt=""
+            className="absolute inset-0 size-full object-cover"
+            crossOrigin={plain ? undefined : "anonymous"}
+            decoding="async"
+            fetchPriority="high"
+            key={plain ? "plain" : "read"}
+            onError={() => {
+              if (plain) onReady?.();
+              else setPlain(true);
+            }}
+            onLoad={plain ? onReady : undefined}
+            ref={image}
+            src={plain ? (reel ?? src) : readable(src)}
+            style={{
+              filter: live ? undefined : softened,
+              objectPosition: position,
+              visibility: live ? "hidden" : undefined,
+            }}
           />
-        )}
+          {plain ? null : (
+            <canvas
+              className="absolute inset-0 size-full"
+              ref={canvas}
+              style={{ opacity: live ? 1 : 0 }}
+            />
+          )}
+        </div>
       </div>
     </div>
   );

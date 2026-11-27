@@ -9,22 +9,23 @@ import {
   useState,
 } from "react";
 import {
-  useDockActions,
   useDockRegistration,
   useDockSelector,
 } from "@omerdlw/base-framework/dock";
-import { REGISTRY_SOURCES } from "@omerdlw/base-framework/kernel";
+import {
+  REGISTRY_SOURCES,
+  type RegistryLifecycle,
+} from "@omerdlw/base-framework/kernel";
 import { report } from "@omerdlw/base-framework/utils";
 import { usePathname } from "next/navigation";
-import { useKeepDockCard } from "@/design/dock-compact";
+import { useHoldDockCompact, useKeepDockCard } from "@/design/dock-compact";
 import { useDockCommands } from "@/design/dock-commands";
-import {
-  lazySurface,
-  preloadOnIntent,
-  useAheadOfOpen,
-} from "@/design/lazy-surface";
+import { preloadOnIntent, useAheadOfOpen } from "@/design/lazy-surface";
 
-type SearchActionComponent = ComponentType<{ onClose?: () => void }>;
+type SearchActionComponent = ComponentType<{
+  compact?: boolean;
+  onClose?: () => void;
+}>;
 
 interface SearchModule {
   SearchAction: SearchActionComponent;
@@ -39,16 +40,13 @@ const SEARCH_ACTION_KEY = "search.open";
 
 const SEARCH_ACTION_ORDER = -20;
 
+// Closing search is a tap, not a page change: drop it now rather than after
+// the dock's route-bridging grace (which held it on screen ~600ms).
 const SEARCH_REGISTRATION = {
+  lifecycle: "immediate" satisfies RegistryLifecycle,
   priority: 1000,
   source: REGISTRY_SOURCES.DYNAMIC,
 } as const;
-
-// From the compact dock, search opens as a surface instead of unfolding the
-// card: the dock grows straight out of the compact row and folds back into it.
-const searchSurface = lazySurface(() =>
-  import("./search-surface").then((m) => m.searchSurface),
-);
 
 let pending: Promise<SearchModule> | null = null;
 
@@ -72,28 +70,25 @@ export function SearchDockCommand(): ReactNode {
   const open = openPath === pathname && SearchAction !== null;
   const frontPath = useDockSelector((state) => state.activeItem?.path ?? null);
   const compact = useDockSelector((state) => state.compact && !state.expanded);
-  const { openSurface } = useDockActions();
 
   useEffect(
     () =>
       preloadOnIntent(
-        [{ preload: () => loadSearchAction().then(setLoaded) }, searchSurface],
+        [{ preload: () => loadSearchAction().then(setLoaded) }],
         window,
       ),
     [],
   );
 
+  // Opened from the compact row, search stays in it: the row turns into
+  // the field and the dock stays compact while it is open.
+  const [inRow, setInRow] = useState(false);
   const toggle = useCallback(() => {
     if (openPath === pathname) {
       setOpenPath(null);
       return;
     }
-    if (compact) {
-      searchSurface
-        .open(openSurface)
-        .catch((error: unknown) => report("SearchDockCommand", error));
-      return;
-    }
+    setInRow(compact);
     loadSearchAction().then(
       (module) => {
         setLoaded(module);
@@ -101,7 +96,7 @@ export function SearchDockCommand(): ReactNode {
       },
       (error: unknown) => report("SearchDockCommand", error),
     );
-  }, [compact, openPath, openSurface, pathname]);
+  }, [compact, openPath, pathname]);
 
   const close = useCallback(() => setOpenPath(null), []);
 
@@ -109,14 +104,15 @@ export function SearchDockCommand(): ReactNode {
     () =>
       open && SearchAction
         ? {
-            action: <SearchAction onClose={close} />,
+            action: <SearchAction compact={inRow} onClose={close} />,
             ...(frontPath ? { path: frontPath } : {}),
           }
         : null,
-    [SearchAction, close, frontPath, open],
+    [SearchAction, close, frontPath, inRow, open],
   );
   useDockRegistration(dock, SEARCH_REGISTRATION);
-  useKeepDockCard(open);
+  useKeepDockCard(open && !inRow);
+  useHoldDockCompact(open && inRow);
 
   const actions = useMemo(
     () => [
@@ -125,10 +121,12 @@ export function SearchDockCommand(): ReactNode {
         key: SEARCH_ACTION_KEY,
         onClick: toggle,
         order: SEARCH_ACTION_ORDER,
-        tooltip: open ? "Close search" : "Search",
+        // Hidden while search is open in the compact row: no tooltip, or
+        // one left open from the tap would hang at the page's corner.
+        tooltip: open ? (inRow ? undefined : "Close search") : "Search",
       },
     ],
-    [open, toggle],
+    [inRow, open, toggle],
   );
 
   useDockCommands(actions);

@@ -62,6 +62,7 @@ interface MarqueeProps {
   onLift?: () => void;
 }
 
+const MARQUEE_BLEED = 2;
 const MARQUEE_DEVELOP = 1.029;
 
 const MARQUEE_REST = 0.636;
@@ -236,6 +237,18 @@ function pictureIn(
     width,
     height,
   };
+}
+
+// The picture is clipped to a fractional frame, so its edge pixels are only
+// partly painted; a cover filled over the same rect only partly erases them and
+// leaves a hairline. Fill past the frame (the gradients clamp to full cover).
+function bleed(context: CanvasRenderingContext2D, frame: MarqueeFrame) {
+  context.fillRect(
+    frame.left - MARQUEE_BLEED,
+    frame.top - MARQUEE_BLEED,
+    frame.width + MARQUEE_BLEED * 2,
+    frame.height + MARQUEE_BLEED * 2,
+  );
 }
 
 function coverOf(
@@ -815,9 +828,9 @@ export function Marquee({
         c.globalCompositeOperation = "destination-out";
         c.globalAlpha = edge;
         c.fillStyle = cover.across;
-        c.fillRect(frame.left, frame.top, frame.width, frame.height);
+        bleed(c, frame);
         c.fillStyle = cover.down;
-        c.fillRect(frame.left, frame.top, frame.width, frame.height);
+        bleed(c, frame);
         c.globalAlpha = 1;
         c.globalCompositeOperation = "source-over";
       }
@@ -847,9 +860,9 @@ export function Marquee({
         o.restore();
         o.globalCompositeOperation = "destination-out";
         o.fillStyle = outCover.across;
-        o.fillRect(frame.left, frame.top, frame.width, frame.height);
+        bleed(o, frame);
         o.fillStyle = outCover.down;
-        o.fillRect(frame.left, frame.top, frame.width, frame.height);
+        bleed(o, frame);
         o.globalCompositeOperation = "source-over";
         o.setTransform(1, 0, 0, 1, 0, 0);
       }

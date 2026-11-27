@@ -15,6 +15,7 @@ import {
 } from "@omerdlw/base-framework/dock";
 import { Button } from "@omerdlw/base-framework/ui";
 import { BACKDROP_FILL } from "@/design/components/backdrop";
+import { ActionIcon, ActionLabel } from "@/design/components/action-content";
 import { Icon } from "@/design/components/icon";
 import { DockAction } from "@/design/components/surface";
 import { headlineClass, HEADLINE_BOX } from "@/design/foundations/layout";
@@ -75,8 +76,8 @@ function FilmDock({ film, shown }: { film: Feature; shown: boolean }): null {
                   onClick={() => void navigate(movieHref(film.id))}
                   type="button"
                 >
-                  <Icon icon="solar:play-bold" size={16} />
-                  <span className="truncate">Open film</span>
+                  <ActionIcon icon="solar:play-bold" />
+                  <ActionLabel>Open film</ActionLabel>
                 </Button>
               </DockAction>
             ),
@@ -280,7 +281,7 @@ function Picks({
   return (
     <HomePart
       as="ol"
-      className="scrollbar-none -mx-4 flex gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0 lg:justify-end"
+      className="scrollbar-none -mx-4 -mt-2 flex gap-3 overflow-x-auto px-4 pt-2 pb-1 sm:mx-0 sm:px-0 lg:justify-end"
       name="picks"
     >
       {features.map((film, index) => {

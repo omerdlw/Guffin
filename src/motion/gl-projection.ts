@@ -11,14 +11,6 @@ import {
   uniforms,
 } from "./gl";
 
-interface Speck {
-  life: number;
-  size: number;
-  strength: number;
-  x: number;
-  y: number;
-}
-
 interface Mass {
   vx: number;
   vy: number;
@@ -91,10 +83,7 @@ const PROJECTION_UNIFORMS = [
   "uDefocus",
   "uVelocity",
   "uHalation",
-  "uFlicker",
   "uGrain",
-  "uDust",
-  "uScratch",
 ] as const;
 
 const PROJECTION_GRAIN = 0.18;
@@ -175,10 +164,7 @@ uniform float uRack;
 uniform float uDefocus;
 uniform float uVelocity;
 uniform float uHalation;
-uniform float uFlicker;
 uniform float uGrain;
-uniform vec4 uDust[3];
-uniform vec3 uScratch;
 in vec2 vUv;
 out vec4 outColor;
 
@@ -310,18 +296,12 @@ void main() {
   float luma = dot(color, vec3(0.299, 0.587, 0.114));
   color += n * uGrain * (0.6 + 0.4 * (1.0 - abs(luma * 2.0 - 1.0)));
 
-  for (int i = 0; i < 3; i++) {
-    vec4 dust = uDust[i];
-    if (dust.w <= 0.0) continue;
-    vec2 d = (vUv - dust.xy) * vec2(aspect, 1.0);
-    color *= 1.0 - smoothstep(dust.z, dust.z * 0.35, length(d)) * dust.w;
-  }
-  if (uScratch.y > 0.0) {
-    float x = uScratch.x + sin(vUv.y * 9.0 + uScratch.z) * 0.002;
-    color += smoothstep(1.5 / uCanvas.x, 0.0, abs(vUv.x - x)) * uScratch.y;
-  }
-
-  outColor = vec4(color * uFlicker, 1.0);
+  // The hero mask is fully closed at the box edges, but Chromium's compositor
+  // can drop it for the outermost canvas pixel while the screen scales; keep
+  // that rim transparent so nothing can leak there.
+  vec2 rim = min(gl_FragCoord.xy, uCanvas - gl_FragCoord.xy);
+  float keep = step(2.0, min(rim.x, rim.y));
+  outColor = vec4(color * keep, keep);
 }`;
 
 const BLUR = `#version 300 es
@@ -401,7 +381,7 @@ export function project(
   }: ProjectionOptions,
 ): Projector {
   const gl = canvas.getContext("webgl2", {
-    alpha: false,
+    alpha: true,
     antialias: false,
     depth: false,
     powerPreference: "high-performance",
@@ -435,7 +415,6 @@ export function project(
     u.uStreak,
   ];
   samplers.forEach((location, unit) => gl.uniform1i(location, unit));
-  const specks = new Float32Array(12);
 
   let current: Reel | null = null;
   let next: Reel | null = null;
@@ -462,41 +441,6 @@ export function project(
   let lensSeen = false;
   let velocity = 0;
   let defocus = -1;
-  let flicker = 1;
-  const dust: Speck[] = [];
-  let scratch: {
-    life: number;
-    strength: number;
-    wobble: number;
-    x: number;
-  } | null = null;
-
-  const advance = () => {
-    for (let i = dust.length - 1; i >= 0; i--) {
-      if (--dust[i].life <= 0) dust.splice(i, 1);
-    }
-    if (dust.length < 3 && Math.random() < 1 / 48) {
-      dust.push({
-        life: 1 + Math.round(Math.random()),
-        size: 0.002 + Math.random() * 0.004,
-        strength: 0.35 + Math.random() * 0.35,
-        x: Math.random(),
-        y: Math.random(),
-      });
-    }
-    if (scratch && --scratch.life <= 0) scratch = null;
-    if (!scratch && Math.random() < 1 / 220) {
-      scratch = {
-        life: 6 + Math.round(Math.random() * 8),
-        strength: 0.06 + Math.random() * 0.05,
-        wobble: Math.random() * 6,
-        x: 0.1 + Math.random() * 0.8,
-      };
-    } else if (scratch) {
-      scratch.x += (Math.random() - 0.5) * 0.0015;
-    }
-  };
-
   const bindReel = (reel: Reel, unit: number) => {
     [reel.texture, ...reel.levels, reel.halo].forEach((target, index) => {
       gl.activeTexture(gl.TEXTURE0 + unit + index);
@@ -566,19 +510,7 @@ export function project(
     gl.uniform1f(u.uDefocus, Math.max(0, defocus));
     gl.uniform1f(u.uVelocity, velocity);
     gl.uniform1f(u.uHalation, halation);
-    gl.uniform1f(u.uFlicker, flicker);
     gl.uniform1f(u.uGrain, PROJECTION_GRAIN);
-    specks.fill(0);
-    dust.forEach((speck, index) =>
-      specks.set([speck.x, speck.y, speck.size, speck.strength], index * 4),
-    );
-    gl.uniform4fv(u.uDust, specks);
-    gl.uniform3f(
-      u.uScratch,
-      scratch?.x ?? 0,
-      scratch?.strength ?? 0,
-      scratch?.wobble ?? 0,
-    );
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   };
 
@@ -611,8 +543,6 @@ export function project(
         if (!settled && Math.abs(weave[0]) + Math.abs(weave[1]) < 0.01) {
           weave = [0, 0];
         }
-        flicker = 1 + (Math.random() - 0.5) * 0.022;
-        advance();
         dirty = dirty || defocus < 0.98;
       }
 

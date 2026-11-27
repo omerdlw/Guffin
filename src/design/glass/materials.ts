@@ -17,7 +17,7 @@ const BASE: Material = {
   ior: 1.52,
   abbe: 28,
   bezel: { share: 0.25, min: 4, max: 20 },
-  reach: 3,
+  reach: 2,
   bend: 1,
   frost: { small: 2, large: 4 },
   edge: { gain: 1.45, blur: 1.5 },
@@ -25,7 +25,7 @@ const BASE: Material = {
 
 const LENS = {
   bezel: { share: 0.18, min: 4, max: 20 },
-  reach: 2.8,
+  reach: 1.8,
   frost: { small: 0, large: 0 },
   edge: { gain: 1.25, blur: 0 },
 };

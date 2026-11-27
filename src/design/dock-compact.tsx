@@ -1,10 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useSyncExternalStore } from "react";
-import {
-  useDockActions,
-  useDockSelector,
-} from "@omerdlw/base-framework/dock";
+import { useDockActions, useDockSelector } from "@omerdlw/base-framework/dock";
+import { useCompactLens } from "@/design/compact-lens";
 import { useEngine } from "@/motion/react";
 
 // Near the top of a page the dock stays a full card: it introduces the page.
@@ -27,6 +25,10 @@ function subscribeHolds(listener: () => void) {
 }
 
 const isHeld = () => holds.size > 0;
+
+// Parts that need the compact row to stay while they are open (search open
+// in place in it): scroll leaves the layout alone until none do.
+const rowHolds = new Set<symbol>();
 const isHeldOnServer = () => false;
 
 function notifyHolds() {
@@ -47,6 +49,18 @@ export function useKeepDockCard(active: boolean): void {
   }, [active]);
 }
 
+/** Keeps the dock compact (if it is) while `active`, whatever the scroll. */
+export function useHoldDockCompact(active: boolean): void {
+  useEffect(() => {
+    if (!active) return;
+    const hold = Symbol("dock-compact-hold");
+    rowHolds.add(hold);
+    return () => {
+      rowHolds.delete(hold);
+    };
+  }, [active]);
+}
+
 /**
  * Drives the dock's compact layout from scroll, the way a browser toolbar
  * hides: reading down shrinks the dock to its commands, scrolling back up (or
@@ -59,6 +73,7 @@ export function DockCompact(): null {
   const compact = useDockSelector((state) => state.compact);
   const held = useSyncExternalStore(subscribeHolds, isHeld, isHeldOnServer);
   const shown = useRef({ anchor: 0, compact: false, held: false });
+  useCompactLens();
 
   // The dock may leave the compact layout on its own (a tap, a command): turn
   // there so the next scroll measures from where the reader is.
@@ -86,6 +101,10 @@ export function DockCompact(): null {
     return engine.scroll.subscribe((y) => {
       const { anchor, compact: current, held: isHolding } = shown.current;
       if (isHolding) return;
+      if (rowHolds.size > 0) {
+        shown.current.anchor = y;
+        return;
+      }
       if (y <= CARD_ZONE) {
         if (current) show(false, y);
         else shown.current.anchor = Math.min(anchor, y);

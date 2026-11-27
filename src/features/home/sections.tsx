@@ -235,9 +235,14 @@ export function HomeJoin({ members }: { members: number }): JSX.Element {
 
 // --- HomePitch ---
 
-const SLICE_LIMIT = 6;
-const SLICE_CLASS =
-  "relative -ml-[14%] h-full min-w-0 flex-1 overflow-hidden rounded-l-[32%_50%] border-l-2 border-line first:ml-0 first:rounded-none first:border-l-0";
+// The pitch's art: a wall of whole posters in staggered columns, cut by the
+// panel's edges and faded into it at the top and bottom.
+const WALL_COLUMNS = 4;
+const WALL_LIMIT = WALL_COLUMNS * 3;
+const WALL_FADE =
+  "[mask-image:linear-gradient(to_bottom,transparent,#000_14%,#000_86%,transparent)]";
+const WALL_COLUMN_CLASS =
+  "flex min-w-0 flex-col gap-3 self-center even:-translate-y-[9%] odd:translate-y-[9%]";
 
 export function HomePitch({
   films,
@@ -247,7 +252,10 @@ export function HomePitch({
   members: number;
 }): JSX.Element | null {
   const openSignIn = useOpenSignIn();
-  const posters = films.filter((film) => film.posterPath).slice(0, SLICE_LIMIT);
+  const posters = films.filter((film) => film.posterPath).slice(0, WALL_LIMIT);
+  const columns = Array.from({ length: WALL_COLUMNS }, (_, column) =>
+    posters.filter((_, index) => index % WALL_COLUMNS === column),
+  );
   if (posters.length < 3) return null;
 
   return (
@@ -302,32 +310,43 @@ export function HomePitch({
           </HomePart>
         </div>
 
-        <ul className="flex h-80 min-w-0 sm:h-96 lg:h-auto">
-          {posters.map((film, index) => (
-            <HomePart
-              as="li"
-              className={SLICE_CLASS}
-              index={index}
-              key={film.id}
-              name="slice"
-            >
-              <DockLink
-                aria-label={film.title}
-                className="absolute inset-0 block"
-                data-slot="frame"
-                href={movieHref(film.id)}
-              >
-                <img
-                  alt=""
-                  className="absolute inset-0 size-full object-cover"
-                  decoding="async"
-                  loading="lazy"
-                  src={tmdbImageUrl("poster", film.posterPath, "w500")!}
-                />
-              </DockLink>
-            </HomePart>
-          ))}
-        </ul>
+        <div
+          className={cn(
+            WALL_FADE,
+            "relative h-80 min-w-0 overflow-hidden sm:h-96 lg:h-auto",
+          )}
+        >
+          <div className="absolute inset-0 grid grid-cols-4 gap-3 px-3 lg:pl-0">
+            {columns.map((column, columnIndex) => (
+              <ul className={WALL_COLUMN_CLASS} key={columnIndex}>
+                {column.map((film) => (
+                  <HomePart
+                    as="li"
+                    className="relative aspect-[2/3] w-full shrink-0 overflow-hidden rounded-tile bg-plate"
+                    index={posters.indexOf(film)}
+                    key={film.id}
+                    name="slice"
+                  >
+                    <DockLink
+                      aria-label={film.title}
+                      className="absolute inset-0 block"
+                      data-slot="frame"
+                      href={movieHref(film.id)}
+                    >
+                      <img
+                        alt=""
+                        className="absolute inset-0 size-full object-cover"
+                        decoding="async"
+                        loading="lazy"
+                        src={tmdbImageUrl("poster", film.posterPath, "w342")!}
+                      />
+                    </DockLink>
+                  </HomePart>
+                ))}
+              </ul>
+            ))}
+          </div>
+        </div>
       </HomeSection>
     </GuestOnly>
   );
