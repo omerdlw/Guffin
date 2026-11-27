@@ -348,70 +348,74 @@ export function SearchAction({
           ? `empty:${scope}:${query}`
           : "idle";
 
+  const field = (
+    <form
+      className={cn(
+        styles.scan,
+        "group/field relative w-full rounded-card",
+        compact && "min-w-0 flex-1",
+      )}
+      data-busy={isLoading ? "" : undefined}
+      onSubmit={handleSubmit}
+      role="search"
+    >
+      <Icon
+        className={cn(
+          "pointer-events-none absolute top-1/2 left-4 -translate-y-1/2",
+          input
+            ? "text-grade"
+            : "text-ink-muted group-focus-within/field:text-ink",
+        )}
+        icon="solar:magnifer-linear"
+        size={16}
+      />
+      <Input
+        aria-activedescendant={active >= 0 ? optionId(active) : undefined}
+        aria-autocomplete="list"
+        aria-controls={listId}
+        aria-expanded={hitCount > 0}
+        aria-label="Search movies, people, users, lists and reviews"
+        autoCapitalize="off"
+        autoComplete="off"
+        autoCorrect="off"
+        autoFocus={compact}
+        className="pr-12 pl-11"
+        enterKeyHint="search"
+        maxLength={SEARCH_MAX_QUERY_LENGTH}
+        name="search"
+        onChange={(event) => handleInput(event.target.value)}
+        onKeyDown={handleKeyDown}
+        placeholder="Search movies, people, users, lists…"
+        ref={inputRef}
+        role="combobox"
+        spellCheck={false}
+        type="text"
+        value={input}
+      />
+      <div className="absolute top-1/2 right-1 -translate-y-1/2">
+        {input ? (
+          <Button
+            aria-label="Clear search"
+            icon
+            intent="ghost"
+            onClick={handleClear}
+            shape="pill"
+            size="sm"
+          >
+            <Icon icon="solar:close-circle-bold" size={16} />
+          </Button>
+        ) : null}
+      </div>
+    </form>
+  );
+
   return (
     <SearchStage className="flex flex-col" compact={compact}>
       {compact ? (
         // In the compact row the dock's commands step aside; search carries
         // its own close beside the field.
         <div className="flex w-full items-center gap-2">
-          <form
-            className={cn(
-              styles.scan,
-              "group/field relative w-full rounded-card",
-              compact && "min-w-0 flex-1",
-            )}
-            data-busy={isLoading ? "" : undefined}
-            onSubmit={handleSubmit}
-            role="search"
-          >
-            <Icon
-              className={cn(
-                "pointer-events-none absolute top-1/2 left-4 -translate-y-1/2",
-                input
-                  ? "text-grade"
-                  : "text-ink-muted group-focus-within/field:text-ink",
-              )}
-              icon="solar:magnifer-linear"
-              size={16}
-            />
-            <Input
-              aria-activedescendant={active >= 0 ? optionId(active) : undefined}
-              aria-autocomplete="list"
-              aria-controls={listId}
-              aria-expanded={hitCount > 0}
-              aria-label="Search movies, people, users, lists and reviews"
-              autoCapitalize="off"
-              autoComplete="off"
-              autoCorrect="off"
-              autoFocus={compact}
-              className="pr-12 pl-11"
-              enterKeyHint="search"
-              maxLength={SEARCH_MAX_QUERY_LENGTH}
-              name="search"
-              onChange={(event) => handleInput(event.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Search movies, people, users, lists…"
-              ref={inputRef}
-              role="combobox"
-              spellCheck={false}
-              type="text"
-              value={input}
-            />
-            <div className="absolute top-1/2 right-1 -translate-y-1/2">
-              {input ? (
-                <Button
-                  aria-label="Clear search"
-                  icon
-                  intent="ghost"
-                  onClick={handleClear}
-                  shape="pill"
-                  size="sm"
-                >
-                  <Icon icon="solar:close-circle-bold" size={16} />
-                </Button>
-              ) : null}
-            </div>
-          </form>
+          {field}
           <Button
             aria-label="Close search"
             icon
@@ -423,64 +427,7 @@ export function SearchAction({
           </Button>
         </div>
       ) : (
-        <form
-          className={cn(
-            styles.scan,
-            "group/field relative w-full rounded-card",
-            compact && "min-w-0 flex-1",
-          )}
-          data-busy={isLoading ? "" : undefined}
-          onSubmit={handleSubmit}
-          role="search"
-        >
-          <Icon
-            className={cn(
-              "pointer-events-none absolute top-1/2 left-4 -translate-y-1/2",
-              input
-                ? "text-grade"
-                : "text-ink-muted group-focus-within/field:text-ink",
-            )}
-            icon="solar:magnifer-linear"
-            size={16}
-          />
-          <Input
-            aria-activedescendant={active >= 0 ? optionId(active) : undefined}
-            aria-autocomplete="list"
-            aria-controls={listId}
-            aria-expanded={hitCount > 0}
-            aria-label="Search movies, people, users, lists and reviews"
-            autoCapitalize="off"
-            autoComplete="off"
-            autoCorrect="off"
-            autoFocus={compact}
-            className="pr-12 pl-11"
-            enterKeyHint="search"
-            maxLength={SEARCH_MAX_QUERY_LENGTH}
-            name="search"
-            onChange={(event) => handleInput(event.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Search movies, people, users, lists…"
-            ref={inputRef}
-            role="combobox"
-            spellCheck={false}
-            type="text"
-            value={input}
-          />
-          <div className="absolute top-1/2 right-1 -translate-y-1/2">
-            {input ? (
-              <Button
-                aria-label="Clear search"
-                icon
-                intent="ghost"
-                onClick={handleClear}
-                shape="pill"
-                size="sm"
-              >
-                <Icon icon="solar:close-circle-bold" size={16} />
-              </Button>
-            ) : null}
-          </div>
-        </form>
+        field
       )}
 
       <div
