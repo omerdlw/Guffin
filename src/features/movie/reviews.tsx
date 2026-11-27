@@ -103,11 +103,7 @@ function LitFilmLike({ author }: { author: string }) {
   );
 }
 
-function LitStars({
-  rating,
-}: {
-  rating: number | null;
-}): JSX.Element {
+function LitStars({ rating }: { rating: number | null }): JSX.Element {
   if (!isRated(rating)) return <RatingStars rating={rating} />;
   const value = Math.min(5, rating);
   return (

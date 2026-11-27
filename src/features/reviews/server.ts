@@ -13,7 +13,12 @@ import {
   sql,
 } from "drizzle-orm";
 import type { Session } from "@/infrastructure/db/client";
-import { accountLikes, accounts, reviewLikes, reviews } from "@/infrastructure/db/schema";
+import {
+  accountLikes,
+  accounts,
+  reviewLikes,
+  reviews,
+} from "@/infrastructure/db/schema";
 import type {
   MovieReview,
   MovieReviewFilter,

@@ -12,7 +12,4 @@ export type {
   SocialPerson,
 } from "./social";
 export { toPerson } from "./social";
-export {
-  AvatarStack,
-  MovieSocialProof,
-} from "./proof";
+export { AvatarStack, MovieSocialProof } from "./proof";

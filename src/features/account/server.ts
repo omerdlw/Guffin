@@ -5,7 +5,11 @@ import { and, eq, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { pgErrorCode, type Session } from "@/infrastructure/db/client";
 import { pick, type SnakeRow } from "@/infrastructure/db/pick";
-import { accountEmails, accounts, accountWatched } from "@/infrastructure/db/schema";
+import {
+  accountEmails,
+  accounts,
+  accountWatched,
+} from "@/infrastructure/db/schema";
 import { isUuid } from "@/infrastructure/http";
 import { accountHref } from "@/shared/project";
 import type {

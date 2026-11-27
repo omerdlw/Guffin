@@ -85,11 +85,7 @@ import {
   MoviePosterLink,
   MovieStage,
 } from "./stage";
-import {
-  MovieViewProvider,
-  MovieViews,
-  ReelProvider,
-} from "./view-context";
+import { MovieViewProvider, MovieViews, ReelProvider } from "./view-context";
 
 type AwardsRequest = Promise<Awards | null>;
 

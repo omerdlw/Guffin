@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  type JSX,
-  type ReactNode,
-  useState,
-  useTransition,
-} from "react";
+import { type JSX, type ReactNode, useState, useTransition } from "react";
 import { Avatar, Button, Image } from "@omerdlw/base-framework/ui";
 import { globalEvents } from "@omerdlw/base-framework/events";
 import { useToast } from "@omerdlw/base-framework/notification";
@@ -54,7 +49,12 @@ import {
   type ShowingFilm,
   TEXT_LINK_CLASS,
 } from "./feed";
-import { formatCompact, formatReleaseDay, formatRelativeTime, formatWhole } from "./format";
+import {
+  formatCompact,
+  formatReleaseDay,
+  formatRelativeTime,
+  formatWhole,
+} from "./format";
 import { Heading, HomePart, HomeSection, HomeSwap, HomeText } from "./motion";
 
 // --- Shared Shelf & Links ---

@@ -12,7 +12,10 @@ import {
   getPersonDetails,
   searchMovies,
 } from "@/infrastructure/tmdb/server";
-import type { MovieSearchPage, PersonCrewCredit } from "@/infrastructure/tmdb/shared";
+import type {
+  MovieSearchPage,
+  PersonCrewCredit,
+} from "@/infrastructure/tmdb/shared";
 import { BEST_PICTURE, CANON, DIRECTORS } from "./catalog";
 import {
   type CanonFilm,

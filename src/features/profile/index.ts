@@ -38,18 +38,9 @@ export { LibraryView } from "./library/view";
 export * from "./lists/lists";
 export * from "./lists/server";
 export { ListsShelf } from "./lists/shelf";
-export {
-  ListComments,
-  ListDock,
-  ListEntries,
-  ListHeader,
-} from "./lists/list";
+export { ListComments, ListDock, ListEntries, ListHeader } from "./lists/list";
 
 // Reviews
 export * from "./reviews/reviews";
 export * from "./reviews/server";
-export {
-  ReviewsFilters,
-  ReviewsList,
-  ReviewsSummary,
-} from "./reviews/list";
+export { ReviewsFilters, ReviewsList, ReviewsSummary } from "./reviews/list";

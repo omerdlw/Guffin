@@ -1,10 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useSyncExternalStore } from "react";
-import {
-  useDockActions,
-  useDockSelector,
-} from "@omerdlw/base-framework/dock";
+import { useDockActions, useDockSelector } from "@omerdlw/base-framework/dock";
 import { useEngine } from "@/motion/react";
 
 // Near the top of a page the dock stays a full card: it introduces the page.

@@ -30,10 +30,12 @@
 ### Task 1: Polish compact auth surfaces
 
 **Files:**
+
 - Modify: `src/features/auth/sign-in-surface.tsx`
 - Modify: `src/features/auth/verification-surface.tsx`
 
 **Interfaces:**
+
 - Consumes: current `SurfaceStage`, `SurfacePart`, `Button`, `Input`, and `DockSurfaceAction` APIs.
 - Produces: refined styling and vertical alternate-method arrangement without changing component props or auth operations.
 

@@ -11,6 +11,7 @@
 **Spec:** `docs/superpowers/specs/2026-11-21-clean-file-structure-design.md`
 
 ## Global Constraints
+
 - `src/features/*` must never import from `src/app/*`.
 - `src/infrastructure/*` must never import from `src/features/*` or `src/app/*`.
 - Server database and adapter files must begin with `import "server-only";` where they are server-only.
@@ -18,6 +19,7 @@
 - Do not add or run tests unless requested.
 
 ## Review Focus
+
 - Client modules must not gain imports from server-only infrastructure; preserve existing client/server split.
 - No infrastructure module may depend on a feature or route.
 - All imports must resolve after directory moves.
@@ -29,6 +31,7 @@
 ### Task 1: Move adapters and shared helpers
 
 **Files:**
+
 - Move `src/infrastructure/db/*` to `src/infrastructure/db/*`.
 - Move `src/infrastructure/tmdb/*` to `src/infrastructure/tmdb/*`.
 - Move `src/infrastructure/auth/*` to `src/infrastructure/auth/*`.
@@ -45,6 +48,7 @@
 ### Task 2: Verify structure and imports
 
 **Files:**
+
 - Inspect all moved source files and all changed import sites.
 - Remove empty `src/lib` directory if it remains.
 

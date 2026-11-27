@@ -1,6 +1,9 @@
 import { getSiteUrl, trimToNull } from "@omerdlw/base-framework/utils";
 
-export { OAUTH_PROVIDERS, type OAuthProvider } from "@/infrastructure/auth/shared";
+export {
+  OAUTH_PROVIDERS,
+  type OAuthProvider,
+} from "@/infrastructure/auth/shared";
 
 export type SignOutScope = "local" | "others";
 

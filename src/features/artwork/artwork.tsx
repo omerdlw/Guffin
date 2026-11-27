@@ -8,7 +8,11 @@ import {
 import { Image } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
 import { AwardFoil } from "@/features/detail/awards";
-import { type Awards, isTmdbImagePath, tmdbImageUrl } from "@/infrastructure/tmdb/shared";
+import {
+  type Awards,
+  isTmdbImagePath,
+  tmdbImageUrl,
+} from "@/infrastructure/tmdb/shared";
 import { Part } from "@/motion/stage";
 import { Tilt } from "@/motion/tilt";
 import {
