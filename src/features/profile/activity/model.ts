@@ -1,5 +1,5 @@
 import { trimToNull } from "@omerdlw/base-framework/utils";
-import { readParam, type SearchParams } from "@/shared/http";
+import { isKeyOf, readParam, type SearchParams } from "@/shared/http";
 
 export const ACTIVITY_PAGE_SIZE = 30;
 
@@ -34,7 +34,7 @@ export const ACTIVITY_PARAM = "type";
 
 export function readActivityGroup(query: SearchParams): ActivityGroup {
   const value = readParam(query, ACTIVITY_PARAM);
-  return value in ACTIVITY_GROUPS ? (value as ActivityGroup) : "all";
+  return isKeyOf(ACTIVITY_GROUPS, value) ? value : "all";
 }
 
 export interface ActivityItem {

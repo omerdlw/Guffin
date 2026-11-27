@@ -1,4 +1,4 @@
-import { readParam, type SearchParams } from "@/shared/http";
+import { isKeyOf, readParam, type SearchParams } from "@/shared/http";
 
 export const REVIEWS_PAGE_SIZE = 20;
 
@@ -24,12 +24,12 @@ export const SORT_PARAM = "sort";
 
 export function readReviewKind(query: SearchParams): ReviewKind {
   const value = readParam(query, KIND_PARAM);
-  return value in REVIEW_KINDS ? (value as ReviewKind) : "all";
+  return isKeyOf(REVIEW_KINDS, value) ? value : "all";
 }
 
 export function readReviewSort(query: SearchParams): ReviewSort {
   const value = readParam(query, SORT_PARAM);
-  return value in REVIEW_SORTS ? (value as ReviewSort) : "newest";
+  return isKeyOf(REVIEW_SORTS, value) ? value : "newest";
 }
 
 export interface ProfileReview {

@@ -376,7 +376,7 @@ function read(x: number, y: number): CursorReading {
         y >= box.top - CURSOR_FRAMING &&
         y <= box.bottom + CURSOR_FRAMING;
       if (inside) return { label: "", mode: "wrap", target: own };
-    } else if (named && named in CURSOR_SHAPES) {
+    } else if (named && Object.hasOwn(CURSOR_SHAPES, named)) {
       let corner = Number.parseFloat(own.dataset.cursorCorner ?? "");
       if (!Number.isFinite(corner) && named === "card") {
         corner = shapeOf(

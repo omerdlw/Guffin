@@ -10,6 +10,7 @@ import {
   type LibraryPage,
 } from "./model";
 import { getLibraryPage } from "./queries";
+import { isKeyOf, readOffset } from "@/shared/http";
 
 const KINDS: readonly LibraryKind[] = ["likes", "watched", "watchlist"];
 
@@ -30,10 +31,10 @@ export async function loadLibraryPage({
     accountId: account.id,
     filters: {
       ...cleanTitleFilters(filters),
-      sort: filters.sort in LIBRARY_SORTS ? filters.sort : "added_desc",
+      sort: isKeyOf(LIBRARY_SORTS, filters.sort) ? filters.sort : "added_desc",
     },
     kind,
-    offset: Math.max(0, Math.floor(offset) || 0),
+    offset: readOffset(offset),
     session,
   });
 }

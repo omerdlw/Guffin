@@ -46,7 +46,7 @@ export const MATERIALS = {
 export type MaterialName = keyof typeof MATERIALS;
 
 const isMaterial = (name: string | undefined): name is MaterialName =>
-  Boolean(name && name in MATERIALS);
+  Boolean(name && Object.hasOwn(MATERIALS, name));
 
 export function materialOf(element: Element): MaterialName | null {
   const named = (element as HTMLElement).dataset?.glass;

@@ -1,10 +1,9 @@
 "use client";
 
-import { type JSX, useState, useTransition } from "react";
+import { type JSX } from "react";
 import { useDockActions } from "@omerdlw/base-framework/dock";
 import { Icon } from "@/design/components/icon";
 import { DockLink } from "@/design/components/link";
-import { TONES } from "@/design/foundations/tones";
 import { useSurfacePreload } from "@/design/surface/lazy";
 import { cn } from "@/design/ui";
 import { formatShortDate } from "@/features/account/model";
@@ -12,6 +11,8 @@ import { listFormSurface } from "@/features/lists/surfaces";
 import { PosterStack } from "@/features/lists/components/poster-stack";
 import { pluralize } from "@/shared/format";
 import { listHref } from "@/shared/site";
+import { ShowMore } from "@/features/profile/components/show-more";
+import { usePagedList } from "@/features/profile/use-paged-list";
 import { loadListsPage } from "../actions";
 import type { ListSort, ListsPage, ProfileList } from "../model";
 
@@ -134,29 +135,14 @@ export function ListsShelf({
   sort: ListSort;
   username: string;
 }): JSX.Element {
-  const [served, setServed] = useState(page);
-  const [items, setItems] = useState(page.items);
-  const [next, setNext] = useState(page.next);
-  const [pending, startTransition] = useTransition();
-  if (page !== served) {
-    setServed(page);
-    setItems(page.items);
-    setNext(page.next);
-  }
-
-  const more = () => {
-    if (next === null) return;
-    startTransition(async () => {
-      const result = await loadListsPage({
-        offset: next,
-        query,
-        sort,
-        username,
-      });
-      setItems((current) => [...current, ...result.items]);
-      setNext(result.next);
-    });
-  };
+  const { hasMore, items, more, pending } = usePagedList(page, (offset) =>
+    loadListsPage({
+      offset,
+      query,
+      sort,
+      username,
+    }),
+  );
 
   return (
     <div className="flex flex-col gap-fib-5">
@@ -169,16 +155,8 @@ export function ListsShelf({
       {empty && items.length === 0 ? (
         <p className="py-fib-5 text-center type-body text-ink-muted">{empty}</p>
       ) : null}
-      {next !== null ? (
-        <button
-          aria-busy={pending || undefined}
-          className={cn(TONES.outline, PILL, "self-center disabled:opacity-50")}
-          disabled={pending}
-          onClick={more}
-          type="button"
-        >
-          {pending ? "Loading…" : "Show more"}
-        </button>
+      {hasMore ? (
+        <ShowMore className={PILL} onClick={more} pending={pending} />
       ) : null}
     </div>
   );

@@ -1,16 +1,17 @@
 "use client";
 
-import { type JSX, useState, useTransition } from "react";
+import { type JSX } from "react";
 import { Button } from "@omerdlw/base-framework/ui";
 import { useConfirmedAction } from "@/design/components/confirm";
 import { Icon } from "@/design/components/icon";
 import { MediaCard } from "@/design/components/media-card";
 import { RADIUS } from "@/design/foundations/geometry";
-import { TONES } from "@/design/foundations/tones";
 import { cn } from "@/design/ui";
 import { setFavoriteAction } from "@/features/account/actions";
 import { movieHref } from "@/shared/site";
 import { tmdbImageSrcSet, tmdbImageUrl } from "@/infrastructure/tmdb/model";
+import { ShowMore } from "@/features/profile/components/show-more";
+import { usePagedList } from "@/features/profile/use-paged-list";
 import { loadLibraryPage } from "../actions";
 import type {
   LibraryFilters,
@@ -120,35 +121,22 @@ export function LibraryShelf({
   page: LibraryPage;
   username: string;
 }): JSX.Element {
-  const [served, setServed] = useState(page);
-  const [items, setItems] = useState(page.items);
-  const [next, setNext] = useState(page.next);
-  const [pending, startTransition] = useTransition();
-  if (page !== served) {
-    setServed(page);
-    setItems(page.items);
-    setNext(page.next);
-  }
+  const { hasMore, items, more, pending, setItems } = usePagedList(
+    page,
+    (offset) =>
+      loadLibraryPage({
+        filters,
+        kind,
+        offset,
+        username,
+      }),
+  );
 
   if (items.length === 0) {
     return (
       <p className="py-fib-6 text-center type-body text-ink-muted">{empty}</p>
     );
   }
-
-  const more = () => {
-    if (next === null) return;
-    startTransition(async () => {
-      const result = await loadLibraryPage({
-        filters,
-        kind,
-        offset: next,
-        username,
-      });
-      setItems((current) => [...current, ...result.items]);
-      setNext(result.next);
-    });
-  };
 
   const pin = (tmdbId: number) => (pinned: boolean) =>
     setItems((current) =>
@@ -169,20 +157,7 @@ export function LibraryShelf({
           />
         ))}
       </ul>
-      {next !== null ? (
-        <button
-          aria-busy={pending || undefined}
-          className={cn(
-            TONES.outline,
-            "self-center rounded-full px-fib-4 h-control-sm type-control font-medium disabled:opacity-50",
-          )}
-          disabled={pending}
-          onClick={more}
-          type="button"
-        >
-          {pending ? "Loading…" : "Show more"}
-        </button>
-      ) : null}
+      {hasMore ? <ShowMore onClick={more} pending={pending} /> : null}
     </div>
   );
 }

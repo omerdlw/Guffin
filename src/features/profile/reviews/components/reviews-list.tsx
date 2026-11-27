@@ -19,6 +19,8 @@ import { isRated } from "@/features/reviews/model";
 import { pluralize } from "@/shared/format";
 import { reviewHref } from "@/shared/site";
 import { tmdbImageSrcSet, tmdbImageUrl } from "@/infrastructure/tmdb/model";
+import { ShowMore } from "@/features/profile/components/show-more";
+import { usePagedList } from "@/features/profile/use-paged-list";
 import { loadReviewsPage } from "../actions";
 import {
   KIND_PARAM,
@@ -296,29 +298,14 @@ export function ReviewsList({
   sort: ReviewSort;
   username: string;
 }): JSX.Element {
-  const [served, setServed] = useState(page);
-  const [items, setItems] = useState(page.items);
-  const [next, setNext] = useState(page.next);
-  const [pending, startTransition] = useTransition();
-  if (page !== served) {
-    setServed(page);
-    setItems(page.items);
-    setNext(page.next);
-  }
-
-  const more = () => {
-    if (next === null) return;
-    startTransition(async () => {
-      const result = await loadReviewsPage({
-        kind,
-        offset: next,
-        sort,
-        username,
-      });
-      setItems((current) => [...current, ...result.items]);
-      setNext(result.next);
-    });
-  };
+  const { hasMore, items, more, pending } = usePagedList(page, (offset) =>
+    loadReviewsPage({
+      kind,
+      offset,
+      sort,
+      username,
+    }),
+  );
 
   return (
     <div className="flex flex-col gap-fib-5">
@@ -341,20 +328,7 @@ export function ReviewsList({
           ))}
         </ul>
       )}
-      {next !== null ? (
-        <button
-          aria-busy={pending || undefined}
-          className={cn(
-            TONES.outline,
-            "self-center rounded-full px-fib-4 h-control-sm type-control font-medium disabled:opacity-50",
-          )}
-          disabled={pending}
-          onClick={more}
-          type="button"
-        >
-          {pending ? "Loading…" : "Show more"}
-        </button>
-      ) : null}
+      {hasMore ? <ShowMore onClick={more} pending={pending} /> : null}
     </div>
   );
 }

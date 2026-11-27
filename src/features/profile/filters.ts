@@ -1,4 +1,4 @@
-import { readParam, type SearchParams } from "@/shared/http";
+import { isKeyOf, readParam, type SearchParams } from "@/shared/http";
 import type { ToolbarField } from "./components/toolbar";
 
 const SORT_PARAM = "sort";
@@ -31,7 +31,7 @@ export function readSort<S extends string>(
   fallback: S,
 ): S {
   const value = readParam(query, SORT_PARAM);
-  return value in sorts ? (value as S) : fallback;
+  return isKeyOf(sorts, value) ? (value as S) : fallback;
 }
 
 function readNumber(query: SearchParams, key: string): number | null {

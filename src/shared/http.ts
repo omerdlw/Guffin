@@ -71,3 +71,14 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export const isUuid = (value: unknown): value is string =>
   typeof value === "string" && UUID.test(value);
+
+// Own keys only: `"constructor" in {}` is true, so a plain `in` check lets
+// prototype names such as ?sort=constructor through to lookups.
+export const isKeyOf = <T extends object>(
+  table: T,
+  value: unknown,
+): value is keyof T & string =>
+  typeof value === "string" && Object.hasOwn(table, value);
+
+export const readOffset = (value: unknown): number =>
+  Math.max(0, Math.floor(Number(value)) || 0);

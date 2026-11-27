@@ -1,6 +1,6 @@
 "use client";
 
-import { type JSX, useMemo, useState, useTransition } from "react";
+import { type JSX, useMemo } from "react";
 import {
   useDockActionClass,
   useDockActions,
@@ -15,7 +15,6 @@ import { DockLink } from "@/design/components/link";
 import { MediaCard } from "@/design/components/media-card";
 import { DockAction } from "@/design/surface/surface";
 import { RADIUS } from "@/design/foundations/geometry";
-import { TONES } from "@/design/foundations/tones";
 import { useSurfacePreload } from "@/design/surface/lazy";
 import { cn } from "@/design/ui";
 import { formatShortDate } from "@/features/account/model";
@@ -32,6 +31,8 @@ import { reviewEditorSurface } from "@/features/reviews/surfaces";
 import { pluralize } from "@/shared/format";
 import { accountHref, listHref, movieHref } from "@/shared/site";
 import { tmdbImageSrcSet, tmdbImageUrl } from "@/infrastructure/tmdb/model";
+import { ShowMore } from "@/features/profile/components/show-more";
+import { usePagedList } from "@/features/profile/use-paged-list";
 import { loadListEntries } from "../actions";
 import type {
   EntryFilters,
@@ -238,34 +239,19 @@ export function ListEntries({
   list: ListDetail;
   page: ListEntriesPage;
 }): JSX.Element {
-  const [served, setServed] = useState(page);
-  const [items, setItems] = useState(page.items);
-  const [next, setNext] = useState(page.next);
-  const [pending, startTransition] = useTransition();
-  if (page !== served) {
-    setServed(page);
-    setItems(page.items);
-    setNext(page.next);
-  }
+  const { hasMore, items, more, pending } = usePagedList(page, (offset) =>
+    loadListEntries({
+      filters,
+      listId: list.id,
+      offset,
+    }),
+  );
 
   if (items.length === 0) {
     return (
       <p className="py-fib-6 text-center type-body text-ink-muted">{empty}</p>
     );
   }
-
-  const more = () => {
-    if (next === null) return;
-    startTransition(async () => {
-      const result = await loadListEntries({
-        filters,
-        listId: list.id,
-        offset: next,
-      });
-      setItems((current) => [...current, ...result.items]);
-      setNext(result.next);
-    });
-  };
 
   return (
     <div className="flex flex-col gap-fib-5">
@@ -274,20 +260,7 @@ export function ListEntries({
           <EntryTile entry={entry} key={entry.tmdbId} list={list} />
         ))}
       </ol>
-      {next !== null ? (
-        <button
-          aria-busy={pending || undefined}
-          className={cn(
-            TONES.outline,
-            "self-center rounded-full px-fib-4 h-control-sm type-control font-medium disabled:opacity-50",
-          )}
-          disabled={pending}
-          onClick={more}
-          type="button"
-        >
-          {pending ? "Loading…" : "Show more"}
-        </button>
-      ) : null}
+      {hasMore ? <ShowMore onClick={more} pending={pending} /> : null}
     </div>
   );
 }

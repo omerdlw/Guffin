@@ -8,6 +8,7 @@ import {
   type ActivityPage,
 } from "./model";
 import { getActivityPage } from "./queries";
+import { isKeyOf, readOffset } from "@/shared/http";
 
 export async function loadActivityPage({
   group,
@@ -21,8 +22,8 @@ export async function loadActivityPage({
   const { account, session } = await loadProfile(username);
   return getActivityPage({
     account,
-    group: group in ACTIVITY_GROUPS ? group : "all",
-    offset: Math.max(0, Math.floor(offset) || 0),
+    group: isKeyOf(ACTIVITY_GROUPS, group) ? group : "all",
+    offset: readOffset(offset),
     session,
   });
 }

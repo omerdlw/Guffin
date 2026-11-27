@@ -1,17 +1,10 @@
 "use client";
 
-import {
-  type JSX,
-  type ReactNode,
-  useState,
-  useSyncExternalStore,
-  useTransition,
-} from "react";
+import { type JSX, type ReactNode, useSyncExternalStore } from "react";
 import { Icon } from "@/design/components/icon";
 import { DockLink } from "@/design/components/link";
 import { MediaCard } from "@/design/components/media-card";
 import { RADIUS } from "@/design/foundations/geometry";
-import { TONES } from "@/design/foundations/tones";
 import { cn } from "@/design/ui";
 import { formatCompactAge, formatShortDate } from "@/features/account/model";
 import { RatingStars } from "@/features/reviews/components/rating";
@@ -24,6 +17,8 @@ import {
   reviewHref,
 } from "@/shared/site";
 import { tmdbImageSrcSet, tmdbImageUrl } from "@/infrastructure/tmdb/model";
+import { ShowMore } from "@/features/profile/components/show-more";
+import { usePagedList } from "@/features/profile/use-paged-list";
 import type { ActivityGroup, ActivityItem, ActivityPage } from "../model";
 import { loadActivityPage } from "../actions";
 
@@ -335,28 +330,13 @@ export function ActivityTimeline({
   group: ActivityGroup;
   page: ActivityPage;
 }): JSX.Element {
-  const [served, setServed] = useState(page);
-  const [items, setItems] = useState(page.items);
-  const [next, setNext] = useState(page.next);
-  const [pending, startTransition] = useTransition();
-  if (page !== served) {
-    setServed(page);
-    setItems(page.items);
-    setNext(page.next);
-  }
-
-  const more = () => {
-    if (next === null) return;
-    startTransition(async () => {
-      const result = await loadActivityPage({
-        group,
-        offset: next,
-        username: actor.username,
-      });
-      setItems((current) => [...current, ...result.items]);
-      setNext(result.next);
-    });
-  };
+  const { hasMore, items, more, pending } = usePagedList(page, (offset) =>
+    loadActivityPage({
+      group,
+      offset,
+      username: actor.username,
+    }),
+  );
 
   return (
     <div className="flex flex-col gap-fib-5">
@@ -373,20 +353,7 @@ export function ActivityTimeline({
         </section>
       ))}
 
-      {next !== null ? (
-        <button
-          aria-busy={pending || undefined}
-          className={cn(
-            TONES.outline,
-            "self-center rounded-full px-fib-4 h-control-sm type-control font-medium disabled:opacity-50",
-          )}
-          disabled={pending}
-          onClick={more}
-          type="button"
-        >
-          {pending ? "Loading…" : "Show more"}
-        </button>
-      ) : null}
+      {hasMore ? <ShowMore onClick={more} pending={pending} /> : null}
     </div>
   );
 }
