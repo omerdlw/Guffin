@@ -37,11 +37,16 @@
   }
 
   /* The picture leans a little toward the pointer (design/components/
-     card-tilt.tsx writes --tilt-x / --tilt-y while it is over a card). */
+     card-tilt.tsx writes --tilt-x / --tilt-y while it is over a card). The
+     3D transform exists only while it is: at rest a perspective transform,
+     even an untilted one, keeps every card on its own compositor layer.
+     `none` and the untilted transform interpolate as identity, so the lean
+     eases in and out exactly as before. */
   .cine-card [data-slot="frame"] {
-    transform: perspective(900px)
-      rotateX(calc(var(--tilt-y, 0) * -6deg))
-      rotateY(calc(var(--tilt-x, 0) * 6deg));
     transition: transform 0.38s cubic-bezier(0.236, 0.382, 0.146, 1);
+  }
+  .cine-card:hover [data-slot="frame"] {
+    transform: perspective(900px) rotateX(calc(var(--tilt-y, 0) * -6deg))
+      rotateY(calc(var(--tilt-x, 0) * 6deg));
   }
 }
