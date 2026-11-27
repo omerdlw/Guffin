@@ -1,25 +1,26 @@
 "use client";
 
-import type { Curve, Enter, Look, Moves } from "@/motion/choreography/choreo";
+import type { Moves } from "@/motion/choreography/choreo";
 import { defineStage } from "@/motion/choreography/stage";
-import { HERO, OPENING, TEMPO } from "@/motion/choreography/pace";
+import {
+  DEVELOP,
+  DOLLY,
+  FOCUS,
+  HERO,
+  LEAVE,
+  OPENING,
+  PRESS,
+  SETTLE,
+  SPRING,
+  SWEEP,
+  TEMPO,
+  TOUCH,
+  beat,
+  load,
+  reveal,
+} from "@/motion/choreography/pace";
 
-const PHI = 1.618034;
-const beat = (n: number) => Math.round(PHI ** n * 1000) / 1000;
 const STAGGER = { char: 0.021, word: 0.034, item: 0.055, row: 0.089 };
-
-const SETTLE: Curve = [0.236, 0.382, 0.146, 1];
-const DEVELOP: Curve = [0.382, 0, 0.146, 1];
-const SWEEP: Curve = [0.618, 0, 0.382, 1];
-const LEAVE: Curve = [0.618, 0, 0.854, 0.382];
-const TOUCH: Curve = [0.382, 0.236, 0.146, 1];
-const PRESS: Curve = [0.382, 0, 0.236, 1];
-const SPRING: Curve = [0.382, 0.618, 0.236, 1.146];
-// Backdrop opening: the camera pulls back from a dark close-up (dolly, most
-// travel early, long settle) while the lens racks into focus and the frame
-// develops from grey to full colour.
-const DOLLY: Curve = [0.146, 0.618, 0.146, 1];
-const FOCUS: Curve = [0.236, 0, 0.146, 1];
 
 const AT = {
   picture: 0,
@@ -32,22 +33,6 @@ const AT = {
   overview: beat(-2) + beat(-4),
   tags: HERO,
 };
-
-const load = (from: Look, more: Partial<Enter> = {}): Enter => ({
-  on: "load",
-  from,
-  duration: beat(-1),
-  ease: SETTLE,
-  ...more,
-});
-
-const reveal = (from: Look, more: Partial<Enter> = {}): Enter => ({
-  on: "view",
-  from,
-  duration: beat(-1),
-  ease: SETTLE,
-  ...more,
-});
 
 const press = { scale: 0.96, duration: beat(-3), ease: PRESS };
 

@@ -8,11 +8,8 @@ import { Icon, type IconProps } from "@/design/components/icon";
 import { DOCK_TOOLTIP } from "@/design/theme/dock";
 import { cn } from "@/design/ui";
 import { AnimatePresence, motion, useReducedMotion } from "@/motion/lib";
+import { LEAVE, SETTLE } from "@/motion/choreography/pace";
 
-type Ease = [number, number, number, number];
-
-const SETTLE: Ease = [0.236, 0.382, 0.146, 1];
-const LEAVE: Ease = [0.618, 0, 0.854, 0.382];
 const IN = { duration: 0.382, ease: SETTLE };
 const OUT = { duration: 0.236, ease: LEAVE };
 const LINE = "100%";

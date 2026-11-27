@@ -1,4 +1,13 @@
 import { defineMotion, gpuTransform } from "@omerdlw/base-framework/utils";
+import type { Curve } from "@/motion/choreography/choreo";
+
+export {
+  beat,
+  DEVELOP,
+  LEAVE,
+  SETTLE,
+  TOUCH,
+} from "@/motion/choreography/pace";
 
 export const INSTANT = { type: "tween", duration: 0 } as const;
 
@@ -7,8 +16,6 @@ export const moduleMotion = defineMotion({
   still: INSTANT,
 });
 
-const PHI = 1.618034;
-export const beat = (n: number) => Math.round(PHI ** n * 1000) / 1000;
 export const STAGGER = { item: 0.034, line: 0.055, step: 0.089 } as const;
 export const TRAVEL = {
   hair: 3,
@@ -19,12 +26,7 @@ export const TRAVEL = {
   stride: 34,
 } as const;
 
-type Ease = [number, number, number, number];
-
-export const SETTLE: Ease = [0.236, 0.382, 0.146, 1];
-export const DEVELOP: Ease = [0.382, 0, 0.146, 1];
-export const LEAVE: Ease = [0.618, 0, 0.854, 0.382];
-export const TOUCH: Ease = [0.382, 0.236, 0.146, 1];
+type Ease = Curve;
 
 export const tween = (duration: number, ease: Ease, delay = 0) => ({
   type: "tween" as const,

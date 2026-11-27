@@ -14,11 +14,8 @@ import { useAheadOfOpen } from "@/design/surface/lazy";
 import { defineStage } from "@/motion/choreography/stage";
 import { Icon } from "../components/icon";
 import { Input } from "../components/input";
+import { LEAVE, SETTLE, beat } from "@/motion/choreography/pace";
 
-const PHI = 1.618034;
-const beat = (n: number) => Math.round(PHI ** n * 1000) / 1000;
-const SETTLE: Curve = [0.236, 0.382, 0.146, 1];
-const LEAVE: Curve = [0.618, 0, 0.854, 0.382];
 const LINE = 0.055;
 const STAGGER_METER = 0.089;
 const AFTER_GLASS = beat(-3);

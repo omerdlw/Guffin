@@ -20,10 +20,9 @@ import { DockAction } from "@/design/surface/surface";
 import { Room } from "@/design/components/room";
 import { MotionConfig } from "@/motion/lib";
 import { defineStage } from "@/motion/choreography/stage";
-import { TEMPO } from "@/motion/choreography/pace";
+import { DEVELOP, TEMPO, beat } from "@/motion/choreography/pace";
 import type { Engine } from "@/motion/core/engine";
 import { mountScene } from "@/motion/core/scene";
-import { DEVELOP, beat } from "../motion";
 import { type LoopFactory, typing } from "../model";
 
 interface SpotlightDockAction {

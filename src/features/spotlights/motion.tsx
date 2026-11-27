@@ -1,21 +1,21 @@
 "use client";
 
 import type { ReactNode } from "react";
-import type { Curve, Moves } from "@/motion/choreography/choreo";
+import type { Moves } from "@/motion/choreography/choreo";
 import { MotionConfig } from "@/motion/lib";
 import { Room } from "@/design/components/room";
 import { defineStage } from "@/motion/choreography/stage";
-import { TEMPO } from "@/motion/choreography/pace";
+import {
+  DEVELOP,
+  LEAVE,
+  PRESS,
+  SETTLE,
+  TEMPO,
+  TOUCH,
+  beat,
+} from "@/motion/choreography/pace";
 
-const PHI = 1.618034;
-export const beat = (n: number) => Math.round(PHI ** n * 1000) / 1000;
 const STAGGER = { char: 0.021 };
-
-const SETTLE: Curve = [0.236, 0.382, 0.146, 1];
-export const DEVELOP: Curve = [0.382, 0, 0.146, 1];
-const LEAVE: Curve = [0.618, 0, 0.854, 0.382];
-const TOUCH: Curve = [0.382, 0.236, 0.146, 1];
-const PRESS: Curve = [0.382, 0, 0.236, 1];
 
 const media: Moves = {
   press: { scale: 0.96, duration: beat(-3), ease: PRESS },
