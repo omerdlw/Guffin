@@ -15,7 +15,7 @@ import {
 } from "react";
 import type { AmbientPalette } from "@omerdlw/base-framework/ambient";
 import { type StageLight, useStageLight } from "@/design/ambient";
-import { useScrollDriver } from "../core/provider";
+import { useEngine, useScrollDriver } from "../core/provider";
 import type { ScrollFeel } from "../core/scroll";
 import {
   type Choreography,
@@ -586,10 +586,8 @@ interface Arrival {
   left: number;
 }
 
-const measure = (node: Element): Arrival => {
-  const rect = node.getBoundingClientRect();
-  return { node, top: rect.top, left: rect.left };
-};
+/** Page position (document coordinates) of a role. */
+type Spot = { top: number; left: number };
 
 /**
  * Viewport cue for every role, in reading order. A role plays once, when its
@@ -607,6 +605,7 @@ function useCue(
   cadence: Cadence = CADENCE,
   cued = "",
 ) {
+  const engine = useEngine();
   useEffect(() => {
     const element = root.current;
     if (!on || !element) return;
@@ -616,6 +615,25 @@ function useCue(
     let lane = -Infinity;
     const held: Element[] = [];
     const done = new WeakSet<Element>();
+    // Where each role sat when an observer last reported it. The observers
+    // hand over rects they already computed; measuring here instead would
+    // force a style and layout pass in the middle of a scroll. Stored in page
+    // coordinates, so roles reported at different scroll offsets still sort
+    // into one reading order.
+    const spots = new WeakMap<Element, Spot>();
+    const note = (entries: IntersectionObserverEntry[]) => {
+      const y = engine.scroll.get();
+      for (const { target, boundingClientRect: rect } of entries)
+        spots.set(target, { top: rect.top + y, left: rect.left });
+    };
+    const measure = (node: Element): Arrival => {
+      let spot = spots.get(node);
+      if (!spot) {
+        const rect = node.getBoundingClientRect();
+        spot = { top: rect.top + engine.scroll.get(), left: rect.left };
+      }
+      return { node, top: spot.top, left: spot.left };
+    };
 
     const forget = (node: Element) => {
       done.add(node);
@@ -630,8 +648,7 @@ function useCue(
         (node) => !node.hasAttribute("data-seen"),
       );
       if (!fresh.length) return;
-      // Rects from the moment of release (held nodes crossed at other scroll
-      // offsets); every read happens here, before any write below.
+      // Every read happens here, before any write below.
       const queued = (
         cued ? fresh.filter((node) => node.matches(cued)) : fresh
       ).map(measure);
@@ -678,18 +695,24 @@ function useCue(
     };
 
     const land = (nodes: Element[]) => {
+      if (!nodes.length) return;
       for (const node of nodes) {
         node.setAttribute("data-seen", "");
         forget(node);
       }
-      for (const node of nodes)
-        for (const animation of node.getAnimations({ subtree: true }))
-          if (
-            animation instanceof CSSAnimation &&
-            animation.timeline === document.timeline &&
-            !animation.animationName.endsWith(LEAVING)
-          )
-            animation.finish();
+      // Collect first, finish after: finishing dirties style, and asking the
+      // next node for its animations would recompute it, once per node.
+      const landing = nodes.flatMap((node) =>
+        node
+          .getAnimations({ subtree: true })
+          .filter(
+            (animation) =>
+              animation instanceof CSSAnimation &&
+              animation.timeline === document.timeline &&
+              !animation.animationName.endsWith(LEAVING),
+          ),
+      );
+      for (const animation of landing) animation.finish();
     };
 
     const release = (batch: Element[]) => {
@@ -712,8 +735,11 @@ function useCue(
     const stopLift = whenLifted(element, start);
 
     const seen = new IntersectionObserver(
-      (entries) =>
-        release(entries.filter((e) => e.isIntersecting).map((e) => e.target)),
+      (entries) => {
+        const crossed = entries.filter((e) => e.isIntersecting);
+        note(crossed);
+        release(crossed.map((e) => e.target));
+      },
       { rootMargin: `0px 0px -${inset * 100}% 0px` },
     );
     const past = new IntersectionObserver(
@@ -732,13 +758,14 @@ function useCue(
     );
     const showing = new Set<Element>();
     const atEnd = () =>
-      window.scrollY + window.innerHeight >=
-      document.documentElement.scrollHeight - 2;
+      engine.scroll.get() + engine.viewport.get().height >=
+      engine.extent.get() - 2;
     const settle = () => {
       if (showing.size && atEnd()) release([...showing]);
     };
     const settleLater = afterFrame(settle);
     const near = new IntersectionObserver((entries) => {
+      note(entries.filter((e) => e.isIntersecting));
       for (const entry of entries)
         if (entry.isIntersecting) showing.add(entry.target);
         else showing.delete(entry.target);
@@ -775,7 +802,7 @@ function useCue(
       settleLater.cancel();
       added.disconnect();
     };
-  }, [root, on, opening, inset, cadence, cued]);
+  }, [engine, root, on, opening, inset, cadence, cued]);
 }
 
 function whenLifted(element: HTMLElement, start: () => void) {

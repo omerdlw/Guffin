@@ -73,6 +73,8 @@ export interface Engine {
   pointer: Source<Pointer>;
   reduced: Source<boolean>;
   layout: Source<number>;
+  /** Document scroll height, kept current after layout (never measured on demand). */
+  extent: Source<number>;
   dispose(): void;
 }
 
@@ -437,6 +439,9 @@ function createEngine(options: EngineOptions = {}): Engine {
     browser ? matchMedia(ENGINE_REDUCED).matches : false,
   );
   const layout = new Signal(0);
+  const extent = new Signal(
+    browser ? document.documentElement.scrollHeight : 0,
+  );
   const cleanup: (() => void)[] = [];
 
   if (browser) {
@@ -487,7 +492,12 @@ function createEngine(options: EngineOptions = {}): Engine {
     }
 
     if (typeof ResizeObserver !== "undefined") {
-      const observer = new ResizeObserver(() => layout.set(layout.get() + 1));
+      // Resize observations arrive after layout, so reading the height here
+      // costs nothing; everyone else reads the signal.
+      const observer = new ResizeObserver(() => {
+        extent.set(document.documentElement.scrollHeight);
+        layout.set(layout.get() + 1);
+      });
       observer.observe(document.documentElement);
       cleanup.push(() => observer.disconnect());
     }
@@ -500,6 +510,7 @@ function createEngine(options: EngineOptions = {}): Engine {
     pointer,
     reduced: options.reduced ?? reduced,
     layout,
+    extent,
     dispose() {
       for (const stop of cleanup) stop();
       if (!options.clock) clock.dispose();

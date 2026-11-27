@@ -18,8 +18,6 @@ const SCROLL_STYLE_TTL = 2000;
 
 const SCROLL_LOCK_TTL = 250;
 
-const SCROLL_LIMIT_TTL = 200;
-
 const SCROLLING = "data-scrolling";
 
 const SCROLL_LOCK = "data-scroll-lock";
@@ -89,6 +87,9 @@ class ScrollDriver {
   private feel: ScrollFeel = DEFAULT_FEEL;
   private position: Value;
   private written = 0;
+  /** The offset the browser is known to hold (last written or adopted). */
+  private applied = 0;
+  private flushing = false;
   private echo = false;
   private verifying = false;
   private started = false;
@@ -101,7 +102,6 @@ class ScrollDriver {
     target: null as EventTarget | null,
   };
   private detach: (() => void)[] = [];
-  private bottom = { at: -Infinity, y: 0 };
 
   constructor(private engine: Engine) {
     this.position = new Value(engine.clock, 0, 0.1);
@@ -135,6 +135,7 @@ class ScrollDriver {
     this.started = true;
     this.position.set(window.scrollY);
     this.written = window.scrollY;
+    this.applied = this.written;
 
     const stop = this.position.subscribe((y) => this.follow(y));
     const options = { passive: false, capture: true } as const;
@@ -168,9 +169,10 @@ class ScrollDriver {
       typeof destination === "number"
         ? destination
         : destination.getBoundingClientRect().top + window.scrollY;
-    const y = clamp(top + offset, 0, this.limit());
+    const y = clamp(top + offset, 0, this.limit(true));
     if (immediate || this.quiet()) {
       this.written = y;
+      this.applied = y;
       window.scrollTo({ top: y, behavior: "instant" });
       this.echoed();
       this.position.set(y);
@@ -183,17 +185,14 @@ class ScrollDriver {
     return this.engine.reduced.get();
   }
 
-  private limit() {
-    const now = performance.now();
-    if (now - this.bottom.at < SCROLL_LIMIT_TTL) return this.bottom.y;
-    this.bottom = {
-      at: now,
-      y: Math.max(
-        0,
-        document.documentElement.scrollHeight - window.innerHeight,
-      ),
-    };
-    return this.bottom.y;
+  // Wheel input reads the height the engine keeps after each layout, so it
+  // never forces one; an explicit jump (rare, maybe right after the page
+  // changed) measures it.
+  private limit(live = false) {
+    const height = live
+      ? document.documentElement.scrollHeight
+      : this.engine.extent.get();
+    return Math.max(0, height - window.innerHeight);
   }
 
   private follow(y: number) {
@@ -202,12 +201,20 @@ class ScrollDriver {
     this.engine.scroll.set(snapped);
     if (snapped === this.written) return;
     this.written = snapped;
-    this.engine.clock.once("render", () => {
-      if (window.scrollY !== this.written) {
+    // Compare with what the browser was last given, never with
+    // window.scrollY: reading it here forces a full style and layout pass
+    // in the middle of the frame (scroll-linked animations make the page
+    // dirty on every scroll).
+    if (!this.flushing) {
+      this.flushing = true;
+      this.engine.clock.once("render", () => {
+        this.flushing = false;
+        if (this.applied === this.written) return;
+        this.applied = this.written;
         window.scrollTo({ top: this.written, behavior: "instant" });
         this.echoed();
-      }
-    });
+      });
+    }
     this.scrolling();
   }
 
@@ -286,6 +293,7 @@ class ScrollDriver {
   };
 
   private settle(y: number) {
+    this.applied = y;
     if (Math.abs(y - this.written) <= 1) return;
     this.written = y;
     this.position.set(y);
