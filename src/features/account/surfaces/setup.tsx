@@ -44,7 +44,7 @@ function AccountSetupSurface({
           success: false,
         };
       }
-      return { success: true, username: update.data.username || username };
+      return { success: true, username: update.account.username || username };
     },
     null,
   );

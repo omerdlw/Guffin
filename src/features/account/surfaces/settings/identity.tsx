@@ -18,14 +18,14 @@ import {
 import { cn, ui } from "@/design/ui";
 import { updateAccountAction } from "@/features/account/actions";
 import { useAccount } from "@/features/account/provider";
-import type { MutationResult } from "@/shared/result";
+import type { ActionResult } from "@/shared/result";
 import { accountHref } from "@/shared/site";
 import { Mark } from "./panel";
 import { FIELD_CLASS, INPUT_CLASS } from "./model";
 
-type SaveResult = MutationResult<{ username: string }> | null;
+type SaveResult = ActionResult<{ username: string }> | null;
 
-type MediaFormSaveResult = MutationResult | null;
+type MediaFormSaveResult = ActionResult | null;
 
 const USERNAME_PATTERN = /^[a-zA-Z0-9_-]{3,30}$/;
 
@@ -75,7 +75,7 @@ export function ProfileForm({ onSaved }: { onSaved: () => void }) {
         };
       }
       await refresh();
-      return { success: true, username: update.data.username || handle };
+      return { success: true, username: update.account.username || handle };
     },
     null,
   );

@@ -1,21 +1,12 @@
 "use server";
 import "server-only";
 
-import { ok as okResult, type Result } from "@omerdlw/base-framework/result";
-import {
-  report,
-  toUserMessage,
-  UserError,
-} from "@omerdlw/base-framework/utils";
+import { UserError } from "@omerdlw/base-framework/utils";
 import { and, eq } from "drizzle-orm";
-import {
-  requireFollowTarget,
-  runAccountAction,
-} from "@/features/account/actions";
 import { revalidateAccount } from "@/features/account/queries";
-import { fail, type MutationResult, ok } from "@/shared/result";
-import { getOptionalUser } from "@/features/auth/server";
-import { type Session, viewer } from "@/infrastructure/db/client";
+import { fail, type ActionResult, ok } from "@/shared/result";
+import { mutate, query } from "@/features/auth/server";
+import { type Session } from "@/infrastructure/db/client";
 import { accountFollows } from "@/infrastructure/db/schema";
 import { isTmdbId } from "@/infrastructure/tmdb/transport";
 import { type Friend, type MovieSocialProof, toPerson } from "./model";
@@ -86,39 +77,43 @@ async function readMovieSocialProof(
 
 export async function getMovieSocialProofAction(
   tmdbId: number,
-): Promise<MutationResult<{ proof: MovieSocialProof | null }>> {
+): Promise<ActionResult<{ proof: MovieSocialProof | null }>> {
   if (!isTmdbId(tmdbId)) return fail("Invalid title");
 
-  try {
-    const user = await getOptionalUser();
-    if (!user) return ok({ proof: null });
-
-    return ok({
-      proof: await readMovieSocialProof(viewer(user.id), tmdbId),
-    });
-  } catch (error) {
-    report("Social proof read", error);
-    return fail(
-      toUserMessage(error, {
-        fallback: "Could not load what your friends did",
+  return query(
+    {
+      fallback: "Could not load what your friends did",
+      name: "Social proof read",
+    },
+    async ({ session, userId }) =>
+      ok({
+        proof: userId ? await readMovieSocialProof(session, tmdbId) : null,
       }),
-    );
+  );
+}
+
+function assertFollowTarget(followingId: string, userId: string) {
+  if (
+    typeof followingId !== "string" ||
+    !followingId ||
+    followingId === userId
+  ) {
+    throw new UserError("Invalid follow target");
   }
 }
 
 export async function followUserAction(
   followingId: string,
   targetUsername?: string,
-): Promise<Result<FollowStatus>> {
-  return runAccountAction(
+): Promise<ActionResult<{ status: FollowStatus }>> {
+  return mutate(
     {
-      code: "FOLLOW_FAILED",
       fallback: "Couldn't follow this account. Please try again",
-      name: "AccountAction follow",
+      name: "Follow",
+      scope: "follow-change",
     },
-    async () => {
-      const user = await requireFollowTarget(followingId);
-      const session = viewer(user.id);
+    async ({ session, userId }) => {
+      assertFollowTarget(followingId, userId);
       const targets = await session.call("get_account_follow_target", {
         p_user_id: followingId,
       });
@@ -129,14 +124,14 @@ export async function followUserAction(
         : "accepted";
       await session.db
         .insert(accountFollows)
-        .values({ followerId: user.id, followingId, status })
+        .values({ followerId: userId, followingId, status })
         .onConflictDoUpdate({
           set: { status },
           target: [accountFollows.followerId, accountFollows.followingId],
         });
 
       revalidateAccount(targetUsername);
-      return okResult(status);
+      return ok({ status });
     },
   );
 }
@@ -144,26 +139,26 @@ export async function followUserAction(
 export async function unfollowUserAction(
   followingId: string,
   targetUsername?: string,
-): Promise<Result<null>> {
-  return runAccountAction(
+): Promise<ActionResult<{ status: null }>> {
+  return mutate(
     {
-      code: "UNFOLLOW_FAILED",
       fallback: "Couldn't unfollow this account. Please try again",
-      name: "AccountAction unfollow",
+      name: "Unfollow",
+      scope: "follow-change",
     },
-    async () => {
-      const user = await requireFollowTarget(followingId);
-      await viewer(user.id)
-        .db.delete(accountFollows)
+    async ({ session, userId }) => {
+      assertFollowTarget(followingId, userId);
+      await session.db
+        .delete(accountFollows)
         .where(
           and(
-            eq(accountFollows.followerId, user.id),
+            eq(accountFollows.followerId, userId),
             eq(accountFollows.followingId, followingId),
           ),
         );
 
       revalidateAccount(targetUsername);
-      return okResult(null);
+      return ok({ status: null });
     },
   );
 }

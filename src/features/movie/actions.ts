@@ -2,12 +2,12 @@
 import "server-only";
 
 import { report } from "@omerdlw/base-framework/utils";
-import { fail, type MutationResult, ok } from "@/shared/result";
+import { fail, type ActionResult, ok } from "@/shared/result";
 import { getMovieDetails } from "@/infrastructure/tmdb/server";
 import { isTmdbId } from "@/infrastructure/tmdb/transport";
 import type { ProviderEntry, RegionProviders } from "./model";
 
-type WatchProvidersResult = MutationResult<{
+type WatchProvidersResult = ActionResult<{
   regions: Record<string, RegionProviders>;
 }>;
 

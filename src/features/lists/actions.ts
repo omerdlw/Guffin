@@ -2,12 +2,7 @@
 import "server-only";
 
 import { report, toUserMessage } from "@omerdlw/base-framework/utils";
-import {
-  fail,
-  type MutationResult as ActionResult,
-  type MutationResult,
-  ok,
-} from "@/shared/result";
+import { fail, type ActionResult, ok } from "@/shared/result";
 import { mutate, requireUser } from "@/features/auth/server";
 import { isUuid } from "@/shared/http";
 import { and, asc, desc, eq, inArray } from "drizzle-orm";
@@ -27,12 +22,12 @@ import {
 } from "./model";
 import { readListPreviews } from "./queries";
 
-type MovieListsResult = MutationResult<{
+type MovieListsResult = ActionResult<{
   lists: MovieListSummary[];
   memberships: string[];
 }>;
 
-type MovieListChangeResult = MutationResult<{
+type MovieListChangeResult = ActionResult<{
   inList: boolean;
   list: MovieListSummary;
 }>;

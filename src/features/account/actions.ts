@@ -1,23 +1,9 @@
 "use server";
 import "server-only";
 
-import {
-  err,
-  ok as okResult,
-  type Result,
-} from "@omerdlw/base-framework/result";
-import {
-  report,
-  toUserMessage,
-  UserError,
-} from "@omerdlw/base-framework/utils";
-import {
-  fail,
-  type MutationResult as ActionResult,
-  type MutationResult,
-  ok,
-} from "@/shared/result";
-import { getOptionalUser, mutate, requireUser } from "@/features/auth/server";
+import { report, toUserMessage } from "@omerdlw/base-framework/utils";
+import { fail, type ActionResult, ok } from "@/shared/result";
+import { mutate, query, requireUser } from "@/features/auth/server";
 import { isUuid } from "@/shared/http";
 import { and, eq, inArray } from "drizzle-orm";
 import {
@@ -53,11 +39,11 @@ import {
   updateAccount,
 } from "./queries";
 
-type MovieLibraryResult = MutationResult<{ state: MovieLibraryState }>;
+type MovieLibraryResult = ActionResult<{ state: MovieLibraryState }>;
 
-type DiaryLogResult = MutationResult;
+type DiaryLogResult = ActionResult;
 
-type LibraryMarksResult = MutationResult<{
+type LibraryMarksResult = ActionResult<{
   watched: number[];
   watchlist: number[];
 }>;
@@ -96,43 +82,18 @@ function isDiaryDate(value: unknown): value is string {
   );
 }
 
-export async function runAccountAction<T>(
-  { code, fallback, name }: { code: string; fallback: string; name: string },
-  work: () => Promise<Result<T>>,
-): Promise<Result<T>> {
-  try {
-    return await work();
-  } catch (error: unknown) {
-    report(name, error);
-    return err(toUserMessage(error, { fallback }), code);
-  }
-}
-
-export async function requireFollowTarget(followingId: string) {
-  const user = await requireUser();
-  if (!followingId || followingId === user.id) {
-    throw new UserError("Invalid follow target");
-  }
-  return user;
-}
-
 export async function updateAccountAction(
   input: AccountPatchInput,
-): Promise<Result<CurrentAccount>> {
+): Promise<ActionResult<{ account: CurrentAccount }>> {
   const fallback = "Your account couldn't be updated. Please try again";
-  return runAccountAction(
-    { code: "ACCOUNT_UPDATE_FAILED", fallback, name: "AccountAction update" },
-    async () => {
-      const user = await requireUser();
-      const { account } = await updateAccount({
-        input,
-        session: viewer(user.id),
-        userId: user.id,
-      });
-      if (!account) return err(fallback);
+  return mutate(
+    { fallback, name: "Account update" },
+    async ({ session, userId }) => {
+      const { account } = await updateAccount({ input, session, userId });
+      if (!account) return fail(fallback);
 
       revalidateAccount(account.username);
-      return okResult(account);
+      return ok({ account });
     },
   );
 }
@@ -228,53 +189,41 @@ async function writeLibraryEntry(
 export async function getMovieLibraryAction(
   tmdbId: number,
 ): Promise<MovieLibraryResult> {
-  try {
-    if (!isTmdbId(tmdbId)) {
-      return fail("Invalid title");
-    }
-
-    const user = await getOptionalUser();
-    if (!user) return ok({ state: EMPTY_MOVIE_LIBRARY });
-
-    return ok({
-      state: await readLibraryState(viewer(user.id), user.id, tmdbId),
-    });
-  } catch (error) {
-    report("MovieLibrary read", error);
-    return fail(
-      toUserMessage(error, { fallback: "Could not load your library" }),
-    );
-  }
+  if (!isTmdbId(tmdbId)) return fail("Invalid title");
+  return query(
+    { fallback: "Could not load your library", name: "MovieLibrary read" },
+    async ({ session, userId }) =>
+      ok({
+        state: userId
+          ? await readLibraryState(session, userId, tmdbId)
+          : EMPTY_MOVIE_LIBRARY,
+      }),
+  );
 }
 
 export async function getLibraryMarksAction(
   tmdbIds: number[],
 ): Promise<LibraryMarksResult> {
-  try {
-    if (
-      !Array.isArray(tmdbIds) ||
-      tmdbIds.length > LIBRARY_MARKS_MAX ||
-      !tmdbIds.every(isTmdbId)
-    ) {
-      return fail("Invalid request");
-    }
-
-    const user = await getOptionalUser();
-    if (!user || tmdbIds.length === 0)
-      return ok({ watched: [], watchlist: [] });
-
-    const session = viewer(user.id);
-    const [watched, watchlist] = await Promise.all([
-      readMarkedIds(session, LIBRARY_TABLES.watched, user.id, tmdbIds),
-      readMarkedIds(session, LIBRARY_TABLES.watchlist, user.id, tmdbIds),
-    ]);
-    return ok({ watched, watchlist });
-  } catch (error) {
-    report("MovieLibrary marks", error);
-    return fail(
-      toUserMessage(error, { fallback: "Could not load your library" }),
-    );
+  if (
+    !Array.isArray(tmdbIds) ||
+    tmdbIds.length > LIBRARY_MARKS_MAX ||
+    !tmdbIds.every(isTmdbId)
+  ) {
+    return fail("Invalid request");
   }
+  return query(
+    { fallback: "Could not load your library", name: "MovieLibrary marks" },
+    async ({ session, userId }) => {
+      if (!userId || tmdbIds.length === 0) {
+        return ok({ watched: [], watchlist: [] });
+      }
+      const [watched, watchlist] = await Promise.all([
+        readMarkedIds(session, LIBRARY_TABLES.watched, userId, tmdbIds),
+        readMarkedIds(session, LIBRARY_TABLES.watchlist, userId, tmdbIds),
+      ]);
+      return ok({ watched, watchlist });
+    },
+  );
 }
 
 export async function setMovieLibraryAction(

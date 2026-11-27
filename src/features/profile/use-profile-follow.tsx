@@ -144,7 +144,7 @@ export function useProfileFollow({
           ? await unfollowUserAction(id, username)
           : await followUserAction(id, username);
         if (!result.success) throw new UserError(result.error);
-        settled = asStatus(result.data);
+        settled = asStatus(result.status);
       } catch (error) {
         report("Social follow status", error);
         toast(toUserMessage(error, { fallback: "Follow action failed" }));

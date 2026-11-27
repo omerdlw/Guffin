@@ -1,13 +1,11 @@
 "use server";
 import "server-only";
 
-import { report, toUserMessage } from "@omerdlw/base-framework/utils";
 import { rememberWatchedPayload } from "@/features/account/queries";
-import { fail, type MutationResult as ReviewResult, ok } from "@/shared/result";
-import { getOptionalUser, mutate } from "@/features/auth/server";
+import { fail, type ActionResult, ok } from "@/shared/result";
+import { mutate, query } from "@/features/auth/server";
 import { isUuid } from "@/shared/http";
 import { and, eq, sql } from "drizzle-orm";
-import { viewer } from "@/infrastructure/db/client";
 import { lists, reviewLikes, reviews } from "@/infrastructure/db/schema";
 import { getMovieDetails, movieSnapshot } from "@/infrastructure/tmdb/server";
 import { isTmdbId } from "@/infrastructure/tmdb/transport";
@@ -47,37 +45,34 @@ function mutateReview<T extends object = object>(
 
 export async function getOwnMovieReviewAction(
   tmdbId: number,
-): Promise<ReviewResult<{ review: ReviewInput | null }>> {
+): Promise<ActionResult<{ review: ReviewInput | null }>> {
   if (!isTmdbId(tmdbId)) return fail("Invalid title");
-  try {
-    const user = await getOptionalUser();
-    if (!user) return ok({ review: null });
+  return query(
+    { fallback: "Could not load your review", name: "Review read" },
+    async ({ session, userId }) => {
+      if (!userId) return ok({ review: null });
 
-    const [data] = await viewer(user.id)
-      .db.select({
-        content: reviews.content,
-        isSpoiler: reviews.isSpoiler,
-        rating: reviews.rating,
-      })
-      .from(reviews)
-      .where(and(eq(reviews.accountId, user.id), eq(reviews.tmdbId, tmdbId)))
-      .limit(1);
+      const [data] = await session.db
+        .select({
+          content: reviews.content,
+          isSpoiler: reviews.isSpoiler,
+          rating: reviews.rating,
+        })
+        .from(reviews)
+        .where(and(eq(reviews.accountId, userId), eq(reviews.tmdbId, tmdbId)))
+        .limit(1);
 
-    return ok({
-      review: data
-        ? {
-            content: data.content,
-            isSpoiler: data.isSpoiler,
-            rating: data.rating === null ? null : Number(data.rating),
-          }
-        : null,
-    });
-  } catch (error) {
-    report("Review read", error);
-    return fail(
-      toUserMessage(error, { fallback: "Could not load your review" }),
-    );
-  }
+      return ok({
+        review: data
+          ? {
+              content: data.content,
+              isSpoiler: data.isSpoiler,
+              rating: data.rating === null ? null : Number(data.rating),
+            }
+          : null,
+      });
+    },
+  );
 }
 
 export async function getMovieReviewsPageAction(
@@ -96,7 +91,7 @@ export async function getMovieReviewsPageAction(
     username: string | null;
   },
 ): Promise<
-  ReviewResult<{
+  ActionResult<{
     reviews: MovieReview[];
     stats: ReviewStats;
     total: number;
@@ -116,35 +111,32 @@ export async function getMovieReviewsPageAction(
   ) {
     return fail("Invalid request");
   }
-  try {
-    const user = await getOptionalUser();
-    const viewerId = user?.id ?? null;
-    const session = viewer(viewerId);
-    const [{ reviews: page, total }, stats] = await Promise.all([
-      getMovieReviews({
-        session,
-        filter,
-        from,
-        limit,
-        sort,
-        tmdbId,
-        username,
-        viewerId,
-      }),
-      getReviewStats({ session, tmdbId, username }),
-    ]);
-    return ok({ reviews: page, stats, total, viewerId });
-  } catch (error) {
-    report("Reviews page read", error);
-    return fail(toUserMessage(error, { fallback: "Could not load reviews" }));
-  }
+  return query(
+    { fallback: "Could not load reviews", name: "Reviews page read" },
+    async ({ session, userId }) => {
+      const [{ reviews: page, total }, stats] = await Promise.all([
+        getMovieReviews({
+          session,
+          filter,
+          from,
+          limit,
+          sort,
+          tmdbId,
+          username,
+          viewerId: userId,
+        }),
+        getReviewStats({ session, tmdbId, username }),
+      ]);
+      return ok({ reviews: page, stats, total, viewerId: userId });
+    },
+  );
 }
 
 export async function getMemberReviewAction(
   tmdbId: number,
   username: string,
 ): Promise<
-  ReviewResult<{
+  ActionResult<{
     film: { posterPath: string | null; title: string; year: number | null };
     review: MovieReview | null;
     viewerId: string | null;
@@ -153,63 +145,56 @@ export async function getMemberReviewAction(
   if (!isTmdbId(tmdbId) || typeof username !== "string" || !username) {
     return fail("Invalid request");
   }
-  try {
-    const user = await getOptionalUser();
-    const viewerId = user?.id ?? null;
-    const [{ reviews: found }, media] = await Promise.all([
-      getMovieReviews({
-        limit: 1,
-        session: viewer(viewerId),
-        sort: "newest",
-        tmdbId,
-        username,
-        viewerId,
-      }),
-      getMovieDetails(tmdbId),
-    ]);
-    if (!media.success) return fail("Could not load this title");
-    const { posterPath, releaseYear, title } = media.data;
-    return ok({
-      film: { posterPath, title, year: releaseYear ?? null },
-      review: found[0] ?? null,
-      viewerId,
-    });
-  } catch (error) {
-    report("Member review read", error);
-    return fail(
-      toUserMessage(error, { fallback: "Could not load the review" }),
-    );
-  }
+  return query(
+    { fallback: "Could not load the review", name: "Member review read" },
+    async ({ session, userId }) => {
+      const [{ reviews: found }, media] = await Promise.all([
+        getMovieReviews({
+          limit: 1,
+          session,
+          sort: "newest",
+          tmdbId,
+          username,
+          viewerId: userId,
+        }),
+        getMovieDetails(tmdbId),
+      ]);
+      if (!media.success) return fail("Could not load this title");
+      const { posterPath, releaseYear, title } = media.data;
+      return ok({
+        film: { posterPath, title, year: releaseYear ?? null },
+        review: found[0] ?? null,
+        viewerId: userId,
+      });
+    },
+  );
 }
 
 export async function getViewerMovieReviewAction(
   tmdbId: number,
-): Promise<ReviewResult<{ review: MovieReview | null }>> {
+): Promise<ActionResult<{ review: MovieReview | null }>> {
   if (!isTmdbId(tmdbId)) return fail("Invalid request");
-  try {
-    const user = await getOptionalUser();
-    if (!user) return ok({ review: null });
-    const { reviews: own } = await getMovieReviews({
-      authorId: user.id,
-      limit: 1,
-      session: viewer(user.id),
-      sort: "newest",
-      tmdbId,
-      viewerId: user.id,
-    });
-    return ok({ review: own[0] ?? null });
-  } catch (error) {
-    report("Viewer review read", error);
-    return fail(
-      toUserMessage(error, { fallback: "Could not load your review" }),
-    );
-  }
+  return query(
+    { fallback: "Could not load your review", name: "Viewer review read" },
+    async ({ session, userId }) => {
+      if (!userId) return ok({ review: null });
+      const { reviews: own } = await getMovieReviews({
+        authorId: userId,
+        limit: 1,
+        session,
+        sort: "newest",
+        tmdbId,
+        viewerId: userId,
+      });
+      return ok({ review: own[0] ?? null });
+    },
+  );
 }
 
 export async function saveMovieReviewAction(
   tmdbId: number,
   input: ReviewInput,
-): Promise<ReviewResult> {
+): Promise<ActionResult> {
   const review = normalizeReviewInput(input);
   const problem = getReviewValidationError({
     content: review.content,
@@ -249,7 +234,7 @@ export async function saveMovieReviewAction(
 export async function saveListCommentAction(
   listId: string,
   content: string,
-): Promise<ReviewResult> {
+): Promise<ActionResult> {
   const text = typeof content === "string" ? content.trim() : "";
   const problem = getReviewValidationError({
     allowRating: false,
@@ -287,7 +272,7 @@ export async function saveListCommentAction(
   );
 }
 
-export async function deleteReviewAction(id: string): Promise<ReviewResult> {
+export async function deleteReviewAction(id: string): Promise<ActionResult> {
   if (!isUuid(id)) return fail("Invalid request");
   return mutateReview(
     "Review delete",
@@ -304,7 +289,7 @@ export async function deleteReviewAction(id: string): Promise<ReviewResult> {
 export async function setReviewLikeAction(
   reviewId: string,
   liked: boolean,
-): Promise<ReviewResult> {
+): Promise<ActionResult> {
   if (!isUuid(reviewId)) return fail("Invalid request");
   return mutateReview(
     "Review like",

@@ -13,7 +13,7 @@ import { auth } from "@/infrastructure/auth/server";
 import { admin, type Session, viewer } from "@/infrastructure/db/client";
 import { authUsers } from "@/infrastructure/db/schema";
 import { checkRateLimit } from "@/infrastructure/security";
-import { fail, type MutationResult } from "@/shared/result";
+import { fail, type ActionResult } from "@/shared/result";
 import { SEED_EMAIL_DOMAIN } from "./model";
 
 interface AuthUser {
@@ -79,14 +79,33 @@ export async function mutate<T extends object = object>(
   work: (context: {
     session: Session;
     userId: string;
-  }) => Promise<MutationResult<T>>,
-): Promise<MutationResult<T>> {
+  }) => Promise<ActionResult<T>>,
+): Promise<ActionResult<T>> {
   try {
     const user = await requireUser();
     const limit = await checkRateLimit(`${scope}:${user.id}`, perMinute);
     if (!limit.success) return fail("Too many requests, slow down a little");
 
     return await work({ session: viewer(user.id), userId: user.id });
+  } catch (error) {
+    report(name, error);
+    return fail(toUserMessage(error, { fallback }));
+  }
+}
+
+// Read-side twin of mutate(): runs a read for the current viewer (signed in
+// or not) and turns any thrown error into a reported, user-facing failure.
+export async function query<T extends object = object>(
+  { fallback, name }: { fallback: string; name: string },
+  work: (context: {
+    session: Session;
+    userId: string | null;
+  }) => Promise<ActionResult<T>>,
+): Promise<ActionResult<T>> {
+  try {
+    const user = await getOptionalUser();
+    const userId = user?.id ?? null;
+    return await work({ session: viewer(userId), userId });
   } catch (error) {
     report(name, error);
     return fail(toUserMessage(error, { fallback }));

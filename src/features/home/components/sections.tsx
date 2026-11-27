@@ -797,9 +797,7 @@ function FollowButton({ member }: { member: HomeMember }): JSX.Element {
         toast(result.error);
         return;
       }
-      const next: MemberFollowState = was
-        ? null
-        : (result.data as MemberFollowState);
+      const next: MemberFollowState = result.status;
       setStatus(next);
       globalEvents.emit(SOCIAL_EVENTS.FOLLOW_CHANGE, {
         followingId: member.id,

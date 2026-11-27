@@ -270,11 +270,11 @@ export function useSocialActions({
               if (!result.success) throw new UserError(result.error);
               setFollowStatus((statuses) => ({
                 ...statuses,
-                [id]: result.data,
+                [id]: result.status,
               }));
               globalEvents.emit(SOCIAL_EVENTS.FOLLOW_CHANGE, {
                 followingId: id,
-                status: result.data,
+                status: result.status,
               });
             },
           };
