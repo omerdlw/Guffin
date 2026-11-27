@@ -17,6 +17,7 @@ const spring = (x = 0): CursorSpring => ({ v: 0, x });
 
 type CursorMode =
   | "action"
+  | "blocked"
   | "card"
   | "drag"
   | "idle"
@@ -29,6 +30,7 @@ type CursorMode =
 interface CursorReading {
   corner?: number;
   label: string;
+  link?: boolean;
   mode: CursorMode;
   shape?: HTMLElement;
   target: HTMLElement | null;
@@ -74,6 +76,19 @@ const CURSOR_SHAPES: Record<Exclude<CursorMode, "none">, CursorShape> = {
     caption: 0,
     dot: 0,
     glass: 1,
+    h: 0,
+    label: 0,
+    lens: 0,
+    r: 0,
+    solid: 0,
+    swell: 0,
+    w: 0,
+  },
+  blocked: {
+    bracket: 0,
+    caption: 0,
+    dot: 0,
+    glass: 0,
     h: 0,
     label: 0,
     lens: 0,
@@ -185,6 +200,8 @@ const CURSOR_TEXT_INPUT =
 
 const CURSOR_OWNER = `[data-cursor], [data-dragging], ${CURSOR_TEXT_INPUT}, a[href], button, summary, select, label, [role='button'], [role='link'], [role='tab'], [role='switch'], [role='menuitem'], [role='menuitemradio'], [role='menuitemcheckbox'], [role='option'], [role='checkbox'], [role='radio'], [role='combobox'], [role='slider'], [aria-haspopup]:not([aria-haspopup='false'])`;
 
+const CURSOR_LINK = "a[href], [role='link']";
+
 const CURSOR_SWELL = 0.32;
 
 const CURSOR_WRAP = 7;
@@ -267,11 +284,12 @@ function layerOf(from: Element): HTMLElement | null {
   return null;
 }
 
-const FOLLOW = tune(210, 0.92);
+const FOLLOW = tune(460, 0.82);
 const GRIP = tune(340, 1);
 const FADE = tune(170, 1);
+const GLYPH = tune(520, 0.7);
 const PRESS = tune(380, 0.38);
-const JELLY = tune(170, 0.45);
+const JELLY = tune(260, 0.55);
 const ABSORB = tune(520, 1);
 const LANDING_KICK = 1.4;
 const CURSOR_GIVE = 40;
@@ -307,8 +325,43 @@ function inkOf(element: HTMLElement): CursorInk | null {
   return ink;
 }
 
+// The ancestors that clip what is inside them (a carousel's viewport, a
+// scroller). The cursor wraps only the part of a card that shows, so it
+// never reaches past the edge a card is cut off by. Found once per element.
+const clippers = new WeakMap<HTMLElement, HTMLElement[]>();
+
+function clippersOf(element: HTMLElement): HTMLElement[] {
+  let found = clippers.get(element);
+  if (found) return found;
+  found = [];
+  for (
+    let node = element.parentElement;
+    node && node !== document.body && node !== document.documentElement;
+    node = node.parentElement
+  ) {
+    const { overflowX, overflowY } = getComputedStyle(node);
+    if (overflowX !== "visible" || overflowY !== "visible") found.push(node);
+  }
+  clippers.set(element, found);
+  return found;
+}
+
+function shown(element: HTMLElement): CursorBox {
+  const box = element.getBoundingClientRect();
+  let { bottom, left, right, top } = box;
+  for (const clip of clippersOf(element)) {
+    const edge = clip.getBoundingClientRect();
+    left = Math.max(left, edge.left);
+    top = Math.max(top, edge.top);
+    right = Math.min(right, edge.right);
+    bottom = Math.min(bottom, edge.bottom);
+  }
+  // Fully cut off: keep the whole box rather than collapse the cursor.
+  return right > left && bottom > top ? { bottom, left, right, top } : box;
+}
+
 function boxOf(target: HTMLElement, shape?: HTMLElement): CursorBox {
-  if (shape && shape !== target) return shape.getBoundingClientRect();
+  if (shape && shape !== target) return shown(shape);
   const drawn = target.dataset.cursorBox?.split(",").map(Number);
   if (drawn?.length === 4 && drawn.every(Number.isFinite)) {
     const [left, top, right, bottom] = drawn as [
@@ -323,7 +376,7 @@ function boxOf(target: HTMLElement, shape?: HTMLElement): CursorBox {
     target.dataset.cursor === "card"
       ? target.querySelector<HTMLElement>("[data-cursor-frame]")
       : null;
-  const plain = (picture ?? target).getBoundingClientRect();
+  const plain = shown(picture ?? target);
   if (target.dataset.cursorFit !== "ink") return plain;
   const ink = inkOf(target);
   if (!ink) return plain;
@@ -386,6 +439,7 @@ function read(x: number, y: number): CursorReading {
       return {
         corner: Number.isFinite(corner) ? corner : undefined,
         label: own.dataset.cursorLabel ?? CURSOR_LABELS[named] ?? "",
+        link: own.matches(CURSOR_LINK),
         mode: named,
         target: own,
       };
@@ -393,8 +447,9 @@ function read(x: number, y: number): CursorReading {
     if (own.matches(CURSOR_TEXT_INPUT))
       return { label: "", mode: "text", target: own };
     if (own.matches(":disabled, [aria-disabled='true']")) {
-      return { label: "", mode: "idle", target: null };
+      return { label: "", mode: "blocked", target: null };
     }
+    const link = own.matches(CURSOR_LINK);
     const box = own.getBoundingClientRect();
     const fits = (limit: readonly [number, number]) =>
       box.width <= limit[0] && box.height <= limit[1];
@@ -403,12 +458,13 @@ function read(x: number, y: number): CursorReading {
       return {
         corner: shape.radius,
         label: "",
+        link,
         mode: "action",
         shape: shape.node as HTMLElement,
         target: own,
       };
     }
-    return { label: "", mode: "inside", target: own };
+    return { label: "", link, mode: "inside", target: own };
   }
 
   return { label: "", mode: "idle", target: null };
@@ -422,6 +478,10 @@ function Reticle() {
   const lensSheet = useRef<HTMLSpanElement>(null);
   const caret = useRef<HTMLSpanElement>(null);
   const dot = useRef<HTMLDivElement>(null);
+  const core = useRef<HTMLSpanElement>(null);
+  const ringRef = useRef<HTMLSpanElement>(null);
+  const arrowRef = useRef<SVGSVGElement>(null);
+  const banRef = useRef<SVGSVGElement>(null);
   const words = useRef<HTMLSpanElement>(null);
   const brackets = useRef<HTMLSpanElement>(null);
   const slate = useRef<HTMLSpanElement>(null);
@@ -441,9 +501,14 @@ function Reticle() {
     const pane = sheet.current;
     const prism = lensSheet.current;
     const bar = caret.current;
+    const nub = core.current;
+    const hoop = ringRef.current;
+    const arrow = arrowRef.current;
+    const ban = banRef.current;
     if (!host || !lens || !pin || !text || !corners) return;
     if (!drop || !pane || !prism || !bar) return;
     if (!caption || !name || !year) return;
+    if (!nub || !hoop || !arrow || !ban) return;
 
     const html = document.documentElement;
     const stopWatching = watchPointer();
@@ -457,6 +522,8 @@ function Reticle() {
     };
     const radius = spring(CURSOR_SHAPES.idle.r);
     const weights = {
+      arrow: spring(),
+      ban: spring(),
       bead: spring(1),
       bracket: spring(),
       caption: spring(),
@@ -466,6 +533,8 @@ function Reticle() {
       label: spring(),
       lens: spring(),
       presence: spring(),
+      ring: spring(),
+      tap: spring(),
       solid: spring(),
     };
     const press = spring(1);
@@ -521,7 +590,7 @@ function Reticle() {
     let touched = true;
     const written = new Map<string, string>();
     const put = (
-      element: HTMLElement,
+      element: HTMLElement | SVGElement,
       key: string,
       property: "borderRadius" | "height" | "opacity" | "transform" | "width",
       value: string,
@@ -688,6 +757,7 @@ function Reticle() {
         year.hidden = !made;
       }
 
+      const acts = mode === "inside" || mode === "action";
       const travel = snap ? GRIP : FOLLOW;
       const width = Math.max(edge.r.x - edge.l.x, 0);
       const height = Math.max(edge.b.x - edge.t.x, 0);
@@ -703,7 +773,7 @@ function Reticle() {
         (edge.t.v + edge.b.v) / 2,
       );
       const smear =
-        unitClamp(flowing / 1800) * 0.62 * unitClamp(weights.bead.x);
+        unitClamp(flowing / 1800) * 0.5 * unitClamp(weights.bead.x);
       if (landing) {
         landing = false;
         stretch.v += LANDING_KICK * unitClamp(80 / Math.max(tw, th, 1));
@@ -719,12 +789,20 @@ function Reticle() {
         [weights.swell, shape.swell, FADE],
         [weights.bracket, shape.bracket, FADE],
         [weights.caption, reading.label ? shape.caption : 0, FADE],
-        [weights.dot, shape.dot, FADE],
+        [
+          weights.dot,
+          mode === "action" && !reading.link ? 1 : shape.dot,
+          FADE,
+        ],
         [weights.glass, shape.glass, FADE],
         [weights.label, shape.label, FADE],
         [weights.lens, shape.lens, FADE],
         [weights.solid, shape.solid, FADE],
         [weights.presence, hidden ? 0 : 1, FADE],
+        [weights.ring, mode === "inside" && !reading.link ? 1 : 0, GLYPH],
+        [weights.tap, mode === "action" && !reading.link ? 1 : 0, GLYPH],
+        [weights.arrow, (acts || mode === "card") && reading.link ? 1 : 0, GLYPH],
+        [weights.ban, mode === "blocked" ? 1 : 0, GLYPH],
         [press, pressed ? 1 - Math.min(inset, 0.14) : 1, PRESS],
         [slide, centred, FADE],
         [stretch, smear, JELLY],
@@ -793,13 +871,46 @@ function Reticle() {
       put(text, "label", "opacity", fine(unitClamp(weights.label.x)));
       put(caption, "caption", "opacity", fine(unitClamp(weights.caption.x)));
       put(caption, "slide", "transform", `translateX(${slide.x.toFixed(2)}px)`);
+      put(pin, "pin", "transform", `translate3d(${px}px, ${py}px, 0)`);
+      put(pin, "presence-pin", "opacity", fine(presence));
+      const ring = unitClamp(weights.ring.x);
+      const arrowed = unitClamp(weights.arrow.x);
+      const banned = unitClamp(weights.ban.x);
+      const swapped = Math.max(ring, arrowed, banned);
+      const grip = Math.max(press.x, 0);
       put(
-        pin,
-        "pin",
-        "transform",
-        `translate3d(${px - 2.5}px, ${py - 2.5}px, 0)`,
+        nub,
+        "nub",
+        "opacity",
+        fine(unitClamp(weights.dot.x) * (1 - swapped)),
       );
-      put(pin, "dot", "opacity", fine(unitClamp(weights.dot.x) * presence));
+      put(
+        nub,
+        "nub-scale",
+        "transform",
+        `scale(${fine((1 - swapped * 0.6) * (1 + unitClamp(weights.tap.x) * 0.8) * grip)})`,
+      );
+      put(hoop, "hoop", "opacity", fine(ring));
+      put(
+        hoop,
+        "hoop-scale",
+        "transform",
+        `scale(${fine((0.4 + 0.6 * ring) * grip)})`,
+      );
+      put(arrow, "arrow", "opacity", fine(arrowed));
+      put(
+        arrow,
+        "arrow-scale",
+        "transform",
+        `scale(${fine((0.4 + 0.6 * arrowed) * grip)})`,
+      );
+      put(ban, "ban", "opacity", fine(banned));
+      put(
+        ban,
+        "ban-scale",
+        "transform",
+        `scale(${fine(0.4 + 0.6 * banned)})`,
+      );
 
       const resting =
         (!dirty || !pointer.present) &&
@@ -864,7 +975,7 @@ function Reticle() {
     <div
       aria-hidden="true"
       data-reticle=""
-      className="pointer-events-none fixed inset-0 [--liquid-drop:0_1px_3px_rgb(0_0_0/0.2),0_6px_16px_-6px_rgb(0_0_0/0.3)] [--liquid-lens-tone:saturate(1)] [--liquid-tint:transparent] overflow-hidden opacity-0 [@media(hover:none),(pointer:coarse)]:hidden"
+      className="pointer-events-none fixed inset-0 [--liquid-contour:transparent] [--liquid-drop:0_0_#0000] [--liquid-lens-tone:saturate(1)] [--liquid-tint:transparent] overflow-hidden opacity-0 [@media(hover:none),(pointer:coarse)]:hidden"
       ref={root}
       style={{ zIndex: Z_INDEX.TOOLTIP + 20 }}
     >
@@ -883,7 +994,7 @@ function Reticle() {
           style={{ opacity: 0 }}
         />
         <span
-          className="liquid liquid-clear liquid-prism liquid-flat absolute inset-0 [--liquid-bend:0.32] [--liquid-bezel:10]"
+          className="liquid liquid-clear liquid-flat absolute inset-0 [--liquid-bend:0.32] [--liquid-bezel:10]"
           ref={lensSheet}
           style={{ opacity: 0 }}
         />
@@ -924,10 +1035,48 @@ function Reticle() {
         </span>
       </div>
       <div
-        className="absolute top-0 left-0 size-[5px] rounded-full bg-ink ring-1 ring-page/25"
+        className="absolute top-0 left-0 size-0"
         ref={dot}
         style={{ opacity: 0 }}
-      />
+      >
+        <span
+          className="absolute -top-[2.5px] -left-[2.5px] size-[5px] rounded-full bg-ink"
+          ref={core}
+        />
+        <span
+          className="absolute -top-2.5 -left-2.5 size-5 rounded-full border-[1.5px] border-ink"
+          ref={ringRef}
+          style={{ opacity: 0 }}
+        />
+        <svg
+          className="absolute -top-2 -left-2 size-4 text-ink"
+          fill="none"
+          ref={arrowRef}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{ opacity: 0 }}
+          viewBox="0 0 16 16"
+        >
+          <path
+            d="M4.5 11.5L11.5 4.5M5.5 4.5h6v6"
+            stroke="currentColor"
+            strokeWidth="1.8"
+          />
+        </svg>
+        <svg
+          className="absolute -top-2 -left-2 size-4 text-ink"
+          fill="none"
+          ref={banRef}
+          strokeLinecap="round"
+          style={{ opacity: 0 }}
+          viewBox="0 0 16 16"
+        >
+          <g stroke="currentColor" strokeWidth="1.6">
+            <circle cx="8" cy="8" r="5.5" />
+            <path d="M4.1 4.1l7.8 7.8" />
+          </g>
+        </svg>
+      </div>
     </div>
   );
 }

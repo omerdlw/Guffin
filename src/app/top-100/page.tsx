@@ -1,6 +1,8 @@
 import type { JSX } from "react";
 import type { Metadata } from "next";
 import { getCanon, TunnelView } from "@/features/spotlights";
+import { tmdbImageUrl } from "@/infrastructure/tmdb/model";
+import { getAmbientPalette } from "@/infrastructure/tmdb/server";
 import { readParam, type SearchParams } from "@/shared/http";
 import { shareMetadata } from "@/shared/site";
 
@@ -28,10 +30,16 @@ export default async function CanonPage({
 }: CanonPageProps): Promise<JSX.Element> {
   const films = await getCanon();
   if (films.length === 0) throw new Error(`The ${WALL.title} is unavailable`);
+  const startRank = await rankOf(searchParams);
+  const start = films.find((film) => film.rank === startRank) ?? films.at(-1)!;
+  const palette = await getAmbientPalette(
+    tmdbImageUrl("backdrop", start.backdropPath, "w300"),
+  );
   return (
     <TunnelView
       films={films}
-      startRank={await rankOf(searchParams)}
+      palette={palette}
+      startRank={startRank}
       title={WALL.title}
     />
   );

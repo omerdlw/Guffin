@@ -79,4 +79,179 @@
   .dock-card[data-ghost="true"]:not([data-peek="true"]) {
     visibility: hidden;
   }
+
+  /* One fill slides between the dock's commands (dock/hover.ts); the
+     per-command hover fill steps aside, press keeps its own. */
+  .dock-command.ui-iris:hover:not(:active)::before {
+    opacity: 0;
+  }
+
+  [data-part="dock-hover"] {
+    background: var(--color-fill-hover);
+    opacity: 0;
+    transition: opacity var(--soft-out) var(--soft-ease);
+  }
+  [data-part="dock-hover"][data-shown="true"],
+  [data-part="dock-hover"][data-shown="landing"] {
+    opacity: 1;
+    transition-duration: var(--soft-in);
+  }
+  [data-part="dock-hover"][data-shown="true"] {
+    transition-property: opacity, translate, width, height;
+    transition-duration: var(--soft-in), 0.32s, 0.32s, 0.32s;
+    transition-timing-function:
+      var(--soft-ease), cubic-bezier(0.236, 0.382, 0.146, 1),
+      cubic-bezier(0.236, 0.382, 0.146, 1), cubic-bezier(0.236, 0.382, 0.146, 1);
+  }
+
+  [data-part="tip"] {
+    opacity: 0;
+    scale: 0.96;
+    transition:
+      opacity var(--soft-out) var(--soft-ease),
+      scale var(--soft-out) var(--soft-ease);
+  }
+  [data-part="tip"][data-shown="true"],
+  [data-part="tip"][data-shown="landing"] {
+    opacity: 1;
+    scale: 1;
+    transition-duration: var(--soft-in);
+  }
+  [data-part="tip"][data-shown="true"] {
+    transition-property: opacity, scale, translate, width, height;
+    transition-duration: var(--soft-in), var(--soft-in), 0.32s, 0.32s, 0.32s;
+    transition-timing-function:
+      var(--soft-ease), var(--soft-ease), cubic-bezier(0.236, 0.382, 0.146, 1),
+      cubic-bezier(0.236, 0.382, 0.146, 1), cubic-bezier(0.236, 0.382, 0.146, 1);
+  }
+
+  /* Words change inside a box that is resizing: stacked, old out, new in. */
+  [data-part="tip"] {
+    display: grid;
+  }
+  [data-part="tip"] > span {
+    grid-area: 1 / 1;
+  }
+  @keyframes tip-words-in {
+    from {
+      opacity: 0;
+      filter: blur(3px);
+    }
+  }
+  @keyframes tip-words-out {
+    to {
+      opacity: 0;
+      filter: blur(3px);
+    }
+  }
+  [data-part="tip"] > [data-entering] {
+    animation: tip-words-in 0.236s cubic-bezier(0.236, 0.382, 0.146, 1) 0.05s
+      backwards;
+  }
+  [data-part="tip"] > [data-leaving] {
+    animation: tip-words-out 0.146s cubic-bezier(0.618, 0, 0.854, 0.382)
+      forwards;
+  }
+
+  /* Tips with a picture: a person or film, or an account's card. */
+  [data-part="tip"] [data-layout] {
+    display: grid;
+    gap: 0.5rem;
+  }
+  [data-part="tip"] [data-layout="portrait"] {
+    justify-items: center;
+    width: 7rem;
+    text-align: center;
+  }
+  /* Frames are 6px thick, so the picture's corners are the frame's minus 6. */
+  [data-part="tip"] [data-layout="portrait"] > img {
+    aspect-ratio: 2 / 3;
+    border-radius: calc(var(--radius-card) - 6px);
+    display: block;
+    object-fit: cover;
+    object-position: top;
+    width: 100%;
+  }
+  /* An account's card: a banner, the avatar across its foot, then the name,
+     the bio and a well with the two counts. */
+  [data-part="tip"] [data-layout="account"] {
+    border-radius: calc(var(--radius-card) - 6px);
+    display: grid;
+    gap: 0;
+    grid-template-columns: minmax(0, 1fr);
+    overflow: hidden;
+    position: relative;
+    text-align: left;
+    width: 15rem;
+  }
+  [data-part="tip"] [data-slot="banner"] {
+    background: linear-gradient(
+      135deg,
+      var(--fill-hover),
+      var(--fill)
+    );
+    display: block;
+    height: 5.5rem;
+    object-fit: cover;
+    width: 100%;
+  }
+  [data-part="tip"] [data-slot="avatar"] {
+    align-items: center;
+    background: var(--fill-hover);
+    border-radius: 9999px;
+    box-shadow: 0 0 0 3px var(--page);
+    display: flex;
+    font-size: 1.25rem;
+    font-weight: 600;
+    height: 3.25rem;
+    justify-content: center;
+    margin: -1.625rem 0 0 0.875rem;
+    object-fit: cover;
+    position: relative;
+    text-transform: uppercase;
+    width: 3.25rem;
+  }
+  [data-part="tip"] [data-slot="name"] {
+    font-size: var(--type-copy);
+    font-weight: 600;
+    margin: 0.5rem 0.875rem 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  [data-part="tip"] [data-slot="handle"] {
+    color: var(--ink-muted);
+    margin: 0 0.875rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  [data-part="tip"] [data-slot="bio"] {
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    color: var(--ink-body);
+    display: -webkit-box;
+    margin: 0.5rem 0.875rem 0;
+    overflow: hidden;
+  }
+  [data-part="tip"] [data-slot="stats"] {
+    background: var(--fill);
+    border-radius: calc(var(--radius-card) - 6px - 6px);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    margin: 0.75rem 0.375rem 0.375rem;
+    padding: 0.5rem 0;
+    text-align: center;
+  }
+  [data-part="tip"] [data-slot="stats"] > span {
+    display: grid;
+    font-variant-numeric: tabular-nums;
+  }
+  [data-part="tip"] [data-slot="stats"] > span > :first-child {
+    font-weight: 600;
+  }
+  [data-part="tip"] [data-slot="stats"] > span > :last-child {
+    color: var(--ink-muted);
+    font-size: var(--type-micro);
+  }
 }

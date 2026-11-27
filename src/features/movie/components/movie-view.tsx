@@ -16,8 +16,8 @@ import { cn } from "@/design/ui";
 import {
   DetailAwards,
   DetailLayout,
-  DetailReviewsLayout,
   DetailSidebar,
+  DetailReviewsLayout,
   DetailTags,
   Heading,
   namesFact,
@@ -237,8 +237,13 @@ function getCertification(
   );
 }
 
-const toFactName = (person: { id: number; name: string }): FactName => ({
+const toFactName = (person: {
+  id: number;
+  name: string;
+  profilePath?: string | null;
+}): FactName => ({
   href: personHref(person.id),
+  image: tmdbImageUrl("profile", person.profilePath, "w185"),
   text: person.name,
 });
 
@@ -596,6 +601,7 @@ function MovieView({
             />
           }
           sidebar={<MovieSidebar awards={awards} movie={movie} />}
+          tall
           wall={
             <MovieGalleryWall
               backdrops={gallery.backdrops}

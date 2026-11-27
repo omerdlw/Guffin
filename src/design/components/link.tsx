@@ -145,13 +145,14 @@ export function FactLink({
   children,
   href,
   label,
+  ...rest
 }: {
   children: ReactNode;
   href: string;
   label: string;
-}): JSX.Element {
+} & Record<`data-${string}`, string | undefined>): JSX.Element {
   return (
-    <DockLink aria-label={label} href={href} variant="hairline">
+    <DockLink aria-label={label} href={href} variant="hairline" {...rest}>
       {children}
     </DockLink>
   );

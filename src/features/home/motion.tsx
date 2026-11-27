@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, type ReactNode, use, useMemo, useState } from "react";
+import type { AmbientPalette } from "@omerdlw/base-framework/ambient";
 import { Room } from "@/design/components/room";
 import { cn } from "@/design/ui";
 import type { Curve, Moves } from "@/motion/choreography/choreo";
@@ -346,15 +347,20 @@ export const useHomeLead = () => use(LightContext).lead;
 export function HomeStage({
   backdrop,
   children,
+  palette = null,
 }: {
   backdrop: string | null;
   children: ReactNode;
+  palette?: AmbientPalette | null;
 }) {
   const [lead, setLead] = useState<string | null>(null);
   const lighting = useMemo(() => ({ lead: setLead }), []);
 
   return (
-    <HomeStageRoot light={lead ?? ambientImage(backdrop)}>
+    <HomeStageRoot
+      light={lead ?? ambientImage(backdrop)}
+      lightPalette={palette}
+    >
       <Room black />
       <LightContext value={lighting}>{children}</LightContext>
     </HomeStageRoot>

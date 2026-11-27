@@ -228,17 +228,6 @@ const DETAIL = defineStage({
         enter: reveal({ opacity: 0, blur: 8 }, { duration: beat(-2) }),
         hover: { y: -2, duration: beat(-3), ease: TOUCH },
         rest: { duration: beat(-2), ease: SETTLE },
-        slots: {
-          thumb: {
-            hover: {
-              opacity: 1,
-              scale: 1,
-              duration: beat(-2),
-              ease: SPRING,
-            },
-            rest: { duration: beat(-3), ease: SETTLE },
-          },
-        },
       },
       credit: {
         enter: reveal({ opacity: 0, blur: 8 }, { duration: beat(-2) }),

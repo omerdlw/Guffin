@@ -20,8 +20,10 @@ import { CoreProvider } from "@omerdlw/base-framework/provider";
 import { ThemeProvider } from "@omerdlw/base-framework/theme";
 import { TooltipProvider, UiProvider } from "@omerdlw/base-framework/ui";
 import { ActionArrival } from "@/design/components/action-content";
+import { CardTilt } from "@/design/components/card-tilt";
 import { Logo } from "@/design/components/logo";
 import { NoTab } from "@/design/components/no-tab";
+import { TipHost } from "@/design/components/tip-host";
 import { DockCompact } from "@/design/dock/compact";
 import { GlassEngine } from "@/design/glass/engine";
 import { LiquidTouch } from "@/design/glass/liquid-touch";
@@ -148,6 +150,8 @@ export function Providers({ children }: { children: ReactNode }): JSX.Element {
         <GlassEngine />
         <LiquidTouch />
         <NoTab />
+        <TipHost />
+        <CardTilt />
         <ReviewLinks />
         <ActionArrival />
       </Compose>

@@ -1,8 +1,8 @@
 "use client";
 
-import { type ReactNode, useRef, useState } from "react";
-import { Tooltip as UiTooltip } from "@omerdlw/base-framework/ui";
+import { cloneElement, isValidElement, type ReactNode } from "react";
 import { ui } from "@/design/ui";
+import { tipProps, type TipSide as Side } from "./tip-props";
 import styles from "./tooltip.module.css";
 
 export const TOOLTIP = {
@@ -12,26 +12,11 @@ export const TOOLTIP = {
   meta: styles.meta,
 } as const;
 
-const SLATE = /^(.*\S)\s+\((\d{4})\)(?:,\s*(.+))?$/;
-
-function Slate({ text }: { text: ReactNode }) {
-  const slate = typeof text === "string" ? SLATE.exec(text) : null;
-  if (!slate) return text;
-  return (
-    <>
-      {slate[1]}
-      <span className={TOOLTIP.meta}>
-        {slate[3] ? `${slate[2]} · ${slate[3]}` : slate[2]}
-      </span>
-    </>
-  );
-}
-
 interface TooltipProps {
   children: ReactNode;
   "data-cursor-owned"?: string;
-  position?: "top" | "right" | "bottom" | "left";
-  text: ReactNode;
+  position?: Side;
+  text: string;
   triggerClassName?: string;
 }
 
@@ -42,31 +27,16 @@ export function Tooltip({
   triggerClassName,
   ...props
 }: TooltipProps) {
-  const trigger = useRef<HTMLButtonElement>(null);
-  const [inModule, setInModule] = useState(false);
-  const owned = "data-cursor-owned" in props;
-
+  const tip = tipProps(text, {
+    owned: "data-cursor-owned" in props,
+    side: position,
+  });
+  if (triggerClassName === undefined && isValidElement(children)) {
+    return cloneElement(children as React.ReactElement<object>, tip);
+  }
   return (
-    <UiTooltip
-      contentProps={{
-        "data-cursor-owned": owned && !inModule ? "" : undefined,
-      }}
-      onOpenChange={(open) => {
-        if (open && owned) {
-          setInModule(Boolean(trigger.current?.closest(".ui-motion")));
-        }
-      }}
-      collisionPadding={8}
-      position={position}
-      sideOffset={10}
-      text={<Slate text={text} />}
-      triggerRef={trigger}
-    >
-      {triggerClassName === undefined ? (
-        children
-      ) : (
-        <span className={triggerClassName}>{children}</span>
-      )}
-    </UiTooltip>
+    <span className={triggerClassName} {...tip}>
+      {children}
+    </span>
   );
 }

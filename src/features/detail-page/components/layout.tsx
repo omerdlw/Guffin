@@ -2,6 +2,7 @@ import type { JSX, ReactNode } from "react";
 import { Icon } from "@/design/components/icon";
 import { FactLink } from "@/design/components/link";
 import { Tooltip } from "@/design/components/tooltip";
+import { tipProps } from "@/design/components/tip-props";
 import { DockClear } from "@/design/dock/clear";
 import {
   ASIDE_CLASS,
@@ -95,7 +96,11 @@ function FactNames({
           <span key={`${name.text}-${at}`}>
             {name.href ? (
               <DetailPart as="span" index={index} name="value">
-                <FactLink href={name.href} label={name.text}>
+                <FactLink
+                  href={name.href}
+                  label={name.text}
+                  {...tipProps(name.text, { image: name.image, side: "left" })}
+                >
                   {text}
                 </FactLink>
               </DetailPart>
@@ -191,6 +196,7 @@ export function DetailLayout({
   intermission,
   main,
   sidebar,
+  tall = false,
   wall,
 }: {
   after?: ReactNode;
@@ -200,6 +206,7 @@ export function DetailLayout({
   intermission: ReactNode;
   main: ReactNode;
   sidebar: ReactNode;
+  tall?: boolean;
   wall: ReactNode;
 }): JSX.Element {
   return (
@@ -214,7 +221,7 @@ export function DetailLayout({
         <div className={CONTAINER_CLASS}>
           {backdrop}
 
-          <div className={pageBodyClass(Boolean(backdrop))}>
+          <div className={pageBodyClass(Boolean(backdrop), tall)}>
             <div className={COLUMNS_CLASS}>
               <header className={HEADER_CLASS}>{header}</header>
 

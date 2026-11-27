@@ -96,8 +96,9 @@ export const dockThemeConfig = defineTheme(dockTheme, {
       "size-full rounded-full bg-cover bg-center bg-no-repeat ring-1 ring-inset ring-edge-hover",
     iconOverlayGlyph: "center text-ink",
 
-    commandBar: "flex shrink-0 items-center",
-    commandTooltip: DOCK_TOOLTIP,
+    commandBar: "dock-commands relative flex shrink-0 items-center",
+    // Commands' tooltip is the one sliding element in dock/hover.ts.
+    commandTooltip: "hidden",
     command:
       "dock-command ui-iris center relative size-control-chrome cursor-pointer rounded-full bg-transparent text-ink-body hover:text-ink select-none data-[banner=true]:[--iris:var(--color-fill-hover)]",
     commandBadge:
@@ -109,7 +110,7 @@ export const dockThemeConfig = defineTheme(dockTheme, {
     // commands step aside (search has its own close), and so does the
     // press lens left from the tap.
     compact:
-      "dock-compact relative flex w-max shrink-0 items-center touch-pan-y has-[[data-part=compact-search]]:[&_.dock-command]:hidden has-[[data-part=compact-search]]:[&_.dock-compact-gap]:hidden has-[[data-part=compact-search]]:[&_[data-part=compact-lens]]:hidden",
+      "dock-compact relative flex w-max shrink-0 items-center touch-pan-y has-[[data-part=compact-search]]:[&_.dock-command]:hidden has-[[data-part=compact-search]]:[&_.dock-compact-gap]:hidden has-[[data-part=compact-search]]:[&_[data-part=compact-lens]]:hidden has-[[data-part=compact-search]]:[&_[data-part=dock-hover]]:hidden",
     compactView: "flex items-center",
     compactActions: COMPACT_ACTIONS,
     // Space, not a rule, between the action and the commands.

@@ -69,7 +69,7 @@ export const DirectorsSwap = DIRECTORS.Swap;
 
 export function DirectorsStage({ children }: { children: ReactNode }) {
   return (
-    <DirectorsStageRoot light={null}>
+    <DirectorsStageRoot>
       <Room black />
       <MotionConfig reducedMotion="user">
         <main

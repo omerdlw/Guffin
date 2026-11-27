@@ -53,6 +53,10 @@
     --heat-3: color-mix(in oklab, var(--grade) 62%, transparent);
     --heat-4: var(--grade);
 
+    /* White with the page's light folded in: what wells, glows and rims are
+       drawn with. Plain white when the page has no ambient. */
+    --lit: color-mix(in oklab, var(--grade) 30%, white);
+
     --liquid-stain: 0;
     --liquid-tint: color-mix(
       in oklab,
@@ -126,9 +130,9 @@
     --liquid-shadow:
       0 1px 2px rgb(0 0 0 / 0.3), 0 6px 16px -6px rgb(0 0 0 / 0.5),
       0 24px 56px -20px rgb(0 0 0 / 0.7);
-    --liquid-well: rgb(255 255 255 / 0.08);
-    --liquid-well-hover: rgb(255 255 255 / 0.12);
-    --liquid-well-active: rgb(255 255 255 / 0.16);
+    --liquid-well: color-mix(in oklab, var(--lit) 8%, transparent);
+    --liquid-well-hover: color-mix(in oklab, var(--lit) 12%, transparent);
+    --liquid-well-active: color-mix(in oklab, var(--lit) 16%, transparent);
     --liquid-well-edge: rgb(var(--ink-rgb) / 0.08);
     --liquid-well-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05);
     --liquid-frost: blur(12px) saturate(1.6) brightness(0.85);
@@ -141,9 +145,9 @@
     --liquid-poster-alpha: 0.62;
     --liquid-poster-star-l: 0.86;
     --liquid-poster-star-c: 0.17;
-    --liquid-glint: rgb(255 255 255 / 0.12);
-    --liquid-touch-glow: rgb(255 255 255 / 0.16);
-    --liquid-touch-wash: rgb(255 255 255 / 0.05);
+    --liquid-glint: color-mix(in oklab, var(--lit) 12%, transparent);
+    --liquid-touch-glow: color-mix(in oklab, var(--lit) 16%, transparent);
+    --liquid-touch-wash: color-mix(in oklab, var(--lit) 5%, transparent);
     --liquid-sheen: none;
 
     --glass-control: rgb(var(--ink-rgb) / 0.06);
@@ -168,8 +172,8 @@
     --veil: color-mix(in srgb, var(--page) 46%, transparent);
     --dim: color-mix(in srgb, var(--page) 30%, transparent);
 
-    --primary: var(--ink);
-    --primary-hover: rgb(var(--ink-rgb) / 0.9);
+    --primary: color-mix(in oklab, var(--grade) 14%, var(--ink));
+    --primary-hover: color-mix(in oklab, var(--primary) 90%, transparent);
     --on-primary: var(--page);
     --on-accent: var(--page);
     --sheen-primary: 0 0 0;
@@ -193,7 +197,7 @@
   [data-reticle] {
     --rim-key: rgb(255 255 255 / 0.42);
     --rim-fill: rgb(255 255 255 / 0.18);
-    --rim-shade: rgb(0 0 0 / 0.2);
+    --rim-shade: rgb(255 255 255 / 0.18);
   }
 
   .dock-root {

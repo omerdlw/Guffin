@@ -112,6 +112,7 @@ export function MovieBackdropHero({
       frames={frames}
       src={image}
       still={still}
+      tall
       title={movie.title}
     >
       <Slate title={movie.title} />

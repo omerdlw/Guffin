@@ -70,7 +70,7 @@ export function SalonStage({
   className: string;
 }) {
   return (
-    <SalonStageRoot light={null}>
+    <SalonStageRoot>
       <Room black />
       <MotionConfig reducedMotion="user">
         <main

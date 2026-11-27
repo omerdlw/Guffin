@@ -62,27 +62,35 @@ export function AuthProvider({ children }: { children?: ReactNode }) {
     [refetch],
   );
 
-  const value = useMemo<AuthContextValue>(() => {
-    const user = data?.user
-      ? {
-          email: data.user.email,
-          id: data.user.id,
-          image: data.user.image ?? null,
-          name: data.user.name,
-        }
-      : null;
-    return {
+  // The session is fetched again whenever the tab regains focus, and each
+  // fetch hands back a new `data` object even when nothing changed. Everything
+  // below is keyed on the values inside it, so a return to the tab leaves the
+  // user, and everything that reads it, exactly as it was.
+  const id = data?.user?.id ?? null;
+  const email = data?.user?.email ?? "";
+  const name = data?.user?.name ?? "";
+  const image = data?.user?.image ?? null;
+  const created = data?.session
+    ? new Date(data.session.createdAt).toISOString()
+    : null;
+
+  const user = useMemo<AuthUser | null>(
+    () => (id ? { email, id, image, name } : null),
+    [email, id, image, name],
+  );
+
+  const value = useMemo<AuthContextValue>(
+    () => ({
       error,
       isAuthenticated: Boolean(user),
       isReady: !isPending,
       refresh,
-      sessionCreatedAt: data?.session
-        ? new Date(data.session.createdAt).toISOString()
-        : null,
+      sessionCreatedAt: created,
       signOut,
       user,
-    };
-  }, [data, error, isPending, refresh, signOut]);
+    }),
+    [created, error, isPending, refresh, signOut, user],
+  );
 
   return <AuthContext value={value}>{children}</AuthContext>;
 }

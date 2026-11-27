@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import type { AmbientPalette } from "@omerdlw/base-framework/ambient";
 import { DockClear } from "@/design/dock/clear";
 import { CONTAINER_CLASS, PAGE_CLASS } from "@/design/foundations/layout";
 import type { HomeFeed } from "../model";
@@ -10,11 +11,20 @@ import { HomeCraft, HomeJoin, HomePitch } from "./guest-sections";
 import { HomeReel } from "./reel";
 import { HomeReviews } from "./review-sections";
 
-export function HomeView({ feed }: { feed: HomeFeed }): JSX.Element {
+export function HomeView({
+  feed,
+  palette = null,
+}: {
+  feed: HomeFeed;
+  palette?: AmbientPalette | null;
+}): JSX.Element {
   const { circle } = feed;
 
   return (
-    <HomeStage backdrop={feed.features[0]?.backdropPath ?? null}>
+    <HomeStage
+      backdrop={feed.features[0]?.backdropPath ?? null}
+      palette={palette}
+    >
       <main
         id="main"
         className={`home-page ui-scene overflow-x-clip ${PAGE_CLASS}`}

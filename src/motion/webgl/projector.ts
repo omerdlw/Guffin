@@ -84,6 +84,8 @@ const PROJECTION_UNIFORMS = [
   "uVelocity",
   "uHalation",
   "uGrain",
+  "uTime",
+  "uFx",
 ] as const;
 
 const PROJECTION_GRAIN = 0.18;
@@ -165,10 +167,12 @@ uniform float uDefocus;
 uniform float uVelocity;
 uniform float uHalation;
 uniform float uGrain;
+uniform float uTime;
+uniform float uFx;
 in vec2 vUv;
 out vec4 outColor;
 
-const float OVERSCAN = 1.07;
+const float OVERSCAN = 1.09;
 const float DRAIN = 0.94;
 const float AWAY_SOFT = ${PROJECTION_AWAY_SOFT.toFixed(2)};
 const float STREAK_GAIN = ${PROJECTION_STREAK_GAIN.toFixed(1)};
@@ -179,7 +183,9 @@ vec2 cover(vec2 uv, vec2 imageSize) {
   vec2 visible = canvasAspect > imageAspect
     ? vec2(1.0, imageAspect / canvasAspect)
     : vec2(canvasAspect / imageAspect, 1.0);
-  visible /= OVERSCAN * (1.0 + uRack * 0.012);
+  // A slow dolly: the frame creeps in and back out over half a minute.
+  float dolly = 1.0 + uFx * 0.034 * (0.5 - 0.5 * cos(uTime * 0.224));
+  visible /= OVERSCAN * (1.0 + uRack * 0.012) * dolly;
   return uFocus * (1.0 - visible) + uv * visible;
 }
 
@@ -187,6 +193,17 @@ float hash(vec2 p) {
   vec3 q = fract(vec3(p.xyx) * 0.1031);
   q += dot(q, q.yzx + 33.33);
   return fract((q.x + q.y) * q.z);
+}
+
+float vnoise(vec2 p) {
+  vec2 i = floor(p);
+  vec2 f = fract(p);
+  f = f * f * (3.0 - 2.0 * f);
+  return mix(
+    mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x),
+    mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x),
+    f.y
+  );
 }
 
 vec2 slopeX;
@@ -215,15 +232,22 @@ vec3 pic(vec2 st, float defocus) {
   return reel(uImage, uLevel1, uLevel2, uLevel3, st, defocus);
 }
 
-vec2 framed(vec2 turn) {
-  vec2 centred = vUv + uWeave / uCanvas - 0.5;
-  centred /= 1.0 + dot(centred, turn * vec2(0.05, 0.035));
-  float depth = mix(0.35, 1.0, vUv.y);
-  return centred + 0.5 - turn * depth * vec2(0.02, 0.012);
+// z is a rough depth read from the picture's own light: the camera slides the
+// parts of the frame by different amounts, so the picture reads as layers.
+vec2 framed(vec2 turn, float z) {
+  vec2 drift = uFx * 0.0025 * vec2(sin(uTime * 0.11), cos(uTime * 0.083));
+  vec2 centred = vUv + uWeave / uCanvas - 0.5 + drift;
+  centred /= 1.0 + dot(centred, turn * vec2(0.07, 0.05));
+  float depth = mix(0.35, 1.0, vUv.y) * (0.7 + 0.6 * z);
+  return centred + 0.5 - turn * depth * vec2(0.03, 0.018);
 }
 
 void main() {
-  vec2 uv = framed(uParallax);
+  float z = dot(
+    texture(uLevel2, cover(vUv, uImageSize)).rgb,
+    vec3(0.299, 0.587, 0.114)
+  );
+  vec2 uv = framed(uParallax, z);
   vec2 st = cover(uv, uImageSize);
   vec2 stB = cover(uv, uImageSizeB);
   slopeX = dFdx(st);
@@ -243,7 +267,7 @@ void main() {
 
   float focus = uDefocus + away * AWAY_SOFT;
 
-  vec2 motion = st - cover(framed(uParallax - uMotion), uImageSize);
+  vec2 motion = st - cover(framed(uParallax - uMotion, z), uImageSize);
   float smear = length(motion / max(abs(vec2(slopeX.x, slopeY.y)), vec2(1e-6)));
   vec3 color;
   if (smear > 0.75) {
@@ -270,18 +294,90 @@ void main() {
     color.b = pic(st - outward * split, focus).b;
   }
 
-  float halo = dot(texture(uHalo, st).rgb, vec3(0.3333));
+  vec3 haloRgb = texture(uHalo, st).rgb;
+  vec3 mood = texture(uLevel3, vec2(0.5)).rgb;
+  vec3 soft = texture(uLevel2, st).rgb;
 
   if (uCut > 0.0) {
     vec3 next = reel(uImageB, uLevelB1, uLevelB2, uLevelB3, stB, focus);
     color = mix(color, next, uCut);
-    halo = mix(halo, dot(texture(uHaloB, stB).rgb, vec3(0.3333)), uCut);
+    haloRgb = mix(haloRgb, texture(uHaloB, stB).rgb, uCut);
+    mood = mix(mood, texture(uLevelB3, vec2(0.5)).rgb, uCut);
+    soft = mix(soft, texture(uLevelB2, stB).rgb, uCut);
   }
-  color += vec3(1.0, 0.36, 0.16) * halo * uHalation * (1.0 + away * 0.9 + pool * 0.6);
+  float halo = dot(haloRgb, vec3(0.3333));
+  // The bloom takes its colour from the picture, with some of the old orange.
+  const vec3 WARM = vec3(1.0, 0.36, 0.16);
+  vec3 hue = haloRgb / max(max(haloRgb.r, max(haloRgb.g, haloRgb.b)), 0.04);
+  color += mix(WARM, hue, 0.5) * halo * uHalation * (1.0 + away * 0.9 + pool * 0.6);
 
   if (pool > 0.002) {
     float lit = texture(uStreak, st).r / STREAK_GAIN;
     color += vec3(0.32, 0.6, 1.0) * lit * pool * pool * 7.0;
+  }
+
+  float calm = uFx * (1.0 - uDefocus);
+  if (calm > 0.01) {
+    vec3 moodHue = mood / max(max(mood.r, max(mood.g, mood.b)), 0.05);
+    vec3 glowCol = mix(WARM, moodHue, 0.6);
+
+    // Bloom: the bright parts of the picture spill a soft light of their own.
+    color += max(soft - 0.5, 0.0) * 0.8 * calm;
+
+    // A light leak drifting in from the frame's top corner.
+    vec2 leakAt = vec2(0.94 + 0.05 * sin(uTime * 0.13), 0.12 + 0.1 * cos(uTime * 0.1));
+    float leakD = length((vUv - leakAt) * vec2(aspect, 1.0));
+    float leak = exp(-leakD * leakD * 4.0) * (0.6 + 0.4 * sin(uTime * 0.37));
+    color = 1.0 - (1.0 - color) * (1.0 - glowCol * leak * 0.22 * calm);
+
+    // Mist rolling along the horizon, deeper than the picture, so it slides
+    // against it when the camera leans.
+    vec2 mp = vUv * vec2(aspect, 1.0) * vec2(1.6, 2.4) + uParallax * 0.3
+      + vec2(uTime * 0.012, -uTime * 0.004);
+    float fog = vnoise(mp) * 0.65 + vnoise(mp * 2.3 + 9.0) * 0.35;
+    fog = smoothstep(0.38, 0.85, fog);
+    float band = exp(-pow((vUv.y - 0.34) * 2.6, 2.0));
+    vec3 mist = texture(uLevel3, st).rgb * 1.3 + 0.05;
+    color = mix(color, mist, fog * band * 0.42 * calm);
+
+    // Dust that only shows where the light falls: each mote is a tiny soft
+    // point that flashes as it tumbles through the beam, and it is lost in
+    // the dark. Three planes: nearer ones are larger, fainter and slide more.
+    float dust = 0.0;
+    for (int k = 0; k < 3; k++) {
+      float cells = k == 0 ? 36.0 : (k == 1 ? 17.0 : 7.0);
+      float slide = k == 0 ? 0.6 : (k == 1 ? 1.5 : 3.4);
+      float size = k == 0 ? 0.022 : (k == 1 ? 0.036 : 0.075);
+      float gain = k == 0 ? 0.9 : (k == 1 ? 0.55 : 0.12);
+      float rare = k == 0 ? 0.55 : (k == 1 ? 0.68 : 0.88);
+      vec2 dp = vUv * vec2(aspect, 1.0) * cells
+        + vec2(sin(uTime * 0.05 + float(k)) * 0.6, uTime * (0.03 + 0.015 * float(k)))
+        + uParallax * slide;
+      vec2 dc = floor(dp);
+      float dh = hash(dc + float(k) * 31.0);
+      if (dh > rare) {
+        vec2 at = vec2(hash(dc + 7.7), hash(dc + 3.1)) * 0.5 + 0.25;
+        at += 0.2 * vec2(
+          sin(uTime * 0.31 + dh * 40.0) + 0.5 * sin(uTime * 0.77 + dh * 13.0),
+          cos(uTime * 0.27 + dh * 25.0) + 0.5 * cos(uTime * 0.61 + dh * 7.0)
+        );
+        vec2 off = fract(dp) - at;
+        float r = size * (0.6 + hash(dc + 1.3) * 0.9);
+        // a tumbling speck catches the light for a moment, then goes dark
+        float tumble = 0.5 + 0.5 * sin(uTime * (0.6 + dh * 1.4) + dh * 50.0);
+        float glint = 0.35 + 0.65 * pow(tumble, 6.0);
+        dust += exp(-dot(off, off) / (r * r)) * glint * gain;
+      }
+    }
+    // only the lit parts of the picture show it
+    float beam = smoothstep(0.12, 0.65, dot(soft, vec3(0.299, 0.587, 0.114)));
+    float lit = beam * beam;
+    color += mix(vec3(1.0, 0.93, 0.82), glowCol, 0.3) * dust * calm * (0.1 + 1.6 * lit);
+
+    // A lens vignette that swings against the camera, which makes the frame
+    // feel like it has a rim to look through.
+    float rim = length((vUv - 0.5 + uParallax * 0.035) * vec2(aspect * 0.8, 1.0));
+    color *= 1.0 - smoothstep(0.38, 1.0, rim) * 0.3 * calm;
   }
 
   float grey = dot(color, vec3(0.299, 0.587, 0.114));
@@ -429,6 +525,7 @@ export function project(
   let running = false;
   let resized = true;
   let tick = -1;
+  let clock = 0;
   let weave: [number, number] = [0, 0];
   let parallax: [number, number] = [0, 0];
   let shutter: [number, number] = [0, 0];
@@ -511,12 +608,15 @@ export function project(
     gl.uniform1f(u.uVelocity, velocity);
     gl.uniform1f(u.uHalation, halation);
     gl.uniform1f(u.uGrain, PROJECTION_GRAIN);
+    gl.uniform1f(u.uTime, clock);
+    gl.uniform1f(u.uFx, reduced ? 0 : 1);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   };
 
   const step = ({ delta, timestamp }: { delta: number; timestamp: number }) => {
     if (!ready) return;
     let dirty = resized;
+    clock = timestamp / 1000;
 
     const nextDefocus = reduced ? 0 : (defocusAt.current?.(scrollY.get()) ?? 0);
     if (Math.abs(nextDefocus - defocus) > 0.0005) {

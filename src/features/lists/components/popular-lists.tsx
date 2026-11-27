@@ -2,6 +2,7 @@ import type { JSX } from "react";
 import { Avatar } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
 import { DockLink } from "@/design/components/link";
+import { accountTip } from "@/design/components/tip-props";
 import { TONE } from "@/design/foundations/tones";
 import { PosterStack } from "@/features/lists/components/poster-stack";
 import { Header, Part, Section } from "@/motion/choreography/stage";
@@ -46,6 +47,7 @@ function PopularListItem({
           <DockLink
             className="flex min-w-0 items-center gap-2 font-semibold text-ink-body hover:text-ink"
             href={accountHref(list.owner.username)}
+            {...accountTip(list.owner.username)}
           >
             <Avatar
               className="rounded-full"

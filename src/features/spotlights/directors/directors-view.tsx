@@ -10,8 +10,10 @@ import {
   useRef,
   useState,
 } from "react";
+import type { AmbientPalette } from "@omerdlw/base-framework/ambient";
 import { useDockActionClass } from "@omerdlw/base-framework/dock";
 import { Button } from "@omerdlw/base-framework/ui";
+import { useStageLight } from "@/design/ambient";
 import { Icon } from "@/design/components/icon";
 import { MediaCard } from "@/design/components/media-card";
 import { RADIUS } from "@/design/foundations/geometry";
@@ -368,14 +370,19 @@ function DirectorsAction({
 function Directors({
   directors,
   initial,
+  palette,
 }: {
   directors: Director[];
   initial: number;
+  palette: AmbientPalette | null;
 }): JSX.Element {
   const area = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(initial);
   const [size, setSize] = useState<DirectorsSize | null>(null);
   const director = directors[index]!;
+  useStageLight(tmdbImageUrl("profile", director.profilePath, "w185") ?? null, {
+    palette,
+  });
 
   const step = useCallback(
     (direction: -1 | 1) =>
@@ -445,10 +452,11 @@ function Directors({
 export function DirectorsView(props: {
   directors: Director[];
   initial: number;
+  palette?: AmbientPalette | null;
 }): JSX.Element {
   return (
     <DirectorsStage>
-      <Directors {...props} />
+      <Directors {...props} palette={props.palette ?? null} />
     </DirectorsStage>
   );
 }

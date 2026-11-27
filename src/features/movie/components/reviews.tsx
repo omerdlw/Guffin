@@ -8,6 +8,7 @@ import { Avatar } from "@omerdlw/base-framework/ui";
 import { report } from "@omerdlw/base-framework/utils";
 import { Icon } from "@/design/components/icon";
 import { DockLink } from "@/design/components/link";
+import { accountTip } from "@/design/components/tip-props";
 import { Select } from "@/design/components/select";
 import { TONE } from "@/design/foundations/tones";
 import { useSurfacePreload } from "@/design/surface/lazy";
@@ -177,7 +178,11 @@ function ReviewRow({
         href={profile}
         isSpoiler={review.isSpoiler}
         lead={
-          <DockLink className="flex" href={profile}>
+          <DockLink
+            className="flex"
+            href={profile}
+            {...accountTip(review.author.username)}
+          >
             <Avatar
               className="rounded-full"
               name={review.author.displayName}
@@ -195,6 +200,7 @@ function ReviewRow({
         rating={review.rating}
         stars={hasRating ? <LitStars rating={review.rating} /> : null}
         title={review.author.displayName}
+        titleProps={accountTip(review.author.username)}
       />
     </DetailPart>
   );

@@ -89,7 +89,6 @@ function Lead({ review }: { review: HomeReview }): JSX.Element {
                 </span>
               ) : null}
             </span>
-            <span className="cine-afterglow" />
           </DockLink>
         ) : (
           <div className="flex items-end gap-5">

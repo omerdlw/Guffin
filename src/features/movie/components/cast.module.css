@@ -280,31 +280,16 @@
     text-transform: lowercase;
   }
 
-  .face {
-    position: absolute;
-    top: calc(100% + 0.625rem);
-    left: 50%;
-    width: 5.5rem;
-    aspect-ratio: 2 / 3;
-    overflow: hidden;
-    border-radius: var(--radius-thumb);
-    box-shadow:
-      0 0 0 1px var(--color-edge),
-      var(--liquid-shadow);
-    translate: -50% 0;
-    opacity: 0;
-    scale: 0.6;
-    transform-origin: 50% 0;
-    pointer-events: none;
-  }
-
   .name:hover {
     z-index: 2;
   }
 
-  .face > * {
-    width: 100%;
-    height: 100%;
-    border-radius: inherit;
+  /* The name lifts on hover; without this it slides out from under a pointer
+     resting on its lower edge, drops back, and flickers (and its face with
+     it). The pad rides along and keeps the pointer on it. */
+  .name::before {
+    content: "";
+    position: absolute;
+    inset: -4px -4px -10px;
   }
 }

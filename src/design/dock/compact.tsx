@@ -3,14 +3,17 @@
 import { useEffect, useRef, useSyncExternalStore } from "react";
 import { useDockActions, useDockSelector } from "@omerdlw/base-framework/dock";
 import { useCompactLens } from "@/design/dock/compact-lens";
+import { useDockHover } from "@/design/dock/hover";
 import { useEngine } from "@/motion/core/provider";
 
 // Near the top of a page the dock stays a full card: it introduces the page.
 const CARD_ZONE = 160;
 
 // Scroll travel in one direction that counts as intent: down shrinks the
-// dock to its compact layout, up brings the card back.
-const INTENT = 24;
+// dock to its compact layout, up brings the card back. Coming back asks for
+// more, so a small flick or a smoothing rebound does not reopen the card.
+const INTENT_DOWN = 24;
+const INTENT_UP = 120;
 
 // Parts of the app that need the full card while they are open (search
 // typing in the card's action, say) hold it; compact waits until none do.
@@ -74,6 +77,7 @@ export function DockCompact(): null {
   const held = useSyncExternalStore(subscribeHolds, isHeld, isHeldOnServer);
   const shown = useRef({ anchor: 0, compact: false, held: false });
   useCompactLens();
+  useDockHover();
 
   // The dock may leave the compact layout on its own (a tap, a command): turn
   // there so the next scroll measures from where the reader is.
@@ -112,11 +116,11 @@ export function DockCompact(): null {
       }
       if (current) {
         if (y > anchor) shown.current.anchor = y;
-        else if (anchor - y > INTENT) show(false, y);
+        else if (anchor - y > INTENT_UP) show(false, y);
         return;
       }
       if (y < anchor) shown.current.anchor = y;
-      else if (y - anchor > INTENT) show(true, y);
+      else if (y - anchor > INTENT_DOWN) show(true, y);
     });
   }, [engine, setCompact]);
 

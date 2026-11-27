@@ -22,6 +22,12 @@ import { REVIEW_EVENTS, REVIEW_ICON, type ReviewInput } from "../model";
 import type { ReviewsPager } from "../pager";
 import { reviewEditorSurface } from "../surfaces";
 
+// The dock mounts the action again when it moves between its card and compact
+// layouts. The own review is kept here, so the new copy starts loaded (no
+// disabled button, no new request) and only asks again once it has gone stale.
+const FRESH_MS = 5000;
+const ownCache = new Map<string, { at: number; review: ReviewInput | null }>();
+
 export function MovieAction({
   extra = null,
   hasProviders,
@@ -50,18 +56,25 @@ export function MovieAction({
   const [own, setOwn] = useState<{
     key: string;
     review: ReviewInput | null;
-  } | null>(null);
+  } | null>(() => {
+    const kept = key ? ownCache.get(key) : null;
+    return key && kept ? { key, review: kept.review } : null;
+  });
   const [version, setVersion] = useState(0);
 
   useEffect(() => {
     if (!key) return;
+    const kept = ownCache.get(key);
+    if (version === 0 && kept && Date.now() - kept.at < FRESH_MS) return;
     let cancelled = false;
 
     getOwnMovieReviewAction(movieId)
       .then((result) => {
         if (cancelled) return;
-        if (result.success) setOwn({ key, review: result.review });
-        else report("MovieAction load", result.error);
+        if (result.success) {
+          ownCache.set(key, { at: Date.now(), review: result.review });
+          setOwn({ key, review: result.review });
+        } else report("MovieAction load", result.error);
       })
       .catch((error) => report("MovieAction load", error));
 
@@ -82,7 +95,11 @@ export function MovieAction({
       data: {
         kind: "movie",
         movieId,
-        onSaved: (saved) => key && setOwn({ key, review: saved }),
+        onSaved: (saved) => {
+          if (!key) return;
+          ownCache.set(key, { at: Date.now(), review: saved });
+          setOwn({ key, review: saved });
+        },
         review,
         title,
       },

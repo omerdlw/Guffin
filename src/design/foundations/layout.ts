@@ -8,13 +8,20 @@ export const CONTAINER_CLASS =
 
 const OVERLAP = "-mt-32 sm:-mt-48 lg:-mt-64 xl:-mt-72";
 
-const overlapClass = (hasBackdrop: boolean) =>
-  hasBackdrop ? OVERLAP : "pt-6 sm:pt-8 lg:pt-10";
+// Under a hero as tall as the screen the page starts higher up the picture.
+const TALL_OVERLAP = "-mt-64 sm:-mt-72 lg:-mt-80";
+
+const overlapClass = (hasBackdrop: boolean, tall: boolean) =>
+  hasBackdrop ? (tall ? TALL_OVERLAP : OVERLAP) : "pt-6 sm:pt-8 lg:pt-10";
 
 export const COLUMNS_CLASS = `grid w-full grid-cols-1 items-start gap-x-8 ${RHYTHM_GAP_Y} lg:grid-cols-[18rem_minmax(0,1fr)] lg:grid-rows-[auto_1fr] xl:grid-cols-[24rem_minmax(0,1fr)]`;
 
-export const pageBodyClass = (hasBackdrop: boolean) =>
-  `relative flex w-full flex-col ${RHYTHM_GAP} ${overlapClass(hasBackdrop)}`;
+export const pageBodyClass = (hasBackdrop: boolean, tall = false) =>
+  `relative flex w-full flex-col ${RHYTHM_GAP} ${overlapClass(hasBackdrop, tall)}`;
+
+// Full height, and as wide as the screen so the picture has no edge of its own.
+export const BACKDROP_HERO_TALL =
+  "left-1/2 h-[max(30rem,calc(100svh-4rem))] w-screen -translate-x-1/2 sm:h-[max(34rem,calc(100svh-4rem))] sm:w-screen sm:-translate-x-1/2 lg:h-[max(36rem,calc(100svh-4rem))] lg:w-screen lg:-translate-x-1/2 xl:h-[max(40rem,calc(100svh-4rem))] xl:w-screen xl:-translate-x-1/2";
 
 export const HEADER_CLASS =
   "relative flex w-full min-w-0 flex-col lg:col-start-2 lg:row-start-1";

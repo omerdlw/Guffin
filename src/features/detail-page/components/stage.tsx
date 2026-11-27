@@ -13,10 +13,18 @@ import {
 } from "react";
 import { useOptionalDockState } from "@omerdlw/base-framework/dock";
 import { ActionButton } from "@/design/components/action-button";
-import { BOTTOM_COVER, SIDE_COVER } from "@/design/components/backdrop";
+import {
+  BACKDROP_HERO_TALL_MASK,
+  BOTTOM_COVER,
+  SIDE_COVER,
+} from "@/design/components/backdrop";
 import { TextButton } from "@/design/components/link";
 import { Room } from "@/design/components/room";
-import { MAIN_COLUMN_CLASS, VIEW_CLASS } from "@/design/foundations/layout";
+import {
+  BACKDROP_HERO_TALL,
+  MAIN_COLUMN_CLASS,
+  VIEW_CLASS,
+} from "@/design/foundations/layout";
 import { cn } from "@/design/ui";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/model";
 import { useWall } from "@/motion/choreography/stage";
@@ -256,6 +264,7 @@ export function DetailBackdrop({
   held = false,
   src,
   still = null,
+  tall = false,
   title,
 }: {
   children?: ReactNode;
@@ -263,6 +272,7 @@ export function DetailBackdrop({
   held?: boolean;
   src: string;
   still?: string | null;
+  tall?: boolean;
   title?: string;
 }) {
   const reel = useMemo(
@@ -290,6 +300,8 @@ export function DetailBackdrop({
       <DetailPart name="backdrop">
         <div className="relative">
           <BackdropProjection
+            className={tall ? BACKDROP_HERO_TALL : undefined}
+            mask={tall ? BACKDROP_HERO_TALL_MASK : undefined}
             onReady={() => setReady(true)}
             src={src}
             still={still}

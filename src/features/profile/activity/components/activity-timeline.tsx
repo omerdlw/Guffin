@@ -3,6 +3,7 @@
 import { type JSX, type ReactNode, useSyncExternalStore } from "react";
 import { Icon } from "@/design/components/icon";
 import { DockLink } from "@/design/components/link";
+import { accountTip } from "@/design/components/tip-props";
 import { MediaCard } from "@/design/components/media-card";
 import { RADIUS } from "@/design/foundations/geometry";
 import { cn } from "@/design/ui";
@@ -125,7 +126,11 @@ function describe(item: ActivityItem, actor: string): ReactNode {
       </span>
     );
   const target = item.target ? (
-    <DockLink className={STRONG} href={accountHref(item.target.username)}>
+    <DockLink
+      className={STRONG}
+      href={accountHref(item.target.username)}
+      {...accountTip(item.target.username)}
+    >
       {item.target.displayName}
     </DockLink>
   ) : (

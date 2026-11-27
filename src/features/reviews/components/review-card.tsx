@@ -78,6 +78,7 @@ export function ReviewCard({
   rating,
   stars,
   title,
+  titleProps,
 }: {
   actions?: ReactNode;
   actionsInset?: boolean;
@@ -94,6 +95,8 @@ export function ReviewCard({
   rating: number | null;
   stars?: ReactNode;
   title: string;
+  /** Extra attributes for the title link (a tooltip, say). */
+  titleProps?: Record<string, string | undefined>;
 }): JSX.Element {
   const scored =
     stars ??
@@ -120,7 +123,7 @@ export function ReviewCard({
             </span>
           ) : null}
           <h3 className="flex min-w-0 flex-wrap items-baseline gap-x-fib-2">
-            <DockLink className={TITLE} href={href}>
+            <DockLink className={TITLE} href={href} {...titleProps}>
               {title}
             </DockLink>
             {meta}

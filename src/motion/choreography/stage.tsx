@@ -13,6 +13,7 @@ import {
   useRef,
   useState,
 } from "react";
+import type { AmbientPalette } from "@omerdlw/base-framework/ambient";
 import { type StageLight, useStageLight } from "@/design/ambient";
 import { useScrollDriver } from "../core/provider";
 import type { ScrollFeel } from "../core/scroll";
@@ -912,13 +913,15 @@ export function defineStage<
   function ChoreoRoot({
     light,
     lightLinger,
+    lightPalette,
     children,
   }: {
     light?: StageLight;
     lightLinger?: number;
+    lightPalette?: AmbientPalette | null;
     children: ReactNode;
   }) {
-    useStageLight(light, { linger: lightLinger });
+    useStageLight(light, { linger: lightLinger, palette: lightPalette });
     const root = useRef<HTMLDivElement>(null);
     const on = Boolean(scope && css);
     useCue(root, on, opening, inset, cadence, cued);

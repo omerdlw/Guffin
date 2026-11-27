@@ -6,6 +6,7 @@ import { useToast } from "@omerdlw/base-framework/notification";
 import { Avatar, Button } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
 import { DockLink } from "@/design/components/link";
+import { accountTip } from "@/design/components/tip-props";
 import { SOCIAL_EVENTS } from "@/features/account/model";
 import { useAuth } from "@/features/auth/provider";
 import { useOpenSignIn } from "@/features/auth/sign-in";
@@ -154,7 +155,11 @@ function MemberCard({
       index={index}
       name="member"
     >
-      <DockLink className="flex ui-fade hover:opacity-80" href={href}>
+      <DockLink
+        className="flex ui-fade hover:opacity-80"
+        href={href}
+        {...accountTip(member.username)}
+      >
         <Avatar
           className="rounded-full"
           name={member.displayName}
@@ -166,6 +171,7 @@ function MemberCard({
         <DockLink
           className={`truncate type-copy font-semibold text-ink ${TEXT_LINK_CLASS}`}
           href={href}
+          {...accountTip(member.username)}
         >
           {member.displayName}
         </DockLink>

@@ -40,7 +40,6 @@ export const MATERIALS = {
   },
   tip: { ...BASE, frost: { small: 5, large: 5 } },
   clear: { ...BASE, ...LENS, abbe: 0 },
-  prism: { ...BASE, ...LENS, abbe: 14 },
 } satisfies Record<string, Material>;
 
 export type MaterialName = keyof typeof MATERIALS;
@@ -52,7 +51,6 @@ export function materialOf(element: Element): MaterialName | null {
   const named = (element as HTMLElement).dataset?.glass;
   if (isMaterial(named)) return named;
   const list = element.classList;
-  if (list.contains("liquid-prism")) return "prism";
   if (list.contains("liquid-clear")) return "clear";
   if (!list.contains("liquid-lens")) return null;
   if (list.contains("liquid-tip")) return "tip";

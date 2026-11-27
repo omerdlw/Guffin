@@ -1,11 +1,10 @@
 "use client";
 
-import { type ReactElement, useEffect } from "react";
+import { cloneElement, type ReactElement, useEffect } from "react";
 import { useDockSelector } from "@omerdlw/base-framework/dock";
-import { Tooltip } from "@omerdlw/base-framework/ui";
 import { pieces, shapeOf } from "@/design/components/action-text";
 import { Icon, type IconProps } from "@/design/components/icon";
-import { DOCK_TOOLTIP } from "@/design/theme/dock";
+import { tipProps } from "@/design/components/tip-props";
 import { cn } from "@/design/ui";
 import { LEAVE, SETTLE } from "@/motion/choreography/pace";
 import { AnimatePresence, motion, useReducedMotion } from "@/motion/lib";
@@ -61,14 +60,9 @@ export function ActionTip({
   text: string;
 }) {
   const compact = useDockSelector((state) => state.compact && !state.expanded);
-  return (
-    <Tooltip
-      className={DOCK_TOOLTIP}
-      sideOffset={6}
-      text={compact ? text : undefined}
-    >
-      {children}
-    </Tooltip>
+  return cloneElement(
+    children as ReactElement<object>,
+    tipProps(compact ? text : undefined, { kind: "dock", side: "top" }),
   );
 }
 

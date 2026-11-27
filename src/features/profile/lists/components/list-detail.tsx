@@ -12,6 +12,7 @@ import { Avatar, Button } from "@omerdlw/base-framework/ui";
 import { ActionIcon, ActionLabel } from "@/design/components/action-content";
 import { Icon } from "@/design/components/icon";
 import { DockLink } from "@/design/components/link";
+import { accountTip } from "@/design/components/tip-props";
 import { MediaCard } from "@/design/components/media-card";
 import { RADIUS } from "@/design/foundations/geometry";
 import { useSurfacePreload } from "@/design/surface/lazy";
@@ -305,7 +306,11 @@ export function ListComments({
                 data-part="row"
                 key={comment.id}
               >
-                <DockLink className="flex shrink-0 self-start" href={profile}>
+                <DockLink
+                  className="flex shrink-0 self-start"
+                  href={profile}
+                  {...accountTip(comment.author.username)}
+                >
                   <Avatar
                     className="rounded-full"
                     name={comment.author.displayName}
@@ -318,6 +323,7 @@ export function ListComments({
                     <DockLink
                       className={cn(STRONG, "type-body")}
                       href={profile}
+                      {...accountTip(comment.author.username)}
                     >
                       {comment.author.displayName}
                     </DockLink>

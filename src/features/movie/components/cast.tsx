@@ -7,6 +7,7 @@ import { Icon } from "@/design/components/icon";
 import { DockLink } from "@/design/components/link";
 import { SegmentedControl } from "@/design/components/segmented-control";
 import { Tooltip } from "@/design/components/tooltip";
+import { tipProps } from "@/design/components/tip-props";
 import { nested, RADIUS } from "@/design/foundations/geometry";
 import { CHOSEN, SHELL } from "@/design/foundations/layers";
 import { cn } from "@/design/ui";
@@ -129,7 +130,8 @@ function CastCard({
         <DockLink
           aria-label={`${person.name}, ${person.subtitle}`}
           className={cn(styles.card, "bg-fill")}
-          data-cursor="idle"
+          data-cursor="card"
+          data-cursor-label=""
           href={personHref(person.id)}
           style={{ borderRadius: CARD_RADIUS }}
         >
@@ -258,17 +260,11 @@ function CreditName({ index, person }: { index: number; person: PersonEntry }) {
       data-cursor-fit="ink"
       href={personHref(person.id)}
       style={{ "--i": index } as CSSProperties}
+      {...tipProps(person.name, {
+        image: tmdbImageUrl("profile", person.profilePath, "w185"),
+        side: "bottom",
+      })}
     >
-      {person.profilePath ? (
-        <span aria-hidden="true" className={styles.face} data-slot="thumb">
-          <Image
-            alt=""
-            className="object-cover object-top"
-            sizes="88px"
-            src={tmdbImageUrl("profile", person.profilePath, "w185")}
-          />
-        </span>
-      ) : null}
       {person.name}
     </DockLink>
   );

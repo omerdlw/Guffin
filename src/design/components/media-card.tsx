@@ -112,7 +112,10 @@ export function MediaCard({
         <Fragment key="overlay">{overlay}</Fragment>
         {framed ? (
           <>
-            <span aria-hidden="true" className="cine-afterglow" />
+            <span
+              aria-hidden="true"
+              className="liquid liquid-clear liquid-flat cine-lens"
+            />
             <span
               aria-hidden="true"
               className="pointer-events-none absolute inset-0 rounded-[inherit] ring-1 ring-edge ring-inset in-data-active:ring-edge-focus"

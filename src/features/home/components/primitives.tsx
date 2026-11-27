@@ -4,6 +4,7 @@ import type { JSX, ReactNode } from "react";
 import { Avatar } from "@omerdlw/base-framework/ui";
 import { Carousel } from "@/design/components/carousel";
 import { DockLink } from "@/design/components/link";
+import { accountTip } from "@/design/components/tip-props";
 import { TONE } from "@/design/foundations/tones";
 import { cn } from "@/design/ui";
 import { useAuth } from "@/features/auth/provider";
@@ -32,6 +33,7 @@ export function MemberLink({
         className,
       )}
       href={accountHref(member.username)}
+      {...accountTip(member.username)}
     >
       <Avatar
         className="shrink-0 rounded-full"

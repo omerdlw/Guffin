@@ -20,13 +20,22 @@ const NONE: AmbientConfig = {};
 
 export function useStageLight(
   picture: StageLight,
-  { linger }: { linger?: number } = {},
+  {
+    linger,
+    palette,
+  }: { linger?: number; palette?: AmbientPalette | null } = {},
 ): void {
   useAmbientTheme(
     picture === undefined
       ? NONE
       : picture === null
         ? NEUTRAL
-        : { image: picture, linger },
+        : {
+            image: picture,
+            // Read on the server for the first picture, so it arrives lit
+            // instead of fading in from neutral once the browser has looked.
+            initialPalette: palette?.source === picture ? palette : undefined,
+            linger,
+          },
   );
 }

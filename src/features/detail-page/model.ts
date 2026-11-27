@@ -31,6 +31,7 @@ export interface AwardsLook {
 
 export interface FactName {
   href?: string;
+  image?: string | null;
   text: string;
 }
 

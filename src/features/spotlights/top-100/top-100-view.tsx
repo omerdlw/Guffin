@@ -9,7 +9,9 @@ import {
   useRef,
   useState,
 } from "react";
+import type { AmbientPalette } from "@omerdlw/base-framework/ambient";
 import { useDockActions } from "@omerdlw/base-framework/dock";
+import { useStageLight } from "@/design/ambient";
 import { Link } from "@/design/components/link";
 import { DockClear } from "@/design/dock/clear";
 import { cn } from "@/design/ui";
@@ -153,10 +155,12 @@ function bindTunnelPointer(
 
 function Canon({
   films,
+  palette,
   start,
   title,
 }: {
   films: CanonFilm[];
+  palette: AmbientPalette | null;
   start: number;
   title: string;
 }): JSX.Element {
@@ -181,6 +185,10 @@ function Canon({
   const { failed, hovered, opened } = view;
   const shown = films[near]!;
   const film = films[settled]!;
+  // The light follows the film the flight has come to rest on.
+  useStageLight(tmdbImageUrl("backdrop", film.backdropPath, "w300") ?? null, {
+    palette,
+  });
   const pointed = hovered >= 0 && hovered !== near ? films[hovered] : undefined;
   const patchView = (patch: Partial<typeof view>) =>
     setView((current) => ({ ...current, ...patch }));
@@ -453,10 +461,12 @@ function Canon({
 
 export function TunnelView({
   films,
+  palette = null,
   startRank,
   title,
 }: {
   films: CanonFilm[];
+  palette?: AmbientPalette | null;
   startRank: number | null;
   title: string;
 }): JSX.Element {
@@ -466,6 +476,7 @@ export function TunnelView({
       <Canon
         films={films}
         key={title}
+        palette={palette}
         start={found >= 0 ? found : films.length - 1}
         title={title}
       />

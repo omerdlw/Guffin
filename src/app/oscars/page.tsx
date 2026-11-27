@@ -1,6 +1,8 @@
 import type { JSX } from "react";
 import type { Metadata } from "next";
 import { getLaureates, OscarsView } from "@/features/spotlights";
+import { tmdbImageUrl } from "@/infrastructure/tmdb/model";
+import { getAmbientPalette } from "@/infrastructure/tmdb/server";
 import { shareMetadata } from "@/shared/site";
 
 export const metadata: Metadata = shareMetadata({
@@ -23,10 +25,11 @@ export default async function OscarsPage({
   const asked = laureates.findIndex(
     (film) => String(film.ceremony) === ceremony,
   );
+  const initial = asked === -1 ? laureates.length - 1 : asked;
+  const palette = await getAmbientPalette(
+    tmdbImageUrl("backdrop", laureates[initial]!.backdropPath, "w300"),
+  );
   return (
-    <OscarsView
-      initial={asked === -1 ? laureates.length - 1 : asked}
-      laureates={laureates}
-    />
+    <OscarsView initial={initial} laureates={laureates} palette={palette} />
   );
 }

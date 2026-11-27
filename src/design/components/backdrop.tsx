@@ -50,6 +50,22 @@ export const BACKDROP_HERO_MASK = {
   WebkitMaskRepeat: "no-repeat",
 } as const;
 
+// The mask of a hero as tall as the screen: the picture stays whole and only
+// its lower edge and the corners melt away, like the home page's.
+const TALL_MASK = [
+  "linear-gradient(to bottom, #000 0%, #000 58%, rgb(0 0 0 / 0.55) 80%, transparent 100%)",
+  "linear-gradient(to right, rgb(0 0 0 / 0.5) 0%, #000 46%, #000 94%, rgb(0 0 0 / 0.7) 100%)",
+].join(", ");
+
+export const BACKDROP_HERO_TALL_MASK = {
+  maskComposite: "intersect",
+  maskImage: TALL_MASK,
+  maskRepeat: "no-repeat",
+  WebkitMaskComposite: "source-in",
+  WebkitMaskImage: TALL_MASK,
+  WebkitMaskRepeat: "no-repeat",
+} as const;
+
 export const BACKDROP_HERO =
   "relative isolate h-80 w-[calc(100%+2rem)] -translate-x-4 overflow-hidden sm:h-96 sm:w-[calc(100%+3rem)] sm:-translate-x-6 lg:h-[clamp(36rem,52vw,44rem)] lg:w-[calc(100%+16rem)] lg:-translate-x-32 xl:h-[clamp(40rem,56vw,48rem)] xl:w-[calc(100%+24rem)] xl:-translate-x-48";
 

@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
+import type { AmbientPalette } from "@omerdlw/base-framework/ambient";
 import { Image } from "@omerdlw/base-framework/ui";
 import { Link } from "@/design/components/link";
 import { cn } from "@/design/ui";
@@ -17,6 +18,7 @@ import {
   SpotlightDock,
   useSyncedSearchParam,
 } from "@/features/spotlights/components/shell";
+import { useStageLight } from "@/design/ambient";
 import type { Laureate } from "@/features/spotlights/model";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/model";
 import { useMotionValue } from "@/motion/lib";
@@ -260,14 +262,20 @@ function Ring({
 function Oscars({
   initial,
   laureates,
+  palette,
 }: {
   initial: number;
   laureates: Laureate[];
+  palette: AmbientPalette | null;
 }): JSX.Element {
   const [index, setIndex] = useState(initial);
   const [hover, setHover] = useState<number | null>(null);
   const [shown, setShown] = useState(false);
   const film = laureates[index]!;
+  // The page takes the light of the film it is on, not the one hovered.
+  useStageLight(tmdbImageUrl("backdrop", film.backdropPath, "w300") ?? null, {
+    palette,
+  });
   const active = hover ?? index;
   const seen = laureates[active]!;
 
@@ -328,10 +336,11 @@ function Oscars({
 export function OscarsView(props: {
   initial: number;
   laureates: Laureate[];
+  palette?: AmbientPalette | null;
 }): JSX.Element {
   return (
     <SalonStage className="oscars-page fixed inset-0 h-screen w-screen overflow-hidden">
-      <Oscars {...props} />
+      <Oscars {...props} palette={props.palette ?? null} />
     </SalonStage>
   );
 }
