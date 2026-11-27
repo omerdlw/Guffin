@@ -54,10 +54,10 @@ Each layer only reads from the layers above it.
                           filled from foundations
         ↓
 7. Material + touch       liquid.css + glass/ (engine), liquid-touch.ts,
-                          glass-thumb.ts, the cursor (src/motion/cursor.tsx)
+                          glass-thumb.ts, the cursor (src/motion/effects/cursor.tsx)
         ↓
 8. Page choreography      src/features/<page>/motion.tsx → defineStage()
-                          compiled to one scoped stylesheet (src/motion/choreo.ts)
+                          compiled to one scoped stylesheet (src/motion/choreography/choreo.ts)
 ```
 
 The framework (`@omerdlw/base-framework`) ships behaviour and no design: no

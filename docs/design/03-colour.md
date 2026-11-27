@@ -14,7 +14,7 @@ follows the picture on screen. There is no dark mode and no `data-theme`;
 a role has one value.
 
 ```
-picture ──► framework ambient, ground "light" (lib/ambient.ts, server and client)
+picture ──► framework ambient, ground "light" (shared/ambient.ts, server and client)
               ├─► --ambient-page      ──► --page   paper, L ~0.955, the mood's hue
               ├─► --ambient-vibrant   ──► --grade  the accent, ≥ 4.5:1 on the page
               ├─► --ambient-top/right/left/bottom  pale glows (L 0.8–0.9), Room's wash
@@ -137,7 +137,7 @@ never per frame.
 
 On paper each holds at least 3.5:1 against the page as a glyph (a star,
 being a mark of light, stays brighter at ~2.5:1). A state that is on lights
-its icon in its colour: `COLLECTION_MARKS` (`features/movie/movie.ts`) maps
+its icon in its colour: `COLLECTION_MARKS` (`features/movie/model.ts`) maps
 like, watched and watchlist to `text-liked`, `text-watched`, `text-listed`;
 `ActionButton` takes it as `mark`, the friends surface as its signals.
 

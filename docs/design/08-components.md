@@ -167,7 +167,7 @@ The props mean the same thing on every component:
 The framework's modules (dock, modal, context menu, toast, controls rail,
 error screen, ambient) render unstyled slots; `src/design/theme/<module>.ts`
 fills them with `defineTheme(moduleTheme, { slots, styles, motion })`, and
-`src/design/theme.ts` hands the list to `ThemeProvider`.
+`src/design/theme/index.ts` hands the list to `ThemeProvider`.
 
 - **`slots`** are class strings built from foundations (`SHELL`, `FLOAT`,
   `TIP`, `WELL`, `TONES`, `TOOLTIP`, `SKELETON`), never raw values.
@@ -187,6 +187,6 @@ fills them with `defineTheme(moduleTheme, { slots, styles, motion })`, and
 | Controls     | `controls.ts`                                  | The side rail for page controls (lg and up)                                                                                                                              |
 | Error        | `error.ts`                                     | The crash screen; retry is `ui.parts.button.root({ intent: "primary" })`                                                                                                 |
 
-The dock's command row is shared through `src/design/dock-commands.ts`: a
+The dock's command row is shared through `src/design/dock/commands.ts`: a
 command can take the whole row over for a moment (the theme picker); every
 other command steps out while it holds it.
