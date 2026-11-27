@@ -20,6 +20,7 @@
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "test:db": "node --test --test-concurrency=1 \"tests/db/*.test.mjs\"",
     "db:migrate": "drizzle-kit migrate --config scripts/db/drizzle.config.ts",
     "db:new": "drizzle-kit generate --config scripts/db/drizzle.config.ts --custom --name"
   },
