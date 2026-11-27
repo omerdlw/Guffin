@@ -1,28 +1,28 @@
 import type { JSX } from "react";
 import { notFound } from "next/navigation";
-import {
-  ListComments,
-  ListDock,
-  ListEntries,
-  ListHeader,
-} from "@/features/profile/lists/list";
+import { ListsToolbar } from "@/features/profile/components/toolbar";
 import {
   isNarrowed,
   readSort,
   readTitleFilters,
   titleFields,
 } from "@/features/profile/filters";
-import { ENTRY_SORTS } from "@/features/profile/lists/lists";
+import {
+  ListComments,
+  ListDock,
+  ListEntries,
+  ListHeader,
+} from "@/features/profile/lists/components/list-detail";
+import { ENTRY_SORTS } from "@/features/profile/lists/model";
 import {
   getListComments,
   getListDetail,
   getListEntries,
   getListFacets,
-} from "@/features/profile/lists/server";
-import { ListsToolbar } from "@/features/profile/toolbar";
-import { loadProfile } from "@/features/profile/server";
-import type { SearchParams } from "@/infrastructure/http";
-import { listHref } from "@/shared/project";
+} from "@/features/profile/lists/queries";
+import { loadProfile } from "@/features/profile/queries";
+import type { SearchParams } from "@/shared/http";
+import { listHref } from "@/shared/site";
 
 export default async function AccountListPage({
   params,

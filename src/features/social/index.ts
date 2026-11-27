@@ -1,5 +1,5 @@
 export * from "./actions";
-export * from "./client";
+export * from "./api";
 export * from "./hooks";
 export * from "./surfaces";
 export type {
@@ -10,9 +10,6 @@ export type {
   SocialCollection,
   SocialPageLoader,
   SocialPerson,
-} from "./social";
-export { toPerson } from "./social";
-export {
-  AvatarStack,
-  MovieSocialProof,
-} from "./proof";
+} from "./model";
+export { toPerson } from "./model";
+export { AvatarStack, MovieSocialProof } from "./components/social-proof";

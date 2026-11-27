@@ -5,7 +5,7 @@ search. Each section names the formula and the file it lives in.
 
 ## Catalogue quality
 
-`src/features/catalog/quality.ts`
+Scores are computed when the catalogue is built and stored on `film_catalog` (`quality_score`, `quality_flags`); the app reads them, it never recomputes them.
 
 TMDB has millions of entries: concert films, award shows, adult titles,
 films with no poster. Each title gets **flags** and a
@@ -50,7 +50,7 @@ community term only counts once Guffin's own ratings approach 50.
 
 ## Reciprocal rank fusion
 
-`src/features/home/server.ts` → `fuseRankings`
+`src/features/home/queries.ts` → `fuseRankings`
 
 Several ranked lists are merged without comparing their scores, only their
 positions:
@@ -164,7 +164,7 @@ most liked reviewers you don't follow yet.
 
 ## Search ranking
 
-`src/features/search/server.ts`
+`src/features/search/queries.ts`
 
 TMDB's own search order is weak for short or partial queries. Guffin runs
 several searches in parallel and re-ranks the union:
@@ -218,7 +218,7 @@ it on their watchlist.
 
 ## Spotlights
 
-`src/features/spotlights/server.ts`
+`src/features/spotlights/queries.ts`
 
 - **IMDb Top 100** is a fixed list of IMDb ids. Each id is resolved through
   TMDB's `find`. A result whose year is more than one year off, or that has

@@ -1,3 +1,4 @@
+import { setReportSink } from "@omerdlw/base-framework/utils";
 import {
   browserTracingIntegration,
   captureException,
@@ -6,7 +7,6 @@ import {
   init,
   withScope,
 } from "@sentry/nextjs";
-import { setReportSink } from "@omerdlw/base-framework/utils";
 import { sentryOptions, withSentry } from "@/infrastructure/sentry";
 
 init({

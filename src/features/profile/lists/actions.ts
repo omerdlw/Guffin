@@ -2,9 +2,9 @@
 import "server-only";
 
 import { getViewerSession } from "@/features/auth/server";
-import { isUuid } from "@/infrastructure/http";
+import { isKeyOf, isUuid, readOffset } from "@/shared/http";
 import { cleanTitleFilters } from "../filters";
-import { loadProfile } from "../server";
+import { loadProfile } from "../queries";
 import {
   ENTRY_SORTS,
   type EntryFilters,
@@ -12,10 +12,8 @@ import {
   type ListEntriesPage,
   type ListSort,
   type ListsPage,
-} from "./lists";
-import { getListEntries, getListsPage } from "./server";
-
-const toOffset = (offset: number) => Math.max(0, Math.floor(offset) || 0);
+} from "./model";
+import { getListEntries, getListsPage } from "./queries";
 
 export async function loadListsPage({
   offset,
@@ -31,10 +29,10 @@ export async function loadListsPage({
   const { account, session } = await loadProfile(username);
   return getListsPage({
     accountId: account.id,
-    offset: toOffset(offset),
+    offset: readOffset(offset),
     query: String(query).slice(0, 100),
     session,
-    sort: sort in LIST_SORTS ? sort : "updated",
+    sort: isKeyOf(LIST_SORTS, sort) ? sort : "updated",
   });
 }
 
@@ -51,10 +49,10 @@ export async function loadListEntries({
   return getListEntries({
     filters: {
       ...cleanTitleFilters(filters),
-      sort: filters.sort in ENTRY_SORTS ? filters.sort : "position",
+      sort: isKeyOf(ENTRY_SORTS, filters.sort) ? filters.sort : "position",
     },
     listId,
-    offset: toOffset(offset),
+    offset: readOffset(offset),
     session: await getViewerSession(),
   });
 }

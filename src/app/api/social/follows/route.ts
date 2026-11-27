@@ -1,15 +1,15 @@
+import { NextResponse } from "next/server";
 import { UserError } from "@omerdlw/base-framework/utils";
 import { and, count, desc, eq } from "drizzle-orm";
-import { NextResponse } from "next/server";
 import { getOptionalUser, requireUser } from "@/features/auth/server";
 import { pgErrorCode, viewer } from "@/infrastructure/db/client";
 import { accountFollows, accounts } from "@/infrastructure/db/schema";
-import { isUuid } from "@/infrastructure/http";
 import {
   apiErrorResponse,
   assertSameOrigin,
   rateLimitResponse,
 } from "@/infrastructure/security";
+import { isUuid } from "@/shared/http";
 
 const FOLLOW_PAGE_SIZE = 50;
 const REQUESTS_LIMIT = 100;

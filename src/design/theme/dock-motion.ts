@@ -22,15 +22,21 @@ export const DOCK_WIDTH = 520;
 
 const DOCK_PADDING = 12;
 
-const GLIDE = spring(beat(-0.5));
-const FAN = spring(beat(-0.5));
+/**
+ * Search opened in the compact row is as wide as the card's content, so it
+ * reads as the same search.
+ */
+export const COMPACT_SEARCH_WIDTH = `min(${DOCK_WIDTH - DOCK_PADDING * 2}px, 100vw - ${DOCK_PADDING * 4}px)`;
+
+const GLIDE = spring(beat(-1));
+const FAN = spring(beat(-1), 0.12);
 const NUDGE = spring(beat(-2));
 
 const resize = (distancePx: number) =>
   spring(
     Math.min(
       beat(0),
-      Math.max(beat(-1.5), beat(-1) * Math.sqrt(Math.max(distancePx, 0) / 233)),
+      Math.max(beat(-2), beat(-1) * Math.sqrt(Math.max(distancePx, 0) / 233)),
     ),
   );
 
@@ -41,7 +47,7 @@ const lift = (travel: number, enter = tween(beat(-2), SETTLE)) => ({
 });
 
 const SURFACE_IN = tween(beat(-1), SETTLE, beat(-4));
-const SURFACE_OUT = tween(beat(-2.5), DEVELOP);
+const SURFACE_OUT = tween(beat(-3), LEAVE);
 
 const HEADER_RETURN = tween(beat(-1), SETTLE, STAGGER.line);
 
@@ -55,24 +61,6 @@ const REST_PHASE: DockSurfacePhaseMotion = {
 };
 
 const INHALE = 0.985;
-
-// Hovering the front card fans the page cards out behind it as a stack, so
-// the dock shows there is more than the current page. At rest the back cards
-// sit tucked behind the front one, small and clear; on hover each grows and
-// rises to its place in the stack.
-const STACK_REST = { offsetY: -10, scale: 0.8 } as const;
-// Every back card shows the same strip above the one in front of it, and
-// shrinks by exactly that strip on each side, so the cards step back as even,
-// concentric bands.
-const STACK_PEEK = { gap: 8, fade: 0.78 } as const;
-
-const peek = (position: number) => ({
-  lift: position * (STACK_PEEK.gap + STACK_REST.offsetY),
-  scale:
-    (1 - (position * STACK_PEEK.gap * 2) / DOCK_WIDTH) /
-    STACK_REST.scale ** position,
-  opacity: STACK_PEEK.fade ** position,
-});
 
 const controlSlot = {
   hidden: { opacity: 0, width: 0, marginRight: -2, transform: at(0, 0.6) },
@@ -104,7 +92,10 @@ const controlSlot = {
 
 export const dockMotion: DockMotion = {
   transitions: {
-    stack: GLIDE,
+    // The resting card's resize (compact row, page changes) ends on time. A
+    // bounce-free spring spends ~0.5s after its visual end crawling the last
+    // few px in sub-pixel steps, and the glass lens shimmers the whole time.
+    stack: tween(beat(-1), SETTLE),
     expand: GLIDE,
     surfaceExit: SURFACE_OUT,
     layout: NUDGE,
@@ -205,7 +196,9 @@ export const dockMotion: DockMotion = {
     },
     compact: {
       hidden: away(0, 0.92),
-      visible: { ...here(), transition: tween(beat(-1), SETTLE, beat(-4)) },
+      // The full card's content has already left (the dock swaps the two
+      // one after the other), so the row arrives at once.
+      visible: { ...here(), transition: tween(beat(-2), SETTLE) },
       // Shorter than the dismiss-action phase: a surface opening from the
       // compact row clears it before the card grows.
       exit: { ...away(0, 0.96), transition: tween(beat(-4), LEAVE) },
@@ -216,9 +209,9 @@ export const dockMotion: DockMotion = {
       exit: { opacity: 0, transition: tween(beat(-2), LEAVE) },
     },
     surfaceBody: {
-      hidden: away(TRAVEL.rise, 0.985),
+      hidden: away(TRAVEL.rise),
       visible: here(),
-      exit: away(TRAVEL.nudge, 0.99),
+      exit: away(TRAVEL.step),
     },
     controlsContainer: {
       hidden: (y: unknown = 0) => ({
@@ -230,7 +223,7 @@ export const dockMotion: DockMotion = {
         transform: at(Number(y) || 0),
         transition: {
           opacity: tween(beat(-3), SETTLE, beat(-4)),
-          transform: spring(beat(-1)),
+          transform: spring(beat(-1), 0.15),
         },
       }),
       exit: (y: unknown = 0) => ({
@@ -279,8 +272,8 @@ export const dockMotion: DockMotion = {
     },
     expandBody: {
       ...REST_PHASE,
-      deck: resize,
-      transform: spring(beat(-1)),
+      deck: spring(beat(-1)),
+      transform: spring(beat(-1), 0.12),
       body: SURFACE_IN,
     },
     open: { ...REST_PHASE, deck: resize },
@@ -293,7 +286,7 @@ export const dockMotion: DockMotion = {
     collapseBody: {
       ...REST_PHASE,
       deck: GLIDE,
-      transform: spring(beat(-1)),
+      transform: spring(beat(-1), 0.1),
       headerReturn: HEADER_RETURN,
     },
     restoreHeader: { ...REST_PHASE, deck: GLIDE },
@@ -303,7 +296,7 @@ export const dockMotion: DockMotion = {
       rest: "none",
       elevated: "none",
     },
-    peek,
+    peek: () => ({ lift: 0, scale: 1 }),
     exit: ({ y, scale }) => ({
       opacity: 0,
       transform: gpuTransform(y, scale ?? 1),
@@ -313,8 +306,8 @@ export const dockMotion: DockMotion = {
     heightVar: false,
     stacking: {
       collapsed: {
-        offsetY: STACK_REST.offsetY,
-        scale: STACK_REST.scale,
+        offsetY: -10,
+        scale: 0.88,
         opacityStep: 0.2,
         opacityMin: 0.1,
       },
@@ -346,8 +339,8 @@ export const dockMotion: DockMotion = {
     restoreHeader: beat(-3),
     expandStagger: STAGGER.item,
     expandStaggerCap: beat(-4),
-    peekStagger: STAGGER.item,
-    peekStaggerCap: beat(-4),
+    peekStagger: 0,
+    peekStaggerCap: 0,
     staggerExponent: 1,
     pendingSkeleton: beat(-4),
   },

@@ -2,7 +2,7 @@
 
 import { useCallback } from "react";
 import { useDockActions } from "@omerdlw/base-framework/dock";
-import { useSurfacePreload } from "@/design/lazy-surface";
+import { useSurfacePreload } from "@/design/surface/lazy";
 import { ui } from "@/design/ui";
 import { signInSurface } from "./surfaces";
 

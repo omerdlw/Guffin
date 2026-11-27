@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { globalEvents } from "@omerdlw/base-framework/events";
 import { DOCK_EVENTS } from "@omerdlw/base-framework/dock";
+import { globalEvents } from "@omerdlw/base-framework/events";
 
 export default function NotFound(): null {
   useEffect(() => {

@@ -1,19 +1,20 @@
 "use client";
 
 import type { ReactNode } from "react";
-import type { Curve, Enter, Look, Moves } from "@/motion/choreo";
-import { defineStage } from "@/motion/stage";
+import { COMPACT_SEARCH_WIDTH } from "@/design/theme/dock-motion";
 import { cn } from "@/design/ui";
+import type { Enter, Look, Moves } from "@/motion/choreography/choreo";
+import {
+  LEAVE,
+  PRESS,
+  SETTLE,
+  SWEEP,
+  TOUCH,
+  beat,
+} from "@/motion/choreography/pace";
+import { defineStage } from "@/motion/choreography/stage";
 
-const PHI = 1.618034;
-const beat = (n: number) => Math.round(PHI ** n * 1000) / 1000;
 const STAGGER = { char: 0.021, item: 0.034, row: 0.055 };
-
-const SETTLE: Curve = [0.236, 0.382, 0.146, 1];
-const SWEEP: Curve = [0.618, 0, 0.382, 1];
-const LEAVE: Curve = [0.618, 0, 0.854, 0.382];
-const TOUCH: Curve = [0.382, 0.236, 0.146, 1];
-const PRESS: Curve = [0.382, 0, 0.236, 1];
 
 const show = (from: Look, more: Partial<Enter> = {}): Enter => ({
   on: "load",
@@ -149,13 +150,20 @@ export const SearchStyle = SEARCH.Style;
 export function SearchStage({
   children,
   className,
+  compact = false,
 }: {
   children: ReactNode;
   className?: string;
+  compact?: boolean;
 }) {
   return (
     <SearchRoot>
-      <div className={cn("ui-scene w-full", className)} data-cinematic="">
+      <div
+        className={cn("ui-scene w-full", className)}
+        data-cinematic=""
+        data-part={compact ? "compact-search" : undefined}
+        style={compact ? { width: COMPACT_SEARCH_WIDTH } : undefined}
+      >
         {children}
       </div>
     </SearchRoot>

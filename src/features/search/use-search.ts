@@ -14,7 +14,7 @@ import {
   type SearchResults,
   type SearchScope,
   type SearchType,
-} from "./query";
+} from "./model";
 
 type SearchHits = SearchResults[SearchType];
 

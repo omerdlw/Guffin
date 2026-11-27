@@ -1,4 +1,4 @@
-import { isTmdbImagePath } from "@/infrastructure/tmdb/shared";
+import { isTmdbImagePath } from "@/infrastructure/tmdb/model";
 
 export type ArtworkSlot = "poster" | "backdrop";
 

@@ -5,7 +5,7 @@ import {
   searchPersonHits,
   searchReviewHits,
   searchUserHits,
-} from "@/features/search/server";
+} from "@/features/search/queries";
 
 export const GET = createSearchBatchHandler({
   lists: searchListHits,

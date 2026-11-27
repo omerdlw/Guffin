@@ -1,26 +1,17 @@
 "use client";
 
-import type { Curve, Enter, Look } from "@/motion/choreo";
-import { defineStage } from "@/motion/stage";
-import { TEMPO } from "@/motion/pace";
+import {
+  DOLLY,
+  FOCUS,
+  SETTLE,
+  TEMPO,
+  TOUCH,
+  beat,
+  reveal,
+} from "@/motion/choreography/pace";
+import { defineStage } from "@/motion/choreography/stage";
 
-const PHI = 1.618034;
-const beat = (n: number) => Math.round(PHI ** n * 1000) / 1000;
 const STAGGER = { bar: 0.034 };
-const SETTLE: Curve = [0.236, 0.382, 0.146, 1];
-const TOUCH: Curve = [0.382, 0.236, 0.146, 1];
-// Backdrop opening: the camera pulls back from a dark close-up (dolly, most
-// travel early, long settle) while the lens racks into focus and the frame
-// develops from grey to full colour.
-const DOLLY: Curve = [0.146, 0.618, 0.146, 1];
-const FOCUS: Curve = [0.236, 0, 0.146, 1];
-const reveal = (from: Look, more: Partial<Enter> = {}): Enter => ({
-  on: "view",
-  from,
-  duration: beat(-1),
-  ease: SETTLE,
-  ...more,
-});
 
 const PROFILE = defineStage({
   parts: [

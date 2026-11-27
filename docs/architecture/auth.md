@@ -13,7 +13,7 @@ flowchart LR
     AP["AuthProvider<br/>session state for the UI"]
   end
   AC -->|fetch| H["/api/auth/[...all]<br/>Better Auth handler"]
-  H --> BA["lib/auth/server.ts<br/>betterAuth({...})"]
+  H --> BA["infrastructure/auth/server.ts<br/>betterAuth({...})"]
   BA --> Plugins["emailOTP · passkey · nextCookies"]
   BA --> RL["rate limit<br/>Redis (or memory)"]
   BA --> Adapter["drizzle adapter on admin()"]

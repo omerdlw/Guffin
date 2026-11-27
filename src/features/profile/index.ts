@@ -1,55 +1,55 @@
 // Layout & Chrome
-export { ProfileDock } from "./dock";
-export { ProfileHero } from "./hero";
-export { ProfileTabs } from "./tabs";
-export { useProfileFollow } from "./follow";
-export { ProfileBio } from "./bio";
-export { ListsToolbar } from "./toolbar";
-export { StatStrip } from "./stat-strip";
+export { ProfileDock } from "./components/dock";
+export { ProfileHero } from "./components/hero";
+export { ProfileTabs } from "./components/tabs";
+export { useProfileFollow } from "./use-profile-follow";
+export { ProfileBio } from "./components/bio";
+export { ListsToolbar } from "./components/toolbar";
+export { StatStrip } from "./components/stat-strip";
 export * from "./media";
-export * from "./skeleton";
+export * from "./components/skeleton";
 export * from "./filters";
 export * from "./stats";
 export * from "./titles";
-export { loadProfile } from "./server";
+export { loadProfile } from "./queries";
 
 // Overview
-export { getProfileOverview } from "./overview/server";
-export { ProfileOverviewView } from "./overview/view";
+export { getProfileOverview } from "./overview/queries";
+export { ProfileOverviewView } from "./overview/components/overview-view";
 
 // Activity
-export * from "./activity/activity";
-export { getActivityPage } from "./activity/server";
-export { ActivityCalendar } from "./activity/calendar";
-export { ActivityFilters } from "./activity/filters";
-export { ActivityTimeline } from "./activity/timeline";
+export * from "./activity/model";
+export { getActivityPage } from "./activity/queries";
+export { ActivityCalendar } from "./activity/components/activity-calendar";
+export { ActivityFilters } from "./activity/components/activity-filters";
+export { ActivityTimeline } from "./activity/components/activity-timeline";
 
 // Diary
-export * from "./diary/diary";
-export { getDiaryMonth } from "./diary/server";
-export { DiaryMonthView } from "./diary/month";
+export * from "./diary/model";
+export { getDiaryMonth } from "./diary/queries";
+export { DiaryMonthView } from "./diary/components/diary-month";
 
 // Library
-export * from "./library/library";
-export { getLibraryPage } from "./library/server";
-export { LibraryView } from "./library/view";
+export * from "./library/model";
+export { getLibraryPage } from "./library/queries";
+export { LibraryView } from "./library/components/library-view";
 
 // Lists
-export * from "./lists/lists";
-export * from "./lists/server";
-export { ListsShelf } from "./lists/shelf";
+export * from "./lists/model";
+export * from "./lists/queries";
+export { ListsShelf } from "./lists/components/lists-shelf";
 export {
   ListComments,
   ListDock,
   ListEntries,
   ListHeader,
-} from "./lists/list";
+} from "./lists/components/list-detail";
 
 // Reviews
-export * from "./reviews/reviews";
-export * from "./reviews/server";
+export * from "./reviews/model";
+export * from "./reviews/queries";
 export {
   ReviewsFilters,
   ReviewsList,
   ReviewsSummary,
-} from "./reviews/list";
+} from "./reviews/components/reviews-list";

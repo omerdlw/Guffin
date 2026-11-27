@@ -1,13 +1,14 @@
 "use server";
 import "server-only";
 
-import { loadProfile } from "../server";
+import { isKeyOf, readOffset } from "@/shared/http";
+import { loadProfile } from "../queries";
 import {
   ACTIVITY_GROUPS,
   type ActivityGroup,
   type ActivityPage,
-} from "./activity";
-import { getActivityPage } from "./server";
+} from "./model";
+import { getActivityPage } from "./queries";
 
 export async function loadActivityPage({
   group,
@@ -21,8 +22,8 @@ export async function loadActivityPage({
   const { account, session } = await loadProfile(username);
   return getActivityPage({
     account,
-    group: group in ACTIVITY_GROUPS ? group : "all",
-    offset: Math.max(0, Math.floor(offset) || 0),
+    group: isKeyOf(ACTIVITY_GROUPS, group) ? group : "all",
+    offset: readOffset(offset),
     session,
   });
 }

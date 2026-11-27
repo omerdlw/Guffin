@@ -2,35 +2,35 @@
 
 ## 8. Common mistakes
 
-| Don't                                                                   | Do                                                                              |
-| ----------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| `bg-white/[0.07]`, `text-[13px]`, `rounded-[14px]`                      | `bg-fill-hover`, `type-control`, `rounded-card`                                 |
-| `text-sm`, `text-gray-400`                                              | `type-body`, `text-ink-muted`                                                   |
-| `shadow-lg`, `drop-shadow-*`                                            | Nothing: separate with glass, ring and frost                                    |
-| `bg-glass backdrop-blur-*` on floating chrome                           | `SHELL` / `FLOAT` / `TIP` (liquid glass)                                        |
-| A glass control inside the dock                                         | `WELL` + `WELL_HOVER`: never glass on glass                                     |
-| A new lens, mask or refraction for a control                            | The liquid material (section 10)                                                |
-| `z-50`, `z-[999]`                                                       | `Z_INDEX` (`styles.zIndex` in a module theme)                                   |
-| `cn` from the framework or `clsx` alone                                 | `cn` from `@/design/ui`                                                         |
-| A `transition-*` / `duration-*` class on a component                    | A role in the page's `motion.tsx`                                               |
-| An animated `blur`                                                      | Opacity, translate, scale: no blur in motion                                    |
-| `focus-visible:*`, `group-focus-visible:*`, `:focus-visible` in CSS     | Nothing: Guffin has no keyboard focus state; `hover:` alone                     |
-| `hover:underline`                                                       | `underline decoration-transparent hover:decoration-current`                     |
-| A link that dims to `ink-body` on hover                                 | Rest at `ink` or `ink-body`, rise to `ink`                                      |
-| A white chosen tab or a grade submit button                             | Chosen: `intent="chosen"`. Submit: `intent="primary"`                           |
-| `bg-white text-black`, `bg-black/70`                                    | `bg-primary text-on-primary`, `bg-glass`                                        |
-| A second theme, a `data-theme` branch or a `prefers-color-scheme` query | One role, one value in `themes.css` (`.on-photo` is the only exception)         |
-| `${a} ${on ? "x" : "y"}` class strings                                  | A variant: `<Button intent={on ? "chosen" : "neutral"}>`                        |
-| A component's keyframes in `globals.css`                                | A `*.module.css` beside the component                                           |
-| `h-9` / `h-11` on a control                                             | A rung of the ladder: `h-control-chrome`, `h-control-lg`                        |
-| A copied input style                                                    | `<Input>`                                                                       |
-| `tabIndex`, a skip link, a focus ring or outline                        | Nothing: Tab is blocked globally (`no-tab.tsx`), outlines are off               |
-| `opacity` or `transform` classes on a part                              | A wrapper element that owns the class                                           |
-| Your own `requestAnimationFrame` loop or smooth-scroll lib              | `mountScene` (`src/motion/scene.ts`), the engine, or `drive` (`glass-thumb.ts`) |
-| `router.push` to leave a page                                           | `useDockActions().navigate`, which waits for the stage                          |
-| `text-ink-faint` on a date                                              | `text-ink-muted`                                                                |
-| A hover background on a row in a list                                   | `HighlightGroup` / `useHighlight`                                               |
-| An open select or list whose wheel scrolls the page behind it           | `useScrollLock(isOpen)` from `/hooks` (`<Select>` does it)                      |
+| Don't                                                                   | Do                                                                                    |
+| ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `bg-white/[0.07]`, `text-[13px]`, `rounded-[14px]`                      | `bg-fill-hover`, `type-control`, `rounded-card`                                       |
+| `text-sm`, `text-gray-400`                                              | `type-body`, `text-ink-muted`                                                         |
+| `shadow-lg`, `drop-shadow-*`                                            | Nothing: separate with glass, ring and frost                                          |
+| `bg-glass backdrop-blur-*` on floating chrome                           | `SHELL` / `FLOAT` / `TIP` (liquid glass)                                              |
+| A glass control inside the dock                                         | `WELL` + `WELL_HOVER`: never glass on glass                                           |
+| A new lens, mask or refraction for a control                            | The liquid material (section 10)                                                      |
+| `z-50`, `z-[999]`                                                       | `Z_INDEX` (`styles.zIndex` in a module theme)                                         |
+| `cn` from the framework or `clsx` alone                                 | `cn` from `@/design/ui`                                                               |
+| A `transition-*` / `duration-*` class on a component                    | A role in the page's `motion.tsx`                                                     |
+| An animated `blur`                                                      | Opacity, translate, scale: no blur in motion                                          |
+| `focus-visible:*`, `group-focus-visible:*`, `:focus-visible` in CSS     | Nothing: Guffin has no keyboard focus state; `hover:` alone                           |
+| `hover:underline`                                                       | `underline decoration-transparent hover:decoration-current`                           |
+| A link that dims to `ink-body` on hover                                 | Rest at `ink` or `ink-body`, rise to `ink`                                            |
+| A white chosen tab or a grade submit button                             | Chosen: `intent="chosen"`. Submit: `intent="primary"`                                 |
+| `bg-white text-black`, `bg-black/70`                                    | `bg-primary text-on-primary`, `bg-glass`                                              |
+| A second theme, a `data-theme` branch or a `prefers-color-scheme` query | One role, one value in `themes.css` (`.on-photo` is the only exception)               |
+| `${a} ${on ? "x" : "y"}` class strings                                  | A variant: `<Button intent={on ? "chosen" : "neutral"}>`                              |
+| A component's keyframes in `globals.css`                                | A `*.module.css` beside the component                                                 |
+| `h-9` / `h-11` on a control                                             | A rung of the ladder: `h-control-chrome`, `h-control-lg`                              |
+| A copied input style                                                    | `<Input>`                                                                             |
+| `tabIndex`, a skip link, a focus ring or outline                        | Nothing: Tab is blocked globally (`components/no-tab.tsx`), outlines are off          |
+| `opacity` or `transform` classes on a part                              | A wrapper element that owns the class                                                 |
+| Your own `requestAnimationFrame` loop or smooth-scroll lib              | `mountScene` (`src/motion/core/scene.ts`), the engine, or `drive` (`glass/spring.ts`) |
+| `router.push` to leave a page                                           | `useDockActions().navigate`, which waits for the stage                                |
+| `text-ink-faint` on a date                                              | `text-ink-muted`                                                                      |
+| A hover background on a row in a list                                   | `HighlightGroup` / `useHighlight`                                                     |
+| An open select or list whose wheel scrolls the page behind it           | `useScrollLock(isOpen)` from `/hooks` (`<Select>` does it)                            |
 
 ## 9. Checklist
 

@@ -8,7 +8,7 @@ ring); there is no colour transition until a page or module choreographs one
 
 **Glass controls also answer with touch.** Every `.liquid-touch` element
 (each `Button`, a select's trigger, a field) is driven by
-`src/design/liquid-touch.ts`:
+`src/design/glass/liquid-touch.ts`:
 
 | Touch | Answer                                                                               |
 | ----- | ------------------------------------------------------------------------------------ |
@@ -25,7 +25,7 @@ the dock takes part but its action buttons (below). A new control that should fe
 never runs its own pointer loop. A field takes `liquid-touch-field`.
 
 **Thumbs turn to glass.** The segmented control's indicator and the
-switch's knob (`glass-thumb.ts`) are solid at rest. Pressed, dragged or
+switch's knob (`glass/spring.ts`) are solid at rest. Pressed, dragged or
 crossing to a new choice, they swell into clear liquid glass that bends
 what lies under them at the rim (the labels, the track and its fill) and
 settle solid again. The glass is sized, never scaled, so its lens stays
@@ -85,7 +85,7 @@ complete answer to rest and hover, written against roles only.
 | `ghost`   | clear, no ring, `ink-body`, `ui-iris`           | `ink`, iris fill                           |
 
 **No keyboard focus, no Tab.** Guffin is pointer-first and does not do
-keyboard navigation. `Tab` is swallowed globally (`src/design/no-tab.tsx`,
+keyboard navigation. `Tab` is swallowed globally (`src/design/components/no-tab.tsx`,
 mounted in `src/app/providers.tsx`) and nothing ever draws a focus outline,
 ring or fill: `outline: none` on every `:focus` / `:focus-visible`
 (`styles/interaction.css`). So:

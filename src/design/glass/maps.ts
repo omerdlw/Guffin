@@ -77,11 +77,26 @@ function drawMask(
   return { size, data };
 }
 
+// Key light from above, fill from below (Apple's key & fill highlight): a
+// sharp lobe 80° wide and a softer diffuse one 52° wide; the sides stay dark.
+const KEY_SPREAD = Math.cos((80 * Math.PI) / 180);
+const DIFFUSE_SPREAD = Math.cos((52 * Math.PI) / 180);
+const DIFFUSE_FALLOFF = 1 / 0.075 - 2;
+
+function lobe(facing: number, spread: number, falloff: number) {
+  const t = Math.min(Math.max((facing - spread) / (1 - spread), 0), 1);
+  return t / (1 + falloff * (1 - t));
+}
+
 export const drawEdgeLight = (slice: number, radius: number, density: number) =>
-  drawMask(slice, radius, density, (depth, nx, ny) => {
-    const band = Math.exp(-depth / 0.9) + 0.25 * Math.exp(-depth / 2.6);
-    const lit = Math.abs(nx + ny) / Math.SQRT2;
-    return band * lit;
+  drawMask(slice, radius, density, (depth, _nx, ny) => {
+    const facing = Math.abs(ny);
+    return (
+      Math.exp(-depth / 0.9) * lobe(facing, KEY_SPREAD, 0) +
+      0.25 *
+        Math.exp(-depth / 2.6) *
+        lobe(facing, DIFFUSE_SPREAD, DIFFUSE_FALLOFF)
+    );
   });
 
 export function drawRefraction(

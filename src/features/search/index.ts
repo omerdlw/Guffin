@@ -1,9 +1,9 @@
-export * from "./search-command";
-export * from "./search-action";
+export * from "./components/search-command";
+export * from "./components/search-action";
 export * from "./use-search";
-export * from "./query";
-export * from "./results";
-export * from "./sections";
+export * from "./model";
+export * from "./components/results";
+export * from "./components/sections";
 export {
   createSearchBatchHandler,
   searchListHits,
@@ -11,4 +11,4 @@ export {
   searchPersonHits,
   searchReviewHits,
   searchUserHits,
-} from "./server";
+} from "./queries";

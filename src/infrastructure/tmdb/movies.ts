@@ -1,18 +1,18 @@
 import { err } from "@omerdlw/base-framework/result";
 import type { Result } from "@omerdlw/base-framework/result";
 import {
-  movieDetailsSchema,
-  movieImagesSchema,
-  movieSearchPageSchema,
-} from "./schemas";
-import {
   type MovieDetails,
   type MovieImages,
   type MovieSearchPage,
   TMDB_DEFAULT_LANGUAGE,
   TMDB_REVALIDATE,
   tmdbCacheTag,
-} from "./shared";
+} from "./model";
+import {
+  movieDetailsSchema,
+  movieImagesSchema,
+  movieSearchPageSchema,
+} from "./schemas";
 import {
   checkLanguage,
   checkSearchInput,

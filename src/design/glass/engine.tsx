@@ -10,7 +10,6 @@ import {
   type Piece,
   type Pieces,
 } from "./maps";
-import { compactPng, pngDataUrl } from "./png";
 import {
   bezelFor,
   frostFor,
@@ -21,6 +20,7 @@ import {
   widestBezel,
 } from "./materials";
 import { channelSpread, rimShift } from "./optics";
+import { compactPng, pngDataUrl } from "./png";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 const SELECTOR = ".liquid";
@@ -59,6 +59,9 @@ function set(
   return node;
 }
 
+const shapeKey = (slice: number, radius: number, bezel: number) =>
+  `${slice}r${radius}b${bezel}`;
+
 const CHANNEL = [
   "1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0",
   "0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0",
@@ -74,7 +77,8 @@ type Lens = {
   filter: SVGFilterElement;
   slice: number;
   bezel: number;
-  wanted: number;
+  shape: string;
+  wanted: string;
   bends: Bend[];
   margin: number;
   map: Record<Piece, SVGElement>;
@@ -279,6 +283,7 @@ function startGlass(lensing: boolean, density: number) {
   function buildLens(
     found: LensMaps,
     material: Material,
+    radius: number,
     bezel: number,
     stain: number,
     glintToken: string,
@@ -458,7 +463,8 @@ function startGlass(lensing: boolean, density: number) {
       filter,
       slice: found.slice,
       bezel,
-      wanted: bezel,
+      shape: shapeKey(found.slice, radius, bezel),
+      wanted: shapeKey(found.slice, radius, bezel),
       bends,
       margin,
       map,
@@ -505,21 +511,35 @@ function startGlass(lensing: boolean, density: number) {
     }
   }
 
-  // Same lens, new rim width: swap the maps and the displacement in place so
-  // the rim widens smoothly while a surface grows, without a new filter.
-  function rebend(lens: Lens, radius: number, bezel: number) {
-    if (lens.wanted === bezel) return;
-    lens.wanted = bezel;
-    const found = mapsFor(lens.slice, radius, bezel);
+  // Same lens, new shape (rim width, corner radius, slice): swap the maps,
+  // the displacement and the piece boxes in place, so a card that resizes
+  // keeps one filter. A new filter on a live element repaints its
+  // backdrop from scratch, which flickers when it happens every frame (a
+  // pill whose radius follows its animated height, a card shorter than its
+  // widest rim).
+  function reshape(lens: Lens, slice: number, radius: number, bezel: number) {
+    const shape = shapeKey(slice, radius, bezel);
+    if (lens.wanted === shape) return;
+    lens.wanted = shape;
+    const found = mapsFor(slice, radius, bezel);
     whenReady(found.map, () => {
-      if (lens.wanted !== bezel || lens.bezel === bezel) return;
-      lens.bezel = bezel;
+      if (lens.wanted !== shape || lens.shape === shape) return;
+      lens.shape = shape;
       for (const piece of PIECES) {
         lens.map[piece].setAttribute("href", found.map[piece]);
       }
-      const scale = 2 * lens.material.reach * bezel * lens.material.bend;
-      for (const { node, factor } of lens.bends) {
-        node.setAttribute("scale", (scale * factor).toFixed(2));
+      if (lens.bezel !== bezel) {
+        lens.bezel = bezel;
+        const scale = 2 * lens.material.reach * bezel * lens.material.bend;
+        for (const { node, factor } of lens.bends) {
+          node.setAttribute("scale", (scale * factor).toFixed(2));
+        }
+      }
+      if (lens.slice !== slice) {
+        lens.slice = slice;
+        const { width, height } = lens;
+        lens.width = -1;
+        place(lens, width, height);
       }
     });
   }
@@ -573,7 +593,7 @@ function startGlass(lensing: boolean, density: number) {
       asked ? Math.min(asked, short / 2) : bezelFor(material, width, height),
     );
     // The slice fits the widest rim this element can grow to, so a resize
-    // only changes the rim (rebend), never the filter.
+    // only reshapes the lens in place, never swaps the filter.
     const slice = Math.max(
       Math.min(
         Math.ceil(Math.max(radius, asked ?? widestBezel(material), EDGE_REACH)),
@@ -581,25 +601,25 @@ function startGlass(lensing: boolean, density: number) {
       ),
       Math.ceil(radius),
     );
-    const key = `${name}:${slice}r${radius}x${material.bend}s${stain}${glint}`;
+    const key = `${name}:x${material.bend}s${stain}${glint}`;
     const live = lenses.get(element);
     if (live?.key === key) {
       pending.get(element)?.filter.remove();
       pending.delete(element);
-      rebend(live, radius, bezel);
       place(live, width, height);
+      reshape(live, slice, radius, bezel);
       return;
     }
     if (live) place(live, width, height);
     const waiting = pending.get(element);
     if (waiting?.key === key) {
-      rebend(waiting, radius, bezel);
       place(waiting, width, height);
+      reshape(waiting, slice, radius, bezel);
       return;
     }
     waiting?.filter.remove();
     const found = mapsFor(slice, radius, bezel);
-    const next = buildLens(found, material, bezel, stain, glint, key);
+    const next = buildLens(found, material, radius, bezel, stain, glint, key);
     pending.set(element, next);
     place(next, width, height);
     whenReady(found.map, () => {

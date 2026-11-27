@@ -1,16 +1,16 @@
 import type { JSX } from "react";
+import { ActivityCalendar } from "@/features/profile/activity/components/activity-calendar";
+import { ActivityFilters } from "@/features/profile/activity/components/activity-filters";
+import { ActivityTimeline } from "@/features/profile/activity/components/activity-timeline";
 import {
   ACTIVITY_GROUPS,
   readActivityGroup,
-} from "@/features/profile/activity/activity";
-import { ActivityCalendar } from "@/features/profile/activity/calendar";
-import { ActivityFilters } from "@/features/profile/activity/filters";
-import { getActivityPage } from "@/features/profile/activity/server";
-import { ActivityTimeline } from "@/features/profile/activity/timeline";
-import { loadProfile } from "@/features/profile/server";
+} from "@/features/profile/activity/model";
+import { getActivityPage } from "@/features/profile/activity/queries";
+import { loadProfile } from "@/features/profile/queries";
 import { getProfileNumbers } from "@/features/profile/stats";
-import type { SearchParams } from "@/infrastructure/http";
-import { accountHref } from "@/shared/project";
+import type { SearchParams } from "@/shared/http";
+import { accountHref } from "@/shared/site";
 
 export default async function AccountActivityPage({
   params,

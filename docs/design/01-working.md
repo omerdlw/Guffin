@@ -98,12 +98,12 @@ set Guffin's defaults. When a wrapper exists, import the wrapper.
 | `Room`, `useShowing`                                                                                                                 | `@/design/components/room`                | The room's atmosphere: wash, sheen, vignette, grain, house lights                              |
 | `Logo`, `RouteError`                                                                                                                 | `@/design/components/logo`, `route-error` |                                                                                                |
 
-| Elsewhere                                   | Where                                                                |
-| ------------------------------------------- | -------------------------------------------------------------------- |
-| The reset and the CSS imports, nothing else | `src/app/globals.css`                                                |
-| A feature's own CSS                         | Beside it, as `*.module.css` (e.g. `features/movie/cast.module.css`) |
-| Page choreography                           | `src/features/*/motion.tsx`                                          |
-| Framework slots: dock, modal, menu, toast   | `src/design/theme/<module>.ts`                                       |
+| Elsewhere                                   | Where                                                                           |
+| ------------------------------------------- | ------------------------------------------------------------------------------- |
+| The reset and the CSS imports, nothing else | `src/app/globals.css`                                                           |
+| A feature's own CSS                         | Beside it, as `*.module.css` (e.g. `features/movie/components/cast.module.css`) |
+| Page choreography                           | `src/features/*/motion.tsx`                                                     |
+| Framework slots: dock, modal, menu, toast   | `src/design/theme/<module>.ts`                                                  |
 
 ### 1.4 Workflow for any UI change
 

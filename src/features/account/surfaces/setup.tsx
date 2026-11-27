@@ -1,0 +1,113 @@
+"use client";
+
+import { type ChangeEvent, useActionState, useEffect, useState } from "react";
+import { useToast } from "@omerdlw/base-framework/notification";
+import { Button } from "@omerdlw/base-framework/ui";
+import { Input } from "@/design/components/input";
+import { defineSurface } from "@/design/surface/define";
+import { SurfacePart, SurfaceStage } from "@/design/surface/surface";
+import { useAuth } from "@/features/auth/provider";
+import { AUTH_INPUT_CLASS } from "@/features/auth/sign-in";
+import { accountHref } from "@/shared/site";
+import { updateAccountAction } from "../actions";
+
+type SetupResult =
+  | { success: true; username: string }
+  | { error: string; success: false }
+  | null;
+
+function AccountSetupSurface({
+  close,
+}: {
+  close?: (result?: { success?: boolean }) => void;
+}) {
+  const auth = useAuth();
+  const toast = useToast();
+  const [fields, setFields] = useState(() => ({
+    displayName: (auth.user?.name ?? "").trim(),
+    username: "",
+  }));
+
+  const [result, submit, pending] = useActionState<SetupResult, FormData>(
+    async () => {
+      const username = fields.username.trim();
+      if (!username) return { error: "Username is required", success: false };
+      const update = await updateAccountAction({
+        displayName: fields.displayName.trim() || username,
+        username,
+      });
+      if (!update.success) {
+        return {
+          error:
+            update.error ||
+            "Couldn't finish setting up your account. Try a different username",
+          success: false,
+        };
+      }
+      return { success: true, username: update.account.username || username };
+    },
+    null,
+  );
+
+  useEffect(() => {
+    if (!result) return;
+    if (!result.success) {
+      toast(result.error);
+      return;
+    }
+    close?.({ success: true });
+    window.location.replace(accountHref(result.username));
+  }, [close, result, toast]);
+
+  const bindField =
+    (name: keyof typeof fields) => (event: ChangeEvent<HTMLInputElement>) =>
+      setFields((current) => ({ ...current, [name]: event.target.value }));
+
+  return (
+    <SurfaceStage>
+      <form action={submit} className="flex flex-col gap-2.5">
+        <SurfacePart name="item">
+          <Input
+            aria-label="Username"
+            autoComplete="username"
+            className={AUTH_INPUT_CLASS}
+            disabled={pending}
+            name="username"
+            onChange={bindField("username")}
+            placeholder="Username"
+            required
+            value={fields.username}
+          />
+        </SurfacePart>
+        <SurfacePart name="item">
+          <Input
+            aria-label="Display name"
+            autoComplete="name"
+            className={AUTH_INPUT_CLASS}
+            disabled={pending}
+            name="displayName"
+            onChange={bindField("displayName")}
+            placeholder="Display name (optional)"
+            value={fields.displayName}
+          />
+        </SurfacePart>
+        <SurfacePart name="item">
+          <Button
+            intent="primary"
+            width="full"
+            disabled={pending || !fields.username.trim()}
+            loading={pending}
+            type="submit"
+          >
+            Continue
+          </Button>
+        </SurfacePart>
+      </form>
+    </SurfaceStage>
+  );
+}
+
+export const accountSetupSurface = defineSurface({
+  component: AccountSetupSurface,
+  title: "Set up account",
+});

@@ -1,4 +1,4 @@
-import { GENRE } from "./shared";
+import { GENRE } from "./model";
 
 const NON_FILM_GENRES: ReadonlySet<number> = new Set([
   GENRE.news,

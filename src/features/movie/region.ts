@@ -5,9 +5,14 @@ import { useSyncExternalStore } from "react";
 const FALLBACK_REGION = "US";
 const REGION_KEY = "guffin:watch-region";
 
+let regionNames: Intl.DisplayNames | undefined;
+
+// One formatter for every lookup: the region picker sorts by name, which
+// calls this a few hundred times per render.
 export const regionName = (code: string): string => {
   try {
-    return new Intl.DisplayNames(["en"], { type: "region" }).of(code) ?? code;
+    regionNames ??= new Intl.DisplayNames(["en"], { type: "region" });
+    return regionNames.of(code) ?? code;
   } catch {
     return code;
   }

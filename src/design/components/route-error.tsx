@@ -1,9 +1,9 @@
 "use client";
 
 import { type JSX, useEffect } from "react";
+import Link from "next/link";
 import { Button } from "@omerdlw/base-framework/ui";
 import { report } from "@omerdlw/base-framework/utils";
-import Link from "next/link";
 import { ui } from "@/design/ui";
 
 export function RouteError({

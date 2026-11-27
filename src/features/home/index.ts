@@ -1,4 +1,4 @@
-export { HomeView } from "./view";
-export { HomeSkeleton } from "./skeleton";
-export { getHomeFeed } from "./server";
-export type { HomeFeed } from "./feed";
+export { HomeView } from "./components/home-view";
+export { HomeSkeleton } from "./components/skeleton";
+export { getHomeFeed } from "./queries";
+export type { HomeFeed } from "./model";

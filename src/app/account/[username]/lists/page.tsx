@@ -1,12 +1,12 @@
 import type { JSX } from "react";
+import { ListsToolbar } from "@/features/profile/components/toolbar";
 import { readQuery, readSort, sortField } from "@/features/profile/filters";
-import { LIST_SORTS } from "@/features/profile/lists/lists";
-import { getListsPage } from "@/features/profile/lists/server";
-import { ListsShelf } from "@/features/profile/lists/shelf";
-import { ListsToolbar } from "@/features/profile/toolbar";
-import { loadProfile } from "@/features/profile/server";
-import type { SearchParams } from "@/infrastructure/http";
-import { accountHref } from "@/shared/project";
+import { ListsShelf } from "@/features/profile/lists/components/lists-shelf";
+import { LIST_SORTS } from "@/features/profile/lists/model";
+import { getListsPage } from "@/features/profile/lists/queries";
+import { loadProfile } from "@/features/profile/queries";
+import type { SearchParams } from "@/shared/http";
+import { accountHref } from "@/shared/site";
 
 export default async function AccountListsPage({
   params,

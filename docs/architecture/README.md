@@ -73,11 +73,12 @@ Two sources of truth meet on every page:
 flowchart TB
   app["src/app<br/>routes stay thin"] --> features
   subgraph features["src/features/&lt;feature&gt;"]
-    server["server.ts<br/>reads"]
+    model["model.ts<br/>types, constants, pure helpers"]
+    queries["queries.ts<br/>server reads"]
     actions["actions.ts<br/>server actions"]
-    view["view.tsx<br/>page"]
+    components["components/<br/>UI"]
+    surfaces["surfaces/<br/>dock sheets"]
     motion["motion.tsx<br/>choreography"]
-    surfaces["surfaces.ts<br/>dock surfaces"]
   end
   features --> infrastructure
   features --> shared
@@ -88,10 +89,10 @@ flowchart TB
     db["db/<br/>sessions, schema, functions"]
     authlib["auth/<br/>Better Auth"]
   end
-  shared["src/shared<br/>format, project links, ambient"]
+  shared["src/shared<br/>result, http, format, site links"]
   design["src/design<br/>tokens, recipes, glass"]
   motionlib["src/motion<br/>stage, choreo, WebGL"]
-  db --> drizzle["drizzle/*.sql<br/>the schema's source"]
+  db --> drizzle["scripts/db/migrations/*.sql<br/>the schema's source"]
 ```
 
 A feature keeps everything it owns next to itself: reads, mutations, the

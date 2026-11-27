@@ -1,6 +1,6 @@
-export { PersonView } from "./view";
+export { PersonView } from "./components/person-view";
 export { PersonViewProvider, usePersonView } from "./view-context";
-export { PersonSkeleton } from "./skeleton";
-export { PersonPageChrome } from "./header";
-export * from "./person";
+export { PersonSkeleton } from "./components/skeleton";
+export { PersonPageChrome } from "./components/header";
+export * from "./model";
 export * from "./credits";

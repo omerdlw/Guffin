@@ -1,12 +1,12 @@
 import { err, ok, type Result } from "@omerdlw/base-framework/result";
-import { featuredMoviePageSchema, foundMoviesSchema } from "./schemas";
 import {
   type FeaturedMovie,
   type FeaturedMoviePage,
   TMDB_DEFAULT_LANGUAGE,
   TMDB_REVALIDATE,
   tmdbCacheTag,
-} from "./shared";
+} from "./model";
+import { featuredMoviePageSchema, foundMoviesSchema } from "./schemas";
 import {
   checkLanguage,
   checkPage,

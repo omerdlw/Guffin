@@ -21,7 +21,7 @@ import {
   glassDepth,
   type Goal,
   spring,
-} from "@/design/components/glass-thumb";
+} from "@/design/glass/spring";
 import { cn, ui } from "@/design/ui";
 import { Icon } from "./icon";
 

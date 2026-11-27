@@ -13,7 +13,7 @@ its own time.
   `<Text part="headline" text={…}>`. Shared components carry a **kind** and
   **slots** instead (section 6.4).
 - **A page writes its choreography in its own `motion.tsx`** with
-  `defineStage` (`src/motion/stage.tsx`; types in `src/motion/choreo.ts`). A
+  `defineStage` (`src/motion/choreography/stage.tsx`; types in `src/motion/choreography/choreo.ts`). A
   role left out renders still.
 - **It compiles to CSS, not JavaScript.** One stylesheet per page, scoped to
   `[data-choreo=scope]` and hoisted into the server-rendered head as a React 19
@@ -22,16 +22,16 @@ its own time.
   `prefers-reduced-motion: reduce` every role keeps opacity only and an
   entrance lasts at most 0.3s.
 
-| Stage scope | File                                 | Carries                                         |
-| ----------- | ------------------------------------ | ----------------------------------------------- |
-| `home`      | `src/features/home/motion.tsx`       | The home page; the template for the others      |
-| `detail`    | `src/features/detail/motion.tsx`     | Movie, reviews; person shares its roles         |
-| `account`   | `src/features/profile/motion.tsx`    | The profile and every tab                       |
-| `search`    | `src/features/search/motion.tsx`     | The search surface and results                  |
-| `surface`   | `src/design/components/surface.tsx`  | Every dock surface (`SurfaceStage`)             |
-| `legal`     | `src/features/legal/motion.tsx`      | Privacy and terms                               |
-| `directors` | `src/features/spotlights/motion.tsx` | The directors wall                              |
-| `salon`     | `src/features/spotlights/shell.tsx`  | Oscars and top-100: the chrome around the scene |
+| Stage scope | File                                           | Carries                                         |
+| ----------- | ---------------------------------------------- | ----------------------------------------------- |
+| `home`      | `src/features/home/motion.tsx`                 | The home page; the template for the others      |
+| `detail`    | `src/features/detail-page/motion.tsx`          | Movie, reviews; person shares its roles         |
+| `account`   | `src/features/profile/motion.tsx`              | The profile and every tab                       |
+| `search`    | `src/features/search/motion.tsx`               | The search surface and results                  |
+| `surface`   | `src/design/surface/surface.tsx`               | Every dock surface (`SurfaceStage`)             |
+| `legal`     | `src/features/legal/motion.tsx`                | Privacy and terms                               |
+| `directors` | `src/features/spotlights/motion.tsx`           | The directors wall                              |
+| `salon`     | `src/features/spotlights/components/shell.tsx` | Oscars and top-100: the chrome around the scene |
 
 ### 6.2 `defineStage`
 
@@ -50,7 +50,7 @@ const HOME = defineStage({
 });
 ```
 
-**Tempo and reach** (`choreo.ts` `paced`) are the stage's pace, applied to
+**Tempo and reach** (`choreography/choreo.ts` `paced`) are the stage's pace, applied to
 the choreography before it compiles, so the sequenced opening, staggers and
 text budgets all stretch together. They touch entrances and leaves only;
 touch, drift and follow keep their own time. A page writes its moves on the
@@ -136,7 +136,7 @@ through `follow`.
 | `thumb`                          | `[data-slot="thumb"]`                                    | A result row's thumbnail                                 |
 | `folder`, `deck`, `leaf`, `flap` | `[data-slot=…]`                                          | The cast stack (detail): seat, glass frame, posters      |
 
-A new slot or kind is added to `KINDS` / `SLOTS` in `choreo.ts`.
+A new slot or kind is added to `KINDS` / `SLOTS` in `choreography/choreo.ts`.
 
 ### 6.5 Triggers
 
@@ -196,7 +196,7 @@ Each page defines its own `beat`, `STAGGER` and curves locally; they are
 copied, not imported, so a page can retune without touching another.
 
 **Scroll feel**: `scroll: { period, gain }` tunes the smooth-scroll driver
-(`src/motion/scroll.ts`): the spring period in seconds (default 0.636) and
+(`src/motion/core/scroll.ts`): the spring period in seconds (default 0.636) and
 distance per notch (1 = native). Home and account use `{ period: 1, gain: 0.618 }`;
 detail `{ period: 0.618, gain: 1 }`, and its backdrop drifts down 13% and
 closes in (`screen` scale 1.055) over the first screen of scroll.
@@ -212,7 +212,7 @@ closes in (`screen` scale 1.055) over the first screen of scroll.
   sliver under each word.
 - `scroll` drift composes with `enter`; keep them on different properties.
 - No `requestAnimationFrame` loop or smooth-scroll library of your own: use
-  `mountScene` (`src/motion/scene.ts`) and the engine (`src/motion/engine.ts`).
+  `mountScene` (`src/motion/core/scene.ts`) and the engine (`src/motion/core/engine.ts`).
 - The animation library is imported only through `@/motion/lib` (ESLint).
 - Leave a page with `useDockActions().navigate` (or `DockLink`), which waits
   for the stage, not `router.push`.
@@ -242,23 +242,23 @@ modal's frame is one, hence `--modal-glass`).
 
 Isolated from the page contract; they keep their own clocks:
 
-- The cursor and reticle (`src/motion/cursor.tsx`, `shape.ts`, `reticle.css`,
-  `ticker.module.css`). The cursor's glass is fitted to what is painted
+- The cursor and reticle (`src/motion/effects/cursor.tsx`, `effects/cursor-shape.ts`, `effects/reticle.css`,
+  `effects/ticker.module.css`). The cursor's glass is fitted to what is painted
   (`shapeOf`): a round avatar in a bare link is a circle, a pill a pill; over
   a target too large to wrap it stays a drop, a little fuller.
-- Glass touch (`src/design/liquid-touch.ts`) and glass thumbs
-  (`glass-thumb.ts`).
-- WebGL: the backdrop projection (`projection.tsx`, `gl-projection.ts`,
-  `gl.ts`; textures capped at 2560px, decoded off-thread) and the spotlight
-  scenes (`scene.ts`).
-- The detail hero marquee (`marquee.tsx`) and the idle `Intermission`
-  (`screen.tsx`).
-- Tilt, magnet and foil (`tilt.tsx`).
-- The smooth-scroll driver (`scroll.ts`); it stands down while
+- Glass touch (`src/design/glass/liquid-touch.ts`) and glass thumbs
+  (`glass/spring.ts`).
+- WebGL: the backdrop projection (`webgl/projection.tsx`, `webgl/projector.ts`,
+  `webgl/gl.ts`; textures capped at 2560px, decoded off-thread) and the spotlight
+  scenes (`core/scene.ts`).
+- The detail hero marquee (`effects/marquee.tsx`) and the idle `Intermission`
+  (`effects/intermission.tsx`).
+- Tilt, magnet and foil (`effects/tilt.tsx`).
+- The smooth-scroll driver (`core/scroll.ts`); it stands down while
   `data-scroll-lock` is on `<html>`.
 - The room's atmosphere (`room.tsx`); the page's light is the framework's ambient palette (`src/design/ambient.ts`).
 
-Curves for these come from `bezier()` in `src/motion/curve.ts`.
+Curves for these come from `bezier()` in `src/motion/core/curve.ts`.
 
 ### 6.10 Verifying motion
 
@@ -276,7 +276,7 @@ opacity where a class swaps it (`hover:opacity-*`). Coming in takes
 same tokens. It sits in `@layer base` under `:where()`, so any rule of a
 component's own wins.
 
-- A stage role with touch moves keeps the softness: `choreo.ts` appends the
+- A stage role with touch moves keeps the softness: `choreography/choreo.ts` appends the
   soft properties to its `transition-property` at the soft pace.
 - Transforms are never in it: they belong to the stages.
 - Opacity is only softened where a class swaps it, so the motion library and
