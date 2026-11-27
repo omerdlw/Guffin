@@ -115,6 +115,7 @@ export function MediaCard({
             <span
               aria-hidden="true"
               className="liquid liquid-clear liquid-flat cine-lens"
+              data-glass-lazy=""
             />
             <span
               aria-hidden="true"
@@ -136,6 +137,7 @@ export function MediaCard({
         data-cursor="card"
         data-cursor-label={tooltip}
         {...rest}
+        data-glass-wake=""
         data-kind="media"
         href={href}
         onNavigated={onNavigated}
@@ -152,6 +154,7 @@ export function MediaCard({
         data-cursor="card"
         data-cursor-label={tooltip}
         {...rest}
+        data-glass-wake=""
         data-kind="media"
         onClick={onClick}
         style={style}
@@ -162,7 +165,12 @@ export function MediaCard({
     );
   } else {
     card = (
-      <div className={classes} data-kind="media" style={style}>
+      <div
+        className={classes}
+        data-glass-wake=""
+        data-kind="media"
+        style={style}
+      >
         {body}
       </div>
     );

@@ -19,12 +19,18 @@ import {
   materialOf,
   widestBezel,
 } from "./materials";
+import { createMapSource } from "./map-source";
 import { channelSpread, rimShift } from "./optics";
 import { compactPng, pngDataUrl } from "./png";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 const SELECTOR = ".liquid";
 const FLUID = "liquid-fluid";
+// A lens hidden at rest (the poster lens shown on hover) is built only when
+// its host is first touched: a page of posters would otherwise carry one
+// filter per card that nobody may ever see.
+const LAZY = "[data-glass-lazy]";
+const WAKE = "[data-glass-wake]";
 const MIN_SIDE = 16;
 const EDGE_REACH = 12;
 const HYDRATION_RETRY_MS = 250;
@@ -74,6 +80,8 @@ type Bend = { node: SVGElement; factor: number };
 
 type Lens = {
   key: string;
+  /** Runs once, when the lens first has maps to show. */
+  onReady: (() => void) | null;
   filter: SVGFilterElement;
   slice: number;
   bezel: number;
@@ -237,33 +245,18 @@ function startGlass(lensing: boolean, density: number) {
   const sizes = new WeakMap<Element, { width: number; height: number }>();
   const timers = new Map<Element, number>();
 
-  const edges = new Map<string, ReturnType<typeof drawEdgeLight>>();
-  function mapsFor(slice: number, radius: number, bezel: number) {
-    const key = `${slice}r${radius}b${bezel}`;
-    const known = maps.get(key);
-    if (known) {
-      maps.delete(key);
-      maps.set(key, known);
-      return known;
-    }
-    const shape = `${slice}r${radius}`;
-    let edge = edges.get(shape);
-    if (!edge) {
-      edge = drawEdgeLight(slice, radius, density);
-      edges.set(shape, edge);
-    }
-    const refraction = drawRefraction(slice, radius, bezel, density);
-    const value = { slice, map: fold(refraction, edge, slice) };
-    maps.set(key, value);
-    remember();
-    return value;
-  }
+  const wantedBy = (key: string) => {
+    for (const lens of lenses.values()) if (lens.wanted === key) return true;
+    for (const lens of pending.values()) if (lens.wanted === key) return true;
+    return false;
+  };
+  const source = createMapSource(density, wantedBy);
 
   // A new feImage href paints nothing until its image is decoded, so a lens
   // only takes new maps once all nine pieces are ready; the old ones stay
   // on screen meanwhile.
   const decoded = new Map<string, HTMLImageElement>();
-  function whenReady(map: Pieces, then: () => void) {
+  function whenDecoded(map: Pieces, then: () => void) {
     const missing = PIECES.map((piece) => map[piece]).filter(
       (url) => !decoded.has(url),
     );
@@ -280,8 +273,30 @@ function startGlass(lensing: boolean, density: number) {
     ).then(then);
   }
 
+  /** Maps for a shape: from memory (or the stored set) at once, else drawn. */
+  function whenReady(
+    slice: number,
+    radius: number,
+    bezel: number,
+    then: (found: LensMaps) => void,
+  ) {
+    const key = shapeKey(slice, radius, bezel);
+    const known = maps.get(key);
+    if (known) {
+      maps.delete(key);
+      maps.set(key, known);
+      return whenDecoded(known.map, () => then(known));
+    }
+    source.request(key, { slice, radius, bezel }, (map) => {
+      const value = maps.get(key) ?? { slice, map };
+      maps.set(key, value);
+      remember();
+      whenDecoded(value.map, () => then(value));
+    });
+  }
+
   function buildLens(
-    found: LensMaps,
+    slice: number,
     material: Material,
     radius: number,
     bezel: number,
@@ -313,7 +328,6 @@ function startGlass(lensing: boolean, density: number) {
         preserveAspectRatio: "none",
         result: `map-${piece}`,
       });
-      map[piece].setAttribute("href", found.map[piece]);
     }
     const merged = set(filter, "feMerge", { result: "map" });
     set(merged, "feMergeNode", { in: "flat" });
@@ -460,11 +474,12 @@ function startGlass(lensing: boolean, density: number) {
     }
     return {
       key,
+      onReady: null,
       filter,
-      slice: found.slice,
+      slice,
       bezel,
-      shape: shapeKey(found.slice, radius, bezel),
-      wanted: shapeKey(found.slice, radius, bezel),
+      shape: "",
+      wanted: "",
       bends,
       margin,
       map,
@@ -516,31 +531,35 @@ function startGlass(lensing: boolean, density: number) {
   // keeps one filter. A new filter on a live element repaints its
   // backdrop from scratch, which flickers when it happens every frame (a
   // pill whose radius follows its animated height, a card shorter than its
-  // widest rim).
+  // widest rim). Only the newest shape asked for is ever applied.
   function reshape(lens: Lens, slice: number, radius: number, bezel: number) {
     const shape = shapeKey(slice, radius, bezel);
     if (lens.wanted === shape) return;
     lens.wanted = shape;
-    const found = mapsFor(slice, radius, bezel);
-    whenReady(found.map, () => {
-      if (lens.wanted !== shape || lens.shape === shape) return;
-      lens.shape = shape;
-      for (const piece of PIECES) {
-        lens.map[piece].setAttribute("href", found.map[piece]);
-      }
-      if (lens.bezel !== bezel) {
-        lens.bezel = bezel;
-        const scale = 2 * lens.material.reach * bezel * lens.material.bend;
-        for (const { node, factor } of lens.bends) {
-          node.setAttribute("scale", (scale * factor).toFixed(2));
+    whenReady(slice, radius, bezel, (found) => {
+      if (lens.wanted !== shape) return;
+      if (lens.shape !== shape) {
+        lens.shape = shape;
+        for (const piece of PIECES) {
+          lens.map[piece].setAttribute("href", found.map[piece]);
+        }
+        if (lens.bezel !== bezel) {
+          lens.bezel = bezel;
+          const scale = 2 * lens.material.reach * bezel * lens.material.bend;
+          for (const { node, factor } of lens.bends) {
+            node.setAttribute("scale", (scale * factor).toFixed(2));
+          }
+        }
+        if (lens.slice !== found.slice) {
+          lens.slice = found.slice;
+          const { width, height } = lens;
+          lens.width = -1;
+          place(lens, width, height);
         }
       }
-      if (lens.slice !== slice) {
-        lens.slice = slice;
-        const { width, height } = lens;
-        lens.width = -1;
-        place(lens, width, height);
-      }
+      const ready = lens.onReady;
+      lens.onReady = null;
+      ready?.();
     });
   }
 
@@ -563,6 +582,25 @@ function startGlass(lensing: boolean, density: number) {
     element.style.removeProperty("--liquid-lens");
   }
 
+  const awake = new WeakSet<Element>();
+  function wake(host: Element) {
+    const sleeping: HTMLElement[] = [];
+    for (const lens of host.querySelectorAll<HTMLElement>(LAZY)) {
+      if (awake.has(lens)) continue;
+      awake.add(lens);
+      sleeping.push(lens);
+    }
+    if (sleeping.length) fit(sleeping);
+  }
+  const onOver = (event: PointerEvent) => {
+    const host = (event.target as Element | null)?.closest?.(WAKE);
+    if (host) wake(host);
+  };
+  document.addEventListener("pointerover", onOver, {
+    capture: true,
+    passive: true,
+  });
+
   function read(element: HTMLElement): Reading | "drop" | "skip" {
     if (!hydrated(element)) {
       window.clearTimeout(timers.get(element));
@@ -576,6 +614,10 @@ function startGlass(lensing: boolean, density: number) {
       return "skip";
     }
     if (element.classList.contains(FLUID)) return "skip";
+    if (!awake.has(element) && element.matches(LAZY)) {
+      if (!element.closest("[data-active]")) return "skip";
+      awake.add(element);
+    }
     const size = sizes.get(element);
     if (!size) return "skip";
     const { width, height } = size;
@@ -618,11 +660,10 @@ function startGlass(lensing: boolean, density: number) {
       return;
     }
     waiting?.filter.remove();
-    const found = mapsFor(slice, radius, bezel);
-    const next = buildLens(found, material, radius, bezel, stain, glint, key);
+    const next = buildLens(slice, material, radius, bezel, stain, glint, key);
     pending.set(element, next);
     place(next, width, height);
-    whenReady(found.map, () => {
+    next.onReady = () => {
       if (pending.get(element) !== next) return;
       pending.delete(element);
       lenses.get(element)?.filter.remove();
@@ -633,7 +674,8 @@ function startGlass(lensing: boolean, density: number) {
           ? `url(#${next.filter.id})`
           : `var(--liquid-lens-tone) url(#${next.filter.id})`,
       );
-    });
+    };
+    reshape(next, slice, radius, bezel);
   }
 
   function fit(elements: Iterable<HTMLElement>) {
@@ -701,6 +743,10 @@ function startGlass(lensing: boolean, density: number) {
       }
       const { target } = record;
       if (record.type === "attributes" && target instanceof HTMLElement) {
+        if (record.attributeName === "data-active") {
+          if (target.hasAttribute("data-active")) wake(target);
+          continue;
+        }
         if (target.matches(SELECTOR)) {
           observe(target);
           changed.add(target);
@@ -710,7 +756,13 @@ function startGlass(lensing: boolean, density: number) {
     for (const element of changed) refit(element);
   });
   additions.observe(document.body, {
-    attributeFilter: ["class", "data-glass", "data-glint", "data-placement"],
+    attributeFilter: [
+      "class",
+      "data-active",
+      "data-glass",
+      "data-glint",
+      "data-placement",
+    ],
     attributes: true,
     childList: true,
     subtree: true,
@@ -719,6 +771,8 @@ function startGlass(lensing: boolean, density: number) {
   return (linger = 0) => {
     additions.disconnect();
     observer.disconnect();
+    source.close();
+    document.removeEventListener("pointerover", onOver, { capture: true });
     timers.forEach((timer) => window.clearTimeout(timer));
     timers.clear();
     if (linger) window.setTimeout(() => defs.remove(), linger);
