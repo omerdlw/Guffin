@@ -40,7 +40,7 @@ import { MoviePopularLists } from "@/features/lists/components/popular-lists";
 import { getMoviePopularLists } from "@/features/lists/queries";
 import type { MovieReviewSort } from "@/features/reviews/model";
 import { MovieSocialProof } from "@/features/social/components/social-proof";
-import { pluralize } from "@/shared/format";
+import { formatCompact, pluralize } from "@/shared/format";
 import { movieHref, personHref } from "@/shared/site";
 import {
   getAmbientPalette,
@@ -139,11 +139,6 @@ const CREW_JOB_PRIORITY = [
 const MAX_VISIBLE_PEOPLE = 2;
 
 const MAX_VISIBLE_GENRES = 3;
-
-const COMPACT_NUMBER_FORMAT = new Intl.NumberFormat("en", {
-  maximumFractionDigits: 1,
-  notation: "compact",
-});
 
 function formatReleaseDate(date: string | null): string | null {
   if (!date) return null;
@@ -412,7 +407,7 @@ function MovieStats({
             triggerClassName="flex cursor-help items-center gap-1.5 type-control leading-5 font-medium text-ink-body tabular-nums"
           >
             <Icon className="text-ink-muted" icon={row.icon} size={16} />
-            {COMPACT_NUMBER_FORMAT.format(row.value(stats))}
+            {formatCompact(row.value(stats))}
           </Tooltip>
         </DetailPart>
       ))}

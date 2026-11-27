@@ -9,17 +9,13 @@ import { useAccount } from "@/features/account/provider";
 import { followsSurface } from "@/features/social/surfaces";
 import { accountHref } from "@/shared/site";
 import type { ProfileStats } from "../stats";
-
-const COMPACT = new Intl.NumberFormat("en-US", {
-  maximumFractionDigits: 1,
-  notation: "compact",
-});
+import { formatCompact, formatWhole } from "@/shared/format";
 
 const CELL =
   "flex min-w-0 flex-col-reverse items-center gap-fib-1 px-fib-1 py-fib-3 text-ink-faint hover:bg-fill hover:text-ink-muted";
 
 function figure(value: number): string {
-  return value < 10_000 ? value.toLocaleString("en-US") : COMPACT.format(value);
+  return value < 10_000 ? formatWhole(value) : formatCompact(value);
 }
 
 function Figure({ label, value }: { label: string; value: number }): ReactNode {

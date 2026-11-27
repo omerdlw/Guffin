@@ -7,7 +7,7 @@ import { unstable_rethrow } from "next/navigation";
 import { after } from "next/server";
 import { and, desc, eq, inArray, isNotNull } from "drizzle-orm";
 import { getOptionalUser, getViewerSession } from "@/features/auth/server";
-import { toLogline } from "@/shared/format";
+import { formatWhole, toLogline } from "@/shared/format";
 import { getRedisClient } from "@/infrastructure/security";
 import { admin } from "@/infrastructure/db/client";
 import { accountDiary, accounts, filmStats } from "@/infrastructure/db/schema";
@@ -288,7 +288,7 @@ function selectMembers(
       bio: row.bio,
       followers: row.followers,
       id: row.id,
-      reason: `${row.likes.toLocaleString("en-US")} likes on reviews this month`,
+      reason: `${formatWhole(row.likes)} likes on reviews this month`,
       reviews: row.reviews,
       watched: row.watched,
     }));

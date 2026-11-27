@@ -213,16 +213,26 @@ const FULL_DATE = new Intl.DateTimeFormat("en-US", {
   year: "numeric",
 });
 
+// One minute clock shared by every row: a single interval runs while any
+// row is mounted, instead of one interval per row.
 let clock: number | null = null;
+const clockListeners = new Set<() => void>();
+let clockTimer: number | undefined;
 
 function subscribeClock(change: () => void) {
-  const tick = () => {
+  clockListeners.add(change);
+  if (clockListeners.size === 1) {
     clock = Date.now();
-    change();
+    clockTimer = window.setInterval(() => {
+      clock = Date.now();
+      clockListeners.forEach((listener) => listener());
+    }, 60_000);
+  }
+  change();
+  return () => {
+    clockListeners.delete(change);
+    if (clockListeners.size === 0) window.clearInterval(clockTimer);
   };
-  tick();
-  const id = window.setInterval(tick, 60_000);
-  return () => window.clearInterval(id);
 }
 
 const readClock = () => (clock ??= Date.now());

@@ -4,15 +4,10 @@ import { Icon } from "@/design/components/icon";
 import { DockLink } from "@/design/components/link";
 import { TONE } from "@/design/foundations/tones";
 import { PosterStack } from "@/features/lists/components/poster-stack";
-import { pluralize } from "@/shared/format";
+import { formatCompact, pluralize } from "@/shared/format";
 import { accountHref, listHref } from "@/shared/site";
 import { Header, Part, Section } from "@/motion/choreography/stage";
 import type { PopularList } from "../model";
-
-const COMPACT_COUNT_FORMAT = new Intl.NumberFormat("en", {
-  maximumFractionDigits: 1,
-  notation: "compact",
-});
 
 function PopularListItem({
   index,
@@ -63,11 +58,11 @@ function PopularListItem({
           <span>{pluralize(list.itemsCount, "film")}</span>
           <span className="inline-flex items-center gap-1">
             <Icon icon="solar:heart-bold" size={14} />
-            {COMPACT_COUNT_FORMAT.format(list.likesCount)}
+            {formatCompact(list.likesCount)}
           </span>
           <span className="inline-flex items-center gap-1">
             <Icon icon="solar:chat-round-bold" size={14} />
-            {COMPACT_COUNT_FORMAT.format(list.reviewsCount)}
+            {formatCompact(list.reviewsCount)}
           </span>
         </div>
         {list.description ? (

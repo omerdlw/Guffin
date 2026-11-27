@@ -12,18 +12,13 @@ import { cn } from "@/design/ui";
 import { movieHref } from "@/shared/site";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/model";
 import type { CanonFilm, Filter } from "../model";
+import { formatCompact } from "@/shared/format";
 
 const TOP_100_FILTERS: readonly { label: string; value: Filter }[] = [
   { label: "All", value: "all" },
   { label: "Seen", value: "seen" },
   { label: "To watch", value: "unseen" },
 ];
-
-const votesOf = (votes: number) =>
-  new Intl.NumberFormat("en", {
-    maximumFractionDigits: 1,
-    notation: "compact",
-  }).format(votes);
 
 export function SeenPanel({
   count,
@@ -109,7 +104,9 @@ export function Facts({
               {film.rating.toFixed(1)}
             </span>
             <span aria-hidden="true">·</span>
-            <span className="tabular-nums">{votesOf(film.votes)} votes</span>
+            <span className="tabular-nums">
+              {formatCompact(film.votes)} votes
+            </span>
             <span aria-hidden="true">·</span>
           </>
         ) : null}

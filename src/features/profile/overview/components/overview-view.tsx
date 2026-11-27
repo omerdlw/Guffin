@@ -8,7 +8,7 @@ import { cn } from "@/design/ui";
 import { FAVORITES_MAX, type PublicAccount } from "@/features/account/model";
 import { RatingStars, Star } from "@/features/reviews/components/rating";
 import { isRated, REVIEW_ICON } from "@/features/reviews/model";
-import { pluralize } from "@/shared/format";
+import { formatWhole, pluralize } from "@/shared/format";
 import { accountHref, movieHref, reviewHref } from "@/shared/site";
 import { tmdbImageSrcSet, tmdbImageUrl } from "@/infrastructure/tmdb/model";
 import { ActivityCalendar } from "@/features/profile/activity/components/activity-calendar";
@@ -237,11 +237,7 @@ function Watchlist({
   return (
     <Section
       href={href}
-      more={
-        total > items.length
-          ? `All ${total.toLocaleString("en-US")}`
-          : undefined
-      }
+      more={total > items.length ? `All ${formatWhole(total)}` : undefined}
       name="watchlist"
       title="Watchlist"
     >
@@ -368,7 +364,7 @@ export function ProfileOverviewView({
               href={link("reviews?kind=written")}
               more={
                 summary.written > reviews.length
-                  ? `All ${summary.written.toLocaleString("en-US")}`
+                  ? `All ${formatWhole(summary.written)}`
                   : undefined
               }
               name="reviews"
@@ -399,7 +395,7 @@ export function ProfileOverviewView({
           href={link("lists")}
           more={
             numbers.stats.lists > lists.length
-              ? `All ${numbers.stats.lists.toLocaleString("en-US")}`
+              ? `All ${formatWhole(numbers.stats.lists)}`
               : undefined
           }
           name="lists"

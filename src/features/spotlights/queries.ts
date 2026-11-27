@@ -23,6 +23,7 @@ import {
   type DirectorFilm,
   type Laureate,
 } from "./model";
+import { TMDB_GENRES } from "@/infrastructure/tmdb/genres";
 
 interface Kept<T> {
   at: number;
@@ -33,26 +34,10 @@ type CatalogHit = MovieSearchPage["results"][number];
 
 const MAX_FILMS = 64;
 
+// TMDB's names, with the one long label shortened for the spotlight chips.
 const GENRE_LABELS: Readonly<Record<number, string>> = {
-  12: "Adventure",
-  14: "Fantasy",
-  16: "Animation",
-  18: "Drama",
-  27: "Horror",
-  28: "Action",
-  35: "Comedy",
-  36: "History",
-  37: "Western",
-  53: "Thriller",
-  80: "Crime",
-  99: "Documentary",
+  ...TMDB_GENRES,
   878: "Sci-Fi",
-  9648: "Mystery",
-  10402: "Music",
-  10749: "Romance",
-  10751: "Family",
-  10752: "War",
-  10770: "TV Movie",
 };
 
 const FIRST_CEREMONY_YEAR = 1929;
