@@ -171,6 +171,8 @@ function properties(looks: (Look | undefined)[], reduced: boolean) {
   return [...used];
 }
 
+const property = (line: string) => line.split(":")[0]!;
+
 const rule = (selector: string, lines: string[]) =>
   lines.length ? `${selector}{${lines.join(";")}}` : "";
 
@@ -204,6 +206,10 @@ interface Track {
   timeline?: string;
   range?: string;
   gate?: string;
+  /** First frame, held by plain declarations until the gate opens. */
+  hold?: string[];
+  /** Properties the track animates. */
+  props: string[];
 }
 
 function enterTrack(
@@ -242,6 +248,8 @@ function enterTrack(
     keyframes: `@keyframes ${name}{from{${from.join(";")}}${open ? "to{clip-path: inset(0 0 0 0)}" : ""}}`,
     shorthand: `${name} ${seconds(duration)} ${curve(enter.ease)} ${delay} backwards`,
     gate: gate(place, enter),
+    hold: from,
+    props: from.map(property),
   };
 }
 
@@ -258,38 +266,69 @@ function driftTrack(
     shorthand: `${name} ${curve(drift.ease ?? [0, 0, 1, 1])} both`,
     timeline: drift.on === "view" ? "view(block)" : "scroll(root block)",
     range: `${drift.range[0]} ${drift.range[1]}`,
+    props: to.map(property),
   };
 }
 
+/**
+ * A gated track is not attached until its gate opens. Until then the role
+ * holds the track's first frame with plain declarations (!important, so it
+ * wins the way the animation's fill would). A paused animation would show the
+ * same frame, but Chrome promotes every element with a pending opacity,
+ * filter or transform animation to its own compositor layer: a page of unseen
+ * roles became a few hundred layers, most of them far below the fold. Once the
+ * gate opens the animation starts in the same style change, filling backwards
+ * with that very frame, so nothing transitions or jumps.
+ */
 function trackRules(selector: string, tracks: (Track | null)[]): string {
   const all = tracks.filter((t): t is Track => t !== null);
   if (!all.length) return "";
-  const emit = (list: Track[], extra: string[] = []) => {
-    const states = (open?: Track) =>
-      list
-        .map((t) => (!t.gate || t === open ? "running" : "paused"))
-        .join(", ");
-    return (
-      rule(selector, [
-        `animation: ${list.map((t) => t.shorthand).join(", ")}`,
-        ...extra,
-        `animation-play-state: ${states()}`,
-      ]) +
-      list
-        .filter((t) => t.gate)
-        .map((t) => rule(t.gate!, [`animation-play-state: ${states(t)}`]))
-        .join("")
-    );
-  };
+  const free = all.filter((t) => !t.gate);
+  const gated = all.filter((t) => t.gate);
+  // Animation order decides which track wins a shared property: keep it.
+  const open = (track: Track) => all.filter((t) => !t.gate || t === track);
 
-  const timed = all.filter((t) => !t.timeline);
-  let css = all.map((t) => t.keyframes).join("");
-  if (timed.length) css += emit(timed);
-  if (timed.length === all.length) return css;
-  return `${css}@supports (animation-timeline: view()){${emit(all, [
-    `animation-timeline: ${all.map((t) => t.timeline ?? "auto").join(", ")}`,
-    `animation-range: ${all.map((t) => t.range ?? "normal").join(", ")}`,
-  ])}}`;
+  const declare = (list: Track[], timelines: boolean) => [
+    `animation: ${list.length ? list.map((t) => t.shorthand).join(", ") : "none"}`,
+    ...(timelines && list.length
+      ? [
+          `animation-timeline: ${list.map((t) => t.timeline ?? "auto").join(", ")}`,
+          `animation-range: ${list.map((t) => t.range ?? "normal").join(", ")}`,
+        ]
+      : []),
+  ];
+  const emit = (timelines: boolean) => {
+    const usable = (list: Track[]) =>
+      timelines ? list : list.filter((t) => !t.timeline);
+    let css =
+      usable(free).length || gated.length
+        ? rule(selector, declare(usable(free), timelines))
+        : "";
+    for (const track of gated)
+      css += rule(track.gate!, declare(usable(open(track)), timelines));
+    return css;
+  };
+  // A free track later in the list owns its properties, as it did over the
+  // paused fill.
+  const holds = gated
+    .map((t) => {
+      const later = all
+        .slice(all.indexOf(t) + 1)
+        .filter((o) => !o.gate)
+        .flatMap((o) => o.props);
+      const lines = (t.hold ?? []).filter(
+        (line) => !later.includes(property(line)),
+      );
+      return rule(
+        `${selector}:not(${t.gate}, [data-leaving], [data-leaving] *)`,
+        lines.map((line) => `${line} !important`),
+      );
+    })
+    .join("");
+
+  const css = all.map((t) => t.keyframes).join("") + holds + emit(false);
+  if (!all.some((t) => t.timeline)) return css;
+  return `${css}@supports (animation-timeline: view()){${emit(true)}}`;
 }
 
 const SOFT = [
