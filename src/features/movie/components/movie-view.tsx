@@ -523,9 +523,6 @@ function MovieView({
   const backdrops = getGalleryImages(images);
   const posters = getPosterImages(images);
   const gallery = { backdrops: pathsOf(backdrops), posters: pathsOf(posters) };
-  const frames = backdrops
-    .filter((image) => !image.language)
-    .map((image) => image.filePath);
 
   if (page.kind === "reviews") {
     return (
@@ -534,7 +531,7 @@ function MovieView({
           <DetailReviewsLayout
             backdrop={
               backdrop ? (
-                <MovieBackdropHero frames={frames} movie={art} />
+                <MovieBackdropHero movie={art} />
               ) : null
             }
             className="movie-page"
@@ -568,7 +565,7 @@ function MovieView({
             </>
           }
           backdrop={
-            backdrop ? <MovieBackdropHero frames={frames} movie={art} /> : null
+            backdrop ? <MovieBackdropHero movie={art} /> : null
           }
           className="movie-page"
           header={<MovieHeader movie={movie} stats={stats} />}

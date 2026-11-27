@@ -250,17 +250,15 @@ export function PersonPortrait({
 
 export function PersonBackdropHero({
   fallback,
-  frames,
   person,
 }: {
   fallback: string | null;
-  frames?: readonly string[];
   person: Pick<PersonDetails, "id" | "name">;
 }) {
   const path = useArtworkPath("person", person.id, "backdrop", fallback);
   const image = tmdbImageUrl("backdrop", path, "original");
   return image ? (
-    <DetailBackdrop frames={frames} src={image} title={person.name} />
+    <DetailBackdrop src={image} />
   ) : null;
 }
 

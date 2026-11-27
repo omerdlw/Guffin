@@ -13,11 +13,7 @@ import {
 } from "react";
 import { useOptionalDockState } from "@omerdlw/base-framework/dock";
 import { ActionButton } from "@/design/components/action-button";
-import {
-  BACKDROP_HERO_TALL_MASK,
-  BOTTOM_COVER,
-  SIDE_COVER,
-} from "@/design/components/backdrop";
+import { BACKDROP_HERO_TALL_MASK } from "@/design/components/backdrop";
 import { TextButton } from "@/design/components/link";
 import { Room } from "@/design/components/room";
 import {
@@ -26,13 +22,11 @@ import {
   VIEW_CLASS,
 } from "@/design/foundations/layout";
 import { cn } from "@/design/ui";
-import { tmdbImageUrl } from "@/infrastructure/tmdb/model";
 import { useWall } from "@/motion/choreography/stage";
 import { bezier } from "@/motion/core/curve";
 import { clamp } from "@/motion/core/math";
 import { useScrollDriver } from "@/motion/core/provider";
 import { Intermission } from "@/motion/effects/intermission";
-import { Marquee } from "@/motion/effects/marquee";
 import { Projection } from "@/motion/webgl/projection";
 import { DetailDeck, DetailPart, DetailStageRoot } from "../motion";
 
@@ -68,12 +62,6 @@ const BACKDROP_HALATION = 0.55;
 
 const BACKDROP_POSITION = "center 20%";
 
-const BACKDROP_FOCUS = [0.5, 0.2] as const;
-
-const CARD_IMAGE_PATH = "/t/p/w1280/";
-
-const FRAME_IMAGE_SIZE = "w780";
-
 const defocusAt = (y: number) =>
   DEFOCUS(
     clamp(
@@ -83,11 +71,6 @@ const defocusAt = (y: number) =>
       1,
     ),
   );
-
-const toCardImage = (src: string) =>
-  src.replace(/\/t\/p\/original\//, CARD_IMAGE_PATH);
-
-const BACKDROP_EDGES = { bottom: BOTTOM_COVER, side: SIDE_COVER };
 
 const WallSetContext = createContext<StageWallSet>({
   set: null,
@@ -260,31 +243,19 @@ export function BackdropProjection({
 
 export function DetailBackdrop({
   children,
-  frames,
   held = false,
   src,
   still = null,
   tall = false,
-  title,
 }: {
   children?: ReactNode;
-  frames?: readonly string[];
   held?: boolean;
   src: string;
   still?: string | null;
   tall?: boolean;
-  title?: string;
 }) {
-  const reel = useMemo(
-    () =>
-      frames
-        ?.map((path) => tmdbImageUrl("backdrop", path, FRAME_IMAGE_SIZE))
-        .filter((url): url is string => Boolean(url)),
-    [frames],
-  );
   const [ready, setReady] = useState(false);
-  const [lifted, lift] = useState(!title);
-  const curtained = title ? !lifted : held && !ready;
+  const curtained = held && !ready;
 
   useEffect(() => {
     const late = setTimeout(() => setReady(true), 2500);
@@ -308,18 +279,6 @@ export function DetailBackdrop({
           />
         </div>
       </DetailPart>
-      {title ? (
-        <Marquee
-          className="font-zuume"
-          edges={BACKDROP_EDGES}
-          focus={BACKDROP_FOCUS}
-          frames={reel}
-          onLift={() => lift(true)}
-          quiet={ready}
-          src={toCardImage(src)}
-          text={title}
-        />
-      ) : null}
       {children}
     </div>
   );

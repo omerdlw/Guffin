@@ -265,7 +265,6 @@ export function PersonView({
           backdrop ? (
             <PersonBackdropHero
               fallback={backdropPath}
-              frames={backdrops}
               person={person}
             />
           ) : null

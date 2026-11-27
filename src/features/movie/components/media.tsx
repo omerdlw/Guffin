@@ -90,10 +90,8 @@ function Slate({ title }: { title: string }) {
 }
 
 export function MovieBackdropHero({
-  frames,
   movie,
 }: {
-  frames?: readonly string[];
   movie: MovieArtwork;
 }) {
   const path = useArtworkPath(
@@ -108,13 +106,7 @@ export function MovieBackdropHero({
   if (!image) return null;
 
   return (
-    <DetailBackdrop
-      frames={frames}
-      src={image}
-      still={still}
-      tall
-      title={movie.title}
-    >
+    <DetailBackdrop src={image} still={still} tall>
       <Slate title={movie.title} />
     </DetailBackdrop>
   );
