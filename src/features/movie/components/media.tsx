@@ -10,11 +10,11 @@ import {
   useArtworkPath,
 } from "@/features/artwork/components/artwork";
 import { ImageModal } from "@/features/detail-page/components/image-modal";
-import { DetailCount } from "@/features/detail-page/motion";
 import {
   DetailBackdrop,
   DetailIntermission,
 } from "@/features/detail-page/components/stage";
+import { DetailCount } from "@/features/detail-page/motion";
 import {
   type Awards,
   type MovieDetails,

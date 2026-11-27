@@ -16,13 +16,13 @@ import {
 } from "@omerdlw/base-framework/dock";
 import { Button } from "@omerdlw/base-framework/ui";
 import { ActionIcon, ActionLabel } from "@/design/components/action-content";
-import { DockAction } from "@/design/surface/surface";
 import { Room } from "@/design/components/room";
-import { MotionConfig } from "@/motion/lib";
-import { defineStage } from "@/motion/choreography/stage";
+import { DockAction } from "@/design/surface/surface";
 import { DEVELOP, TEMPO, beat } from "@/motion/choreography/pace";
+import { defineStage } from "@/motion/choreography/stage";
 import type { Engine } from "@/motion/core/engine";
 import { mountScene } from "@/motion/core/scene";
+import { MotionConfig } from "@/motion/lib";
 import { type LoopFactory, typing } from "../model";
 
 interface SpotlightDockAction {

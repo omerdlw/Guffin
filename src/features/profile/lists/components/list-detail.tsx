@@ -1,6 +1,7 @@
 "use client";
 
 import { type JSX, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import {
   useDockActionClass,
   useDockActions,
@@ -8,14 +9,13 @@ import {
 } from "@omerdlw/base-framework/dock";
 import { REGISTRY_SOURCES } from "@omerdlw/base-framework/kernel";
 import { Avatar, Button } from "@omerdlw/base-framework/ui";
-import { useRouter } from "next/navigation";
 import { ActionIcon, ActionLabel } from "@/design/components/action-content";
 import { Icon } from "@/design/components/icon";
 import { DockLink } from "@/design/components/link";
 import { MediaCard } from "@/design/components/media-card";
-import { DockAction } from "@/design/surface/surface";
 import { RADIUS } from "@/design/foundations/geometry";
 import { useSurfacePreload } from "@/design/surface/lazy";
+import { DockAction } from "@/design/surface/surface";
 import { cn } from "@/design/ui";
 import { formatShortDate } from "@/features/account/model";
 import {
@@ -23,16 +23,16 @@ import {
   ListLikeButton,
 } from "@/features/lists/components/list-buttons";
 import { listFormSurface } from "@/features/lists/surfaces";
+import { ShowMore } from "@/features/profile/components/show-more";
+import { usePagedList } from "@/features/profile/use-paged-list";
 import {
   ReviewActions,
   ReviewBody,
 } from "@/features/reviews/components/review-controls";
 import { reviewEditorSurface } from "@/features/reviews/surfaces";
+import { tmdbImageSrcSet, tmdbImageUrl } from "@/infrastructure/tmdb/model";
 import { pluralize } from "@/shared/format";
 import { accountHref, listHref, movieHref } from "@/shared/site";
-import { tmdbImageSrcSet, tmdbImageUrl } from "@/infrastructure/tmdb/model";
-import { ShowMore } from "@/features/profile/components/show-more";
-import { usePagedList } from "@/features/profile/use-paged-list";
 import { loadListEntries } from "../actions";
 import type {
   EntryFilters,

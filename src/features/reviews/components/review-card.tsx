@@ -4,8 +4,8 @@ import { type JSX, type ReactNode, useState } from "react";
 import { DockLink } from "@/design/components/link";
 import { cn } from "@/design/ui";
 import { formatShortDate } from "@/features/account/model";
-import { RatingStars } from "./rating";
 import { isRated } from "../model";
+import { RatingStars } from "./rating";
 
 export const REVIEW_ROW =
   "border-t border-rule py-fib-4 first:border-t-0 first:pt-0";

@@ -23,12 +23,12 @@ import {
   unlinkIdentity,
 } from "@/features/auth/api";
 import { getAuthErrorMessage } from "@/features/auth/errors";
-import { useAuth } from "@/features/auth/provider";
 import {
   getAuthCallbackUrl,
   OAUTH_PROVIDERS,
   type OAuthProvider,
 } from "@/features/auth/model";
+import { useAuth } from "@/features/auth/provider";
 
 const PROVIDER_LABELS: Record<OAuthProvider, { icon: string; label: string }> =
   {

@@ -11,11 +11,11 @@ import {
 } from "@omerdlw/base-framework/navigation";
 import { BACKDROP_FILL } from "@/design/components/backdrop";
 import { cn } from "@/design/ui";
-import type { PublicAccount } from "@/features/account/model";
 import { AccountAvatarImage } from "@/features/account/components/tiles";
+import type { PublicAccount } from "@/features/account/model";
 import { BackdropProjection } from "@/features/detail-page/components/stage";
-import { ProfileBio } from "./bio";
 import { HERO_SIZES, profileBackdrop, profileSwatch } from "../media";
+import { ProfileBio } from "./bio";
 
 export function ProfileHero({
   account,

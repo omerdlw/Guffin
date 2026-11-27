@@ -1,5 +1,7 @@
 import "server-only";
+
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import {
   AMBIENT_ANALYSIS_VERSION,
   AmbientDecoderMissingError,
@@ -7,9 +9,8 @@ import {
   extractAmbientPalette,
 } from "@omerdlw/base-framework/ambient/server";
 import { report } from "@omerdlw/base-framework/utils";
-import { unstable_cache } from "next/cache";
-import { AMBIENT_ANALYSIS } from "@/shared/ambient";
 import { getTmdbConfig } from "@/infrastructure/config";
+import { AMBIENT_ANALYSIS } from "@/shared/ambient";
 import { createTmdbClient, type TmdbClient } from "./api";
 import type {
   DiscoverOptions,
@@ -17,9 +18,9 @@ import type {
   MovieList,
   TrendingWindow,
 } from "./discover";
+import { TMDB_IMAGE_BASE_URL } from "./model";
 import type { MovieDetailsOptions, MovieSearchOptions } from "./movies";
 import type { PersonDetailsOptions, PersonSearchOptions } from "./people";
-import { TMDB_IMAGE_BASE_URL } from "./model";
 
 let client: TmdbClient | undefined;
 

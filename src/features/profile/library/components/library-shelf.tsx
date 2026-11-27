@@ -1,6 +1,6 @@
 "use client";
 
-import { type JSX } from "react";
+import type { JSX } from "react";
 import { Button } from "@omerdlw/base-framework/ui";
 import { useConfirmedAction } from "@/design/components/confirm";
 import { Icon } from "@/design/components/icon";
@@ -8,10 +8,10 @@ import { MediaCard } from "@/design/components/media-card";
 import { RADIUS } from "@/design/foundations/geometry";
 import { cn } from "@/design/ui";
 import { setFavoriteAction } from "@/features/account/actions";
-import { movieHref } from "@/shared/site";
-import { tmdbImageSrcSet, tmdbImageUrl } from "@/infrastructure/tmdb/model";
 import { ShowMore } from "@/features/profile/components/show-more";
 import { usePagedList } from "@/features/profile/use-paged-list";
+import { tmdbImageSrcSet, tmdbImageUrl } from "@/infrastructure/tmdb/model";
+import { movieHref } from "@/shared/site";
 import { loadLibraryPage } from "../actions";
 import type {
   LibraryFilters,

@@ -1,6 +1,5 @@
 "use client";
 
-import { defineStage } from "@/motion/choreography/stage";
 import {
   DOLLY,
   FOCUS,
@@ -10,6 +9,7 @@ import {
   beat,
   reveal,
 } from "@/motion/choreography/pace";
+import { defineStage } from "@/motion/choreography/stage";
 
 const STAGGER = { bar: 0.034 };
 

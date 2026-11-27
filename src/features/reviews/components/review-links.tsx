@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { useDockActions } from "@omerdlw/base-framework/dock";
 import { report } from "@omerdlw/base-framework/utils";
-import { usePathname } from "next/navigation";
 import { parseReviewHref } from "@/shared/site";
 import { reviewSurface } from "../surfaces";
 

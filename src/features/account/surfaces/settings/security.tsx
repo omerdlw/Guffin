@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useDockActions } from "@omerdlw/base-framework/dock";
 import { useToast } from "@omerdlw/base-framework/notification";
 import { Button } from "@omerdlw/base-framework/ui";
-import { useRouter } from "next/navigation";
 import { Icon } from "@/design/components/icon";
 import { Input } from "@/design/components/input";
 import {
@@ -21,8 +21,8 @@ import { getAuthErrorMessage } from "@/features/auth/errors";
 import { useAuth } from "@/features/auth/provider";
 import { verificationSurface } from "@/features/auth/surfaces";
 import { requestJson } from "@/shared/http";
-import { Mark } from "./panel";
 import { INPUT_CLASS } from "./model";
+import { Mark } from "./panel";
 
 const DELETE_CONFIRMATION = "DELETE";
 

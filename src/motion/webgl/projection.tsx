@@ -13,9 +13,9 @@ import {
   BACKDROP_HERO_MASK,
 } from "@/design/components/backdrop";
 import { cn } from "@/design/ui";
-import type { Projector } from "./projector";
 import { useEngine } from "../core/provider";
 import { readable } from "./gl";
+import type { Projector } from "./projector";
 
 interface ProjectionProps {
   className?: string;

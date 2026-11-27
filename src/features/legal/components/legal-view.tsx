@@ -1,9 +1,9 @@
 "use client";
 
-import { DockClear } from "@/design/dock/clear";
-import { usePage } from "@omerdlw/base-framework/kernel";
 import type { JSX } from "react";
+import { usePage } from "@omerdlw/base-framework/kernel";
 import { DockLink, ExternalLink, linkVariants } from "@/design/components/link";
+import { DockClear } from "@/design/dock/clear";
 import {
   CONTAINER_CLASS,
   HEADLINE_BOX,

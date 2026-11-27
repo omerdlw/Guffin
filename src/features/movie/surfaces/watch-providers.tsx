@@ -5,14 +5,11 @@ import { report } from "@omerdlw/base-framework/utils";
 import { Icon } from "@/design/components/icon";
 import { ExternalLink } from "@/design/components/link";
 import { MediaCard } from "@/design/components/media-card";
-import { SKELETON } from "@/design/components/skeleton";
 import { SurfaceSegmentedControl } from "@/design/components/segmented-control";
 import { Select } from "@/design/components/select";
-import {
-  SurfacePart,
-  SurfaceStage,
-  SurfaceSwap,
-} from "@/design/surface/surface";
+import { SKELETON } from "@/design/components/skeleton";
+import { RADIUS } from "@/design/foundations/geometry";
+import { WELL, WELL_HOVER } from "@/design/foundations/tones";
 import {
   SURFACE_META,
   SURFACE_SCROLL,
@@ -20,14 +17,17 @@ import {
   SURFACE_TEXT,
   SURFACE_TITLE,
 } from "@/design/surface/classes";
-import { RADIUS } from "@/design/foundations/geometry";
-import { WELL, WELL_HOVER } from "@/design/foundations/tones";
-import { cn } from "@/design/ui";
 import { defineSurface } from "@/design/surface/define";
+import {
+  SurfacePart,
+  SurfaceStage,
+  SurfaceSwap,
+} from "@/design/surface/surface";
+import { cn } from "@/design/ui";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/model";
 import { getWatchProvidersAction } from "../actions";
-import { flagOf, pickRegion, regionName, useWatchRegion } from "../region";
 import type { ProviderEntry, RegionProviders } from "../model";
+import { flagOf, pickRegion, regionName, useWatchRegion } from "../region";
 
 type WatchProvidersSource =
   | { status: "loading" }

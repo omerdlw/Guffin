@@ -8,9 +8,9 @@ import {
 } from "@omerdlw/base-framework/dock";
 import { REGISTRY_SOURCES } from "@omerdlw/base-framework/kernel";
 import { SegmentedControl } from "@/design/components/segmented-control";
-import { DockAction } from "@/design/surface/surface";
 import { useDockCommands } from "@/design/dock/commands";
 import { useSurfacePreload } from "@/design/surface/lazy";
+import { DockAction } from "@/design/surface/surface";
 import {
   DEFAULT_ACCOUNT_ICON,
   type PublicAccount,
@@ -19,8 +19,8 @@ import {
 import { type Inbox, useAccount, useInbox } from "@/features/account/provider";
 import { accountSettingsSurface } from "@/features/account/surfaces";
 import { followsSurface } from "@/features/social/surfaces";
-import { useProfileFollow } from "../use-profile-follow";
 import { accountHref } from "@/shared/site";
+import { useProfileFollow } from "../use-profile-follow";
 
 type ProfileTab = "films" | "inbox";
 

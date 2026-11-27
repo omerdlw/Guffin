@@ -1,17 +1,18 @@
 import type { JSX } from "react";
 import { notFound } from "next/navigation";
-import {
-  ListComments,
-  ListDock,
-  ListEntries,
-  ListHeader,
-} from "@/features/profile/lists/components/list-detail";
+import { ListsToolbar } from "@/features/profile/components/toolbar";
 import {
   isNarrowed,
   readSort,
   readTitleFilters,
   titleFields,
 } from "@/features/profile/filters";
+import {
+  ListComments,
+  ListDock,
+  ListEntries,
+  ListHeader,
+} from "@/features/profile/lists/components/list-detail";
 import { ENTRY_SORTS } from "@/features/profile/lists/model";
 import {
   getListComments,
@@ -19,7 +20,6 @@ import {
   getListEntries,
   getListFacets,
 } from "@/features/profile/lists/queries";
-import { ListsToolbar } from "@/features/profile/components/toolbar";
 import { loadProfile } from "@/features/profile/queries";
 import type { SearchParams } from "@/shared/http";
 import { listHref } from "@/shared/site";

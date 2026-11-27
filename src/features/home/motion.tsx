@@ -1,10 +1,9 @@
 "use client";
 
 import { createContext, type ReactNode, use, useMemo, useState } from "react";
-import { cn } from "@/design/ui";
 import { Room } from "@/design/components/room";
+import { cn } from "@/design/ui";
 import type { Curve, Moves } from "@/motion/choreography/choreo";
-import { defineStage } from "@/motion/choreography/stage";
 import {
   DEVELOP,
   DOLLY,
@@ -21,6 +20,7 @@ import {
   load,
   reveal,
 } from "@/motion/choreography/pace";
+import { defineStage } from "@/motion/choreography/stage";
 import { ambientImage } from "./model";
 
 const STAGGER = { char: 0.021, word: 0.034, item: 0.055, row: 0.089 };

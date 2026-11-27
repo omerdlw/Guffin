@@ -14,11 +14,11 @@ import {
   useDockActions,
 } from "@omerdlw/base-framework/dock";
 import { Button } from "@omerdlw/base-framework/ui";
-import { SegmentedControl } from "@/design/components/segmented-control";
 import { Icon } from "@/design/components/icon";
 import { Input } from "@/design/components/input";
-import { SURFACE_SCROLL } from "@/design/surface/classes";
+import { SegmentedControl } from "@/design/components/segmented-control";
 import { ACTION_TONE } from "@/design/foundations/tones";
+import { SURFACE_SCROLL } from "@/design/surface/classes";
 import { cn } from "@/design/ui";
 import {
   accountHref,
@@ -27,8 +27,8 @@ import {
   personHref,
   reviewHref,
 } from "@/shared/site";
-import styles from "./search-action.module.css";
 import { SearchPart, SearchStage, SearchSwap, useSearchPart } from "../motion";
+import styles from "./search-action.module.css";
 
 export { SearchStyle } from "../motion";
 import {

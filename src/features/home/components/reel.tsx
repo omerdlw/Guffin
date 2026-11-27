@@ -14,19 +14,20 @@ import {
   useDockRegistration,
 } from "@omerdlw/base-framework/dock";
 import { Button } from "@omerdlw/base-framework/ui";
-import { BACKDROP_FILL } from "@/design/components/backdrop";
 import { ActionIcon, ActionLabel } from "@/design/components/action-content";
+import { BACKDROP_FILL } from "@/design/components/backdrop";
 import { Icon } from "@/design/components/icon";
-import { DockAction } from "@/design/surface/surface";
 import { headlineClass, HEADLINE_BOX } from "@/design/foundations/layout";
 import { TONE } from "@/design/foundations/tones";
+import { DockAction } from "@/design/surface/surface";
 import { cn } from "@/design/ui";
 import { useAuth } from "@/features/auth/provider";
 import { useOpenSignIn } from "@/features/auth/sign-in";
 import { BackdropProjection } from "@/features/detail-page/components/stage";
 import { AvatarStack } from "@/features/social/components/social-proof";
-import { accountHref, movieHref } from "@/shared/site";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/model";
+import { formatCompact, formatRuntime } from "@/shared/format";
+import { accountHref, movieHref } from "@/shared/site";
 import {
   ambientImage,
   type Feature,
@@ -35,7 +36,6 @@ import {
   REEL_MARK_BOX,
   REEL_MASK,
 } from "../model";
-import { formatCompact, formatRuntime } from "@/shared/format";
 import {
   HomePart,
   HomeSection,

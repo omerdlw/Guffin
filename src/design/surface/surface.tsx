@@ -2,19 +2,19 @@
 
 import { type ReactNode, useMemo, useState } from "react";
 import { Button } from "@omerdlw/base-framework/ui";
+import { useAheadOfOpen } from "@/design/surface/lazy";
 import { cn } from "@/design/ui";
-import { SWELL_REACH } from "../glass/spring";
 import type {
   Curve,
   Enter,
   Followed,
   Look,
 } from "@/motion/choreography/choreo";
-import { useAheadOfOpen } from "@/design/surface/lazy";
+import { LEAVE, SETTLE, beat } from "@/motion/choreography/pace";
 import { defineStage } from "@/motion/choreography/stage";
 import { Icon } from "../components/icon";
 import { Input } from "../components/input";
-import { LEAVE, SETTLE, beat } from "@/motion/choreography/pace";
+import { SWELL_REACH } from "../glass/spring";
 
 const LINE = 0.055;
 const STAGGER_METER = 0.089;

@@ -18,11 +18,7 @@ import { report } from "@omerdlw/base-framework/utils";
 import { Icon } from "@/design/components/icon";
 import { Link } from "@/design/components/link";
 import { SurfaceSegmentedControl } from "@/design/components/segmented-control";
-import {
-  SurfacePart,
-  SurfaceStage,
-  SurfaceSwap,
-} from "@/design/surface/surface";
+import { TONE } from "@/design/foundations/tones";
 import {
   GROUP_HIGHLIGHT,
   groupRowVariants,
@@ -35,15 +31,19 @@ import {
   SURFACE_TILE_INNER,
   SURFACE_TITLE,
 } from "@/design/surface/classes";
-import { TONE } from "@/design/foundations/tones";
 import { defineSurface } from "@/design/surface/define";
+import {
+  SurfacePart,
+  SurfaceStage,
+  SurfaceSwap,
+} from "@/design/surface/surface";
 import { cn } from "@/design/ui";
 import { useAuth } from "@/features/auth/provider";
 import { COLLECTION_MARKS } from "@/features/movie/model";
 import { RatingStars } from "@/features/reviews/components/rating";
+import { Part } from "@/motion/choreography/stage";
 import { pluralize } from "@/shared/format";
 import { accountHref, reviewHref } from "@/shared/site";
-import { Part } from "@/motion/choreography/stage";
 import { getMovieSocialProofAction } from "../actions";
 import type {
   Friend,

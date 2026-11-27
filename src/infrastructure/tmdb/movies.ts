@@ -1,11 +1,6 @@
 import { err } from "@omerdlw/base-framework/result";
 import type { Result } from "@omerdlw/base-framework/result";
 import {
-  movieDetailsSchema,
-  movieImagesSchema,
-  movieSearchPageSchema,
-} from "./schemas";
-import {
   type MovieDetails,
   type MovieImages,
   type MovieSearchPage,
@@ -13,6 +8,11 @@ import {
   TMDB_REVALIDATE,
   tmdbCacheTag,
 } from "./model";
+import {
+  movieDetailsSchema,
+  movieImagesSchema,
+  movieSearchPageSchema,
+} from "./schemas";
 import {
   checkLanguage,
   checkSearchInput,

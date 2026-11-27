@@ -1,8 +1,8 @@
 import "server-only";
 
+import { unstable_rethrow } from "next/navigation";
 import { report } from "@omerdlw/base-framework/utils";
 import { eq } from "drizzle-orm";
-import { unstable_rethrow } from "next/navigation";
 import { getViewerSession } from "@/features/auth/server";
 import { getKnownFor } from "@/features/person/credits";
 import { filmStats } from "@/infrastructure/db/schema";

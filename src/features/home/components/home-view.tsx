@@ -3,11 +3,11 @@ import { DockClear } from "@/design/dock/clear";
 import { CONTAINER_CLASS, PAGE_CLASS } from "@/design/foundations/layout";
 import type { HomeFeed } from "../model";
 import { HomeStage } from "../motion";
-import { HomeReel } from "./reel";
 import { HomeCircle, HomeLogged } from "./circle-sections";
 import { HomeLists, HomeMembers } from "./community-sections";
 import { HomeCanon, HomePopular, HomeShowing } from "./film-sections";
 import { HomeCraft, HomeJoin, HomePitch } from "./guest-sections";
+import { HomeReel } from "./reel";
 import { HomeReviews } from "./review-sections";
 
 export function HomeView({ feed }: { feed: HomeFeed }): JSX.Element {

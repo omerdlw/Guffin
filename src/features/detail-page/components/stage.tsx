@@ -13,19 +13,19 @@ import {
 } from "react";
 import { useOptionalDockState } from "@omerdlw/base-framework/dock";
 import { ActionButton } from "@/design/components/action-button";
-import { TextButton } from "@/design/components/link";
 import { BOTTOM_COVER, SIDE_COVER } from "@/design/components/backdrop";
+import { TextButton } from "@/design/components/link";
+import { Room } from "@/design/components/room";
 import { MAIN_COLUMN_CLASS, VIEW_CLASS } from "@/design/foundations/layout";
 import { cn } from "@/design/ui";
-import { Room } from "@/design/components/room";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/model";
+import { useWall } from "@/motion/choreography/stage";
 import { bezier } from "@/motion/core/curve";
-import { Marquee } from "@/motion/effects/marquee";
 import { clamp } from "@/motion/core/math";
-import { Projection } from "@/motion/webgl/projection";
 import { useScrollDriver } from "@/motion/core/provider";
 import { Intermission } from "@/motion/effects/intermission";
-import { useWall } from "@/motion/choreography/stage";
+import { Marquee } from "@/motion/effects/marquee";
+import { Projection } from "@/motion/webgl/projection";
 import { DetailDeck, DetailPart, DetailStageRoot } from "../motion";
 
 interface StageWallSet {

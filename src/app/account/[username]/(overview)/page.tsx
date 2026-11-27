@@ -1,6 +1,6 @@
 import type { JSX } from "react";
-import { getProfileOverview } from "@/features/profile/overview/queries";
 import { ProfileOverviewView } from "@/features/profile/overview/components/overview-view";
+import { getProfileOverview } from "@/features/profile/overview/queries";
 import { loadProfile } from "@/features/profile/queries";
 import { getProfileNumbers } from "@/features/profile/stats";
 

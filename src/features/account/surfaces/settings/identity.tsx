@@ -1,12 +1,12 @@
 "use client";
 
 import { type ReactNode, useActionState, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useToast } from "@omerdlw/base-framework/notification";
 import { Button, Image, Textarea } from "@omerdlw/base-framework/ui";
-import { Switch } from "@/design/components/switch";
-import { useRouter } from "next/navigation";
 import { Icon } from "@/design/components/icon";
 import { Input } from "@/design/components/input";
+import { Switch } from "@/design/components/switch";
 import {
   SURFACE_META,
   SURFACE_STACK,
@@ -20,8 +20,8 @@ import { updateAccountAction } from "@/features/account/actions";
 import { useAccount } from "@/features/account/provider";
 import type { ActionResult } from "@/shared/result";
 import { accountHref } from "@/shared/site";
-import { Mark } from "./panel";
 import { FIELD_CLASS, INPUT_CLASS } from "./model";
+import { Mark } from "./panel";
 
 type SaveResult = ActionResult<{ username: string }> | null;
 

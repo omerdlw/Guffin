@@ -1,10 +1,9 @@
 "use client";
 
-import { COMPACT_SEARCH_WIDTH } from "@/design/theme/dock-motion";
 import type { ReactNode } from "react";
-import type { Enter, Look, Moves } from "@/motion/choreography/choreo";
-import { defineStage } from "@/motion/choreography/stage";
+import { COMPACT_SEARCH_WIDTH } from "@/design/theme/dock-motion";
 import { cn } from "@/design/ui";
+import type { Enter, Look, Moves } from "@/motion/choreography/choreo";
 import {
   LEAVE,
   PRESS,
@@ -13,6 +12,7 @@ import {
   TOUCH,
   beat,
 } from "@/motion/choreography/pace";
+import { defineStage } from "@/motion/choreography/stage";
 
 const STAGGER = { char: 0.021, item: 0.034, row: 0.055 };
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { type JSX, type ReactNode } from "react";
+import type { JSX, ReactNode } from "react";
 import { Avatar } from "@omerdlw/base-framework/ui";
 import { Carousel } from "@/design/components/carousel";
 import { DockLink } from "@/design/components/link";

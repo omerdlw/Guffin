@@ -14,11 +14,6 @@ import {
 import { TONE } from "@/design/foundations/tones";
 import { cn } from "@/design/ui";
 import {
-  type Fact,
-  type FactName,
-  hasAwards,
-} from "@/features/detail-page/model";
-import {
   DetailAwards,
   DetailLayout,
   DetailReviewsLayout,
@@ -28,41 +23,37 @@ import {
   namesFact,
   textFact,
 } from "@/features/detail-page/components/layout";
+import { MediaReviewsHeader } from "@/features/detail-page/components/reviews-header";
+import {
+  type Fact,
+  type FactName,
+  hasAwards,
+} from "@/features/detail-page/model";
 import {
   DetailBloom,
   DetailPart,
   DetailSection,
   DetailText,
 } from "@/features/detail-page/motion";
-import { MediaReviewsHeader } from "@/features/detail-page/components/reviews-header";
-import type { PopularList } from "@/features/lists/model";
 import { MoviePopularLists } from "@/features/lists/components/popular-lists";
+import type { PopularList } from "@/features/lists/model";
 import { getMoviePopularLists } from "@/features/lists/queries";
 import type { MovieReviewSort } from "@/features/reviews/model";
 import { MovieSocialProof } from "@/features/social/components/social-proof";
-import { formatCompact, pluralize } from "@/shared/format";
-import { movieHref, personHref } from "@/shared/site";
-import {
-  getAmbientPalette,
-  getMovieAwards,
-  getMovieDetails,
-  getMovieImages,
-} from "@/infrastructure/tmdb/server";
 import {
   type Awards,
   type MovieDetails,
   type MovieImages,
   tmdbImageUrl,
 } from "@/infrastructure/tmdb/model";
-import { MoviePeople } from "./cast";
-import { MovieCollectionActions } from "./collection-actions";
-import { MovieGallery, MovieGalleryWall, MovieVideos } from "./gallery";
 import {
-  MoneyCount,
-  MovieBackdropHero,
-  MoviePoster,
-  MovieProjection,
-} from "./media";
+  getAmbientPalette,
+  getMovieAwards,
+  getMovieDetails,
+  getMovieImages,
+} from "@/infrastructure/tmdb/server";
+import { formatCompact, pluralize } from "@/shared/format";
+import { movieHref, personHref } from "@/shared/site";
 import {
   AFTER_TAGLINE,
   capitalizeWords,
@@ -81,15 +72,24 @@ import {
   TAGLINE_CLASS,
   uniqueById,
 } from "../model";
-import { MovieReviewDigest, MovieReviews } from "./reviews";
 import { getFilmStats, getPeopleKnownFor } from "../queries";
+import { MovieViewProvider, MovieViews, ReelProvider } from "../view-context";
+import { MoviePeople } from "./cast";
+import { MovieCollectionActions } from "./collection-actions";
+import { MovieGallery, MovieGalleryWall, MovieVideos } from "./gallery";
+import {
+  MoneyCount,
+  MovieBackdropHero,
+  MoviePoster,
+  MovieProjection,
+} from "./media";
+import { MovieReviewDigest, MovieReviews } from "./reviews";
 import {
   AwardsAction,
   MoviePageChrome,
   MoviePosterLink,
   MovieStage,
 } from "./stage";
-import { MovieViewProvider, MovieViews, ReelProvider } from "../view-context";
 
 type AwardsRequest = Promise<Awards | null>;
 

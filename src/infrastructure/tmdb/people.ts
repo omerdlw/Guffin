@@ -1,6 +1,5 @@
 import { err } from "@omerdlw/base-framework/result";
 import type { Result } from "@omerdlw/base-framework/result";
-import { personDetailsSchema, personSearchPageSchema } from "./schemas";
 import {
   type PersonDetails,
   type PersonSearchPage,
@@ -8,6 +7,7 @@ import {
   TMDB_REVALIDATE,
   tmdbCacheTag,
 } from "./model";
+import { personDetailsSchema, personSearchPageSchema } from "./schemas";
 import {
   checkLanguage,
   checkSearchInput,

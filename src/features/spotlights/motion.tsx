@@ -1,10 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import type { Moves } from "@/motion/choreography/choreo";
-import { MotionConfig } from "@/motion/lib";
 import { Room } from "@/design/components/room";
-import { defineStage } from "@/motion/choreography/stage";
+import type { Moves } from "@/motion/choreography/choreo";
 import {
   DEVELOP,
   LEAVE,
@@ -14,6 +12,8 @@ import {
   TOUCH,
   beat,
 } from "@/motion/choreography/pace";
+import { defineStage } from "@/motion/choreography/stage";
+import { MotionConfig } from "@/motion/lib";
 
 const STAGGER = { char: 0.021 };
 

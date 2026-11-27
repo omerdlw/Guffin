@@ -10,6 +10,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import {
   useDockActions,
   useDockRegistration,
@@ -19,13 +20,13 @@ import { globalEvents } from "@omerdlw/base-framework/events";
 import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
 import { REGISTRY_SOURCES } from "@omerdlw/base-framework/kernel";
 import { getCurrentPath } from "@omerdlw/base-framework/utils";
-import { usePathname, useRouter } from "next/navigation";
 import { useDockCommands } from "@/design/dock/commands";
 import { useSurfacePreload } from "@/design/surface/lazy";
 import { useAuth } from "@/features/auth/provider";
 import { signInSurface } from "@/features/auth/surfaces";
 import { followsSurface } from "@/features/social/surfaces";
 import { accountHref } from "@/shared/site";
+import { fetchCurrentAccount, fetchInboxCount, fetchUnreadCount } from "./api";
 import {
   accountMeta,
   type CurrentAccount,
@@ -34,7 +35,6 @@ import {
   NOTIFICATIONS_TITLE,
   SOCIAL_EVENTS,
 } from "./model";
-import { fetchCurrentAccount, fetchInboxCount, fetchUnreadCount } from "./api";
 import { accountNotificationsSurface, accountSetupSurface } from "./surfaces";
 
 interface AccountState {

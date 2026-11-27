@@ -1,12 +1,12 @@
 import type { JSX, ReactNode } from "react";
 import { BACKDROP_HERO_MASK } from "@/design/components/backdrop";
-import { DockClear } from "@/design/dock/clear";
 import {
   SKELETON,
   SkeletonBlock,
   SkeletonLines,
   SkeletonText,
 } from "@/design/components/skeleton";
+import { DockClear } from "@/design/dock/clear";
 import { RADIUS } from "@/design/foundations/geometry";
 import { Z_INDEX } from "@/design/foundations/z-index";
 import { cn } from "@/design/ui";

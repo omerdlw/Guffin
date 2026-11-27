@@ -1,5 +1,5 @@
-import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { eq } from "drizzle-orm";
 import { getCurrentAccount } from "@/features/account/queries";
 import {
   requireRecentAuthentication,

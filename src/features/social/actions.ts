@@ -4,11 +4,11 @@ import "server-only";
 import { UserError } from "@omerdlw/base-framework/utils";
 import { and, eq } from "drizzle-orm";
 import { revalidateAccount } from "@/features/account/queries";
-import { fail, type ActionResult, ok } from "@/shared/result";
 import { mutate, query } from "@/features/auth/server";
-import { type Session } from "@/infrastructure/db/client";
+import type { Session } from "@/infrastructure/db/client";
 import { accountFollows } from "@/infrastructure/db/schema";
 import { isTmdbId } from "@/infrastructure/tmdb/transport";
+import { fail, type ActionResult, ok } from "@/shared/result";
 import { type Friend, type MovieSocialProof, toPerson } from "./model";
 
 interface MovieProofRow {

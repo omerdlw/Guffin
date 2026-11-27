@@ -8,6 +8,7 @@ import { RADIUS } from "@/design/foundations/geometry";
 import { TONE } from "@/design/foundations/tones";
 import { MoviePosterLink } from "@/features/movie/components/stage";
 import { AvatarStack } from "@/features/social/components/social-proof";
+import { formatCompact, formatReleaseDay } from "@/shared/format";
 import {
   CANON_LIMIT,
   CAPTION_CLASS,
@@ -19,7 +20,6 @@ import {
   ROW_ITEM_CLASS,
   type ShowingFilm,
 } from "../model";
-import { formatCompact, formatReleaseDay } from "@/shared/format";
 import { Heading, HomePart, HomeSection, HomeSwap } from "../motion";
 import { FilmTitle } from "./primitives";
 

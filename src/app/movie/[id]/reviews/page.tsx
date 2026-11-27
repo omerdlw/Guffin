@@ -3,10 +3,10 @@ import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 import { MoviePageContent, parseMovieId } from "@/features/movie";
 import { isMovieReviewSort } from "@/features/reviews/model";
+import { tmdbImageUrl } from "@/infrastructure/tmdb/model";
+import { getMovieDetails } from "@/infrastructure/tmdb/server";
 import { readParam, type SearchParams } from "@/shared/http";
 import { project, reviewHref, shareMetadata } from "@/shared/site";
-import { getMovieDetails } from "@/infrastructure/tmdb/server";
-import { tmdbImageUrl } from "@/infrastructure/tmdb/model";
 
 interface Props {
   params: Promise<{ id: string }>;

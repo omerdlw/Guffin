@@ -1,11 +1,11 @@
 import "server-only";
 
+import { NextResponse } from "next/server";
 import { err, ok, type Result } from "@omerdlw/base-framework/result";
 import { report, USER_MESSAGES } from "@omerdlw/base-framework/utils";
-import { NextResponse } from "next/server";
-import { getClientIp, rateLimitResponse } from "@/infrastructure/security";
 import { getViewerSession } from "@/features/auth/server";
 import { admin } from "@/infrastructure/db/client";
+import { getClientIp, rateLimitResponse } from "@/infrastructure/security";
 import {
   discoverMovies,
   getPersonDetails,

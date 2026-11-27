@@ -1,9 +1,9 @@
 "use client";
 
 import type { JSX } from "react";
-import { SurfacePart, SurfaceStage } from "@/design/surface/surface";
-import { SurfaceProse } from "@/design/surface/prose";
 import { defineSurface } from "@/design/surface/define";
+import { SurfaceProse } from "@/design/surface/prose";
+import { SurfacePart, SurfaceStage } from "@/design/surface/surface";
 
 interface PersonBioData {
   biography: string;

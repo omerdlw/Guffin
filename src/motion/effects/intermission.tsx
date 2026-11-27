@@ -9,8 +9,8 @@ import {
   useReducedMotion,
 } from "motion/react";
 import { LOGO_PATH, LOGO_VIEWBOX } from "@/design/components/logo";
-import { Z_INDEX } from "@/design/foundations/z-index";
 import { houseDown } from "@/design/components/room";
+import { Z_INDEX } from "@/design/foundations/z-index";
 
 type Bezier = [number, number, number, number];
 

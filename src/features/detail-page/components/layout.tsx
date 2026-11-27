@@ -1,8 +1,8 @@
-import { DockClear } from "@/design/dock/clear";
 import type { JSX, ReactNode } from "react";
 import { Icon } from "@/design/components/icon";
 import { FactLink } from "@/design/components/link";
 import { Tooltip } from "@/design/components/tooltip";
+import { DockClear } from "@/design/dock/clear";
 import {
   ASIDE_CLASS,
   COLUMNS_CLASS,
@@ -15,7 +15,6 @@ import {
 } from "@/design/foundations/layout";
 import { TONE } from "@/design/foundations/tones";
 import type { Awards } from "@/infrastructure/tmdb/model";
-import { AwardsView } from "./awards";
 import {
   type AwardsGrouping,
   type AwardsLook,
@@ -31,6 +30,7 @@ import {
   DetailSection,
   DetailWallStage,
 } from "../motion";
+import { AwardsView } from "./awards";
 import { FactsFold, StickyAside } from "./stage";
 
 const STAGE_LOOK: AwardsLook = {

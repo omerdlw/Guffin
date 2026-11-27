@@ -1,6 +1,6 @@
 "use client";
 
-import { type JSX } from "react";
+import type { JSX } from "react";
 import { Avatar } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
 import { RADIUS } from "@/design/foundations/geometry";
@@ -9,6 +9,7 @@ import { cn } from "@/design/ui";
 import { MoviePosterLink } from "@/features/movie/components/stage";
 import { RatingStars } from "@/features/reviews/components/rating";
 import { REVIEW_ICON } from "@/features/reviews/model";
+import { formatRelativeTime } from "@/shared/format";
 import {
   CAPTION_CLASS,
   type Circle,
@@ -16,7 +17,6 @@ import {
   POSTER_SIZES,
   type RecentLog,
 } from "../model";
-import { formatRelativeTime } from "@/shared/format";
 import { Heading, HomePart, HomeSection } from "../motion";
 import { Shelf } from "./primitives";
 

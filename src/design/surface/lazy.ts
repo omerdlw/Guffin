@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  type DockActions,
-  type SurfaceDescriptor,
-  type SurfaceResult,
+import type {
+  DockActions,
+  SurfaceDescriptor,
+  SurfaceResult,
 } from "@omerdlw/base-framework/dock";
 import type { Surface } from "./define";
 

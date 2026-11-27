@@ -1,29 +1,24 @@
 import "server-only";
 
 import { cache } from "react";
-import { report } from "@omerdlw/base-framework/utils";
 import { unstable_rethrow } from "next/navigation";
 import { after } from "next/server";
-import { toLogline } from "@/shared/format";
+import { report } from "@omerdlw/base-framework/utils";
 import { getRedisClient } from "@/infrastructure/security";
+import { TMDB_GENRES } from "@/infrastructure/tmdb/genres";
+import type {
+  MovieSearchPage,
+  PersonCrewCredit,
+} from "@/infrastructure/tmdb/model";
 import {
   findMovieByImdb,
   getMovieDetails,
   getPersonDetails,
   searchMovies,
 } from "@/infrastructure/tmdb/server";
-import type {
-  MovieSearchPage,
-  PersonCrewCredit,
-} from "@/infrastructure/tmdb/model";
+import { toLogline } from "@/shared/format";
 import { BEST_PICTURE, CANON, DIRECTORS } from "./catalog";
-import {
-  type CanonFilm,
-  type Director,
-  type DirectorFilm,
-  type Laureate,
-} from "./model";
-import { TMDB_GENRES } from "@/infrastructure/tmdb/genres";
+import type { CanonFilm, Director, DirectorFilm, Laureate } from "./model";
 
 interface Kept<T> {
   at: number;

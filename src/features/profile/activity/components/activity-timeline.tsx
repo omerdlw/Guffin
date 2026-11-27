@@ -7,8 +7,11 @@ import { MediaCard } from "@/design/components/media-card";
 import { RADIUS } from "@/design/foundations/geometry";
 import { cn } from "@/design/ui";
 import { formatCompactAge, formatShortDate } from "@/features/account/model";
+import { ShowMore } from "@/features/profile/components/show-more";
+import { usePagedList } from "@/features/profile/use-paged-list";
 import { RatingStars } from "@/features/reviews/components/rating";
 import { REVIEW_ICON } from "@/features/reviews/model";
+import { tmdbImageSrcSet, tmdbImageUrl } from "@/infrastructure/tmdb/model";
 import {
   accountHref,
   listHref,
@@ -16,11 +19,8 @@ import {
   movieReviewsHref,
   reviewHref,
 } from "@/shared/site";
-import { tmdbImageSrcSet, tmdbImageUrl } from "@/infrastructure/tmdb/model";
-import { ShowMore } from "@/features/profile/components/show-more";
-import { usePagedList } from "@/features/profile/use-paged-list";
-import type { ActivityGroup, ActivityItem, ActivityPage } from "../model";
 import { loadActivityPage } from "../actions";
+import type { ActivityGroup, ActivityItem, ActivityPage } from "../model";
 
 const STRONG =
   "font-medium text-ink underline decoration-transparent underline-offset-2 hover:decoration-current";

@@ -2,27 +2,27 @@
 
 import { useState } from "react";
 import { useModal } from "@omerdlw/base-framework/modal";
-import { SegmentedControl } from "@/design/components/segmented-control";
 import { Carousel } from "@/design/components/carousel";
 import {
   MediaCard,
   type MediaCardAspect,
 } from "@/design/components/media-card";
+import { SegmentedControl } from "@/design/components/segmented-control";
 import { RADIUS } from "@/design/foundations/geometry";
 import { CAROUSEL_ITEM, CAROUSEL_WIDE_ITEM } from "@/design/foundations/layout";
 import { TONE } from "@/design/foundations/tones";
 import { artworkAttributes } from "@/features/artwork/store";
-import {
-  type ImageModalData,
-  WALL_SIZES,
-  type WallSet,
-} from "@/features/detail-page/model";
 import {
   GalleryWall,
   WallButton,
 } from "@/features/detail-page/components/gallery-wall";
 import { ImageModal } from "@/features/detail-page/components/image-modal";
 import { Heading } from "@/features/detail-page/components/layout";
+import {
+  type ImageModalData,
+  WALL_SIZES,
+  type WallSet,
+} from "@/features/detail-page/model";
 import { DetailSection, DetailSwap } from "@/features/detail-page/motion";
 import {
   type PersonImage,

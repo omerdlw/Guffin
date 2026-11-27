@@ -24,13 +24,7 @@ import { Icon } from "@/design/components/icon";
 import { Link } from "@/design/components/link";
 import { SurfaceSegmentedControl } from "@/design/components/segmented-control";
 import { SKELETON } from "@/design/components/skeleton";
-import {
-  SurfacePart,
-  SurfaceSearch,
-  SurfaceStage,
-  SurfaceSwap,
-  useSurfaceSearch,
-} from "@/design/surface/surface";
+import { TONE } from "@/design/foundations/tones";
 import {
   GROUP_HIGHLIGHT,
   groupRowVariants,
@@ -41,18 +35,17 @@ import {
   SURFACE_TILE_INNER,
   SURFACE_TITLE,
 } from "@/design/surface/classes";
-import { TONE } from "@/design/foundations/tones";
 import { defineSurface } from "@/design/surface/define";
+import {
+  SurfacePart,
+  SurfaceSearch,
+  SurfaceStage,
+  SurfaceSwap,
+  useSurfaceSearch,
+} from "@/design/surface/surface";
 import { cn } from "@/design/ui";
 import { useAuth } from "@/features/auth/provider";
 import { accountHref } from "@/shared/site";
-import {
-  type NotificationItem,
-  NOTIFICATIONS_ICON,
-  NOTIFICATIONS_TITLE,
-  parseDate,
-  SOCIAL_EVENTS,
-} from "../model";
 import {
   deleteAllNotifications,
   deleteNotification,
@@ -65,6 +58,13 @@ import {
   AvatarTile,
   StatusTile,
 } from "../components/tiles";
+import {
+  type NotificationItem,
+  NOTIFICATIONS_ICON,
+  NOTIFICATIONS_TITLE,
+  parseDate,
+  SOCIAL_EVENTS,
+} from "../model";
 
 type NotificationFilter = "all" | "unread";
 

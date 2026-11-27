@@ -1,5 +1,4 @@
 import { type JSX, Suspense } from "react";
-import type { Fact } from "@/features/detail-page/model";
 import {
   DetailAwards,
   DetailLayout,
@@ -7,14 +6,14 @@ import {
   namesFact,
   textFact,
 } from "@/features/detail-page/components/layout";
-import { movieHref } from "@/shared/site";
+import type { Fact } from "@/features/detail-page/model";
 import {
   type Awards,
   type PersonDetails,
   type PersonExternalIds,
   tmdbImageUrl,
 } from "@/infrastructure/tmdb/model";
-import { PersonCareer, PersonTimeline } from "./career";
+import { movieHref } from "@/shared/site";
 import {
   getBackdropPath,
   getBackdropPaths,
@@ -23,6 +22,9 @@ import {
   getGalleryImages,
   getTimeline,
 } from "../credits";
+import { type Career, departmentRole, type SocialLink } from "../model";
+import { PersonViewActions, PersonViews } from "../view-context";
+import { PersonCareer, PersonTimeline } from "./career";
 import { PersonFilmography } from "./filmography";
 import { PersonGallery, PersonGalleryWall } from "./gallery";
 import {
@@ -33,8 +35,6 @@ import {
   PersonProjection,
   PersonStage,
 } from "./header";
-import { type Career, departmentRole, type SocialLink } from "../model";
-import { PersonViewActions, PersonViews } from "../view-context";
 
 const PERSON_BIO_CLAMP_LENGTH = 300;
 

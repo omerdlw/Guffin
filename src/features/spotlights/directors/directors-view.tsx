@@ -14,14 +14,9 @@ import { useDockActionClass } from "@omerdlw/base-framework/dock";
 import { Button } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
 import { MediaCard } from "@/design/components/media-card";
-import { DockAction } from "@/design/surface/surface";
 import { RADIUS } from "@/design/foundations/geometry";
+import { DockAction } from "@/design/surface/surface";
 import { DOCK_WIDTH } from "@/design/theme/dock-motion";
-import {
-  DirectorsPart,
-  DirectorsStage,
-  DirectorsSwap,
-} from "@/features/spotlights/motion";
 import {
   SpotlightDock,
   useDockWidth,
@@ -29,8 +24,13 @@ import {
   useSyncedSearchParam,
 } from "@/features/spotlights/components/shell";
 import type { Director } from "@/features/spotlights/model";
-import { DIRECTORS_HREF, movieHref, personHref } from "@/shared/site";
+import {
+  DirectorsPart,
+  DirectorsStage,
+  DirectorsSwap,
+} from "@/features/spotlights/motion";
 import { tmdbImageSrcSet, tmdbImageUrl } from "@/infrastructure/tmdb/model";
+import { DIRECTORS_HREF, movieHref, personHref } from "@/shared/site";
 
 interface DirectorsLayout {
   cellHeight: number;

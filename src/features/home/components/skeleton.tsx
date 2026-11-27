@@ -1,6 +1,5 @@
 "use client";
 
-import { DockClear } from "@/design/dock/clear";
 import type { JSX, ReactNode } from "react";
 import {
   SKELETON,
@@ -8,6 +7,7 @@ import {
   SkeletonButton,
   SkeletonText,
 } from "@/design/components/skeleton";
+import { DockClear } from "@/design/dock/clear";
 import {
   CONTAINER_CLASS,
   HEADLINE_BOX,

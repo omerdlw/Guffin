@@ -10,12 +10,12 @@ import {
   accountWatchlist,
   reviews,
 } from "@/infrastructure/db/schema";
-import { getAmbientPalette } from "@/infrastructure/tmdb/server";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/model";
-import { getListsPage } from "../lists/queries";
+import { getAmbientPalette } from "@/infrastructure/tmdb/server";
 import type { ProfileList } from "../lists/model";
-import { getReviewSummary, getReviewsPage } from "../reviews/queries";
+import { getListsPage } from "../lists/queries";
 import type { ProfileReview, ReviewSummary } from "../reviews/model";
+import { getReviewSummary, getReviewsPage } from "../reviews/queries";
 
 const RECENT = 4;
 const WATCHLIST = 5;

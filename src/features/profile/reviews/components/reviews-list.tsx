@@ -8,19 +8,19 @@ import { RADIUS } from "@/design/foundations/geometry";
 import { GLASS } from "@/design/foundations/layers";
 import { TONES } from "@/design/foundations/tones";
 import { cn } from "@/design/ui";
+import { ShowMore } from "@/features/profile/components/show-more";
+import { usePagedList } from "@/features/profile/use-paged-list";
+import { RatingStars, Star } from "@/features/reviews/components/rating";
 import {
   REVIEW_ROW,
   ReviewCard,
   ReviewMeta,
 } from "@/features/reviews/components/review-card";
 import { ReviewActions } from "@/features/reviews/components/review-controls";
-import { RatingStars, Star } from "@/features/reviews/components/rating";
 import { isRated } from "@/features/reviews/model";
+import { tmdbImageSrcSet, tmdbImageUrl } from "@/infrastructure/tmdb/model";
 import { pluralize } from "@/shared/format";
 import { reviewHref } from "@/shared/site";
-import { tmdbImageSrcSet, tmdbImageUrl } from "@/infrastructure/tmdb/model";
-import { ShowMore } from "@/features/profile/components/show-more";
-import { usePagedList } from "@/features/profile/use-paged-list";
 import { loadReviewsPage } from "../actions";
 import {
   KIND_PARAM,

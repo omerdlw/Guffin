@@ -20,14 +20,14 @@ import { CoreProvider } from "@omerdlw/base-framework/provider";
 import { ThemeProvider } from "@omerdlw/base-framework/theme";
 import { TooltipProvider, UiProvider } from "@omerdlw/base-framework/ui";
 import { ActionArrival } from "@/design/components/action-content";
-import { DockCompact } from "@/design/dock/compact";
 import { Logo } from "@/design/components/logo";
-import { SurfaceStyle } from "@/design/surface/surface";
+import { NoTab } from "@/design/components/no-tab";
+import { DockCompact } from "@/design/dock/compact";
 import { GlassEngine } from "@/design/glass/engine";
 import { LiquidTouch } from "@/design/glass/liquid-touch";
-import { NoTab } from "@/design/components/no-tab";
-import { ReviewLinks } from "@/features/reviews/components/review-links";
+import { SurfaceStyle } from "@/design/surface/surface";
 import { themes } from "@/design/theme";
+import { moduleMotion } from "@/design/theme/motion";
 import { ui } from "@/design/ui";
 import { DEFAULT_ACCOUNT_ICON } from "@/features/account/model";
 import {
@@ -37,13 +37,13 @@ import {
 } from "@/features/account/provider";
 import { BackdropPreloader } from "@/features/artwork/components/backdrop-preloader";
 import { AuthListener, AuthProvider } from "@/features/auth/provider";
+import { ReviewLinks } from "@/features/reviews/components/review-links";
 import { SearchDockCommand } from "@/features/search/components/search-command";
+import { EngineProvider } from "@/motion/core/provider";
+import { Cursor } from "@/motion/effects/cursor";
+import { TintedFavicon } from "@/motion/effects/intermission";
 import { AMBIENT_ANALYSIS } from "@/shared/ambient";
 import { project } from "@/shared/site";
-import { Cursor } from "@/motion/effects/cursor";
-import { EngineProvider } from "@/motion/core/provider";
-import { TintedFavicon } from "@/motion/effects/intermission";
-import { moduleMotion } from "@/design/theme/motion";
 
 const APP_REGISTRY_ENTRIES: readonly AppRegistryEntry[] = Object.freeze([
   {

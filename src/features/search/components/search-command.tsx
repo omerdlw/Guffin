@@ -8,6 +8,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import { usePathname } from "next/navigation";
 import {
   useDockRegistration,
   useDockSelector,
@@ -17,9 +18,8 @@ import {
   type RegistryLifecycle,
 } from "@omerdlw/base-framework/kernel";
 import { report } from "@omerdlw/base-framework/utils";
-import { usePathname } from "next/navigation";
-import { useHoldDockCompact, useKeepDockCard } from "@/design/dock/compact";
 import { useDockCommands } from "@/design/dock/commands";
+import { useHoldDockCompact, useKeepDockCard } from "@/design/dock/compact";
 import { preloadOnIntent, useAheadOfOpen } from "@/design/surface/lazy";
 
 type SearchActionComponent = ComponentType<{

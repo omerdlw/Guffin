@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { loadProfile } from "@/features/profile/queries";
 import {
   ReviewsFilters,
   ReviewsList,
@@ -13,7 +14,6 @@ import {
   getReviewSummary,
   getReviewsPage,
 } from "@/features/profile/reviews/queries";
-import { loadProfile } from "@/features/profile/queries";
 import type { SearchParams } from "@/shared/http";
 import { accountHref } from "@/shared/site";
 

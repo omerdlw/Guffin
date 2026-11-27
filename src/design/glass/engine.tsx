@@ -10,7 +10,6 @@ import {
   type Piece,
   type Pieces,
 } from "./maps";
-import { compactPng, pngDataUrl } from "./png";
 import {
   bezelFor,
   frostFor,
@@ -21,6 +20,7 @@ import {
   widestBezel,
 } from "./materials";
 import { channelSpread, rimShift } from "./optics";
+import { compactPng, pngDataUrl } from "./png";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 const SELECTOR = ".liquid";

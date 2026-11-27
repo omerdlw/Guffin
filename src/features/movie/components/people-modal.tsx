@@ -6,16 +6,16 @@ import {
   ModalContainer,
   type ModalContainerHeaderConfig,
 } from "@omerdlw/base-framework/modal";
-import { SegmentedControl } from "@/design/components/segmented-control";
 import { DockLink } from "@/design/components/link";
 import { MediaCard } from "@/design/components/media-card";
+import { SegmentedControl } from "@/design/components/segmented-control";
 import { nested, RADIUS } from "@/design/foundations/geometry";
 import { TONE } from "@/design/foundations/tones";
 import { cn } from "@/design/ui";
 import { useArtworkPath } from "@/features/artwork/components/artwork";
 import { DetailExpose } from "@/features/detail-page/motion";
-import { personHref } from "@/shared/site";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/model";
+import { personHref } from "@/shared/site";
 import {
   type CastModalProps,
   type PeopleModalData,

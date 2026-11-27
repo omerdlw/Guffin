@@ -24,8 +24,8 @@ import {
 } from "@/features/detail-page/components/stage";
 import { MovieAction } from "@/features/reviews/components/movie-review-action";
 import { describeReviewStats, useReviewsPager } from "@/features/reviews/pager";
-import { movieHref } from "@/shared/site";
 import { tmdbImageSrcSet, tmdbImageUrl } from "@/infrastructure/tmdb/model";
+import { movieHref } from "@/shared/site";
 import { COLLECTION_ICONS, type MovieArtwork, movieSwatch } from "../model";
 import { watchProvidersSurface } from "../surfaces";
 import { useMovieView, useReel } from "../view-context";

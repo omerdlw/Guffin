@@ -14,6 +14,8 @@ import {
   useState,
 } from "react";
 import { type StageLight, useStageLight } from "@/design/ambient";
+import { useScrollDriver } from "../core/provider";
+import type { ScrollFeel } from "../core/scroll";
 import {
   type Choreography,
   compile,
@@ -23,8 +25,6 @@ import {
   type TextMoves,
   LEAVING,
 } from "./choreo";
-import { useScrollDriver } from "../core/provider";
-import type { ScrollFeel } from "../core/scroll";
 
 interface StageRoles<P extends string, S extends string> {
   parts: readonly P[];

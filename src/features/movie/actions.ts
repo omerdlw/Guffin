@@ -2,9 +2,9 @@
 import "server-only";
 
 import { report } from "@omerdlw/base-framework/utils";
-import { fail, type ActionResult, ok } from "@/shared/result";
 import { getMovieDetails } from "@/infrastructure/tmdb/server";
 import { isTmdbId } from "@/infrastructure/tmdb/transport";
+import { fail, type ActionResult, ok } from "@/shared/result";
 import type { ProviderEntry, RegionProviders } from "./model";
 
 type WatchProvidersResult = ActionResult<{

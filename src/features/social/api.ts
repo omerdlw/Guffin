@@ -1,5 +1,5 @@
-import { FOLLOWS_URL, SILENT_UNAUTHORIZED } from "@/features/account/model";
 import { respondToFollow, sendJson } from "@/features/account/api";
+import { FOLLOWS_URL, SILENT_UNAUTHORIZED } from "@/features/account/model";
 import { requestJson } from "@/shared/http";
 import type { FollowUser } from "./model";
 

@@ -1,12 +1,12 @@
 import type { JSX } from "react";
+import { ActivityCalendar } from "@/features/profile/activity/components/activity-calendar";
+import { ActivityFilters } from "@/features/profile/activity/components/activity-filters";
+import { ActivityTimeline } from "@/features/profile/activity/components/activity-timeline";
 import {
   ACTIVITY_GROUPS,
   readActivityGroup,
 } from "@/features/profile/activity/model";
-import { ActivityCalendar } from "@/features/profile/activity/components/activity-calendar";
-import { ActivityFilters } from "@/features/profile/activity/components/activity-filters";
 import { getActivityPage } from "@/features/profile/activity/queries";
-import { ActivityTimeline } from "@/features/profile/activity/components/activity-timeline";
 import { loadProfile } from "@/features/profile/queries";
 import { getProfileNumbers } from "@/features/profile/stats";
 import type { SearchParams } from "@/shared/http";

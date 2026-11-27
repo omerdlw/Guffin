@@ -1,6 +1,7 @@
 "use server";
 import "server-only";
 
+import { isKeyOf, readOffset } from "@/shared/http";
 import { loadProfile } from "../queries";
 import {
   REVIEW_KINDS,
@@ -10,7 +11,6 @@ import {
   type ReviewsPage,
 } from "./model";
 import { getReviewsPage } from "./queries";
-import { isKeyOf, readOffset } from "@/shared/http";
 
 export async function loadReviewsPage({
   kind,

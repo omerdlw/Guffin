@@ -1,8 +1,8 @@
 "use client";
 
-import { SurfacePart, SurfaceStage } from "@/design/surface/surface";
-import { SurfaceProse } from "@/design/surface/prose";
 import { defineSurface } from "@/design/surface/define";
+import { SurfaceProse } from "@/design/surface/prose";
+import { SurfacePart, SurfaceStage } from "@/design/surface/surface";
 
 interface AccountBioData {
   bio?: string | null;

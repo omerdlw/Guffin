@@ -1,4 +1,3 @@
-import { DockClear } from "@/design/dock/clear";
 import { type CSSProperties, Fragment, type JSX, type ReactNode } from "react";
 import { BackdropHeroSkeleton } from "@/design/components/backdrop";
 import {
@@ -9,6 +8,7 @@ import {
   SkeletonLines,
   SkeletonText,
 } from "@/design/components/skeleton";
+import { DockClear } from "@/design/dock/clear";
 import {
   ASIDE_CLASS,
   CAROUSEL_ITEM,
@@ -29,16 +29,16 @@ import {
 } from "@/design/foundations/layout";
 import { TONE } from "@/design/foundations/tones";
 import { cn } from "@/design/ui";
-import cast from "@/features/movie/components/cast.module.css";
+import { POSTER_STACK_SLOTS } from "@/features/lists/components/poster-stack";
 import {
   AFTER_TAGLINE,
   CAST_SEATS,
   TAGLINE_CLASS,
   TITLE_LIMITS,
 } from "@/features/movie/model";
-import { POSTER_STACK_SLOTS } from "@/features/lists/components/poster-stack";
 import { REVIEW_ROW } from "@/features/reviews/components/review-card";
 import { REVIEWS_PAGE_SIZE } from "@/features/reviews/model";
+import cast from "@/features/movie/components/cast.module.css";
 import { SIDEBAR_FACTS_CLASS } from "../model";
 
 export const range = (count: number) =>

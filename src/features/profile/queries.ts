@@ -1,8 +1,8 @@
 import "server-only";
 
-import { eq } from "drizzle-orm";
-import { notFound } from "next/navigation";
 import { cache } from "react";
+import { notFound } from "next/navigation";
+import { eq } from "drizzle-orm";
 import type { PublicAccount } from "@/features/account/model";
 import { getPublicAccount } from "@/features/account/queries";
 import { getOptionalUser } from "@/features/auth/server";

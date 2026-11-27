@@ -1,9 +1,9 @@
 import type { JSX } from "react";
+import { ListsToolbar } from "@/features/profile/components/toolbar";
 import { readQuery, readSort, sortField } from "@/features/profile/filters";
+import { ListsShelf } from "@/features/profile/lists/components/lists-shelf";
 import { LIST_SORTS } from "@/features/profile/lists/model";
 import { getListsPage } from "@/features/profile/lists/queries";
-import { ListsShelf } from "@/features/profile/lists/components/lists-shelf";
-import { ListsToolbar } from "@/features/profile/components/toolbar";
 import { loadProfile } from "@/features/profile/queries";
 import type { SearchParams } from "@/shared/http";
 import { accountHref } from "@/shared/site";

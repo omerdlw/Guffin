@@ -1,10 +1,10 @@
 import type { JSX } from "react";
+import { DiaryMonthView } from "@/features/profile/diary/components/diary-month";
 import {
   DIARY_PARAM,
   readDiaryMonth,
   shiftMonth,
 } from "@/features/profile/diary/model";
-import { DiaryMonthView } from "@/features/profile/diary/components/diary-month";
 import { getDiaryMonth } from "@/features/profile/diary/queries";
 import { loadProfile } from "@/features/profile/queries";
 import type { SearchParams } from "@/shared/http";

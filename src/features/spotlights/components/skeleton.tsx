@@ -1,10 +1,10 @@
-import { DockClear } from "@/design/dock/clear";
 import type { JSX } from "react";
 import {
   SkeletonBlock,
   SkeletonLines,
   skeletonTextWidth,
 } from "@/design/components/skeleton";
+import { DockClear } from "@/design/dock/clear";
 import { cn } from "@/design/ui";
 import { CANON_SIZE, TUNNEL_SLOT_CLASS } from "../model";
 

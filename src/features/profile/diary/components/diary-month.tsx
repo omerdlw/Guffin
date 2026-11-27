@@ -12,10 +12,10 @@ import { cn } from "@/design/ui";
 import { deleteDiaryEntryAction } from "@/features/account/actions";
 import { RatingStars, Star } from "@/features/reviews/components/rating";
 import { isRated, REVIEW_ICON_LINEAR } from "@/features/reviews/model";
-import { pluralize } from "@/shared/format";
-import { movieHref, reviewHref } from "@/shared/site";
 import { tmdbImageSrcSet, tmdbImageUrl } from "@/infrastructure/tmdb/model";
 import { useScrollDriver } from "@/motion/core/provider";
+import { pluralize } from "@/shared/format";
+import { movieHref, reviewHref } from "@/shared/site";
 import type { DiaryEntry } from "../model";
 
 const STRONG =

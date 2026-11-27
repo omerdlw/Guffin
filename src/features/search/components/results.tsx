@@ -9,16 +9,16 @@ import { RADIUS } from "@/design/foundations/geometry";
 import { useArtworkPath } from "@/features/artwork/components/artwork";
 import { departmentRole } from "@/features/person/model";
 import { RatingStars } from "@/features/reviews/components/rating";
+import { tmdbImageSrcSet, tmdbImageUrl } from "@/infrastructure/tmdb/model";
 import { pluralize } from "@/shared/format";
 import { accountHref, listHref, personHref, reviewHref } from "@/shared/site";
-import { tmdbImageSrcSet, tmdbImageUrl } from "@/infrastructure/tmdb/model";
-import { useSearchPart } from "../motion";
 import {
   folded,
   type ListSearchHit,
   type ReviewSearchHit,
   type UserSearchHit,
 } from "../model";
+import { useSearchPart } from "../motion";
 
 interface PersonResultRowProps {
   person: {

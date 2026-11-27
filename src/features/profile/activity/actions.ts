@@ -1,6 +1,7 @@
 "use server";
 import "server-only";
 
+import { isKeyOf, readOffset } from "@/shared/http";
 import { loadProfile } from "../queries";
 import {
   ACTIVITY_GROUPS,
@@ -8,7 +9,6 @@ import {
   type ActivityPage,
 } from "./model";
 import { getActivityPage } from "./queries";
-import { isKeyOf, readOffset } from "@/shared/http";
 
 export async function loadActivityPage({
   group,

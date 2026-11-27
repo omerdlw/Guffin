@@ -1,18 +1,18 @@
 "use client";
 
-import { type JSX } from "react";
+import type { JSX } from "react";
 import { useDockActions } from "@omerdlw/base-framework/dock";
 import { Icon } from "@/design/components/icon";
 import { DockLink } from "@/design/components/link";
 import { useSurfacePreload } from "@/design/surface/lazy";
 import { cn } from "@/design/ui";
 import { formatShortDate } from "@/features/account/model";
-import { listFormSurface } from "@/features/lists/surfaces";
 import { PosterStack } from "@/features/lists/components/poster-stack";
-import { pluralize } from "@/shared/format";
-import { listHref } from "@/shared/site";
+import { listFormSurface } from "@/features/lists/surfaces";
 import { ShowMore } from "@/features/profile/components/show-more";
 import { usePagedList } from "@/features/profile/use-paged-list";
+import { pluralize } from "@/shared/format";
+import { listHref } from "@/shared/site";
 import { loadListsPage } from "../actions";
 import type { ListSort, ListsPage, ProfileList } from "../model";
 

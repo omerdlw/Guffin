@@ -6,9 +6,9 @@ import {
   type CarouselGlide,
 } from "@omerdlw/base-framework/ui";
 import { cn } from "@/design/ui";
+import { Part, useGlide } from "@/motion/choreography/stage";
 import { bezier } from "@/motion/core/curve";
 import { useHydratedReducedMotion } from "@/motion/core/provider";
-import { Part, useGlide } from "@/motion/choreography/stage";
 import styles from "./carousel.module.css";
 
 const TRACK = { "data-cursor": "drag" } as const;

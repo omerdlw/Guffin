@@ -1,11 +1,11 @@
 "use client";
 
 import { type JSX, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useDockActions } from "@omerdlw/base-framework/dock";
 import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
 import { Avatar } from "@omerdlw/base-framework/ui";
 import { report } from "@omerdlw/base-framework/utils";
-import { useRouter } from "next/navigation";
 import { Icon } from "@/design/components/icon";
 import { DockLink } from "@/design/components/link";
 import { Select } from "@/design/components/select";
@@ -21,13 +21,12 @@ import {
   getMovieReviewsPageAction,
   getViewerMovieReviewAction,
 } from "@/features/reviews/actions";
+import { RatingStars, Star } from "@/features/reviews/components/rating";
 import {
   REVIEW_ROW,
   ReviewCard,
 } from "@/features/reviews/components/review-card";
 import { ReviewActions } from "@/features/reviews/components/review-controls";
-import { setReviewsPager } from "@/features/reviews/pager";
-import { RatingStars, Star } from "@/features/reviews/components/rating";
 import {
   isMovieReviewFilter,
   isMovieReviewSort,
@@ -40,6 +39,7 @@ import {
   REVIEW_EVENTS,
   REVIEWS_PAGE_SIZE,
 } from "@/features/reviews/model";
+import { setReviewsPager } from "@/features/reviews/pager";
 import { reviewEditorSurface } from "@/features/reviews/surfaces";
 import { accountHref, movieReviewsHref } from "@/shared/site";
 

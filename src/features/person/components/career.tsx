@@ -9,19 +9,19 @@ import { cn } from "@/design/ui";
 import { PosterThumb } from "@/features/artwork/components/artwork";
 import { Heading } from "@/features/detail-page/components/layout";
 import {
-  DetailPart,
-  DetailSection,
-  DetailSwap,
-} from "@/features/detail-page/motion";
-import {
   Trace,
   TRACE_ROW,
   useTrace,
 } from "@/features/detail-page/components/trace";
-import { pluralize } from "@/shared/format";
-import { movieHref } from "@/shared/site";
+import {
+  DetailPart,
+  DetailSection,
+  DetailSwap,
+} from "@/features/detail-page/motion";
 import { clamp } from "@/motion/core/math";
 import { useEngine } from "@/motion/core/provider";
+import { pluralize } from "@/shared/format";
+import { movieHref } from "@/shared/site";
 import {
   CAREER_SLOT_CLASS,
   type Career as CareerData,

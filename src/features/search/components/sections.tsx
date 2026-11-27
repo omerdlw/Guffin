@@ -11,7 +11,6 @@ import {
   MoviePosterLink,
   MoviePosterPlaceholder,
 } from "@/features/movie/components/stage";
-import { SearchPart, SearchText } from "../motion";
 import {
   SEARCH_OVERVIEW,
   SEARCH_PER_PAGE,
@@ -19,6 +18,7 @@ import {
   type SearchSection,
   type SearchType,
 } from "../model";
+import { SearchPart, SearchText } from "../motion";
 import {
   ListResultRow,
   PersonResultRow,

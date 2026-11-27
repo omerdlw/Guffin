@@ -2,14 +2,14 @@
 
 import type { JSX, ReactNode } from "react";
 import { useDockActions } from "@omerdlw/base-framework/dock";
-import { useSurfacePreload } from "@/design/surface/lazy";
 import { DockLink } from "@/design/components/link";
+import { useSurfacePreload } from "@/design/surface/lazy";
 import type { PublicAccount } from "@/features/account/model";
 import { useAccount } from "@/features/account/provider";
 import { followsSurface } from "@/features/social/surfaces";
+import { formatCompact, formatWhole } from "@/shared/format";
 import { accountHref } from "@/shared/site";
 import type { ProfileStats } from "../stats";
-import { formatCompact, formatWhole } from "@/shared/format";
 
 const CELL =
   "flex min-w-0 flex-col-reverse items-center gap-fib-1 px-fib-1 py-fib-3 text-ink-faint hover:bg-fill hover:text-ink-muted";

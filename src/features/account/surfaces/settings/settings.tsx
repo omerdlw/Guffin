@@ -7,7 +7,7 @@ import {
   useHighlight,
 } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
-import { SurfacePart, SurfaceStage } from "@/design/surface/surface";
+import { TONE } from "@/design/foundations/tones";
 import {
   GROUP_HIGHLIGHT,
   groupRowVariants,
@@ -17,9 +17,9 @@ import {
   SURFACE_TEXT,
   SURFACE_TITLE,
 } from "@/design/surface/classes";
-import { TONE } from "@/design/foundations/tones";
-import { cn } from "@/design/ui";
 import { defineSurface } from "@/design/surface/define";
+import { SurfacePart, SurfaceStage } from "@/design/surface/surface";
+import { cn } from "@/design/ui";
 import { MediaForm, ProfileForm } from "./identity";
 import { Mark, useSecurity } from "./panel";
 import { PasskeysPanel } from "./passkeys";

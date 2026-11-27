@@ -1,6 +1,5 @@
 import type { JSX } from "react";
-import type { SearchParams } from "@/shared/http";
-import { accountHref } from "@/shared/site";
+import { ListsToolbar } from "@/features/profile/components/toolbar";
 import {
   isNarrowed,
   readSort,
@@ -8,7 +7,8 @@ import {
   titleFields,
 } from "@/features/profile/filters";
 import { loadProfile } from "@/features/profile/queries";
-import { ListsToolbar } from "@/features/profile/components/toolbar";
+import type { SearchParams } from "@/shared/http";
+import { accountHref } from "@/shared/site";
 import {
   LIBRARY_COPY,
   LIBRARY_SORTS,

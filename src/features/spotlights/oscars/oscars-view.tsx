@@ -18,9 +18,9 @@ import {
   useSyncedSearchParam,
 } from "@/features/spotlights/components/shell";
 import type { Laureate } from "@/features/spotlights/model";
-import { movieHref, OSCARS_HREF } from "@/shared/site";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/model";
 import { useMotionValue } from "@/motion/lib";
+import { movieHref, OSCARS_HREF } from "@/shared/site";
 import styles from "./oscars.module.css";
 
 function ordinal(value: number): string {

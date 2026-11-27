@@ -1,7 +1,6 @@
 "use client";
 
 import type { Moves } from "@/motion/choreography/choreo";
-import { defineStage } from "@/motion/choreography/stage";
 import {
   DEVELOP,
   DOLLY,
@@ -19,6 +18,7 @@ import {
   load,
   reveal,
 } from "@/motion/choreography/pace";
+import { defineStage } from "@/motion/choreography/stage";
 
 const STAGGER = { char: 0.021, word: 0.034, item: 0.055, row: 0.089 };
 

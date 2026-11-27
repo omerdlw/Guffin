@@ -1,6 +1,5 @@
 "use client";
 
-import { DockClear } from "@/design/dock/clear";
 import {
   type JSX,
   type KeyboardEvent,
@@ -12,8 +11,8 @@ import {
 } from "react";
 import { useDockActions } from "@omerdlw/base-framework/dock";
 import { Link } from "@/design/components/link";
+import { DockClear } from "@/design/dock/clear";
 import { cn } from "@/design/ui";
-import { useCanonMarks } from "@/features/spotlights/marks";
 import {
   mountSpotlight,
   SalonPart,
@@ -22,25 +21,26 @@ import {
   useSyncedSearchParam,
 } from "@/features/spotlights/components/shell";
 import {
-  type CanonFilm,
-  type FilmMarks,
-  type Filter,
-  TUNNEL_SLOT_CLASS,
-  typing,
-} from "@/features/spotlights/model";
-import {
   Facts,
   PlainWall,
   Rail,
   SeenPanel,
   WallAction,
 } from "@/features/spotlights/components/wall";
-import { CANON_HREF, movieHref } from "@/shared/site";
+import { useCanonMarks } from "@/features/spotlights/marks";
+import {
+  type CanonFilm,
+  type FilmMarks,
+  type Filter,
+  TUNNEL_SLOT_CLASS,
+  typing,
+} from "@/features/spotlights/model";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/model";
-import { useReducedMotion } from "@/motion/lib";
 import { useEngine } from "@/motion/core/provider";
-import styles from "./top-100.module.css";
+import { useReducedMotion } from "@/motion/lib";
+import { CANON_HREF, movieHref } from "@/shared/site";
 import type { Tunnel } from "./tunnel";
+import styles from "./top-100.module.css";
 
 const TUNNEL_DOCK_SETTLE_MS = 160;
 

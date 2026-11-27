@@ -17,8 +17,8 @@ import {
 } from "@/design/surface/classes";
 import { cn } from "@/design/ui";
 import { requestJson } from "@/shared/http";
-import { Mark, PanelNotice, PanelSkeleton, useSecurityTask } from "./panel";
 import type { AuthSession } from "./model";
+import { Mark, PanelNotice, PanelSkeleton, useSecurityTask } from "./panel";
 
 const DEVICE_PATTERNS: [RegExp, string, "desktop" | "mobile" | "tablet"][] = [
   [/iPhone/i, "iPhone", "mobile"],

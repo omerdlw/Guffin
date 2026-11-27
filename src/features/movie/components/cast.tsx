@@ -3,9 +3,9 @@
 import { type CSSProperties, Fragment, Suspense, use, useState } from "react";
 import { useModal } from "@omerdlw/base-framework/modal";
 import { Image } from "@omerdlw/base-framework/ui";
-import { SegmentedControl } from "@/design/components/segmented-control";
 import { Icon } from "@/design/components/icon";
 import { DockLink } from "@/design/components/link";
+import { SegmentedControl } from "@/design/components/segmented-control";
 import { Tooltip } from "@/design/components/tooltip";
 import { nested, RADIUS } from "@/design/foundations/geometry";
 import { CHOSEN, SHELL } from "@/design/foundations/layers";
@@ -18,9 +18,8 @@ import {
   DetailSection,
   DetailSwap,
 } from "@/features/detail-page/motion";
-import { movieHref, personHref } from "@/shared/site";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/model";
-import styles from "./cast.module.css";
+import { movieHref, personHref } from "@/shared/site";
 import {
   CAST_SEATS,
   type KnownForMap,
@@ -30,6 +29,7 @@ import {
   type PersonEntry,
 } from "../model";
 import { PeopleModal } from "./people-modal";
+import styles from "./cast.module.css";
 
 interface MoviePeopleProps {
   cast: PersonEntry[];

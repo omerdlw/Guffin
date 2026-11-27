@@ -1,9 +1,9 @@
 "use client";
 
-import { type JSX } from "react";
+import type { JSX } from "react";
 import { Image } from "@omerdlw/base-framework/ui";
-import { DockLink } from "@/design/components/link";
 import { Icon } from "@/design/components/icon";
+import { DockLink } from "@/design/components/link";
 import { RADIUS } from "@/design/foundations/geometry";
 import { TONE } from "@/design/foundations/tones";
 import { MoviePosterLink } from "@/features/movie/components/stage";
@@ -13,10 +13,10 @@ import {
   ReviewMeta,
   REVIEW_ROW,
 } from "@/features/reviews/components/review-card";
-import { movieHref, reviewHref } from "@/shared/site";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/model";
-import { type HomeReview, TEXT_LINK_CLASS } from "../model";
 import { formatCompact, formatRelativeTime } from "@/shared/format";
+import { movieHref, reviewHref } from "@/shared/site";
+import { type HomeReview, TEXT_LINK_CLASS } from "../model";
 import { Heading, HomePart, HomeSection, HomeText } from "../motion";
 import { FilmTitle, MemberLink } from "./primitives";
 

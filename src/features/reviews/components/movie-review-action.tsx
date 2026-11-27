@@ -14,12 +14,12 @@ import {
   ActionLabel,
   ActionTip,
 } from "@/design/components/action-content";
-import { DockAction } from "@/design/surface/surface";
 import { useSurfacePreload } from "@/design/surface/lazy";
+import { DockAction } from "@/design/surface/surface";
 import { useAuth } from "@/features/auth/provider";
 import { getOwnMovieReviewAction } from "../actions";
-import type { ReviewsPager } from "../pager";
 import { REVIEW_EVENTS, REVIEW_ICON, type ReviewInput } from "../model";
+import type { ReviewsPager } from "../pager";
 import { reviewEditorSurface } from "../surfaces";
 
 export function MovieAction({

@@ -1,11 +1,11 @@
 "use client";
 
 import { type JSX, useState, useTransition } from "react";
-import { Avatar, Button } from "@omerdlw/base-framework/ui";
 import { globalEvents } from "@omerdlw/base-framework/events";
 import { useToast } from "@omerdlw/base-framework/notification";
-import { DockLink } from "@/design/components/link";
+import { Avatar, Button } from "@omerdlw/base-framework/ui";
 import { Icon } from "@/design/components/icon";
+import { DockLink } from "@/design/components/link";
 import { SOCIAL_EVENTS } from "@/features/account/model";
 import { useAuth } from "@/features/auth/provider";
 import { useOpenSignIn } from "@/features/auth/sign-in";
@@ -14,6 +14,7 @@ import {
   followUserAction,
   unfollowUserAction,
 } from "@/features/social/actions";
+import { formatCompact } from "@/shared/format";
 import { accountHref, listHref } from "@/shared/site";
 import {
   type HomeList,
@@ -21,7 +22,6 @@ import {
   LIST_LIMIT,
   TEXT_LINK_CLASS,
 } from "../model";
-import { formatCompact } from "@/shared/format";
 import { Heading, HomePart, HomeSection } from "../motion";
 import { MemberLink } from "./primitives";
 

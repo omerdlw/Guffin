@@ -1,7 +1,6 @@
 import type { RefObject } from "react";
 import { cancelFrame, frame } from "motion/react";
 import { pointerFromCentre, pointerSample, watchPointer } from "../core/engine";
-import type { useScrollY } from "./projection";
 import {
   bindFullscreen,
   createProgram,
@@ -10,6 +9,7 @@ import {
   sampleClamped,
   uniforms,
 } from "./gl";
+import type { useScrollY } from "./projection";
 
 interface Mass {
   vx: number;

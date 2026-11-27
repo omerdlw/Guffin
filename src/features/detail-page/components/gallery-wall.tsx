@@ -3,12 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useModal } from "@omerdlw/base-framework/modal";
 import { Button } from "@omerdlw/base-framework/ui";
-import { SegmentedControl } from "@/design/components/segmented-control";
 import { Icon } from "@/design/components/icon";
 import {
   MediaCard,
   type MediaCardAspect,
 } from "@/design/components/media-card";
+import { SegmentedControl } from "@/design/components/segmented-control";
 import { Tooltip } from "@/design/components/tooltip";
 import { RADIUS } from "@/design/foundations/geometry";
 import { TONE } from "@/design/foundations/tones";
@@ -16,9 +16,9 @@ import { cn } from "@/design/ui";
 import { artworkAttributes } from "@/features/artwork/store";
 import { useWall } from "@/motion/choreography/stage";
 import type { ImageModalData, WallPicture, WallSet } from "../model";
+import { DetailPart, DetailSection, DetailSwap } from "../motion";
 import { ImageModal } from "./image-modal";
 import { Heading } from "./layout";
-import { DetailPart, DetailSection, DetailSwap } from "../motion";
 import { useWallSet } from "./stage";
 
 const WALL_REACH_STEP = 30;

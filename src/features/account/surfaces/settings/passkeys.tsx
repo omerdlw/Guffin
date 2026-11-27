@@ -22,8 +22,8 @@ import {
   registerPasskey,
   renamePasskey,
 } from "@/features/auth/api";
-import { Mark, PanelNotice, PanelSkeleton, useSecurityTask } from "./panel";
 import { INPUT_CLASS } from "./model";
+import { Mark, PanelNotice, PanelSkeleton, useSecurityTask } from "./panel";
 
 function PasskeyRow({
   disabled,

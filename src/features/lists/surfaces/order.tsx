@@ -1,6 +1,7 @@
 "use client";
 
 import { type JSX, type KeyboardEvent, memo, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useDockActions } from "@omerdlw/base-framework/dock";
 import { useToast } from "@omerdlw/base-framework/notification";
 import {
@@ -11,9 +12,7 @@ import {
   useHighlight,
 } from "@omerdlw/base-framework/ui";
 import { report, toUserMessage } from "@omerdlw/base-framework/utils";
-import { useRouter } from "next/navigation";
 import { Icon } from "@/design/components/icon";
-import { SurfacePart, SurfaceStage } from "@/design/surface/surface";
 import {
   SURFACE_META,
   SURFACE_PANEL,
@@ -26,6 +25,7 @@ import {
   tileVariants,
 } from "@/design/surface/classes";
 import { defineSurface } from "@/design/surface/define";
+import { SurfacePart, SurfaceStage } from "@/design/surface/surface";
 import { cn } from "@/design/ui";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/model";
 import { Reorder, useDragControls } from "@/motion/lib";

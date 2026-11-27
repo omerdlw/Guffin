@@ -4,9 +4,9 @@ import { Icon } from "@/design/components/icon";
 import { DockLink } from "@/design/components/link";
 import { TONE } from "@/design/foundations/tones";
 import { PosterStack } from "@/features/lists/components/poster-stack";
+import { Header, Part, Section } from "@/motion/choreography/stage";
 import { formatCompact, pluralize } from "@/shared/format";
 import { accountHref, listHref } from "@/shared/site";
-import { Header, Part, Section } from "@/motion/choreography/stage";
 import type { PopularList } from "../model";
 
 function PopularListItem({

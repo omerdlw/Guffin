@@ -1,18 +1,18 @@
 "use client";
 
-import { type JSX } from "react";
+import type { JSX } from "react";
 import { Button } from "@omerdlw/base-framework/ui";
-import { DockLink } from "@/design/components/link";
 import { Icon } from "@/design/components/icon";
+import { DockLink } from "@/design/components/link";
 import { Logo } from "@/design/components/logo";
 import { HEADLINE_BOX } from "@/design/foundations/layout";
 import { TONE } from "@/design/foundations/tones";
 import { cn } from "@/design/ui";
 import { useOpenSignIn } from "@/features/auth/sign-in";
-import { movieHref } from "@/shared/site";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/model";
-import { CRAFT, type HomeFilm } from "../model";
 import { formatWhole } from "@/shared/format";
+import { movieHref } from "@/shared/site";
+import { CRAFT, type HomeFilm } from "../model";
 import { Heading, HomePart, HomeSection, HomeText } from "../motion";
 import { GuestOnly } from "./primitives";
 

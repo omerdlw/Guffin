@@ -1,6 +1,5 @@
 "use client";
 
-import { defineStage } from "@/motion/choreography/stage";
 import {
   HERO,
   OPENING,
@@ -9,6 +8,7 @@ import {
   load,
   reveal,
 } from "@/motion/choreography/pace";
+import { defineStage } from "@/motion/choreography/stage";
 
 const AT = {
   eyebrow: 0,

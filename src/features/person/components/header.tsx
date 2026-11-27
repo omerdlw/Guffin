@@ -30,17 +30,17 @@ import {
   useArtworkPath,
 } from "@/features/artwork/components/artwork";
 import {
+  DetailBackdrop,
+  DetailIntermission,
+  DetailStage,
+} from "@/features/detail-page/components/stage";
+import {
   DetailBloom,
   DetailCount,
   DetailExpose,
   DetailPart,
   DetailText,
 } from "@/features/detail-page/motion";
-import {
-  DetailBackdrop,
-  DetailIntermission,
-  DetailStage,
-} from "@/features/detail-page/components/stage";
 import {
   type Awards,
   type PersonDetails,

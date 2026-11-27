@@ -13,8 +13,8 @@ import {
 } from "drizzle-orm";
 import type { Session } from "@/infrastructure/db/client";
 import { reviewLikes, reviews } from "@/infrastructure/db/schema";
-import { getAmbientPalette } from "@/infrastructure/tmdb/server";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/model";
+import { getAmbientPalette } from "@/infrastructure/tmdb/server";
 import {
   REVIEWS_PAGE_SIZE,
   type ReviewKind,

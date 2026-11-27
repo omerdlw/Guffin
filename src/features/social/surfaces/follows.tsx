@@ -22,13 +22,6 @@ import { Link } from "@/design/components/link";
 import { SurfaceSegmentedControl } from "@/design/components/segmented-control";
 import { SKELETON } from "@/design/components/skeleton";
 import {
-  SurfacePart,
-  SurfaceSearch,
-  SurfaceStage,
-  SurfaceSwap,
-  useSurfaceSearch,
-} from "@/design/surface/surface";
-import {
   GROUP_HIGHLIGHT,
   groupRowVariants,
   SURFACE_GROUP,
@@ -39,13 +32,20 @@ import {
   SURFACE_TITLE,
 } from "@/design/surface/classes";
 import { defineSurface } from "@/design/surface/define";
+import {
+  SurfacePart,
+  SurfaceSearch,
+  SurfaceStage,
+  SurfaceSwap,
+  useSurfaceSearch,
+} from "@/design/surface/surface";
 import { cn } from "@/design/ui";
-import { SOCIAL_EVENTS } from "@/features/account/model";
 import {
   AccountAvatarImage,
   AvatarTile,
   StatusTile,
 } from "@/features/account/components/tiles";
+import { SOCIAL_EVENTS } from "@/features/account/model";
 import { useAuth } from "@/features/auth/provider";
 import { accountHref } from "@/shared/site";
 import { fetchFollowPage } from "../api";
