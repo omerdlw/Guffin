@@ -36,6 +36,26 @@ export const load = (from: Look, more: Partial<Enter> = {}): Enter => ({
   ...more,
 });
 
+/**
+ * How much a role weighs on the page, and so how it reveals: the heavier it
+ * is, the longer it develops and the deeper it starts out of focus.
+ *   1 block: sections, cards, slides, posters, avatars
+ *   2 line: headings, rows, text blocks, controls, values
+ *   3 mark: labels, rules, icons, tags, stars, ticks
+ * Duration is beat(−w); blur is the Fibonacci number F(8 − w): 13, 8, 5 px.
+ */
+export type Weight = 1 | 2 | 3;
+const FOCUS_PX: Record<Weight, number> = { 1: 13, 2: 8, 3: 5 };
+
+export const rise = (
+  weight: Weight,
+  more: Omit<Partial<Enter>, "duration" | "from"> = {},
+): Enter =>
+  reveal(
+    { opacity: 0, blur: FOCUS_PX[weight] },
+    { duration: beat(-weight), ...more },
+  );
+
 export const reveal = (from: Look, more: Partial<Enter> = {}): Enter => ({
   on: "view",
   from,

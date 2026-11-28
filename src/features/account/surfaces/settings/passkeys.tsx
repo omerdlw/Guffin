@@ -1,5 +1,7 @@
 "use client";
 
+import { SurfaceLoading } from "@/design/surface/surface";
+
 import { useState } from "react";
 import {
   Button,
@@ -23,7 +25,7 @@ import {
   renamePasskey,
 } from "@/features/auth/api";
 import { INPUT_CLASS } from "./model";
-import { Mark, PanelNotice, PanelSkeleton, useSecurityTask } from "./panel";
+import { Mark, PanelNotice, useSecurityTask } from "./panel";
 
 function PasskeyRow({
   disabled,
@@ -92,7 +94,7 @@ export function PasskeysPanel({
     null,
   );
 
-  if (loading && passkeys.length === 0) return <PanelSkeleton />;
+  if (loading && passkeys.length === 0) return <SurfaceLoading />;
 
   return (
     <HighlightGroup className={SURFACE_STACK}>

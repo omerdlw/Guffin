@@ -38,7 +38,16 @@ export const MATERIALS = {
     frost: { small: 2, large: 5 },
     edge: { gain: 1.5, blur: 1.25 },
   },
+  dock: {
+    ...BASE,
+    bezel: { share: 0.25, min: 12, max: 20 },
+    bend: 1.35,
+    frost: { small: 0.5, large: 1.25 },
+    edge: { gain: 1.5, blur: 1.25 },
+  },
   tip: { ...BASE, frost: { small: 5, large: 5 } },
+  // A shell that bends its backdrop without frosting it.
+  unfrosted: { ...BASE, frost: { small: 0, large: 0 } },
   clear: { ...BASE, ...LENS, abbe: 0 },
 } satisfies Record<string, Material>;
 
@@ -54,6 +63,7 @@ export function materialOf(element: Element): MaterialName | null {
   if (list.contains("liquid-clear")) return "clear";
   if (!list.contains("liquid-lens")) return null;
   if (list.contains("liquid-tip")) return "tip";
+  if (list.contains("dock-card")) return "dock";
   return list.contains("liquid-flat") ? "float" : "shell";
 }
 

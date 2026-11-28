@@ -2,7 +2,6 @@
 
 import {
   type JSX,
-  type KeyboardEvent,
   useCallback,
   useEffect,
   useMemo,
@@ -13,8 +12,6 @@ import type { AmbientPalette } from "@omerdlw/base-framework/ambient";
 import { useDockActions } from "@omerdlw/base-framework/dock";
 import { useStageLight } from "@/design/ambient";
 import { Link } from "@/design/components/link";
-import { DockClear } from "@/design/dock/clear";
-import { cn } from "@/design/ui";
 import {
   mountSpotlight,
   SalonPart,
@@ -22,27 +19,14 @@ import {
   SpotlightDock,
   useSyncedSearchParam,
 } from "@/features/spotlights/components/shell";
-import {
-  Facts,
-  PlainWall,
-  Rail,
-  SeenPanel,
-  WallAction,
-} from "@/features/spotlights/components/wall";
+import { PlainWall, WallAction } from "@/features/spotlights/components/wall";
 import { useCanonMarks } from "@/features/spotlights/marks";
-import {
-  type CanonFilm,
-  type FilmMarks,
-  type Filter,
-  TUNNEL_SLOT_CLASS,
-  typing,
-} from "@/features/spotlights/model";
+import { type CanonFilm, typing } from "@/features/spotlights/model";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/model";
 import { useEngine } from "@/motion/core/provider";
 import { useReducedMotion } from "@/motion/lib";
 import { CANON_HREF, movieHref } from "@/shared/site";
-import type { Tunnel } from "./tunnel";
-import styles from "./top-100.module.css";
+import type { Tunnel, TunnelFonts } from "./tunnel";
 
 const TUNNEL_DOCK_SETTLE_MS = 160;
 
@@ -74,20 +58,12 @@ function inkOf(element: HTMLElement): [number, number, number] {
 function bindTunnelPointer(
   element: HTMLCanvasElement,
   scene: Tunnel,
-  {
-    onSelect,
-    openFilm,
-    tip,
-  }: {
-    onSelect: (index: number) => void;
-    openFilm: (index: number) => void;
-    tip: HTMLElement | null;
-  },
+  openFilm: (index: number) => void,
 ): () => void {
   let captured: number | null = null;
-  const stopDragging = () => {
-    captured = null;
-    delete element.dataset.cursor;
+  const aim = (x: number, y: number) => {
+    if (scene.filmAt(x, y) >= 0) element.dataset.cursor = "pointer";
+    else delete element.dataset.cursor;
   };
 
   const down = (event: PointerEvent) => {
@@ -95,46 +71,44 @@ function bindTunnelPointer(
     captured = event.pointerId;
     element.setPointerCapture(event.pointerId);
     scene.point(event.clientX, event.clientY);
-    scene.grab(event.clientX, event.clientY);
+    scene.grab(event.clientY);
   };
   const move = (event: PointerEvent) => {
     if (event.pointerType === "mouse" || captured === event.pointerId) {
       scene.point(event.clientX, event.clientY);
     }
-    if (captured === event.pointerId) {
-      scene.drag(event.clientX, event.clientY);
+    if (captured === event.pointerId && scene.drag(event.clientY)) {
       element.dataset.cursor = "drag";
-    } else if (event.pointerType === "mouse") {
-      const index = scene.filmAt(event.clientX, event.clientY);
-      if (index >= 0 && index !== scene.selected) {
-        element.dataset.cursor = "pointer";
-      } else delete element.dataset.cursor;
-    }
-    if (tip) {
-      const flip = event.clientX > window.innerWidth - 280;
-      tip.style.transform = `translate3d(${event.clientX + (flip ? -18 : 18)}px, ${event.clientY + 18}px, 0) translateX(${flip ? "-100%" : "0"})`;
+    } else if (captured === null && event.pointerType === "mouse") {
+      aim(event.clientX, event.clientY);
     }
   };
   const up = (event: PointerEvent) => {
     if (captured !== event.pointerId) return;
-    stopDragging();
+    captured = null;
     if (event.pointerType !== "mouse") scene.point(null, null);
-    if (!scene.drop()) return;
-    const index = scene.filmAt(event.clientX, event.clientY);
-    if (index < 0) return;
-    if (index === scene.selected) openFilm(index);
-    else onSelect(index);
+    const tapped = scene.drop();
+    if (event.pointerType === "mouse") aim(event.clientX, event.clientY);
+    else delete element.dataset.cursor;
+    if (!tapped) return;
+    const hit = scene.tap(event.clientX, event.clientY);
+    if (hit?.open) openFilm(hit.film);
   };
   const cancel = (event: PointerEvent) => {
     if (captured !== event.pointerId) return;
-    stopDragging();
+    captured = null;
+    delete element.dataset.cursor;
     scene.drop();
   };
-  const leave = () => scene.point(null, null);
+  const leave = () => {
+    if (captured === null) scene.point(null, null);
+  };
   const wheel = (event: WheelEvent) => {
     event.preventDefault();
     const unit = WHEEL_DELTA_UNITS[event.deltaMode] ?? 1;
     scene.scroll(event.deltaX * unit, event.deltaY * unit);
+    // The wall moves under a still pointer, so the cursor is aimed again.
+    aim(event.clientX, event.clientY);
   };
 
   element.addEventListener("pointerdown", down);
@@ -153,6 +127,13 @@ function bindTunnelPointer(
   };
 }
 
+function fontsOf(element: HTMLElement): TunnelFonts {
+  const style = getComputedStyle(element);
+  const body = style.fontFamily || "sans-serif";
+  const display = style.getPropertyValue("--font-zuume").trim();
+  return { body, display: display ? `${display}, ${body}` : body };
+}
+
 function Canon({
   films,
   palette,
@@ -168,41 +149,28 @@ function Canon({
   const engine = useEngine();
   const { navigate } = useDockActions();
   const canvas = useRef<HTMLCanvasElement>(null);
-  const slot = useRef<HTMLDivElement>(null);
-  const tip = useRef<HTMLDivElement>(null);
   const tunnel = useRef<Tunnel | null>(null);
-  const nearRef = useRef(start);
-  const [view, setView] = useState({
-    failed: false,
-    hovered: -1,
-    opened: false,
-  });
-  const [near, setNear] = useState(start);
-  const [settled, setSettled] = useState(start);
-  const [filter, setFilter] = useState<Filter>("all");
-  const { account, known, listed, pending, ready, seenCount, toggle, watched } =
+  const [failed, setFailed] = useState(false);
+  // Nothing is chosen on arrival; the dock shows the page until a tap.
+  const [near, setNear] = useState<number | null>(null);
+  const [settled, setSettled] = useState<number | null>(null);
+  const { account, known, listed, pending, ready, toggle, watched } =
     useCanonMarks(films);
-  const { failed, hovered, opened } = view;
-  const shown = films[near]!;
-  const film = films[settled]!;
-  // The light follows the film the flight has come to rest on.
-  useStageLight(tmdbImageUrl("backdrop", film.backdropPath, "w300") ?? null, {
-    palette,
-  });
-  const pointed = hovered >= 0 && hovered !== near ? films[hovered] : undefined;
-  const patchView = (patch: Partial<typeof view>) =>
-    setView((current) => ({ ...current, ...patch }));
+  const film = settled === null ? null : films[settled]!;
+  // The light follows the chosen film once the choice has settled.
+  useStageLight(
+    film ? (tmdbImageUrl("backdrop", film.backdropPath, "w300") ?? null) : null,
+    {
+      palette,
+    },
+  );
 
   useEffect(() => {
     const timer = setTimeout(() => setSettled(near), TUNNEL_DOCK_SETTLE_MS);
     return () => clearTimeout(timer);
   }, [near]);
 
-  useSyncedSearchParam("rank", String(film.rank));
-
-  const pick = useCallback((index: number) => {
-    tunnel.current?.select(index);
-  }, []);
+  useSyncedSearchParam("rank", film ? String(film.rank) : null);
 
   const openAt = useCallback(
     (index: number) => {
@@ -217,64 +185,37 @@ function Canon({
     if (!element) return;
     let live = true;
     let unmount: (() => void) | undefined;
-    const start = (TunnelScene: typeof Tunnel): (() => void) => {
+    const mount = (TunnelScene: typeof Tunnel): (() => void) => {
       const { renderer: scene, dispose } = mountSpotlight(
         engine,
         element,
         (canvas, loop) =>
-          TunnelScene.create(
-            canvas,
-            films,
-            nearRef.current,
-            {
-              hovered: (index) => patchView({ hovered: index }),
-              opened: () => patchView({ opened: true }),
-              selected: (index) => {
-                nearRef.current = index;
-                setNear(index);
-              },
-            },
-            loop,
-          ),
+          TunnelScene.create(canvas, films, start, { selected: setNear }, loop),
         2,
       );
       if (!scene) {
-        patchView({ failed: true, opened: true });
+        setFailed(true);
         return dispose;
       }
       tunnel.current = scene;
-
-      const frame = slot.current;
-      const fit = () => {
-        if (!frame) return;
-        const { height, left, top, width } = frame.getBoundingClientRect();
-        scene.setSlot({ height, left, top, width });
-      };
-      fit();
-      const sizing = new ResizeObserver(fit);
-      if (frame) sizing.observe(frame);
-
-      const unbind = bindTunnelPointer(element, scene, {
-        onSelect: pick,
-        openFilm: openAt,
-        tip: tip.current,
-      });
+      scene.setFonts(fontsOf(element));
+      const unbind = bindTunnelPointer(element, scene, openAt);
       return () => {
-        sizing.disconnect();
         unbind();
         dispose();
         tunnel.current = null;
       };
     };
     void import("./tunnel").then((module) => {
-      if (live) unmount = start(module.Tunnel);
+      if (live) unmount = mount(module.Tunnel);
     });
     return () => {
       live = false;
       unmount?.();
     };
+    // The tunnel is built once per film list; later choices live inside it.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [films, openAt, pick, engine]);
+  }, [films, openAt, engine]);
 
   useEffect(() => tunnel.current?.setReduced(reduced), [reduced]);
 
@@ -292,21 +233,6 @@ function Canon({
   }, [films]);
 
   useEffect(() => {
-    tunnel.current?.setMarks(
-      known
-        ? films.map<FilmMarks>((entry) => {
-            const seen = watched.has(entry.id);
-            return {
-              listed: listed.has(entry.id),
-              match: filter === "all" || (filter === "seen") === seen,
-              seen,
-            };
-          })
-        : null,
-    );
-  }, [films, filter, known, listed, watched]);
-
-  useEffect(() => {
     const onKey = (event: globalThis.KeyboardEvent) => {
       if (event.defaultPrevented || typing(event.target)) return;
       if (event.metaKey || event.ctrlKey || event.altKey) return;
@@ -317,133 +243,61 @@ function Canon({
         scene.step(TOP_100_KEYS[event.key]! as 1 | -1);
       } else if (event.key === "Home") {
         event.preventDefault();
-        scene.select(films.length - 1);
+        scene.jump("first");
       } else if (event.key === "End") {
         event.preventDefault();
-        scene.select(0);
+        scene.jump("last");
+      } else if (event.key === "Enter") {
+        event.preventDefault();
+        if (scene.selected >= 0) openAt(scene.selected);
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [films.length]);
-
-  const onKey = (event: KeyboardEvent<HTMLCanvasElement>) => {
-    if (event.key !== "Enter") return;
-    event.preventDefault();
-    openAt(near);
-  };
+  }, [openAt]);
 
   const control = useMemo(
-    () => (
-      <WallAction
-        disabled={!ready || pending || (account !== null && !known)}
-        listed={listed.has(film.id)}
-        onOpen={() => void navigate(movieHref(film.id))}
-        onToggle={(kind) => void toggle(film, kind)}
-        seen={watched.has(film.id)}
-        title={film.title}
-      />
-    ),
+    () =>
+      film ? (
+        <WallAction
+          disabled={!ready || pending || (account !== null && !known)}
+          listed={listed.has(film.id)}
+          onOpen={() => void navigate(movieHref(film.id))}
+          onToggle={(kind) => void toggle(film, kind)}
+          seen={watched.has(film.id)}
+          title={film.title}
+        />
+      ) : null,
     [account, film, known, listed, navigate, pending, ready, toggle, watched],
   );
 
   return (
     <>
-      <SpotlightDock
-        control={control}
-        description={[`No. ${film.rank}`, film.year, film.genres[0]]
-          .filter(Boolean)
-          .join(" \u00b7 ")}
-        icon={tmdbImageUrl("poster", film.posterPath, "w185")!}
-        path={CANON_HREF}
-        title={film.title}
-      />
-
-      <div
-        aria-hidden="true"
-        className={cn(
-          TUNNEL_SLOT_CLASS,
-          "flex items-center justify-center",
-          opened && !failed ? "opacity-100" : "opacity-0",
-        )}
-      >
-        <DockClear edge="bottom" extra="13rem" />
-        <span
-          className={cn(
-            styles.numeral,
-            "font-zuume font-bold text-ink/5 tabular-nums select-none",
-          )}
-        >
-          {shown.rank}
-        </span>
-      </div>
-
-      <div aria-hidden="true" className={TUNNEL_SLOT_CLASS} ref={slot}>
-        <DockClear edge="bottom" extra="13rem" />
-      </div>
+      {film && control ? (
+        <SpotlightDock
+          control={control}
+          description={[`No. ${film.rank}`, film.year, film.genres[0]]
+            .filter(Boolean)
+            .join(" \u00b7 ")}
+          icon={tmdbImageUrl("poster", film.posterPath, "w185")!}
+          path={CANON_HREF}
+          title={film.title}
+        />
+      ) : null}
 
       <canvas
-        aria-label={`${title} as a countdown from No. ${films.length} to No. 1. Scroll, drag or use the arrow keys to fly; Enter opens the film in the gate.`}
-        className="fixed inset-0 block h-full w-full cursor-grab text-ink touch-none outline-none select-none data-[cursor=drag]:cursor-grabbing data-[cursor=pointer]:cursor-pointer"
-        onKeyDown={onKey}
+        aria-label={`${title}: an endless tunnel of posters counting down from No. ${films.length} to No. 1. Scroll or drag to walk, arrow keys to step, Enter opens the chosen film.`}
+        className="fixed inset-0 block h-full w-full cursor-default text-ink touch-none select-none data-[cursor=drag]:cursor-grabbing data-[cursor=pointer]:cursor-pointer"
         ref={canvas}
         role="application"
-        tabIndex={0}
       />
       <h1 className="sr-only">{title}</h1>
 
-      <SalonPart name="chrome">
-        {failed ? (
+      {failed ? (
+        <SalonPart name="chrome">
           <PlainWall films={films} watched={watched} />
-        ) : (
-          <>
-            <p
-              className={cn(
-                "pointer-events-none fixed top-[clamp(1.25rem,4.5svh,2.5rem)] left-4 z-10 flex flex-col gap-1 type-meta text-ink-muted sm:left-8",
-                opened ? "opacity-100" : "opacity-0",
-              )}
-            >
-              <span className="text-ink">{title}</span>
-              <span>The countdown: No. {films.length} to No. 1</span>
-            </p>
-            <Facts film={shown} opened={opened} />
-            <Rail
-              films={films}
-              onPick={pick}
-              opened={opened}
-              selected={near}
-              watched={watched}
-            />
-          </>
-        )}
-
-        {known ? (
-          <SeenPanel
-            count={seenCount}
-            filter={filter}
-            onFilter={setFilter}
-            opened={opened}
-            total={films.length}
-          />
-        ) : null}
-      </SalonPart>
-
-      <div
-        aria-hidden="true"
-        className={cn(
-          "pointer-events-none fixed top-0 left-0 z-20 max-w-64",
-          pointed && !failed ? "opacity-100" : "opacity-0",
-        )}
-        ref={tip}
-      >
-        {pointed ? (
-          <div className="flex items-baseline gap-2 rounded-card bg-glass px-3 py-1.5 type-meta font-medium text-ink-lead ring-1 ring-edge-hover">
-            <span className="text-ink-muted tabular-nums">{pointed.rank}</span>
-            <span className="truncate">{pointed.title}</span>
-            <span className="text-ink-muted tabular-nums">{pointed.year}</span>
-          </div>
-        ) : null}
-      </div>
+        </SalonPart>
+      ) : null}
 
       <ol className="sr-only">
         {films.map((entry) => (

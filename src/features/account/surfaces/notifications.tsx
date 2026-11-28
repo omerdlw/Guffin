@@ -23,7 +23,6 @@ import { toUserMessage } from "@omerdlw/base-framework/utils";
 import { Icon } from "@/design/components/icon";
 import { Link } from "@/design/components/link";
 import { SurfaceSegmentedControl } from "@/design/components/segmented-control";
-import { SKELETON } from "@/design/components/skeleton";
 import { TONE } from "@/design/foundations/tones";
 import {
   GROUP_HIGHLIGHT,
@@ -37,6 +36,7 @@ import {
 } from "@/design/surface/classes";
 import { defineSurface } from "@/design/surface/define";
 import {
+  SurfaceLoading,
   SurfacePart,
   SurfaceSearch,
   SurfaceStage,
@@ -190,32 +190,6 @@ function notificationSummary({ payload, type }: NotificationItem): string {
 
 const announceNotificationChange = () =>
   globalEvents.emit(SOCIAL_EVENTS.NOTIFICATION_CHANGE);
-
-function NotificationSkeleton() {
-  return (
-    <div className={SURFACE_GROUP}>
-      {Array.from({ length: 4 }, (_, index) => (
-        <div className={groupRowVariants()} key={index}>
-          <div className="flex min-w-0 flex-1 items-center gap-3">
-            <div
-              className={`${SKELETON.block} size-10 shrink-0 rounded-full`}
-            />
-            <div className="flex min-w-0 flex-1 flex-col justify-center gap-1.5">
-              <div className={cn(SKELETON.block, "h-3 w-28 rounded-full")} />
-              <div className={cn(SKELETON.block, "h-2.5 w-16 rounded-full")} />
-            </div>
-          </div>
-          <div
-            className={cn(
-              SKELETON.block,
-              "mr-2 h-2.5 w-7 shrink-0 rounded-full",
-            )}
-          />
-        </div>
-      ))}
-    </div>
-  );
-}
 
 const NotificationRow = memo(function NotificationRow({
   notification,
@@ -520,12 +494,7 @@ function NotificationList({
   onMarkRead: NotificationRowAction;
   status: NotificationFeed["status"];
 }) {
-  if (status === "loading")
-    return (
-      <SurfacePart name="item">
-        <NotificationSkeleton />
-      </SurfacePart>
-    );
+  if (status === "loading") return <SurfaceLoading />;
 
   if (status === "failed") {
     return (

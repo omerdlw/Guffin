@@ -89,6 +89,4 @@ export function listHref(username: string, slug: string): string {
   return `${accountHref(username)}/lists/${encodeURIComponent(slug)}`;
 }
 
-export const OSCARS_HREF = "/oscars";
 export const CANON_HREF = "/top-100";
-export const DIRECTORS_HREF = "/directors";

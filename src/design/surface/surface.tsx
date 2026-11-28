@@ -1,7 +1,7 @@
 "use client";
 
 import { type ReactNode, useMemo, useState } from "react";
-import { Button } from "@omerdlw/base-framework/ui";
+import { Button, Loader } from "@omerdlw/base-framework/ui";
 import { useAheadOfOpen } from "@/design/surface/lazy";
 import { cn } from "@/design/ui";
 import type {
@@ -15,6 +15,7 @@ import { defineStage } from "@/motion/choreography/stage";
 import { Icon } from "../components/icon";
 import { Input } from "../components/input";
 import { SWELL_REACH } from "../glass/spring";
+import { SURFACE_PANEL } from "./classes";
 
 const LINE = 0.055;
 const STAGGER_METER = 0.089;
@@ -96,6 +97,18 @@ const SURFACE = defineStage({
 });
 
 const SurfaceRoot = SURFACE.SurfaceRoot;
+
+/** What every surface shows before its data arrives: one quiet panel. */
+export function SurfaceLoading({ className }: { className?: string }) {
+  return (
+    <SurfacePart
+      className={cn(SURFACE_PANEL, "center min-h-28 p-4", className)}
+      name="note"
+    >
+      <Loader />
+    </SurfacePart>
+  );
+}
 
 export function SurfaceStyle() {
   return useAheadOfOpen() ? <SURFACE.Style /> : null;

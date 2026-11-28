@@ -125,6 +125,7 @@ function CastCard({
         <div
           aria-hidden="true"
           className={cn(styles.frame, SHELL, CHOSEN, "rounded-shell")}
+          data-glass="unfrosted"
           data-slot="folder"
         />
         <DockLink

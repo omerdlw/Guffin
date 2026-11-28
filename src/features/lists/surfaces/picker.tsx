@@ -15,7 +15,6 @@ import { report, toUserMessage } from "@omerdlw/base-framework/utils";
 import { ActionIcon } from "@/design/components/action-content";
 import { Icon } from "@/design/components/icon";
 import { Input } from "@/design/components/input";
-import { SKELETON } from "@/design/components/skeleton";
 import { WELL, WELL_HOVER } from "@/design/foundations/tones";
 import { variants } from "@/design/foundations/variants";
 import {
@@ -26,6 +25,7 @@ import {
 } from "@/design/surface/classes";
 import { defineSurface } from "@/design/surface/define";
 import {
+  SurfaceLoading,
   SurfacePart,
   SurfaceStage,
   SurfaceSwap,
@@ -174,29 +174,6 @@ const ListCard = memo(function ListCard({
   );
 });
 
-function LoadingListSkeleton(): JSX.Element {
-  return (
-    <div className={LIST_GRID}>
-      {Array.from({ length: 4 }, (_, index) => (
-        <div
-          className={cn(
-            listCardVariants(),
-            "pointer-events-none",
-            SKELETON.pulse,
-          )}
-          key={index}
-        >
-          <div className="aspect-[2/1] w-full rounded-inset bg-fill-hover" />
-          <div className="flex flex-col gap-1.5 px-1.5">
-            <div className={cn(SKELETON.block, "h-3.5 w-3/5 rounded-full")} />
-            <div className={cn(SKELETON.soft, "h-2.5 w-2/5 rounded-full")} />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 function PickerNote({
   children,
   className,
@@ -221,11 +198,7 @@ function ListShelf({
   pending: ReadonlySet<string>;
 }): JSX.Element {
   if (library.status === "loading") {
-    return (
-      <SurfacePart name="note">
-        <LoadingListSkeleton />
-      </SurfacePart>
-    );
+    return <SurfaceLoading />;
   }
 
   if (library.status === "error") {

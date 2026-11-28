@@ -120,7 +120,14 @@ function readSurface(
   const style = getComputedStyle(element);
   const corner = parseFloat(style.borderTopLeftRadius);
   const bend = parseFloat(style.getPropertyValue("--liquid-bend"));
-  const bezel = parseFloat(style.getPropertyValue("--liquid-bezel"));
+  const asked = parseFloat(style.getPropertyValue("--liquid-bezel"));
+  // A rim that shrinks with the element: on a small poster a fixed rim bends
+  // the whole picture, not its edge.
+  const share = parseFloat(style.getPropertyValue("--liquid-bezel-share"));
+  const bezel =
+    Number.isFinite(share) && share > 0
+      ? Math.min(asked, Math.max(4, Math.round(Math.min(width, height) * share)))
+      : asked;
   const stain = parseFloat(style.getPropertyValue("--liquid-stain"));
   const named = element.dataset.glint;
   return {
@@ -670,7 +677,7 @@ function startGlass(lensing: boolean, density: number) {
       lenses.set(element, next);
       element.style.setProperty(
         "--liquid-lens",
-        material.frost.large === 0
+        name === "clear"
           ? `url(#${next.filter.id})`
           : `var(--liquid-lens-tone) url(#${next.filter.id})`,
       );

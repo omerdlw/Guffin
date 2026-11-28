@@ -7,7 +7,6 @@ import { ExternalLink } from "@/design/components/link";
 import { MediaCard } from "@/design/components/media-card";
 import { SurfaceSegmentedControl } from "@/design/components/segmented-control";
 import { Select } from "@/design/components/select";
-import { SKELETON } from "@/design/components/skeleton";
 import { RADIUS } from "@/design/foundations/geometry";
 import { WELL, WELL_HOVER } from "@/design/foundations/tones";
 import {
@@ -19,6 +18,7 @@ import {
 } from "@/design/surface/classes";
 import { defineSurface } from "@/design/surface/define";
 import {
+  SurfaceLoading,
   SurfacePart,
   SurfaceStage,
   SurfaceSwap,
@@ -346,23 +346,7 @@ function WatchProvidersSurface({
             <p className="type-body text-ink-body">{source.error}</p>
           </WatchProvidersNote>
         ) : source.status === "loading" ? (
-          <SurfacePart
-            className={cn(
-              PROVIDER_LAYOUT.hero,
-              "flex rounded-card",
-              WELL,
-              SKELETON.pulse,
-            )}
-            name="note"
-          >
-            <span
-              className={cn(SKELETON.block, PROVIDER_LOGO.hero, "rounded-card")}
-            />
-            <span className="flex flex-1 flex-col gap-2">
-              <span className={cn(SKELETON.block, "h-3.5 w-32 rounded-full")} />
-              <span className={cn(SKELETON.soft, "h-3 w-44 rounded-full")} />
-            </span>
-          </SurfacePart>
+          <SurfaceLoading />
         ) : !region || status === "empty" ? (
           <WatchProvidersNote className="min-h-40 flex-col gap-1.5 text-center">
             <p className="type-body font-medium text-ink-body">Not available</p>

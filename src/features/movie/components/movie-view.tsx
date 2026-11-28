@@ -529,11 +529,7 @@ function MovieView({
       <ReelProvider>
         <MovieStage>
           <DetailReviewsLayout
-            backdrop={
-              backdrop ? (
-                <MovieBackdropHero movie={art} />
-              ) : null
-            }
+            backdrop={backdrop ? <MovieBackdropHero movie={art} /> : null}
             className="movie-page"
             header={
               <MediaReviewsHeader href={movieHref(movie.id)} media={art} />
@@ -564,9 +560,7 @@ function MovieView({
               </Suspense>
             </>
           }
-          backdrop={
-            backdrop ? <MovieBackdropHero movie={art} /> : null
-          }
+          backdrop={backdrop ? <MovieBackdropHero movie={art} /> : null}
           className="movie-page"
           header={<MovieHeader movie={movie} stats={stats} />}
           intermission={<MovieProjection movie={art} />}

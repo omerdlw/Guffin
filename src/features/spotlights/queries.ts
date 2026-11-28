@@ -6,28 +6,14 @@ import { after } from "next/server";
 import { report } from "@omerdlw/base-framework/utils";
 import { getRedisClient } from "@/infrastructure/security";
 import { TMDB_GENRES } from "@/infrastructure/tmdb/genres";
-import type {
-  MovieSearchPage,
-  PersonCrewCredit,
-} from "@/infrastructure/tmdb/model";
-import {
-  findMovieByImdb,
-  getMovieDetails,
-  getPersonDetails,
-  searchMovies,
-} from "@/infrastructure/tmdb/server";
-import { toLogline } from "@/shared/format";
-import { BEST_PICTURE, CANON, DIRECTORS } from "./catalog";
-import type { CanonFilm, Director, DirectorFilm, Laureate } from "./model";
+import { findMovieByImdb } from "@/infrastructure/tmdb/server";
+import { CANON } from "./catalog";
+import type { CanonFilm } from "./model";
 
 interface Kept<T> {
   at: number;
   value: T;
 }
-
-type CatalogHit = MovieSearchPage["results"][number];
-
-const MAX_FILMS = 64;
 
 // TMDB's names, with the one long label shortened for the spotlight chips.
 const GENRE_LABELS: Readonly<Record<number, string>> = {
@@ -35,80 +21,16 @@ const GENRE_LABELS: Readonly<Record<number, string>> = {
   878: "Sci-Fi",
 };
 
-const FIRST_CEREMONY_YEAR = 1929;
-
 const CATALOG_FRESH_MS = 24 * 60 * 60_000;
 
 const CATALOG_KEEP_SECONDS = 7 * 24 * 60 * 60;
 
-const SPOTLIGHT_LOGLINE_LENGTH = 200;
-
-const SPOTLIGHT_LOGLINE_ENOUGH = 90;
-
 const SPOTLIGHT_GENRE_LIMIT = 3;
-
-const DIRECTOR_KNOWN_VOTES = 50;
 
 const genreNames = (ids: readonly number[]) =>
   ids
     .flatMap((id) => (GENRE_LABELS[id] ? [GENRE_LABELS[id]] : []))
     .slice(0, SPOTLIGHT_GENRE_LIMIT);
-
-const ceremonyYear = (ceremony: number) =>
-  FIRST_CEREMONY_YEAR + ceremony - (ceremony >= 3 && ceremony <= 5 ? 2 : 1);
-
-const spotlightLogline = (overview: string | null | undefined) =>
-  toLogline(overview, SPOTLIGHT_LOGLINE_LENGTH, SPOTLIGHT_LOGLINE_ENOUGH);
-
-function filmographyOf(crew: readonly PersonCrewCredit[]): DirectorFilm[] {
-  const today = new Date().toISOString().slice(0, 10);
-  const byTitle = new Map<string, PersonCrewCredit>();
-  for (const credit of crew) {
-    if (credit.job !== "Director" || !credit.posterPath) continue;
-    if (!credit.releaseDate || credit.releaseDate > today) continue;
-    if (credit.voteCount < DIRECTOR_KNOWN_VOTES) continue;
-    const key = credit.title.toLowerCase();
-    const held = byTitle.get(key);
-    if (!held || held.voteCount < credit.voteCount) byTitle.set(key, credit);
-  }
-  return [...byTitle.values()]
-    .sort((a, b) => b.voteCount - a.voteCount)
-    .slice(0, MAX_FILMS)
-    .map((credit) => ({
-      id: credit.id,
-      posterPath: credit.posterPath!,
-      title: credit.title,
-      year: credit.releaseYear,
-    }));
-}
-
-const normalTitle = (title: string) =>
-  title
-    .toLowerCase()
-    .replace(/&/g, "and")
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
-
-function winnerAmong(
-  found: readonly CatalogHit[],
-  title: string,
-  year: number,
-): CatalogHit | null {
-  const wanted = normalTitle(title);
-  const fits = found.filter(
-    (movie) =>
-      movie.posterPath !== null &&
-      movie.releaseYear !== null &&
-      Math.abs(movie.releaseYear - year) <= 1 &&
-      [movie.title, movie.originalTitle].some((name) => {
-        const have = normalTitle(name ?? "");
-        return (
-          have === wanted || have.startsWith(wanted) || wanted.startsWith(have)
-        );
-      }),
-  );
-  return fits.sort((a, b) => b.voteCount - a.voteCount)[0] ?? null;
-}
 
 const building = new Map<string, Promise<unknown>>();
 
@@ -204,74 +126,3 @@ async function readCanon(): Promise<CanonFilm[]> {
 }
 
 export const getCanon = cache(() => kept("spotlight:canon", readCanon));
-
-async function readDirectors(): Promise<Director[]> {
-  const directors = await batched(DIRECTORS, 5, async (entry, i) => {
-    const person = await getPersonDetails(entry.person);
-    const films = person.success ? filmographyOf(person.data.credits.crew) : [];
-    const profilePath = person.success ? person.data.profilePath : null;
-    if (films.length === 0 || !profilePath) {
-      report("Directors", new Error(`Incomplete: ${entry.name}`));
-      return null;
-    }
-    const director: Director = {
-      born: entry.born,
-      died: entry.died,
-      films,
-      id: entry.person,
-      name: entry.name,
-      place: person.success ? person.data.placeOfBirth : null,
-      profilePath,
-      rank: i + 1,
-    };
-    return director;
-  });
-  return directors.filter(
-    (director): director is Director => director !== null,
-  );
-}
-
-export const getDirectors = cache(() =>
-  kept("spotlight:directors:famous", readDirectors),
-);
-
-async function readLaureates(): Promise<Laureate[]> {
-  const films = await batched(BEST_PICTURE, 20, async ([title, year], i) => {
-    const found = await searchMovies(title);
-    const movie = found.success
-      ? winnerAmong(found.data.results, title, year)
-      : null;
-    if (!movie?.posterPath) {
-      report("Laureates", new Error(`No film for ${title} (${year})`));
-      return null;
-    }
-    const details = await getMovieDetails(movie.id);
-    const film = details.success ? details.data : null;
-    const ceremony = i + 1;
-    const laureate: Laureate = {
-      backdropPath: movie.backdropPath,
-      ceremony,
-      ceremonyYear: ceremonyYear(ceremony),
-      director:
-        film?.credits.crew.find((member) => member.job === "Director")?.name ??
-        null,
-      genres: film
-        ? film.genres.map((genre) => genre.name).slice(0, SPOTLIGHT_GENRE_LIMIT)
-        : genreNames(movie.genreIds),
-      honoured: year,
-      id: movie.id,
-      logline: spotlightLogline(film?.overview),
-      posterPath: movie.posterPath,
-      runtime: film?.runtimeMinutes ?? null,
-      tagline: film?.tagline?.trim() || null,
-      title,
-      year: movie.releaseYear,
-    };
-    return laureate;
-  });
-  return films.filter((film): film is Laureate => film !== null);
-}
-
-export const getLaureates = cache(() =>
-  kept("spotlight:laureates", readLaureates),
-);

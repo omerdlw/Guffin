@@ -4,27 +4,34 @@ import { type JSX, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useDockActions } from "@omerdlw/base-framework/dock";
 import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
-import { Avatar, Loader } from "@omerdlw/base-framework/ui";
+import { Avatar, Image } from "@omerdlw/base-framework/ui";
 import { report } from "@omerdlw/base-framework/utils";
 import { Icon } from "@/design/components/icon";
 import { DockLink } from "@/design/components/link";
 import { TONE } from "@/design/foundations/tones";
 import {
+  rowVariants,
+  SURFACE_META,
   SURFACE_PANEL,
+  SURFACE_POSTER,
   SURFACE_SCROLL,
   SURFACE_STACK,
+  SURFACE_TEXT,
+  SURFACE_TILE_INNER,
   SURFACE_TITLE,
 } from "@/design/surface/classes";
 import { defineSurface } from "@/design/surface/define";
 import { useSurfacePreload } from "@/design/surface/lazy";
 import {
+  SurfaceLoading,
   SurfacePart,
   SurfaceStage,
   SurfaceSwap,
 } from "@/design/surface/surface";
 import { cn } from "@/design/ui";
 import { formatShortDate } from "@/features/account/model";
-import { accountHref, movieReviewsHref } from "@/shared/site";
+import { tmdbImageUrl } from "@/infrastructure/tmdb/model";
+import { accountHref, movieHref, movieReviewsHref } from "@/shared/site";
 import { getMemberReviewAction } from "../actions";
 import { RatingStars } from "../components/rating";
 import { ReviewActions, ReviewBody } from "../components/review-controls";
@@ -109,6 +116,36 @@ function Note({ children }: { children: JSX.Element }): JSX.Element {
     <SurfacePart className="center min-h-40 flex-col text-center" name="note">
       {children}
     </SurfacePart>
+  );
+}
+
+// The film the review is about, one tap from its page.
+function FilmRow({ film, id }: { film: Film; id: number }): JSX.Element {
+  const poster = tmdbImageUrl("poster", film.posterPath, "w154");
+  return (
+    <DockLink
+      className={rowVariants({ className: "pr-6" })}
+      href={movieHref(id)}
+    >
+      <span
+        className={cn(SURFACE_POSTER, SURFACE_TILE_INNER, "relative bg-plate")}
+      >
+        {poster ? (
+          <Image alt="" className="object-cover" sizes="40px" src={poster} />
+        ) : null}
+      </span>
+      <span className={SURFACE_TEXT}>
+        <span className={SURFACE_TITLE}>{film.title}</span>
+        {film.year ? (
+          <span className={cn(SURFACE_META, "tabular-nums")}>{film.year}</span>
+        ) : null}
+      </span>
+      <Icon
+        className="shrink-0 text-ink-muted group-hover:text-ink"
+        icon="solar:alt-arrow-right-linear"
+        size={18}
+      />
+    </DockLink>
   );
 }
 
@@ -235,11 +272,12 @@ function ReviewSurface({ target }: { target: ReviewTarget }): JSX.Element {
             <p className="type-body text-ink-body">{source.error}</p>
           </Note>
         ) : source.status === "loading" ? (
-          <Note>
-            <Loader />
-          </Note>
+          <SurfaceLoading />
         ) : (
           <>
+            <SurfacePart name="item">
+              <FilmRow film={source.film} id={target.tmdbId} />
+            </SurfacePart>
             {source.review ? (
               <SurfacePart name="item">
                 <ReviewSheet

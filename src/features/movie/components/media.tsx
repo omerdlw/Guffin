@@ -89,11 +89,7 @@ function Slate({ title }: { title: string }) {
   );
 }
 
-export function MovieBackdropHero({
-  movie,
-}: {
-  movie: MovieArtwork;
-}) {
+export function MovieBackdropHero({ movie }: { movie: MovieArtwork }) {
   const path = useArtworkPath(
     "movie",
     movie.id,

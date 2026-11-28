@@ -7,9 +7,7 @@ import {
   HighlightGroup,
   useHighlight,
 } from "@omerdlw/base-framework/ui";
-import { Icon } from "@/design/components/icon";
 import {
-  rowVariants,
   SURFACE_META,
   SURFACE_STACK,
   SURFACE_TEXT,
@@ -29,6 +27,7 @@ import {
   type OAuthProvider,
 } from "@/features/auth/model";
 import { useAuth } from "@/features/auth/provider";
+import { Mark } from "./panel";
 
 const PROVIDER_LABELS: Record<OAuthProvider, { icon: string; label: string }> =
   {
@@ -44,104 +43,58 @@ function providerOf(identity: LinkedIdentity): OAuthProvider | null {
     : null;
 }
 
-function ProviderGlyph({ provider }: { provider: OAuthProvider }) {
-  return (
-    <span className="center size-8 shrink-0 text-ink-body ui-fade group-hover/connect:text-ink">
-      <Icon
-        className="ui-glyph center"
-        icon={PROVIDER_LABELS[provider].icon}
-        size={28}
-      />
-    </span>
-  );
-}
-
-function ConnectedRow({
+// One row per provider, connected or not: its mark, its name and state,
+// and the one thing you can do about it.
+function ProviderRow({
   busy,
+  connected,
   disabled,
-  onUnlink,
+  onAction,
   provider,
 }: {
   busy: boolean;
+  connected: boolean;
   disabled: boolean;
-  onUnlink: () => void;
+  onAction: () => void;
   provider: OAuthProvider;
 }) {
   const highlight = useHighlight(provider);
+  const { icon, label } = PROVIDER_LABELS[provider];
   return (
     <div
-      className={cn(tileVariants(), "group/connect relative isolate")}
+      className={cn(tileVariants(), "relative isolate pr-2")}
       {...highlight.props}
     >
       {highlight.node}
-      <ProviderGlyph provider={provider} />
+      <Mark icon={icon} size={18} />
       <span className={SURFACE_TEXT}>
-        <span className={SURFACE_TITLE}>{PROVIDER_LABELS[provider].label}</span>
-        <span className={SURFACE_META}>Connected</span>
-      </span>
-      <Button
-        aria-label={`Disconnect ${PROVIDER_LABELS[provider].label}`}
-        className="group/chip"
-        disabled={disabled}
-        icon
-        intent="ghost"
-        loading={busy}
-        onClick={onUnlink}
-        shape="pill"
-        size="chrome"
-        title="Disconnect"
-      >
-        <Icon
-          className="center absolute ui-fade group-hover/chip:opacity-0"
-          icon="solar:link-bold"
-          size={16}
-        />
-        <Icon
-          className="center absolute opacity-0 ui-fade group-hover/chip:opacity-100"
-          icon="solar:link-broken-bold"
-          size={16}
-        />
-      </Button>
-    </div>
-  );
-}
-
-function ConnectRow({
-  busy,
-  disabled,
-  onLink,
-  provider,
-}: {
-  busy: boolean;
-  disabled: boolean;
-  onLink: () => void;
-  provider: OAuthProvider;
-}) {
-  const highlight = useHighlight(provider);
-  return (
-    <Button
-      className={rowVariants({ className: "group/connect pr-3" })}
-      disabled={disabled}
-      loading={busy}
-      onClick={onLink}
-      {...highlight.props}
-    >
-      {highlight.node}
-      <ProviderGlyph provider={provider} />
-      <span className={SURFACE_TEXT}>
+        <span className={SURFACE_TITLE}>{label}</span>
         <span
           className={cn(
-            SURFACE_TITLE,
-            "text-ink-body ui-fade group-hover/connect:text-ink",
+            SURFACE_META,
+            "flex items-center gap-1.5",
+            connected && "text-ink-body",
           )}
         >
-          Connect {PROVIDER_LABELS[provider].label}
+          {connected ? (
+            <span className="size-1.5 shrink-0 rounded-full bg-watched" />
+          ) : null}
+          {connected ? "Connected" : "Not connected"}
         </span>
       </span>
-      <span className="center size-control-chrome shrink-0 rounded-full text-ink-muted ui-fade group-hover/connect:bg-fill-hover group-hover/connect:text-ink ">
-        <Icon className="center" icon="solar:link-bold" size={16} />
-      </span>
-    </Button>
+      <Button
+        aria-label={`${connected ? "Disconnect" : "Connect"} ${label}`}
+        className="shrink-0"
+        disabled={disabled}
+        intent={connected ? "ghost" : "neutral"}
+        loading={busy}
+        onClick={onAction}
+        shape="pill"
+        size="sm"
+      >
+        {connected ? "Disconnect" : "Connect"}
+      </Button>
+    </div>
   );
 }
 
@@ -209,26 +162,21 @@ export function ProvidersPanel({
 
   return (
     <HighlightGroup className={SURFACE_STACK}>
-      {[...connected].map(([provider, identity]) => (
-        <ConnectedRow
-          busy={unlinking === provider}
-          disabled={Boolean(unlinking)}
-          key={provider}
-          onUnlink={() => unlink(provider, identity)}
-          provider={provider}
-        />
-      ))}
-      {OAUTH_PROVIDERS.filter((provider) => !connected.has(provider)).map(
-        (provider) => (
-          <ConnectRow
-            busy={linking === provider}
-            disabled={Boolean(linking)}
+      {OAUTH_PROVIDERS.map((provider) => {
+        const identity = connected.get(provider);
+        return (
+          <ProviderRow
+            busy={(identity ? unlinking : linking) === provider}
+            connected={Boolean(identity)}
+            disabled={Boolean(identity ? unlinking : linking)}
             key={provider}
-            onLink={() => link(provider)}
+            onAction={() =>
+              identity ? unlink(provider, identity) : link(provider)
+            }
             provider={provider}
           />
-        ),
-      )}
+        );
+      })}
     </HighlightGroup>
   );
 }

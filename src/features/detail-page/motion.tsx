@@ -16,7 +16,7 @@ import {
   TOUCH,
   beat,
   load,
-  reveal,
+  rise,
 } from "@/motion/choreography/pace";
 import { defineStage } from "@/motion/choreography/stage";
 
@@ -36,19 +36,13 @@ const AT = {
 
 const press = { scale: 0.96, duration: beat(-3), ease: PRESS };
 
-const lift: Moves = {
-  hover: { y: -5, duration: beat(-2), ease: TOUCH },
-  rest: { duration: beat(-1), ease: SETTLE },
-  press,
-};
-
 const HEADING = {
   rule: { at: beat(-6) },
   actions: { at: beat(-6) },
 };
 
 const soft: Moves = {
-  enter: reveal({ opacity: 0, blur: 12 }, { duration: beat(-1) }),
+  enter: rise(1),
   leave: { to: { opacity: 0, blur: 8 }, duration: beat(-2), ease: SETTLE },
 };
 
@@ -130,53 +124,50 @@ const DETAIL = defineStage({
         ),
       },
       action: {
-        enter: reveal({ opacity: 0, blur: 8 }, { duration: beat(-2) }),
+        enter: rise(2),
       },
       resume: {
-        enter: reveal({ opacity: 0, blur: 8 }),
+        enter: rise(2),
         slots: {
           rule: {
-            enter: reveal({ opacity: 0, blur: 6 }),
+            enter: rise(3),
           },
         },
       },
       proof: {
-        enter: reveal({ opacity: 0, blur: 8 }),
+        enter: rise(2),
       },
       row: {
-        enter: reveal({ opacity: 0, blur: 8 }, { duration: beat(-2) }),
+        enter: rise(2),
       },
       label: {
-        enter: reveal({ opacity: 0, blur: 8 }, { duration: beat(-3) }),
+        enter: rise(3),
       },
       value: {
-        enter: reveal({ opacity: 0, blur: 8 }, { duration: beat(-2) }),
+        enter: rise(2),
       },
       line: {
-        enter: reveal({ opacity: 0, blur: 6 }),
+        enter: rise(3),
       },
       header: {
-        enter: reveal({ opacity: 0, blur: 10 }, { duration: beat(-2) }),
+        enter: rise(2),
         slots: {
           icon: {
-            enter: reveal({ opacity: 0, blur: 6 }, { duration: beat(-2) }),
+            enter: rise(3),
           },
           rule: {
-            enter: reveal({ opacity: 0, blur: 6 }, { delay: HEADING.rule.at }),
+            enter: rise(3, { delay: HEADING.rule.at }),
           },
           actions: {
-            enter: reveal(
-              { opacity: 0, blur: 8 },
-              { delay: HEADING.actions.at, duration: beat(-2) },
-            ),
+            enter: rise(2, { delay: HEADING.actions.at }),
           },
         },
       },
       control: {
-        enter: reveal({ opacity: 0, blur: 8 }, { duration: beat(-2) }),
+        enter: rise(2),
       },
       person: {
-        enter: reveal({ opacity: 0, blur: 12 }),
+        enter: rise(1),
         follow: { of: ["flex-grow"], duration: beat(-1), ease: SETTLE },
         slots: {
           picture: {
@@ -225,34 +216,35 @@ const DETAIL = defineStage({
         },
       },
       cameo: {
-        enter: reveal({ opacity: 0, blur: 8 }, { duration: beat(-2) }),
+        enter: rise(2),
         hover: { y: -2, duration: beat(-3), ease: TOUCH },
         rest: { duration: beat(-2), ease: SETTLE },
       },
       credit: {
-        enter: reveal({ opacity: 0, blur: 8 }, { duration: beat(-2) }),
+        enter: rise(2),
       },
       slide: {
-        enter: reveal({ opacity: 0, blur: 12 }, {}),
+        enter: rise(1),
       },
       review: {
-        enter: reveal({ opacity: 0, blur: 12 }, {}),
+        enter: rise(1),
       },
       star: {
-        enter: reveal({ opacity: 0, blur: 6 }, { duration: beat(-3) }),
+        enter: rise(3),
       },
       list: {
-        ...lift,
-        enter: reveal({ opacity: 0, blur: 12 }, {}),
+        rest: { duration: beat(-1), ease: SETTLE },
+        press,
+        enter: rise(1),
       },
       awards: {
-        enter: reveal({ opacity: 0, blur: 12 }),
+        enter: rise(1),
       },
       meter: {
-        enter: reveal({ opacity: 0, blur: 6 }),
+        enter: rise(3),
       },
       laurel: {
-        enter: reveal({ opacity: 0, blur: 8 }, { duration: beat(-2) }),
+        enter: rise(2),
       },
       fold: {
         follow: {
@@ -265,19 +257,19 @@ const DETAIL = defineStage({
         follow: { of: ["transform"], duration: beat(-2), ease: SETTLE },
       },
       tile: {
-        enter: reveal({ opacity: 0, blur: 12 }, {}),
+        enter: rise(1),
       },
       readout: {
-        enter: reveal({ opacity: 0, blur: 8 }, { duration: beat(-2) }),
+        enter: rise(2),
       },
       tick: {
-        enter: reveal({ opacity: 0, blur: 6 }, { duration: beat(-2) }),
+        enter: rise(3),
       },
       bar: {
-        enter: reveal({ opacity: 0, blur: 6 }),
+        enter: rise(3),
       },
       spine: {
-        enter: reveal({ opacity: 0, blur: 6 }, { duration: beat(0) }),
+        enter: rise(3),
       },
       trace: {
         follow: {
@@ -287,15 +279,15 @@ const DETAIL = defineStage({
         },
       },
       stamp: {
-        enter: reveal({ opacity: 0, blur: 8 }, { duration: beat(-2) }),
+        enter: rise(2),
       },
       entry: {
-        enter: reveal({ opacity: 0, blur: 8 }, { duration: beat(-2) }),
+        enter: rise(2),
       },
     },
     sections: {
       view: {
-        enter: reveal({ opacity: 0, blur: 12 }, { duration: beat(-1) }),
+        enter: rise(1),
         leave: {
           to: { opacity: 0, blur: 8 },
           duration: beat(-2),
@@ -338,10 +330,7 @@ const DETAIL = defineStage({
         },
       },
       arrow: {
-        enter: reveal(
-          { opacity: 0, blur: 6 },
-          { along: "section", delay: beat(-3), duration: beat(-3) },
-        ),
+        enter: rise(3, { along: "section", delay: beat(-3) }),
         hover: { scale: 1.09, opacity: 1, duration: beat(-3), ease: TOUCH },
         rest: { duration: beat(-2), ease: SETTLE },
         press: { ...press, scale: 0.91 },

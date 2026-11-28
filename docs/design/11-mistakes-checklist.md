@@ -78,7 +78,7 @@ grep -rnE 'SmoothScroll|data-lenis|from "lenis' src --include='*.ts' --include='
 grep -rnE 'from "(motion(/react)?|framer-motion)"' src --include='*.ts' --include='*.tsx' | grep -v '^src/motion/'
 # arbitrary transition and animation classes
 grep -rnE '\[(transition|animation)[:-]' src --include='*.ts' --include='*.tsx'
-# an animation loop of your own (layout followers and retries are the exceptions)
-# (allowed: the engine, glass thumbs, the carousel glide, the select's centring, theme and settings layout followers, the spotlight attach retry)
-grep -rn 'requestAnimationFrame' src --include='*.ts' --include='*.tsx' | grep -vE '^src/motion/|^src/design/(liquid|liquid-touch)|glass-thumb|components/(carousel|select)\.tsx|theme/store\.ts|settings/panel\.tsx|spotlights/shell\.tsx'
+# an animation loop of your own (layout followers are the exception)
+# (allowed: the engine, glass thumbs, the carousel glide, the select's centring, theme and settings layout followers)
+grep -rn 'requestAnimationFrame' src --include='*.ts' --include='*.tsx' | grep -vE '^src/motion/|^src/design/(liquid|liquid-touch)|glass-thumb|components/(carousel|select)\.tsx|theme/store\.ts|settings/panel\.tsx'
 ```

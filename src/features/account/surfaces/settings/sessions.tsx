@@ -1,5 +1,7 @@
 "use client";
 
+import { SurfaceLoading } from "@/design/surface/surface";
+
 import { useState } from "react";
 import {
   Button,
@@ -18,7 +20,7 @@ import {
 import { cn } from "@/design/ui";
 import { requestJson } from "@/shared/http";
 import type { AuthSession } from "./model";
-import { Mark, PanelNotice, PanelSkeleton, useSecurityTask } from "./panel";
+import { Mark, PanelNotice, useSecurityTask } from "./panel";
 
 const DEVICE_PATTERNS: [RegExp, string, "desktop" | "mobile" | "tablet"][] = [
   [/iPhone/i, "iPhone", "mobile"],
@@ -165,7 +167,7 @@ export function SessionsPanel({
   const [busyId, setBusyId] = useState<string | null>(null);
   const [revokingOthers, setRevokingOthers] = useState(false);
 
-  if (loading && sessions.length === 0) return <PanelSkeleton detailed />;
+  if (loading && sessions.length === 0) return <SurfaceLoading />;
 
   const revoke = (sessionId: string) =>
     run(

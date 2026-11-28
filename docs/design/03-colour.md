@@ -133,7 +133,6 @@ never per frame.
 | `rated`     | oklch(69% .15 70)  | oklch(82.8% .189 84.4) | A lit star                             |
 | `rated-off` | ink 16%            | ink 15%                | An unlit star                          |
 | `danger`    | oklch(55% .2 26)   | oklch(70.4% .191 22.2) | An error, a destructive action         |
-| `award`     | oklch(60% .115 78) | `#e9c46a`              | A statuette: the Oscars, the year dial |
 
 On paper each holds at least 3.5:1 against the page as a glyph (a star,
 being a mark of light, stays brighter at ~2.5:1). A state that is on lights

@@ -567,18 +567,41 @@ const INSET = 0.16;
 /** Rows of one release closer than this (px) share a beat. */
 const ROW_SLACK = 12;
 
-export interface Cadence {
-  /** Gap between two rows released in a burst (s). */
-  row: number;
-  /** Gap between neighbours in one row (s). */
-  item: number;
-  /** Longest a single row may take to fan out (s). */
-  spread: number;
-  /** Queue depth after which later rows join the last one (s). */
-  lag: number;
+const PHI = 1.618034;
+
+/**
+ * The cue's arithmetic. Every view reveal starts on a beat of one page clock
+ * (`tick`, counted from the moment the page plays), rows of a release fall on
+ * successive beats, and neighbours in a row fan out on a converging series,
+ * `tick·φ·(1 − φ⁻ᶜ)`, so no row ever spreads wider than φ beats.
+ *
+ * Scroll speed sets a deadline: a role has to be settled before it has
+ * travelled `reach` of the viewport past the reveal line. At speed v that
+ * leaves T = reach·height / v seconds; `--pace` = T / span (clamped to
+ * [floor, 1]) shortens its whole length to fit, and no start is queued past
+ * it. A slow scroll gets every reveal at full length; a fast one gets the
+ * same reveal, compressed, never trailing behind the page.
+ */
+export interface Pulse {
+  /** One beat of the page clock (s). */
+  tick: number;
+  /** Longest view reveal on the stage at full pace (s). */
+  span: number;
+  /** Share of the viewport height a role may travel before it settles. */
+  reach: number;
+  /** Shortest pace a reveal is compressed to. */
+  floor: number;
 }
 
-const CADENCE: Cadence = { row: 0.089, item: 0.055, spread: 0.236, lag: 0.618 };
+const PULSE: Pulse = {
+  tick: 0.09,
+  span: 0.618,
+  reach: 0.382,
+  floor: 0.236,
+};
+
+/** Speed samples older than this mean the page has stopped (ms). */
+const STILL_MS = 96;
 
 interface Arrival {
   node: Element;
@@ -602,7 +625,7 @@ function useCue(
   on: boolean,
   opening: number,
   inset = INSET,
-  cadence: Cadence = CADENCE,
+  pulse: Pulse = PULSE,
   cued = "",
 ) {
   const engine = useEngine();
@@ -612,9 +635,28 @@ function useCue(
 
     let open = opening <= 0;
     let hold: ReturnType<typeof setTimeout> | undefined;
+    // Page clock: beats counted from the first play.
+    let origin = performance.now() / 1000;
+    // Start of the last row released (s, page clock).
     let lane = -Infinity;
     const held: Element[] = [];
     const done = new WeakSet<Element>();
+    // Scroll speed (px/s), from the scroll signal the engine already keeps:
+    // no layout read.
+    let speed = 0;
+    let lastY = engine.scroll.get();
+    let lastAt = performance.now();
+    const stopSpeed = engine.scroll.subscribe((y) => {
+      const at = performance.now();
+      const dt = at - lastAt;
+      if (dt > 0) {
+        const v = (Math.abs(y - lastY) / dt) * 1000;
+        speed = dt > STILL_MS ? v : speed + (v - speed) * Math.min(1, dt / 48);
+      }
+      lastY = y;
+      lastAt = at;
+    });
+    const velocity = () => (performance.now() - lastAt > STILL_MS ? 0 : speed);
     // Where each role sat when an observer last reported it. The observers
     // hand over rects they already computed; measuring here instead would
     // force a style and layout pass in the middle of a scroll. Stored in page
@@ -670,23 +712,35 @@ function useCue(
         if (row && arrival.top - row[0]!.top <= ROW_SLACK) row.push(arrival);
         else rows.push([arrival]);
       }
+      // Deadline for this release, and the pace that fits a reveal in it.
+      const { tick, span, reach, floor } = pulse;
+      const v = velocity();
+      const budget =
+        v > 0 ? (reach * engine.viewport.get().height) / v : Infinity;
+      const pace = Math.min(1, Math.max(floor, budget / span));
+      // Latest start that still leaves the reveal its paced length.
+      const latest = now + Math.max(0, budget - pace * span);
+      // Next beat of the page clock at or after `t`.
+      const beat = (t: number) =>
+        origin + Math.ceil((t - origin) / tick - 1e-6) * tick;
+      // The line never runs more than one beat ahead of now: a burst joins
+      // the next beats instead of queueing behind every earlier one.
+      let start = beat(Math.max(now, Math.min(lane + tick, now + tick)));
+      const paceValue = String(Math.round(pace * 1000) / 1000);
       for (const row of rows) {
         row.sort((a, b) => a.left - b.left);
-        const behind = lane - now;
-        const start =
-          behind > cadence.lag ? lane : Math.max(now, lane + cadence.row);
-        const step =
-          row.length > 1
-            ? Math.min(cadence.item, cadence.spread / (row.length - 1))
-            : 0;
-        lane = start + (row.length - 1) * step;
+        if (start > latest) start = Math.max(now, beat(latest) - tick);
+        lane = start;
         row.forEach(({ node }, column) => {
-          const wait = `${Math.round((start - now + column * step) * 1000)}ms`;
+          const fan = tick * PHI * (1 - PHI ** -column) * pace;
+          const wait = `${Math.round((start - now + fan) * 1000)}ms`;
           const style = (node as HTMLElement).style;
           style.setProperty("--cue", wait);
+          style.setProperty("--pace", paceValue);
           if (node.hasAttribute("data-section"))
             style.setProperty("--lead", wait);
         });
+        start = beat(start + tick);
       }
       for (const node of fresh) {
         node.setAttribute("data-seen", "");
@@ -728,6 +782,7 @@ function useCue(
     };
     const start = () => {
       element.setAttribute("data-play", "");
+      origin = performance.now() / 1000;
       if (open || hold) return;
       hold = setTimeout(unhold, opening * 1000);
     };
@@ -794,6 +849,7 @@ function useCue(
 
     return () => {
       stopLift();
+      stopSpeed();
       clearTimeout(hold);
       seen.disconnect();
       near.disconnect();
@@ -802,7 +858,7 @@ function useCue(
       settleLater.cancel();
       added.disconnect();
     };
-  }, [engine, root, on, opening, inset, cadence, cued]);
+  }, [engine, root, on, opening, inset, pulse, cued]);
 }
 
 function whenLifted(element: HTMLElement, start: () => void) {
@@ -915,6 +971,27 @@ function viewRoles(motion: Choreography<string, string> | undefined): string {
   ].join(", ");
 }
 
+/** Longest view-gated enter (delay + duration) anywhere in a stage's motion. */
+function longestReveal(motion: unknown): number {
+  let longest = 0;
+  const walk = (value: unknown) => {
+    if (!value || typeof value !== "object") return;
+    const enter = value as {
+      on?: unknown;
+      duration?: unknown;
+      delay?: unknown;
+    };
+    if (enter.on === "view" && typeof enter.duration === "number")
+      longest = Math.max(
+        longest,
+        enter.duration + (typeof enter.delay === "number" ? enter.delay : 0),
+      );
+    for (const inner of Object.values(value)) walk(inner);
+  };
+  walk(motion);
+  return longest;
+}
+
 export function defineStage<
   const P extends string,
   const S extends string = never,
@@ -922,11 +999,10 @@ export function defineStage<
   const { scope, scroll, glide = null, inset, tempo = 1, reach = 1 } = roles;
   const motion = roles.motion && paced(roles.motion, { tempo, reach });
   const opening = (roles.opening ?? 0) * tempo;
-  const cadence: Cadence = {
-    row: CADENCE.row * tempo,
-    item: CADENCE.item * tempo,
-    spread: CADENCE.spread * tempo,
-    lag: CADENCE.lag * tempo,
+  const pulse: Pulse = {
+    ...PULSE,
+    tick: PULSE.tick * tempo,
+    span: longestReveal(motion) || PULSE.span * tempo,
   };
   const css = scope && motion ? compile(scope, motion) : "";
   const cued = viewRoles(motion);
@@ -951,7 +1027,7 @@ export function defineStage<
     useStageLight(light, { linger: lightLinger, palette: lightPalette });
     const root = useRef<HTMLDivElement>(null);
     const on = Boolean(scope && css);
-    useCue(root, on, opening, inset, cadence, cued);
+    useCue(root, on, opening, inset, pulse, cued);
     useTouch(root, on);
     const driver = useScrollDriver();
     useEffect(() => (scroll ? driver.tune(scroll) : undefined), [driver]);

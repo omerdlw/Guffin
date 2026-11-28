@@ -8,7 +8,6 @@ import {
   Button,
   HighlightGroup,
   Image,
-  Loader,
   useHighlight,
 } from "@omerdlw/base-framework/ui";
 import { report, toUserMessage } from "@omerdlw/base-framework/utils";
@@ -25,7 +24,11 @@ import {
   tileVariants,
 } from "@/design/surface/classes";
 import { defineSurface } from "@/design/surface/define";
-import { SurfacePart, SurfaceStage } from "@/design/surface/surface";
+import {
+  SurfaceLoading,
+  SurfacePart,
+  SurfaceStage,
+} from "@/design/surface/surface";
 import { cn } from "@/design/ui";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/model";
 import { Reorder, useDragControls } from "@/motion/lib";
@@ -237,16 +240,12 @@ function ListOrderSurface({ data }: { data: ListOrderData }): JSX.Element {
   }
 
   if (status !== "ready" || saved === null) {
-    return (
-      <div className={cn(SURFACE_PANEL, "center min-h-40 flex-col gap-2 p-4")}>
-        {status === "failed" ? (
-          <p className="type-body text-ink-body">
-            This list could not be loaded
-          </p>
-        ) : (
-          <Loader />
-        )}
+    return status === "failed" ? (
+      <div className={cn(SURFACE_PANEL, "center min-h-28 flex-col gap-2 p-4")}>
+        <p className="type-body text-ink-body">This list could not be loaded</p>
       </div>
+    ) : (
+      <SurfaceLoading />
     );
   }
 

@@ -3,12 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useToast } from "@omerdlw/base-framework/notification";
 import { Icon } from "@/design/components/icon";
-import {
-  SURFACE_PANEL,
-  SURFACE_STACK,
-  SURFACE_TILE_INNER,
-  tileVariants,
-} from "@/design/surface/classes";
+import { SURFACE_PANEL, SURFACE_TILE_INNER } from "@/design/surface/classes";
 import { cn } from "@/design/ui";
 import {
   getUserIdentities,
@@ -61,32 +56,6 @@ export function PanelNotice({ icon, text }: { icon: string; text: string }) {
     >
       <Icon className="text-ink-muted" icon={icon} size={22} />
       <span className="type-meta font-medium text-ink-muted">{text}</span>
-    </div>
-  );
-}
-
-export function PanelSkeleton({ detailed = false }: { detailed?: boolean }) {
-  return (
-    <div className={SURFACE_STACK}>
-      {[0, 1].map((index) => (
-        <div className={cn(tileVariants(), "h-[52px] pr-1.5")} key={index}>
-          <div className="size-10 shrink-0 rounded-inset bg-fill-hover" />
-          {detailed ? (
-            <div className="flex flex-1 flex-col gap-1.5">
-              <div className="h-3.5 w-28 rounded-full bg-fill-hover" />
-              <div className="h-2.5 w-40 rounded-full bg-fill-hover" />
-            </div>
-          ) : (
-            <div className="h-3.5 w-28 flex-1 rounded-full bg-fill-hover" />
-          )}
-          <div
-            className={cn(
-              "shrink-0 rounded-inset bg-fill-hover",
-              detailed ? "h-control-md w-20" : "size-control-md",
-            )}
-          />
-        </div>
-      ))}
     </div>
   );
 }

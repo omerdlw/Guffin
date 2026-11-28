@@ -33,6 +33,7 @@ import {
 } from "@/design/surface/classes";
 import { defineSurface } from "@/design/surface/define";
 import {
+  SurfaceLoading,
   SurfacePart,
   SurfaceSearch,
   SurfaceStage,
@@ -456,13 +457,7 @@ function AccountSocialSurface({
   let body: ReactNode;
   if (active.loading) {
     view = "loading";
-    body = (
-      <SurfacePart className={SURFACE_GROUP} name="item">
-        {Array.from({ length: 4 }, (_, index) => (
-          <LoadingRow key={index} />
-        ))}
-      </SurfacePart>
-    );
+    body = <SurfaceLoading />;
   } else if (active.error || active.list.length === 0) {
     view = "status";
     body = (

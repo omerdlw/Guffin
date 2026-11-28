@@ -19,7 +19,7 @@ import {
   TOUCH,
   beat,
   load,
-  reveal,
+  rise,
 } from "@/motion/choreography/pace";
 import { defineStage } from "@/motion/choreography/stage";
 import { ambientImage } from "./model";
@@ -136,10 +136,10 @@ const HOME = defineStage({
         ),
       },
       mark: {
-        enter: reveal({ opacity: 0, blur: 8 }, { duration: beat(-2) }),
+        enter: rise(2),
       },
       slice: {
-        enter: reveal({ opacity: 0, blur: 12 }, {}),
+        enter: rise(1),
         slots: {
           image: {
             hover: { scale: 1.055, duration: beat(-1), ease: SETTLE },
@@ -148,35 +148,32 @@ const HOME = defineStage({
         },
       },
       header: {
-        enter: reveal({ opacity: 0, blur: 10 }, { duration: beat(-2) }),
+        enter: rise(2),
         slots: {
           rule: {
-            enter: reveal({ opacity: 0, blur: 6 }, { delay: beat(-6) }),
+            enter: rise(3, { delay: beat(-6) }),
           },
         },
       },
       live: {
-        enter: reveal(
-          { opacity: 0, blur: 8 },
-          { delay: beat(-6), duration: beat(-2) },
-        ),
+        enter: rise(2, { delay: beat(-6) }),
       },
       slide: {
-        enter: reveal({ opacity: 0, blur: 12 }, {}),
+        enter: rise(1),
       },
       poster: {
-        enter: reveal({ opacity: 0, blur: 12 }),
+        enter: rise(1),
       },
       card: {
         ...lift,
-        enter: reveal({ opacity: 0, blur: 12 }, {}),
+        enter: rise(1),
       },
       rank: {
         ...nudge,
-        enter: reveal({ opacity: 0, blur: 8 }, { duration: beat(-2) }),
+        enter: rise(2),
       },
       cover: {
-        enter: reveal({ opacity: 0, blur: 12 }, { ease: DEVELOP }),
+        enter: rise(1, { ease: DEVELOP }),
         slots: {
           image: {
             hover: { scale: 1.055, duration: beat(-1), ease: SETTLE },
@@ -185,42 +182,42 @@ const HOME = defineStage({
         },
       },
       lead: {
-        enter: reveal({ opacity: 0, blur: 10 }),
+        enter: rise(2),
       },
       byline: {
-        enter: reveal({ opacity: 0, blur: 8 }),
+        enter: rise(2),
       },
       review: {
         ...lift,
-        enter: reveal({ opacity: 0, blur: 12 }, {}),
+        enter: rise(1),
       },
       list: {
         hover: { opacity: 0.8, duration: beat(-2), ease: TOUCH },
         rest: { duration: beat(-1), ease: SETTLE },
         press,
-        enter: reveal({ opacity: 0, blur: 12 }, {}),
+        enter: rise(1),
       },
       member: {
         ...lift,
-        enter: reveal({ opacity: 0, blur: 8 }, { duration: beat(-2) }),
+        enter: rise(2),
       },
       verb: {
-        enter: reveal({ opacity: 0, blur: 8 }, {}),
+        enter: rise(2),
       },
       rule: {
-        enter: reveal({ opacity: 0, blur: 6 }),
+        enter: rise(3),
       },
       tag: {
-        enter: reveal({ opacity: 0, blur: 8 }, { duration: beat(-3) }),
+        enter: rise(3),
       },
       finale: {
-        enter: reveal({ opacity: 0, blur: 12 }),
+        enter: rise(1),
       },
       pitch: {
-        enter: reveal({ opacity: 0, blur: 10 }),
+        enter: rise(2),
       },
       cta: {
-        enter: reveal({ opacity: 0, blur: 8 }, { duration: beat(-2) }),
+        enter: rise(2),
       },
     },
     sections: {
@@ -233,7 +230,7 @@ const HOME = defineStage({
       feature: soft,
       slides: {
         ...soft,
-        enter: reveal({ opacity: 0, blur: 12 }),
+        enter: rise(1),
       },
     },
     kinds: {
@@ -253,10 +250,7 @@ const HOME = defineStage({
         press,
       },
       segmented: {
-        enter: reveal(
-          { opacity: 0, blur: 8 },
-          { along: "section", delay: beat(-3), duration: beat(-2) },
-        ),
+        enter: rise(2, { along: "section", delay: beat(-3) }),
         slots: {
           tab: {
             follow: { of: ["color"], duration: beat(-2), ease: SWEEP },
@@ -265,10 +259,7 @@ const HOME = defineStage({
         },
       },
       arrow: {
-        enter: reveal(
-          { opacity: 0, blur: 6 },
-          { along: "section", delay: beat(-3), duration: beat(-3) },
-        ),
+        enter: rise(3, { along: "section", delay: beat(-3) }),
         hover: { scale: 1.09, opacity: 1, duration: beat(-3), ease: TOUCH },
         rest: { duration: beat(-2), ease: SETTLE },
         press: { ...press, scale: 0.91 },

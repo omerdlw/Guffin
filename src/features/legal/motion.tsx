@@ -6,7 +6,7 @@ import {
   TEMPO,
   beat,
   load,
-  reveal,
+  rise,
 } from "@/motion/choreography/pace";
 import { defineStage } from "@/motion/choreography/stage";
 
@@ -53,13 +53,13 @@ export const LEGAL = defineStage({
         enter: load({ opacity: 0, blur: 6 }, { delay: AT.rule }),
       },
       index: {
-        enter: reveal({ opacity: 0, blur: 8 }, { duration: beat(-2) }),
+        enter: rise(2),
       },
       heading: {
-        enter: reveal({ opacity: 0, blur: 10 }),
+        enter: rise(2),
       },
       prose: {
-        enter: reveal({ opacity: 0, blur: 8 }),
+        enter: rise(2),
       },
     },
   },

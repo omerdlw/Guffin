@@ -60,26 +60,12 @@ const APP_REGISTRY_ENTRIES: readonly AppRegistryEntry[] = Object.freeze([
         path: "/",
         stackOrder: -2,
       },
-      "/oscars": {
-        description: "Every Best Picture winner, cast in gold",
-        icon: "solar:cup-star-bold",
-        name: "oscars",
-        title: "Best Picture",
-        path: "/oscars",
-      },
       "/top-100": {
         description: "The IMDb Top 100 on one wall",
         icon: "solar:gallery-bold",
         name: "top-100",
         title: "IMDb Top 100",
         path: "/top-100",
-      },
-      "/directors": {
-        description: "Twenty masters, each among their films",
-        icon: "solar:videocamera-record-bold",
-        name: "directors",
-        title: "Directors",
-        path: "/directors",
       },
       "/account": {
         description: "Manage your account",

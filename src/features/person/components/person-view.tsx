@@ -263,10 +263,7 @@ export function PersonView({
       <DetailLayout
         backdrop={
           backdrop ? (
-            <PersonBackdropHero
-              fallback={backdropPath}
-              person={person}
-            />
+            <PersonBackdropHero fallback={backdropPath} person={person} />
           ) : null
         }
         className="person-page"

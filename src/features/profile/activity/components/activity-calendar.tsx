@@ -1,7 +1,7 @@
 "use client";
 
-import { type JSX, type PointerEvent, useMemo, useRef, useState } from "react";
-import { TOOLTIP } from "@/design/components/tooltip";
+import { type JSX, useMemo } from "react";
+import { tipProps } from "@/design/components/tip-props";
 import { cn } from "@/design/ui";
 import type { ActivityDays } from "@/features/profile/stats";
 import { pluralize } from "@/shared/format";
@@ -114,31 +114,7 @@ export function ActivityCalendar({
   days: ActivityDays;
 }): JSX.Element {
   const { current, longest, total, weeks } = useMemo(() => build(days), [days]);
-  const frame = useRef<HTMLDivElement>(null);
-  const [hover, setHover] = useState<{ day: Day; x: number; y: number } | null>(
-    null,
-  );
   const narrowFrom = weeks.length - NARROW_WEEKS;
-
-  const onPointerOver = (event: PointerEvent<HTMLDivElement>) => {
-    const cell = (event.target as HTMLElement).closest<HTMLElement>(
-      "[data-week]",
-    );
-    const box = frame.current?.getBoundingClientRect();
-    const day =
-      cell && weeks[Number(cell.dataset.week)]?.days[Number(cell.dataset.day)];
-    if (!cell || !box || !day) return setHover(null);
-    const rect = cell.getBoundingClientRect();
-    setHover({
-      day,
-      x: Math.min(
-        Math.max(rect.left + rect.width / 2 - box.left, 72),
-        box.width - 72,
-      ),
-      y: rect.top - box.top,
-    });
-  };
-
   return (
     <section className="flex flex-col gap-fib-4" data-section="activity">
       <header className="flex items-baseline justify-between gap-fib-3">
@@ -150,12 +126,8 @@ export function ActivityCalendar({
         </span>
       </header>
 
-      <div className="relative" ref={frame}>
-        <div
-          className="grid grid-cols-[auto_repeat(26,minmax(0,1fr))] gap-[3px] sm:grid-cols-[auto_repeat(53,minmax(0,1fr))]"
-          onPointerLeave={() => setHover(null)}
-          onPointerOver={onPointerOver}
-        >
+      <div>
+        <div className="grid grid-cols-[auto_repeat(26,minmax(0,1fr))] gap-[3px] sm:grid-cols-[auto_repeat(53,minmax(0,1fr))]">
           <div
             aria-hidden="true"
             className="flex flex-col gap-[3px] pr-fib-1 type-micro text-ink-faint"
@@ -187,9 +159,13 @@ export function ActivityCalendar({
                 day ? (
                   <span
                     className={cn(CELL, LEVELS[day.level], "hover:bg-ink")}
-                    data-day={weekday}
-                    data-week={index}
                     key={weekday}
+                    {...tipProps(
+                      day.count
+                        ? pluralize(day.count, "activity", "activities")
+                        : "No activity",
+                      { sub: DATE.format(day.date) },
+                    )}
                   />
                 ) : (
                   <span className={CELL} key={weekday} />
@@ -198,26 +174,6 @@ export function ActivityCalendar({
             </div>
           ))}
         </div>
-
-        {hover ? (
-          <div
-            className={cn(
-              TOOLTIP.content,
-              "pointer-events-none absolute -translate-x-1/2 -translate-y-full whitespace-nowrap select-none",
-            )}
-            data-state="instant-open"
-            style={{ left: hover.x, top: hover.y - 8 }}
-          >
-            <span className={TOOLTIP.ink}>
-              {hover.day.count
-                ? pluralize(hover.day.count, "activity", "activities")
-                : "No activity"}
-              <span className={TOOLTIP.meta}>
-                {DATE.format(hover.day.date)}
-              </span>
-            </span>
-          </div>
-        ) : null}
       </div>
 
       <footer className="flex items-center justify-between gap-fib-3 type-label text-ink-muted">

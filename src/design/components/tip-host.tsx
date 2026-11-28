@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { TOOLTIP } from "@/design/components/tooltip";
 import { DOCK_TOOLTIP } from "@/design/theme/dock";
+import { withTimeout } from "@/shared/http";
 
 const TRIGGER = "[data-tip], [data-tip-account], .dock-command[aria-label]";
 const OFF = ":disabled, [aria-disabled='true']";
@@ -47,7 +48,9 @@ const faces = new Map<string, Promise<Face | null>>();
 function faceOf(username: string): Promise<Face | null> {
   let face = faces.get(username);
   if (!face) {
-    face = fetch(`/api/account/card?username=${encodeURIComponent(username)}`)
+    face = fetch(`/api/account/card?username=${encodeURIComponent(username)}`, {
+      signal: withTimeout(),
+    })
       .then((response) =>
         response.ok ? (response.json() as Promise<Face>) : null,
       )
@@ -161,6 +164,11 @@ export function TipHost(): null {
         );
         return span;
       }
+      if (spec.sub) {
+        const meta = part("span", TOOLTIP.meta, spec.sub);
+        span.append(spec.text, meta);
+        return span;
+      }
       const slate = SLATE.exec(spec.text);
       if (!slate) {
         span.textContent = spec.text;
@@ -193,13 +201,22 @@ export function TipHost(): null {
         return to;
       }
       const style = getComputedStyle(node);
+      // Padding and border: offsetWidth counts both, so a line given less
+      // than the box's inner width would wrap until the morph ends.
       const pad =
-        parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
+        parseFloat(style.paddingLeft) +
+        parseFloat(style.paddingRight) +
+        parseFloat(style.borderLeftWidth) +
+        parseFloat(style.borderRightWidth);
       // Lines keep the width they wrap at while the box is between sizes.
       next.style.width = `${to.width - pad}px`;
+      // offsetWidth rounds down, so a line held at it can come up a fraction
+      // short and wrap; plain tips are one line (w-max), keep them so.
+      if (!layout) next.style.whiteSpace = "nowrap";
       next.dataset.entering = "";
       const leaving = old as HTMLElement;
       leaving.style.width = `${from.width - pad}px`;
+      if (!leaving.dataset.layout) leaving.style.whiteSpace = "nowrap";
       leaving.dataset.leaving = "";
       node.append(leaving);
       node.style.width = `${from.width}px`;
@@ -210,6 +227,7 @@ export function TipHost(): null {
       const done = () => {
         leaving.remove();
         next.style.width = "";
+        next.style.whiteSpace = "";
         next.removeAttribute("data-entering");
         node.style.width = "";
         node.style.height = "";

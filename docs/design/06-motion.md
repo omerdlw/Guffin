@@ -30,8 +30,7 @@ its own time.
 | `search`    | `src/features/search/motion.tsx`               | The search surface and results                  |
 | `surface`   | `src/design/surface/surface.tsx`               | Every dock surface (`SurfaceStage`)             |
 | `legal`     | `src/features/legal/motion.tsx`                | Privacy and terms                               |
-| `directors` | `src/features/spotlights/motion.tsx`           | The directors wall                              |
-| `salon`     | `src/features/spotlights/components/shell.tsx` | Oscars and top-100: the chrome around the scene |
+| `salon`     | `src/features/spotlights/components/shell.tsx` | Top 100: the chrome around the scene            |
 
 ### 6.2 `defineStage`
 

@@ -231,10 +231,6 @@ function enterTrack(
   // units fan out by index after their host's beat.
   const cued = enter.on === "view";
   const own = cued && enter.along !== "section" && !text;
-  if (cued)
-    parts.push(
-      enter.along === "section" ? "var(--lead, 0s)" : "var(--cue, 0s)",
-    );
   if (!own && enter.stagger && enter.budget)
     parts.push(
       `${at} * min(${seconds(enter.stagger)}, ${seconds(enter.budget)} / max(var(--n, 1) - 1, 1))`,
@@ -242,11 +238,27 @@ function enterTrack(
   else if (!own && enter.stagger)
     parts.push(`${at} * ${seconds(enter.stagger)}`);
   if (line) parts.push(`var(--i, 0) * ${seconds(line)}`);
-  const delay = parts.length > 1 ? `calc(${parts.join(" + ")})` : parts[0];
+  // A view role's own time (duration, inner delays) is scaled by `--pace`,
+  // the share of its full length the scroll speed leaves it (useCue); the
+  // cue is already paced where it is written.
+  const paced = (value: string) => (cued ? `${value} * var(--pace, 1)` : value);
+  const inner =
+    parts.length > 1 ? `(${parts.join(" + ")})` : (parts[0] as string);
+  const cue = cued
+    ? enter.along === "section"
+      ? "var(--lead, 0s)"
+      : "var(--cue, 0s)"
+    : null;
+  const delay = cue
+    ? `calc(${cue} + ${paced(inner)})`
+    : parts.length > 1
+      ? `calc(${inner})`
+      : inner;
+  const length = cued ? `calc(${paced(seconds(duration))})` : seconds(duration);
   const open = enter.from.clip !== undefined && !reduced;
   return {
     keyframes: `@keyframes ${name}{from{${from.join(";")}}${open ? "to{clip-path: inset(0 0 0 0)}" : ""}}`,
-    shorthand: `${name} ${seconds(duration)} ${curve(enter.ease)} ${delay} backwards`,
+    shorthand: `${name} ${length} ${curve(enter.ease)} ${delay} backwards`,
     gate: gate(place, enter),
     hold: from,
     props: from.map(property),

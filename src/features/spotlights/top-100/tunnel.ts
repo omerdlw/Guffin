@@ -1,11 +1,6 @@
-import type {
-  CanonFilm,
-  FilmMarks,
-  Loop,
-  LoopFactory,
-} from "@/features/spotlights/model";
+import type { CanonFilm, Loop, LoopFactory } from "@/features/spotlights/model";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/model";
-import { readable } from "@/motion/webgl/gl";
+import { createProgram, readable, uniforms } from "@/motion/webgl/gl";
 
 async function loadBitmap(
   src: string,
@@ -32,223 +27,311 @@ async function loadBitmap(
 }
 
 interface TunnelEvents {
-  hovered(index: number): void;
-  opened(): void;
   selected(index: number): void;
 }
 
-interface TunnelSlot {
-  height: number;
-  left: number;
-  top: number;
-  width: number;
+export interface TunnelFonts {
+  body: string;
+  display: string;
 }
 
-interface TunnelPrint {
-  color: ImageBitmap;
-  gray: ImageBitmap;
-  tint: readonly [number, number, number];
+interface Print {
+  at: number;
+  sharp: boolean;
+  texture: WebGLTexture;
 }
 
-const TUNNEL_PERSPECTIVE = 0.55;
-
-const TUNNEL_REACH = 9;
-
-const TUNNEL_ENVELOPE = 1.1;
-
-const TUNNEL_SWING = { x: 1.15, y: 0.3 };
-
-const TUNNEL_PASS = 0.9;
-
-const TUNNEL_GOLDEN = 2.399963;
-
-const TUNNEL_DUST = 150;
-
-const TUNNEL_WHEEL = 1 / 260;
-
-const TUNNEL_DRAG = 1 / 230;
-
-const TUNNEL_SWAY = { pixels: 14, seconds: 0.5 };
-
-const TUNNEL_RATE = { drag: 22, free: 8, snap: 6 };
-
-const TUNNEL_SNAP_MS = 110;
-
-const TUNNEL_FLING_S = 0.18;
-
-const TUNNEL_ARRIVE_S = 1.1;
-
-const TUNNEL_OPEN_READY = 6;
-
-const TUNNEL_OPEN_PATIENCE_MS = 2500;
-
-const TUNNEL_LOADS = 4;
-
-const TUNNEL_SHARP_WAIT_MS = 140;
-
-const TUNNEL_SHARP_KEPT = 4;
-
-const TUNNEL_CLICK_SLOP = 6;
-
-const TUNNEL_FADE_S = 0.35;
-
-const smooth = (t: number) => t * t * (3 - 2 * t);
-
-const clamp = (value: number, low = 0, high = 1) =>
-  Math.min(high, Math.max(low, value));
-
-function settleTarget(from: number, to: number): number {
-  const moved = to - from;
-  if (Math.abs(moved) < 0.08) return from;
-  return from + Math.sign(moved) * Math.max(1, Math.round(Math.abs(moved)));
+interface Hand {
+  at: number;
+  moved: number;
+  velocity: number;
+  y: number;
 }
 
-function stepFrom(
-  from: number,
-  direction: -1 | 1,
-  count: number,
-  matches: (index: number) => boolean,
-): number {
-  const plain = clamp(from - direction, 0, count - 1);
-  for (let at = from - direction; at >= 0 && at < count; at -= direction) {
-    if (matches(at)) return at;
-  }
-  return plain;
+interface Slot {
+  film: number;
+  slot: number;
 }
+
+// The tunnel is measured in poster heights. Each wall holds ROWS posters
+// one above the other; a column is one poster wide, so a cell is exactly a
+// poster and the grid lines are the posters' edges.
+const ROWS = 2;
+const CELL_H = 1;
+const CELL_W = 2 / 3;
+const HALF_H = (ROWS * CELL_H) / 2;
+const FLOOR_CELLS = 4;
+const HALF_W = (FLOOR_CELLS * CELL_W) / 2;
+const PER_COLUMN = ROWS * 2;
+
+const FOV_Y = (56 * Math.PI) / 180;
+const FOV_X_MIN = (64 * Math.PI) / 180;
+const NEAR = 0.05;
+const FAR = 60;
+const AHEAD = 44;
+const FOG = { end: 27, start: 8 };
+const LINE_ALPHA = 0.045;
+// Each print sits inside its cell with a margin, keeping 2:3, so the grid
+// lines show around every poster.
+const POSTER_FILL = 0.84;
+const REST_OFFSET = 0.004;
+
+const VIEW_DISTANCE = 2.6;
+const POP = { grow: 0.06, lift: 0.34, turn: (24 * Math.PI) / 180 };
+const SELECTED_LIFT = 0.05;
+const SHADE = { dim: 0.42, hover: 1.06, rest: 0.84, selected: 1 };
+const SWAY = { x: 0.2, y: 0.11 };
+
+const WHEEL = 1 / 140;
+const DRAG = 1 / 85;
+const FLING_S = 0.2;
+const CLICK_SLOP = 6;
+const RATE = { fly: 0.9, free: 0.42, hover: 0.32, sway: 0.9 };
+const REVEAL_S = 0.7;
+const FADE_IN_S = 0.45;
+
+const OPEN_READY = 12;
+const OPEN_PATIENCE_MS = 2500;
+const LOADS = 6;
+const BASE = { height: 384, width: 256 };
+const SHARP = { height: 768, kept: 18, reach: 4, waitMs: 160, width: 512 };
+const LABEL = { height: 720, width: 480 };
+
+const wrap = (value: number, by: number) => ((value % by) + by) % by;
 
 const approach = (from: number, to: number, time: number, dt: number) =>
   to + (from - to) * Math.exp(-dt / Math.max(1e-4, time / 4));
 
-const POSTER = 2 / 3;
-const NEUTRAL: readonly [number, number, number] = [150, 150, 160];
+const smooth = (t: number) => t * t * (3 - 2 * t);
 
-interface Hit {
-  alpha: number;
-  height: number;
-  index: number;
-  left: number;
-  top: number;
-  width: number;
+const SHELL_VERTEX = `#version 300 es
+in vec4 aPos;
+uniform mat4 uViewProj;
+uniform vec2 uSpan;
+out vec3 vWorld;
+flat out int vFace;
+void main() {
+  vec3 p = vec3(aPos.xy, mix(uSpan.x, uSpan.y, aPos.z));
+  vWorld = p;
+  vFace = int(aPos.w);
+  gl_Position = uViewProj * vec4(p, 1.0);
+}`;
+
+const SHELL_FRAGMENT = `#version 300 es
+precision highp float;
+in vec3 vWorld;
+flat in int vFace;
+uniform vec3 uInk;
+uniform vec3 uCell;
+uniform float uEyeZ;
+uniform vec2 uFog;
+uniform float uLine;
+uniform float uAlpha;
+out vec4 outColor;
+
+float grid(vec2 coord) {
+  vec2 d = max(fwidth(coord), vec2(1e-5));
+  vec2 px = abs(fract(coord + 0.5) - 0.5) / d;
+  float half_ = uLine * 0.5;
+  vec2 hit = 1.0 - smoothstep(vec2(half_ - 0.5), vec2(half_ + 0.5), px);
+  // Where the lines crowd closer than a few pixels they would shimmer, so
+  // they fade out before they get there.
+  hit *= 1.0 - smoothstep(0.16, 0.4, d);
+  return max(hit.x, hit.y);
 }
 
-interface Hand {
-  axis: "x" | "y" | null;
-  at: number;
-  dx: number;
-  dy: number;
-  moved: number;
-  velocity: number;
-  x: number;
-  y: number;
-}
+void main() {
+  vec2 coord = vFace < 2
+    ? vec2(vWorld.z / uCell.x, vWorld.y / uCell.y + 0.5 * uCell.z)
+    : vec2(vWorld.x / uCell.x, vWorld.z / uCell.x);
+  float depth = uEyeZ - vWorld.z;
+  float fog = 1.0 - smoothstep(uFog.x, uFog.y, depth);
+  float a = grid(coord) * uAlpha * fog;
+  outColor = vec4(uInk * a, a);
+}`;
 
-const scaleAt = (depth: number) =>
-  depth >= 0
-    ? 1 / (1 + depth * TUNNEL_PERSPECTIVE)
-    : 1 - depth * TUNNEL_PERSPECTIVE;
+const POSTER_VERTEX = `#version 300 es
+in vec2 aCorner;
+uniform mat4 uViewProj;
+uniform vec3 uCenter;
+uniform vec2 uSize;
+uniform float uSide;
+uniform float uPop;
+uniform float uLift;
+uniform vec3 uShape;
+uniform float uEyeZ;
+out vec2 vUv;
+out float vDepth;
+void main() {
+  float turn = uShape.z * uPop;
+  vec3 normal = vec3(uSide * cos(turn), 0.0, sin(turn));
+  vec3 across = vec3(sin(turn), 0.0, -uSide * cos(turn));
+  float grow = 1.0 + uShape.x * uPop;
+  vec3 p = uCenter
+    + normal * (uLift + uShape.y * uPop)
+    + across * aCorner.x * uSize.x * grow
+    + vec3(0.0, aCorner.y * uSize.y * grow, 0.0);
+  vUv = vec2(aCorner.x + 0.5, 0.5 - aCorner.y);
+  vDepth = uEyeZ - p.z;
+  gl_Position = uViewProj * vec4(p, 1.0);
+}`;
 
-const wrap = (value: number, by: number) => ((value % by) + by) % by;
+const POSTER_FRAGMENT = `#version 300 es
+precision highp float;
+in vec2 vUv;
+in float vDepth;
+uniform sampler2D uTex;
+uniform sampler2D uLabelTex;
+uniform float uShade;
+uniform float uAlpha;
+uniform float uLabel;
+uniform float uEdge;
+uniform vec3 uInk;
+uniform vec2 uFog;
+uniform float uLine;
+out vec4 outColor;
+void main() {
+  vec3 color = texture(uTex, vUv).rgb * uShade;
+  vec4 label = texture(uLabelTex, vUv) * uLabel;
+  color = color * (1.0 - label.a) + label.rgb;
+  vec2 d = max(fwidth(vUv), vec2(1e-5));
+  vec2 px = min(vUv, 1.0 - vUv) / d;
+  float edge = 1.0 - smoothstep(uLine * 0.5 - 0.5, uLine * 0.5 + 0.5, min(px.x, px.y));
+  color = mix(color, uInk, edge * uEdge);
+  float fog = 1.0 - smoothstep(uFog.x, uFog.y, vDepth);
+  float a = uAlpha * fog;
+  outColor = vec4(color * a, a);
+}`;
 
-function roundedRect(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  radius: number,
-) {
-  const r = Math.max(0, Math.min(radius, width / 2, height / 2));
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + width, y, x + width, y + height, r);
-  ctx.arcTo(x + width, y + height, x, y + height, r);
-  ctx.arcTo(x, y + height, x, y, r);
-  ctx.arcTo(x, y, x + width, y, r);
-  ctx.closePath();
-}
+const SHELL_UNIFORMS = [
+  "uViewProj",
+  "uSpan",
+  "uInk",
+  "uCell",
+  "uEyeZ",
+  "uFog",
+  "uLine",
+  "uAlpha",
+] as const;
 
-async function develop(bitmap: ImageBitmap): Promise<TunnelPrint> {
-  const fallback = { color: bitmap, gray: bitmap, tint: NEUTRAL };
-  if (typeof OffscreenCanvas === "undefined") return fallback;
-  const { height, width } = bitmap;
-  const canvas = new OffscreenCanvas(width, height);
-  const context = canvas.getContext("2d", { willReadFrequently: true });
-  if (!context) return fallback;
-  try {
-    context.drawImage(bitmap, 0, 0);
-    const image = context.getImageData(0, 0, width, height);
-    const pixels = image.data;
-    let red = 0;
-    let green = 0;
-    let blue = 0;
-    let total = 0;
-    let sample = 0;
-    for (let i = 0; i < pixels.length; i += 4) {
-      const r = pixels[i]!;
-      const g = pixels[i + 1]!;
-      const b = pixels[i + 2]!;
-      if (sample++ % 7 === 0) {
-        const spread = Math.max(r, g, b) - Math.min(r, g, b);
-        const weight = 1 + (spread * spread) / 64;
-        red += r * weight;
-        green += g * weight;
-        blue += b * weight;
-        total += weight;
-      }
-      const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-      pixels[i] = pixels[i + 1] = pixels[i + 2] = luma;
-    }
-    context.putImageData(image, 0, 0);
-    const gray = await createImageBitmap(canvas);
-    const peak = Math.max(red, green, blue, 1) / Math.max(total, 1);
-    const lift = 230 / peak;
-    const channel = (value: number) =>
-      Math.min(255, Math.round((value / Math.max(total, 1)) * lift));
-    return {
-      color: bitmap,
-      gray,
-      tint: [channel(red), channel(green), channel(blue)],
-    };
-  } catch {
-    return fallback;
-  }
+const POSTER_UNIFORMS = [
+  "uViewProj",
+  "uCenter",
+  "uSize",
+  "uSide",
+  "uPop",
+  "uLift",
+  "uShape",
+  "uEyeZ",
+  "uTex",
+  "uLabelTex",
+  "uShade",
+  "uAlpha",
+  "uLabel",
+  "uEdge",
+  "uInk",
+  "uFog",
+  "uLine",
+] as const;
+
+// Four faces as [x, y, depth share, face]: left, right, floor, ceiling.
+function shellVertices(): Float32Array {
+  const face = (corners: number[][], id: number) =>
+    [0, 1, 2, 0, 2, 3].flatMap((i) => [...corners[i]!, id]);
+  return new Float32Array([
+    ...face(
+      [
+        [-HALF_W, -HALF_H, 0],
+        [-HALF_W, HALF_H, 0],
+        [-HALF_W, HALF_H, 1],
+        [-HALF_W, -HALF_H, 1],
+      ],
+      0,
+    ),
+    ...face(
+      [
+        [HALF_W, -HALF_H, 0],
+        [HALF_W, HALF_H, 0],
+        [HALF_W, HALF_H, 1],
+        [HALF_W, -HALF_H, 1],
+      ],
+      1,
+    ),
+    ...face(
+      [
+        [-HALF_W, -HALF_H, 0],
+        [HALF_W, -HALF_H, 0],
+        [HALF_W, -HALF_H, 1],
+        [-HALF_W, -HALF_H, 1],
+      ],
+      2,
+    ),
+    ...face(
+      [
+        [-HALF_W, HALF_H, 0],
+        [HALF_W, HALF_H, 0],
+        [HALF_W, HALF_H, 1],
+        [-HALF_W, HALF_H, 1],
+      ],
+      3,
+    ),
+  ]);
 }
 
 export class Tunnel {
-  private readonly ctx: CanvasRenderingContext2D;
-  private readonly loop: Loop;
-  private readonly prints: (TunnelPrint | null)[];
+  private readonly shell: WebGLProgram;
+  private readonly poster: WebGLProgram;
+  private readonly shellAt: Record<
+    (typeof SHELL_UNIFORMS)[number],
+    WebGLUniformLocation | null
+  >;
+  private readonly posterAt: Record<
+    (typeof POSTER_UNIFORMS)[number],
+    WebGLUniformLocation | null
+  >;
+  private readonly shellVao: WebGLVertexArrayObject | null;
+  private readonly posterVao: WebGLVertexArrayObject | null;
+  private readonly buffers: WebGLBuffer[] = [];
+  private readonly prints: (Print | null)[];
   private readonly loading = new Set<number>();
   private readonly failed = new Set<number>();
-  private readonly sharp = new Map<number, ImageBitmap>();
-  private readonly seenMix: number[];
-  private readonly matchMix: number[];
-  private readonly hits: Hit[] = [];
-  private readonly dust: Float32Array;
+  private readonly sharpLoading = new Set<number>();
+  private readonly pops = new Map<number, number>();
+  private readonly labelTexture: WebGLTexture | null;
+  private readonly labelCanvas: HTMLCanvasElement;
   private readonly count: number;
+  private readonly anisotropy: number;
+  private readonly anisotropic: EXT_texture_filter_anisotropic | null;
+  private readonly patience: ReturnType<typeof setTimeout>;
+  private readonly loop: Loop;
 
-  private marks: FilmMarks[] | null = null;
-  private ink: readonly [number, number, number] = [255, 255, 255];
-  private slot: TunnelSlot = { height: 1, left: 0, top: 0, width: 1 };
+  private width = 1;
+  private height = 1;
+  private ratio = 1;
+  private ink: readonly [number, number, number] = [1, 1, 1];
+  private fonts: TunnelFonts = { body: "sans-serif", display: "sans-serif" };
   private pos: number;
   private target: number;
-  private near: number;
-  private base: number | null = null;
-  private lastInput = 0;
-  private hand: Hand | null = null;
+  private flying = false;
+  // Nothing is chosen until a poster is tapped; the dock stays empty.
+  private chosen: number | null = null;
+  private readonly origin: number;
+  private chosenMix = 1;
+  // Slots run negative when walking back past the start, so "none" is null.
+  private hovered: number | null = null;
+  private hoverMix = 0;
+  private labelSlot: number | null = null;
   private pointer: { x: number; y: number } | null = null;
   private sway = { x: 0, y: 0 };
-  private hover = -1;
+  private hand: Hand | null = null;
   private time = 0;
-  private arrive = 0;
+  private reveal = 0;
   private loaded = 0;
-  private ready = false;
   private opened = false;
   private reduced = false;
   private disposed = false;
   private sharpTimer: ReturnType<typeof setTimeout> | null = null;
-  private sharpAbort: AbortController | null = null;
-  private readonly patience: ReturnType<typeof setTimeout>;
+  private readonly abort = new AbortController();
 
   static create(
     canvas: HTMLCanvasElement,
@@ -257,67 +340,108 @@ export class Tunnel {
     events: TunnelEvents,
     loop: LoopFactory,
   ): Tunnel | null {
-    const ctx = canvas.getContext("2d");
-    if (!ctx || films.length === 0) return null;
-    return new Tunnel(canvas, ctx, films, start, events, loop);
+    if (films.length === 0) return null;
+    const gl = canvas.getContext("webgl2", {
+      alpha: true,
+      antialias: true,
+      depth: true,
+      premultipliedAlpha: true,
+    });
+    if (!gl) return null;
+    const shell = createProgram(gl, SHELL_FRAGMENT, SHELL_VERTEX);
+    const poster = createProgram(gl, POSTER_FRAGMENT, POSTER_VERTEX);
+    if (!shell || !poster) return null;
+    return new Tunnel(gl, shell, poster, films, start, events, loop);
   }
 
   private constructor(
-    private readonly canvas: HTMLCanvasElement,
-    ctx: CanvasRenderingContext2D,
+    private readonly gl: WebGL2RenderingContext,
+    shell: WebGLProgram,
+    poster: WebGLProgram,
     private readonly films: readonly CanonFilm[],
     start: number,
     private readonly events: TunnelEvents,
     loop: LoopFactory,
   ) {
-    this.ctx = ctx;
+    this.shell = shell;
+    this.poster = poster;
+    this.shellAt = uniforms(gl, shell, SHELL_UNIFORMS);
+    this.posterAt = uniforms(gl, poster, POSTER_UNIFORMS);
     this.count = films.length;
     this.prints = films.map(() => null);
-    this.seenMix = films.map(() => 1);
-    this.matchMix = films.map(() => 1);
-    this.pos = this.target = this.near = clamp(start, 0, this.count - 1);
-    this.dust = new Float32Array(TUNNEL_DUST * 5);
-    let seed = 7;
-    const random = () => {
-      seed = (seed * 16807) % 2147483647;
-      return seed / 2147483647;
-    };
-    for (let i = 0; i < TUNNEL_DUST; i += 1) {
-      this.dust[i * 5] = random() * Math.PI * 2;
-      this.dust[i * 5 + 1] = 0.08 + Math.sqrt(random()) * 0.92;
-      this.dust[i * 5 + 2] = random() * TUNNEL_REACH;
-      this.dust[i * 5 + 3] = 0.5 + random() * 1.1;
-      this.dust[i * 5 + 4] = random() * Math.PI * 2;
-    }
+    this.anisotropic = gl.getExtension("EXT_texture_filter_anisotropic");
+    this.anisotropy = this.anisotropic
+      ? Math.min(
+          8,
+          gl.getParameter(this.anisotropic.MAX_TEXTURE_MAX_ANISOTROPY_EXT),
+        )
+      : 0;
+
+    this.shellVao = gl.createVertexArray();
+    gl.bindVertexArray(this.shellVao);
+    this.attribute(shell, "aPos", shellVertices(), 4);
+    this.posterVao = gl.createVertexArray();
+    gl.bindVertexArray(this.posterVao);
+    this.attribute(
+      poster,
+      "aCorner",
+      new Float32Array([-0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5]),
+      2,
+    );
+    gl.bindVertexArray(null);
+
+    this.labelCanvas = document.createElement("canvas");
+    this.labelCanvas.width = LABEL.width;
+    this.labelCanvas.height = LABEL.height;
+    this.labelTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, this.labelTexture);
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,
+      gl.RGBA,
+      1,
+      1,
+      0,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      new Uint8Array(4),
+    );
+    this.sample(gl.LINEAR);
+
+    // The starting film is the first of its kind ahead of the entrance.
+    this.origin = this.count - 1 - Math.min(Math.max(start, 0), this.count - 1);
+    this.pos = this.target = this.standFor(this.origin);
     this.loop = loop((now, dt) => this.frame(now, dt));
-    this.patience = setTimeout(() => this.open(), TUNNEL_OPEN_PATIENCE_MS);
+    this.patience = setTimeout(() => this.open(), OPEN_PATIENCE_MS);
     this.pump();
-    this.sharpLater();
     this.loop.wake();
   }
 
   get selected(): number {
-    return this.near;
+    return this.chosen === null ? -1 : this.filmOf(this.chosen);
   }
 
-  setSlot(slot: TunnelSlot): void {
-    this.slot = slot;
+  resize(width: number, height: number, ratio: number): void {
+    this.width = width;
+    this.height = height;
+    this.ratio = ratio;
     this.loop.wake();
   }
 
   setInk(ink: readonly [number, number, number]): void {
-    this.ink = ink;
+    this.ink = [ink[0] / 255, ink[1] / 255, ink[2] / 255];
+    this.labelSlot = null;
     this.loop.wake();
   }
 
-  setMarks(marks: FilmMarks[] | null): void {
-    this.marks = marks;
+  setFonts(fonts: TunnelFonts): void {
+    this.fonts = fonts;
+    this.labelSlot = null;
     this.loop.wake();
   }
 
   setReduced(reduced: boolean): void {
     this.reduced = reduced;
-    if (reduced) this.arrive = this.ready ? 1 : 0;
     this.loop.wake();
   }
 
@@ -326,522 +450,588 @@ export class Tunnel {
     this.loop.wake();
   }
 
-  select(index: number, glide = true): void {
-    this.base = null;
-    this.target = clamp(Math.round(index), 0, this.count - 1);
-    if (!glide) this.pos = this.target;
-    this.loop.wake();
+  // Steps the choice one place along the countdown and flies to it.
+  step(direction: -1 | 1): void {
+    this.choose(this.chosen === null ? this.origin : this.chosen + direction);
   }
 
-  step(direction: -1 | 1): void {
-    this.base = null;
-    const from = Math.round(this.target);
-    this.target = stepFrom(from, direction, this.count, (index) =>
-      this.marks ? this.marks[index]!.match : true,
-    );
-    this.loop.wake();
+  // Home and End: No. 100 or No. 1 of the lap the choice is on.
+  jump(to: "first" | "last"): void {
+    const from = this.chosen ?? this.origin;
+    const lapStart = from - wrap(from, this.count);
+    this.choose(to === "first" ? lapStart : lapStart + this.count - 1);
   }
 
   scroll(dx: number, dy: number): void {
     const delta = Math.abs(dy) >= Math.abs(dx) ? dy : dx;
-    this.push(delta * TUNNEL_WHEEL);
-    this.lastInput = performance.now();
-  }
-
-  grab(x: number, y: number): void {
-    this.hand = {
-      at: performance.now(),
-      axis: null,
-      dx: 0,
-      dy: 0,
-      moved: 0,
-      velocity: 0,
-      x,
-      y,
-    };
-    this.base = null;
+    this.flying = false;
+    this.target += delta * WHEEL;
     this.loop.wake();
   }
 
-  drag(x: number, y: number): void {
+  grab(y: number): void {
+    this.hand = { at: performance.now(), moved: 0, velocity: 0, y };
+  }
+
+  drag(y: number): boolean {
     const hand = this.hand;
-    if (!hand) return;
-    const dx = x - hand.x;
-    const dy = y - hand.y;
+    if (!hand) return false;
     const now = performance.now();
-    hand.x = x;
+    const dy = y - hand.y;
+    const dt = Math.max(1, now - hand.at) / 1000;
+    hand.moved += Math.abs(dy);
+    hand.velocity = approach(hand.velocity, (-dy * DRAG) / dt, 0.08, dt);
     hand.y = y;
-    hand.dx += dx;
-    hand.dy += dy;
-    hand.moved += Math.abs(dx) + Math.abs(dy);
-    if (!hand.axis && hand.moved > TUNNEL_CLICK_SLOP) {
-      hand.axis = Math.abs(hand.dx) > Math.abs(hand.dy) ? "x" : "y";
-    }
-    if (hand.axis) {
-      const advance = -(hand.axis === "x" ? dx : dy) * TUNNEL_DRAG;
-      const seconds = Math.max(0.008, (now - hand.at) / 1000);
-      hand.velocity = hand.velocity * 0.6 + (advance / seconds) * 0.4;
-      this.target = clamp(this.target - advance, 0, this.count - 1);
-    }
     hand.at = now;
+    if (hand.moved <= CLICK_SLOP) return false;
+    this.flying = false;
+    this.target -= dy * DRAG;
     this.loop.wake();
+    return true;
   }
 
+  // Ends a press; a press that barely moved is a tap and returns true.
   drop(): boolean {
     const hand = this.hand;
     this.hand = null;
     if (!hand) return false;
-    if (hand.moved <= TUNNEL_CLICK_SLOP) return true;
-    const rested = performance.now() - hand.at > 90 ? 0 : hand.velocity;
-    this.target = clamp(
-      Math.round(this.target - rested * TUNNEL_FLING_S),
-      0,
-      this.count - 1,
-    );
+    if (hand.moved <= CLICK_SLOP) return true;
+    if (!this.reduced) this.target += hand.velocity * FLING_S;
     this.loop.wake();
     return false;
   }
 
+  // The film under the pointer, or -1 over the floor, ceiling or fog.
   filmAt(x: number, y: number): number {
-    for (let i = this.hits.length - 1; i >= 0; i -= 1) {
-      const hit = this.hits[i]!;
-      if (
-        hit.alpha > 0.2 &&
-        x >= hit.left &&
-        x <= hit.left + hit.width &&
-        y >= hit.top &&
-        y <= hit.top + hit.height
-      ) {
-        return hit.index;
-      }
-    }
-    return -1;
+    const slot = this.slotAt(x, y);
+    return slot ? slot.film : -1;
+  }
+
+  // A tap on a poster chooses it; a tap on the chosen one asks to open it.
+  tap(x: number, y: number): { film: number; open: boolean } | null {
+    const slot = this.slotAt(x, y);
+    if (!slot) return null;
+    if (slot.slot === this.chosen) return { film: slot.film, open: true };
+    this.choose(slot.slot);
+    return { film: slot.film, open: false };
   }
 
   dispose(): void {
     this.disposed = true;
     this.loop.dispose();
+    this.abort.abort();
     clearTimeout(this.patience);
     if (this.sharpTimer) clearTimeout(this.sharpTimer);
-    this.sharpAbort?.abort();
-    for (const print of this.prints) {
-      if (print?.gray && print.gray !== print.color) print.gray.close();
-      print?.color.close();
-    }
-    for (const bitmap of this.sharp.values()) bitmap.close();
-    this.sharp.clear();
+    const gl = this.gl;
+    for (const print of this.prints) if (print) gl.deleteTexture(print.texture);
+    gl.deleteTexture(this.labelTexture);
+    for (const buffer of this.buffers) gl.deleteBuffer(buffer);
+    gl.deleteVertexArray(this.shellVao);
+    gl.deleteVertexArray(this.posterVao);
+    gl.deleteProgram(this.shell);
+    gl.deleteProgram(this.poster);
   }
 
-  private push(advance: number): void {
-    if (this.base === null) this.base = Math.round(this.target);
-    this.target = clamp(this.target - advance, 0, this.count - 1);
+  private attribute(
+    program: WebGLProgram,
+    name: string,
+    data: Float32Array,
+    size: number,
+  ): void {
+    const gl = this.gl;
+    const buffer = gl.createBuffer();
+    if (buffer) this.buffers.push(buffer);
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+    const location = gl.getAttribLocation(program, name);
+    if (location < 0) return;
+    gl.enableVertexAttribArray(location);
+    gl.vertexAttribPointer(location, size, gl.FLOAT, false, 0, 0);
+  }
+
+  private sample(min: number): void {
+    const gl = this.gl;
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, min);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  }
+
+  // Slot n runs down the left wall's column, then the right's; slot 0 is
+  // No. 100 and the countdown repeats forever in both directions.
+  private filmOf(slot: number): number {
+    return this.count - 1 - wrap(slot, this.count);
+  }
+
+  private columnOf(slot: number): number {
+    return Math.floor(slot / PER_COLUMN);
+  }
+
+  private standFor(slot: number): number {
+    return this.columnOf(slot) + 0.5 - VIEW_DISTANCE / CELL_W;
+  }
+
+  private choose(slot: number): void {
+    if (slot !== this.chosen) {
+      this.chosen = slot;
+      this.chosenMix = this.reduced ? 1 : 0;
+      this.events.selected(this.filmOf(slot));
+    }
+    this.flying = true;
+    this.target = this.standFor(slot);
+    this.sharpLater();
     this.loop.wake();
+  }
+
+  private tanY(): number {
+    const aspect = this.width / this.height;
+    return Math.max(Math.tan(FOV_Y / 2), Math.tan(FOV_X_MIN / 2) / aspect);
+  }
+
+  private eye(): [number, number, number] {
+    return [this.sway.x, this.sway.y, -this.pos * CELL_W];
+  }
+
+  private slotAt(x: number, y: number): Slot | null {
+    const cssWidth = this.width / this.ratio;
+    const cssHeight = this.height / this.ratio;
+    if (cssWidth <= 0 || cssHeight <= 0) return null;
+    const tanY = this.tanY();
+    const aspect = this.width / this.height;
+    const dx = ((x / cssWidth) * 2 - 1) * tanY * aspect;
+    const dy = (1 - (y / cssHeight) * 2) * tanY;
+    if (Math.abs(dx) < 1e-6) return null;
+    const [ex, ey, ez] = this.eye();
+    const side = dx < 0 ? 0 : 1;
+    const t = ((side === 0 ? -HALF_W : HALF_W) - ex) / dx;
+    const hy = ey + dy * t;
+    const hz = ez - t;
+    if (t <= 0 || Math.abs(hy) >= HALF_H || t > FOG.end) return null;
+    const column = Math.floor(-hz / CELL_W);
+    const row = Math.min(ROWS - 1, Math.floor((HALF_H - hy) / CELL_H));
+    const slot = column * PER_COLUMN + side * ROWS + row;
+    return { film: this.filmOf(slot), slot };
   }
 
   private open(): void {
-    if (this.ready || this.disposed) return;
-    this.ready = true;
-    if (this.reduced) this.arrive = 1;
-    if (!this.opened) {
-      this.opened = true;
-      this.events.opened();
-    }
+    if (this.opened || this.disposed) return;
+    this.opened = true;
+    if (this.reduced) this.reveal = 1;
     this.loop.wake();
   }
 
+  // The nearest films load first, counted from the choice outwards.
   private pump(): void {
-    while (this.loading.size < TUNNEL_LOADS) {
-      let best = -1;
-      let distance = Number.POSITIVE_INFINITY;
-      for (let i = 0; i < this.count; i += 1) {
-        if (this.prints[i] || this.loading.has(i) || this.failed.has(i)) {
-          continue;
-        }
-        const away = Math.abs(i - this.near);
-        if (away < distance) {
-          distance = away;
-          best = i;
+    const from = wrap(this.chosen ?? this.origin, this.count);
+    while (this.loading.size < LOADS) {
+      let next = -1;
+      for (let away = 0; away < this.count && next < 0; away += 1) {
+        for (const order of [from + away, from - away]) {
+          const film = this.filmOf(order);
+          if (
+            !this.prints[film] &&
+            !this.loading.has(film) &&
+            !this.failed.has(film)
+          ) {
+            next = film;
+            break;
+          }
         }
       }
-      if (best < 0) return;
-      void this.load(best);
+      if (next < 0) return;
+      void this.load(next, false);
     }
   }
 
-  private async load(index: number): Promise<void> {
-    this.loading.add(index);
-    const src = tmdbImageUrl("poster", this.films[index]!.posterPath, "w342");
-    const bitmap = src ? await loadBitmap(src) : null;
-    const print = bitmap && !this.disposed ? await develop(bitmap) : null;
-    this.loading.delete(index);
+  private async load(film: number, sharp: boolean): Promise<void> {
+    const pending = sharp ? this.sharpLoading : this.loading;
+    pending.add(film);
+    const src = tmdbImageUrl(
+      "poster",
+      this.films[film]!.posterPath,
+      sharp ? "w780" : "w342",
+    );
+    const size = sharp ? SHARP : BASE;
+    const bitmap = src
+      ? await loadBitmap(src, {
+          height: size.height,
+          signal: this.abort.signal,
+          width: size.width,
+        })
+      : null;
+    pending.delete(film);
     if (this.disposed) {
-      print?.color.close();
+      bitmap?.close();
       return;
     }
-    if (print) {
-      this.prints[index] = print;
-      this.loaded += 1;
-      if (this.loaded >= Math.min(TUNNEL_OPEN_READY, this.count)) this.open();
-    } else {
-      bitmap?.close();
-      this.failed.add(index);
+    if (bitmap) {
+      this.upload(film, bitmap, sharp);
+      bitmap.close();
+    } else if (!sharp) {
+      this.failed.add(film);
     }
-    this.pump();
+    if (!sharp && !this.opened) {
+      this.loaded += 1;
+      if (this.loaded >= Math.min(OPEN_READY, this.count)) this.open();
+    }
+    if (!sharp) this.pump();
     this.loop.wake();
+  }
+
+  private upload(film: number, bitmap: ImageBitmap, sharp: boolean): void {
+    const gl = this.gl;
+    const held = this.prints[film];
+    if (held?.sharp && !sharp) return;
+    const texture = held?.texture ?? gl.createTexture();
+    if (!texture) return;
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, bitmap);
+    gl.generateMipmap(gl.TEXTURE_2D);
+    this.sample(gl.LINEAR_MIPMAP_LINEAR);
+    if (this.anisotropic && this.anisotropy > 0) {
+      gl.texParameterf(
+        gl.TEXTURE_2D,
+        this.anisotropic.TEXTURE_MAX_ANISOTROPY_EXT,
+        this.anisotropy,
+      );
+    }
+    this.prints[film] = { at: held?.at ?? this.time, sharp, texture };
+    if (sharp) this.trimSharp();
+  }
+
+  // Sharp prints go back to the base size once too many are held.
+  private trimSharp(): void {
+    const keep = new Set(this.nearFilms());
+    if (this.chosen !== null) keep.add(this.filmOf(this.chosen));
+    if (this.hovered !== null) keep.add(this.filmOf(this.hovered));
+    let held = this.prints.filter((print) => print?.sharp).length;
+    for (let film = 0; film < this.count && held > SHARP.kept; film += 1) {
+      const print = this.prints[film];
+      if (!print?.sharp || keep.has(film)) continue;
+      // The sharp print stays up until the base one replaces it.
+      this.prints[film] = { ...print, sharp: false };
+      held -= 1;
+      void this.load(film, false);
+    }
+  }
+
+  private nearFilms(): number[] {
+    const first = Math.floor(this.pos);
+    const out: number[] = [];
+    for (let column = first; column <= first + SHARP.reach; column += 1) {
+      for (let i = 0; i < PER_COLUMN; i += 1) {
+        out.push(this.filmOf(column * PER_COLUMN + i));
+      }
+    }
+    return out;
   }
 
   private sharpLater(): void {
     if (this.sharpTimer) clearTimeout(this.sharpTimer);
-    this.sharpTimer = setTimeout(
-      () => void this.loadSharp(this.near),
-      TUNNEL_SHARP_WAIT_MS,
+    this.sharpTimer = setTimeout(() => {
+      const wanted = this.nearFilms();
+      if (this.chosen !== null) wanted.unshift(this.filmOf(this.chosen));
+      if (this.hovered !== null) wanted.unshift(this.filmOf(this.hovered));
+      for (const film of new Set(wanted)) {
+        const print = this.prints[film];
+        if (!print || print.sharp || this.sharpLoading.has(film)) continue;
+        if (this.sharpLoading.size >= LOADS) break;
+        void this.load(film, true);
+      }
+    }, SHARP.waitMs);
+  }
+
+  private paintLabel(slot: number): void {
+    const gl = this.gl;
+    const film = this.films[this.filmOf(slot)]!;
+    const ctx = this.labelCanvas.getContext("2d");
+    if (!ctx) return;
+    const { height, width } = LABEL;
+    const [r, g, b] = this.ink.map((value) => Math.round(value * 255));
+    const ink = (alpha: number) => `rgb(${r} ${g} ${b} / ${alpha})`;
+    const pad = width * 0.075;
+    ctx.clearRect(0, 0, width, height);
+    const shade = ctx.createLinearGradient(0, height * 0.42, 0, height);
+    shade.addColorStop(0, "rgb(0 0 0 / 0)");
+    shade.addColorStop(1, "rgb(0 0 0 / 0.86)");
+    ctx.fillStyle = shade;
+    ctx.fillRect(0, height * 0.42, width, height * 0.58);
+
+    ctx.textBaseline = "alphabetic";
+    let y = height - pad;
+    ctx.fillStyle = ink(0.62);
+    ctx.font = `500 ${Math.round(width * 0.058)}px ${this.fonts.body}`;
+    const meta = [film.year, film.rating ? `${film.rating.toFixed(1)}` : null]
+      .filter(Boolean)
+      .join("  ·  ");
+    ctx.fillText(meta, pad, y);
+    y -= width * 0.085;
+
+    ctx.fillStyle = ink(1);
+    const titleSize = Math.round(width * 0.16);
+    ctx.font = `700 ${titleSize}px ${this.fonts.display}`;
+    const lines = this.wrapTitle(
+      ctx,
+      film.title.toUpperCase(),
+      width - pad * 2,
     );
+    for (let i = lines.length - 1; i >= 0; i -= 1) {
+      ctx.fillText(lines[i]!, pad, y);
+      y -= titleSize * 0.88;
+    }
+
+    ctx.fillStyle = ink(0.62);
+    ctx.font = `500 ${Math.round(width * 0.058)}px ${this.fonts.body}`;
+    ctx.fillText(`No. ${film.rank}`, pad, y - width * 0.01);
+
+    gl.bindTexture(gl.TEXTURE_2D, this.labelTexture);
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,
+      gl.RGBA,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      this.labelCanvas,
+    );
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+    gl.generateMipmap(gl.TEXTURE_2D);
+    this.sample(gl.LINEAR_MIPMAP_LINEAR);
+    this.labelSlot = slot;
   }
 
-  private async loadSharp(index: number): Promise<void> {
-    if (this.disposed || this.sharp.has(index)) return;
-    const src = tmdbImageUrl("poster", this.films[index]!.posterPath, "w780");
-    if (!src) return;
-    this.sharpAbort?.abort();
-    const abort = new AbortController();
-    this.sharpAbort = abort;
-    const bitmap = await loadBitmap(src, { signal: abort.signal });
-    if (this.sharpAbort === abort) this.sharpAbort = null;
-    if (!bitmap || this.disposed) {
-      bitmap?.close();
-      return;
+  private wrapTitle(
+    ctx: CanvasRenderingContext2D,
+    title: string,
+    room: number,
+  ): string[] {
+    const words = title.split(/\s+/);
+    const lines: string[] = [];
+    let line = "";
+    for (const word of words) {
+      const next = line ? `${line} ${word}` : word;
+      if (ctx.measureText(next).width <= room || !line) line = next;
+      else {
+        lines.push(line);
+        line = word;
+      }
     }
-    this.sharp.set(index, bitmap);
-    for (const key of this.sharp.keys()) {
-      if (this.sharp.size <= TUNNEL_SHARP_KEPT) break;
-      if (key === this.near) continue;
-      this.sharp.get(key)?.close();
-      this.sharp.delete(key);
+    if (line) lines.push(line);
+    if (lines.length <= 2) return lines;
+    let last = lines.slice(1).join(" ");
+    while (last.length > 1 && ctx.measureText(`${last}…`).width > room) {
+      last = last.slice(0, -1).trimEnd();
     }
-    this.loop.wake();
+    return [lines[0]!, `${last}…`];
   }
 
-  private frame(now: number, rawDelta: number): boolean {
+  private frame(_now: number, rawDelta: number): boolean {
     if (this.disposed) return false;
     const dt = Math.min(rawDelta, 0.05);
-    if (!this.reduced) this.time += dt;
+    this.time += dt;
+    let moving = false;
 
-    if (this.ready) {
-      this.arrive = this.reduced
-        ? 1
-        : Math.min(1, this.arrive + dt / TUNNEL_ARRIVE_S);
-    }
-
-    if (
-      !this.hand &&
-      this.base !== null &&
-      performance.now() - this.lastInput > TUNNEL_SNAP_MS
-    ) {
-      this.target = clamp(
-        settleTarget(this.base, this.target),
-        0,
-        this.count - 1,
-      );
-      this.base = null;
-    }
-
-    const rate = this.hand
-      ? TUNNEL_RATE.drag
-      : this.base !== null
-        ? TUNNEL_RATE.free
-        : TUNNEL_RATE.snap;
+    const rate = this.flying ? RATE.fly : RATE.free;
+    const before = this.pos;
     this.pos = this.reduced
       ? this.target
-      : this.pos + (this.target - this.pos) * (1 - Math.exp(-rate * dt));
-    if (Math.abs(this.target - this.pos) < 0.0004) this.pos = this.target;
+      : approach(this.pos, this.target, rate, dt);
+    if (Math.abs(this.target - this.pos) < 1e-4) this.pos = this.target;
+    else moving = true;
+    if (Math.floor(before) !== Math.floor(this.pos)) this.sharpLater();
 
-    const near = clamp(Math.round(this.pos), 0, this.count - 1);
-    if (near !== this.near) {
-      this.near = near;
-      this.events.selected(near);
-      this.pump();
-      this.sharpLater();
+    const pointer = this.pointer;
+    const swayTo = {
+      x:
+        pointer && !this.reduced
+          ? ((pointer.x / (this.width / this.ratio)) * 2 - 1) * SWAY.x
+          : 0,
+      y:
+        pointer && !this.reduced
+          ? -((pointer.y / (this.height / this.ratio)) * 2 - 1) * SWAY.y
+          : 0,
+    };
+    for (const axis of ["x", "y"] as const) {
+      const next = this.reduced
+        ? swayTo[axis]
+        : approach(this.sway[axis], swayTo[axis], RATE.sway, dt);
+      this.sway[axis] =
+        Math.abs(next - swayTo[axis]) < 1e-4 ? swayTo[axis] : next;
+      if (this.sway[axis] !== swayTo[axis]) moving = true;
     }
 
-    for (let i = 0; i < this.count; i += 1) {
-      const mark = this.marks?.[i];
-      this.seenMix[i] = approach(
-        this.seenMix[i]!,
-        mark ? (mark.seen ? 1 : 0) : 1,
-        this.reduced ? 0 : TUNNEL_FADE_S,
-        dt,
-      );
-      this.matchMix[i] = approach(
-        this.matchMix[i]!,
-        mark ? (mark.match ? 1 : 0) : 1,
-        this.reduced ? 0 : TUNNEL_FADE_S,
-        dt,
-      );
+    const under =
+      pointer && !this.hand?.moved ? this.slotAt(pointer.x, pointer.y) : null;
+    const hovered = under && this.prints[under.film] ? under.slot : null;
+    if (hovered !== this.hovered) {
+      this.hovered = hovered;
+      if (hovered !== null) this.sharpLater();
     }
+    if (hovered !== null && !this.pops.has(hovered)) this.pops.set(hovered, 0);
+    for (const [slot, mix] of this.pops) {
+      const to = slot === hovered ? 1 : 0;
+      const next = this.reduced ? to : approach(mix, to, RATE.hover, dt);
+      if (Math.abs(next - to) < 1e-3) {
+        if (to === 0) this.pops.delete(slot);
+        else this.pops.set(slot, 1);
+      } else {
+        this.pops.set(slot, next);
+        moving = true;
+      }
+    }
+    const dimTo = hovered !== null ? 1 : 0;
+    this.hoverMix = this.reduced
+      ? dimTo
+      : approach(this.hoverMix, dimTo, RATE.hover, dt);
+    if (Math.abs(this.hoverMix - dimTo) < 1e-3) this.hoverMix = dimTo;
+    else moving = true;
 
-    const aimX = this.pointer
-      ? (this.pointer.x / Math.max(1, this.canvas.clientWidth) - 0.5) *
-        -2 *
-        TUNNEL_SWAY.pixels
-      : 0;
-    const aimY = this.pointer
-      ? (this.pointer.y / Math.max(1, this.canvas.clientHeight) - 0.5) *
-        -2 *
-        TUNNEL_SWAY.pixels
-      : 0;
-    const follow = this.reduced
-      ? 0
-      : 1 - Math.exp(-dt / (TUNNEL_SWAY.seconds / 4));
-    this.sway.x += (aimX - this.sway.x) * follow;
-    this.sway.y += (aimY - this.sway.y) * follow;
+    if (this.chosenMix < 1) {
+      this.chosenMix = Math.min(1, this.chosenMix + dt / RATE.hover);
+      moving = true;
+    }
+    if (this.opened && this.reveal < 1) {
+      this.reveal = Math.min(1, this.reveal + dt / REVEAL_S);
+      moving = true;
+    }
+    if (hovered !== null && hovered !== this.labelSlot)
+      this.paintLabel(hovered);
 
-    this.draw(now);
-    this.hoverAt();
-    return true;
+    moving = this.draw() || moving;
+    return moving;
   }
 
-  private hoverAt(): void {
-    const index =
-      this.pointer && !this.hand
-        ? this.filmAt(this.pointer.x, this.pointer.y)
-        : -1;
-    if (index === this.hover) return;
-    this.hover = index;
-    this.events.hovered(index);
-  }
+  // Draws one frame; true while a poster is still fading in.
+  private draw(): boolean {
+    const gl = this.gl;
+    const { height, width } = this;
+    gl.viewport(0, 0, width, height);
+    gl.clearColor(0, 0, 0, 0);
+    gl.clearDepth(1);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    if (!this.opened) return false;
 
-  private tintAt(): readonly [number, number, number] {
-    const low = clamp(Math.floor(this.pos), 0, this.count - 1);
-    const high = clamp(low + 1, 0, this.count - 1);
-    const mix = clamp(this.pos - low);
-    const a = this.prints[low]?.tint ?? NEUTRAL;
-    const b = this.prints[high]?.tint ?? NEUTRAL;
-    return [
-      a[0] + (b[0] - a[0]) * mix,
-      a[1] + (b[1] - a[1]) * mix,
-      a[2] + (b[2] - a[2]) * mix,
-    ];
-  }
-
-  private draw(_now: number): void {
-    const { canvas, ctx } = this;
-    const ratio =
-      canvas.clientWidth > 0 ? canvas.width / canvas.clientWidth : 1;
-    const width = canvas.width / ratio;
-    const height = canvas.height / ratio;
-    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-    ctx.globalAlpha = 1;
-    ctx.clearRect(0, 0, width, height);
-    this.hits.length = 0;
-
-    const slot = this.slot;
-    const posterH = Math.min(slot.height, slot.width / POSTER);
-    const posterW = posterH * POSTER;
-    const vx = slot.left + slot.width / 2 + this.sway.x;
-    const vy = slot.top + slot.height / 2 + this.sway.y;
-    const arrive = smooth(this.arrive);
-    const lift = 1 + 0.1 * (1 - arrive);
-    const [tr, tg, tb] = this.tintAt().map(Math.round) as [
-      number,
-      number,
-      number,
-    ];
-
-    const glow = ctx.createRadialGradient(
-      vx,
-      vy,
+    const [ex, ey, ez] = this.eye();
+    const tanY = this.tanY();
+    const f = 1 / tanY;
+    const aspect = width / height;
+    const a = (FAR + NEAR) / (NEAR - FAR);
+    const b = (2 * FAR * NEAR) / (NEAR - FAR);
+    // Perspective times a translation by -eye, column-major.
+    const viewProj = new Float32Array([
+      f / aspect,
       0,
-      vx,
-      vy,
-      Math.max(width, height) * 0.75,
-    );
-    glow.addColorStop(0, `rgba(${tr},${tg},${tb},${0.22 * arrive})`);
-    glow.addColorStop(0.4, `rgba(${tr},${tg},${tb},${0.07 * arrive})`);
-    glow.addColorStop(1, `rgba(${tr},${tg},${tb},0)`);
-    ctx.fillStyle = glow;
-    ctx.fillRect(0, 0, width, height);
+      0,
+      0,
+      0,
+      f,
+      0,
+      0,
+      0,
+      0,
+      a,
+      -1,
+      (-ex * f) / aspect,
+      -ey * f,
+      -ez * a + b,
+      ez,
+    ]);
+    const reveal = smooth(this.reveal);
+    const line = Math.max(1, this.ratio);
+    const fog = [FOG.start, FOG.end] as const;
 
-    this.drawGates(vx, vy, width, height, lift, arrive);
-    this.drawDust(false, vx, vy, width, height, lift, arrive, [tr, tg, tb]);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    gl.disable(gl.CULL_FACE);
 
-    const first = Math.max(0, Math.floor(this.pos - TUNNEL_REACH));
-    const last = Math.min(this.count - 1, Math.ceil(this.pos + 1));
-    for (let i = first; i <= last; i += 1) {
-      this.drawPoster(i, vx, vy, posterW, posterH, lift, arrive);
-    }
+    gl.useProgram(this.shell);
+    gl.bindVertexArray(this.shellVao);
+    gl.disable(gl.DEPTH_TEST);
+    gl.depthMask(false);
+    const s = this.shellAt;
+    gl.uniformMatrix4fv(s.uViewProj, false, viewProj);
+    gl.uniform2f(s.uSpan, ez + 1, ez - FAR);
+    gl.uniform3f(s.uInk, ...this.ink);
+    gl.uniform3f(s.uCell, CELL_W, CELL_H, ROWS);
+    gl.uniform1f(s.uEyeZ, ez);
+    gl.uniform2f(s.uFog, ...fog);
+    gl.uniform1f(s.uLine, line);
+    gl.uniform1f(s.uAlpha, LINE_ALPHA * reveal);
+    gl.drawArrays(gl.TRIANGLES, 0, 24);
 
-    this.drawDust(true, vx, vy, width, height, lift, arrive, [tr, tg, tb]);
-    ctx.globalAlpha = 1;
-  }
+    gl.useProgram(this.poster);
+    gl.bindVertexArray(this.posterVao);
+    gl.enable(gl.DEPTH_TEST);
+    gl.depthFunc(gl.LEQUAL);
+    gl.depthMask(true);
+    const p = this.posterAt;
+    gl.uniformMatrix4fv(p.uViewProj, false, viewProj);
+    gl.uniform2f(p.uSize, CELL_W * POSTER_FILL, CELL_H * POSTER_FILL);
+    gl.uniform3f(p.uShape, POP.grow, POP.lift, POP.turn);
+    gl.uniform1f(p.uEyeZ, ez);
+    gl.uniform3f(p.uInk, ...this.ink);
+    gl.uniform2f(p.uFog, ...fog);
+    gl.uniform1f(p.uLine, line);
+    gl.uniform1i(p.uTex, 0);
+    gl.uniform1i(p.uLabelTex, 1);
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, this.labelTexture);
+    gl.activeTexture(gl.TEXTURE0);
 
-  private drawGates(
-    vx: number,
-    vy: number,
-    width: number,
-    height: number,
-    lift: number,
-    arrive: number,
-  ): void {
-    const { ctx } = this;
-    const from = Math.ceil(this.pos - 0.5 - TUNNEL_REACH);
-    const to = Math.floor(this.pos - 0.55);
-    ctx.lineWidth = 1;
-    for (let i = from; i <= to; i += 1) {
-      const depth = this.pos - i - 0.5;
-      const s = scaleAt(depth) * lift;
-      const alpha =
-        0.12 * Math.pow(1 - depth / TUNNEL_REACH, 1.5) * arrive * clamp(depth);
-      if (alpha < 0.004) continue;
-      const w = width * 1.45 * s;
-      const h = height * 1.45 * s;
-      ctx.strokeStyle = `rgba(${this.ink[0]},${this.ink[1]},${this.ink[2]},${alpha})`;
-      roundedRect(ctx, vx - w / 2, vy - h / 2, w, h, 18 * s);
-      ctx.stroke();
-    }
-  }
-
-  private drawDust(
-    front: boolean,
-    vx: number,
-    vy: number,
-    width: number,
-    height: number,
-    lift: number,
-    arrive: number,
-    tint: readonly number[],
-  ): void {
-    const { ctx, dust } = this;
-    const reach = Math.max(width, height) * 0.9;
-    const r = Math.round((tint[0]! + this.ink[0]) / 2);
-    const g = Math.round((tint[1]! + this.ink[1]) / 2);
-    const b = Math.round((tint[2]! + this.ink[2]) / 2);
-    for (let i = 0; i < TUNNEL_DUST; i += 1) {
-      const depth = wrap(
-        dust[i * 5 + 2]! + this.pos - this.time * 0.3,
-        TUNNEL_REACH,
-      );
-      if (depth < 1 !== front) continue;
-      const s = scaleAt(depth) * lift;
-      const angle = dust[i * 5]!;
-      const radius = dust[i * 5 + 1]! * reach * s;
-      const twinkle = 0.6 + 0.4 * Math.sin(this.time * 1.3 + dust[i * 5 + 4]!);
-      const alpha =
-        0.5 *
-        twinkle *
-        (1 - depth / TUNNEL_REACH) *
-        smooth(clamp(depth / 0.5)) *
-        arrive;
-      if (alpha < 0.01) continue;
-      ctx.fillStyle = `rgba(${r},${g},${b},${alpha})`;
-      ctx.beginPath();
-      ctx.arc(
-        vx + Math.cos(angle) * radius,
-        vy + Math.sin(angle) * radius,
-        dust[i * 5 + 3]! * (0.6 + s * 2.2),
-        0,
-        Math.PI * 2,
-      );
-      ctx.fill();
-    }
-  }
-
-  private drawPoster(
-    index: number,
-    vx: number,
-    vy: number,
-    posterW: number,
-    posterH: number,
-    lift: number,
-    arrive: number,
-  ): void {
-    const { ctx } = this;
-    const depth = this.pos - index;
-    if (depth < -TUNNEL_PASS) return;
-    const s = scaleAt(depth) * lift;
-    const angle = index * TUNNEL_GOLDEN;
-    const side = Math.cos(angle) >= 0 ? 1 : -1;
-
-    let offsetX: number;
-    let offsetY: number;
-    let fog: number;
-    if (depth >= 0) {
-      const envelope = smooth(clamp(depth / TUNNEL_ENVELOPE));
-      offsetX = Math.cos(angle) * TUNNEL_SWING.x * posterW * envelope;
-      offsetY = Math.sin(angle) * TUNNEL_SWING.y * posterH * envelope;
-      fog = Math.pow(1 - clamp(depth / TUNNEL_REACH), 1.4);
-      fog *= 1 - 0.3 * clamp(depth / 2);
-    } else {
-      const gone = smooth(clamp(-depth / TUNNEL_PASS));
-      offsetX = side * posterW * 1.5 * gone;
-      offsetY = Math.sin(angle) * posterH * 0.2 * gone;
-      fog = 1 - gone;
-    }
-
-    const focal = 1 - smooth(clamp(Math.abs(depth) / 0.7));
-    const matched = this.matchMix[index]!;
-    const alpha = fog * arrive * Math.max(0.3 + 0.7 * matched, focal * 0.75, 0);
-    if (alpha < 0.01) return;
-
-    const w = posterW * s;
-    const h = posterH * s;
-    const left = vx + offsetX * s - w / 2;
-    const top = vy + offsetY * s - h / 2;
-    const radius = 6 * s;
-    this.hits.push({ alpha, height: h, index, left, top, width: w });
-
-    const print = this.prints[index];
-    ctx.save();
-    roundedRect(ctx, left, top, w, h, radius);
-    ctx.clip();
-    if (!print) {
-      ctx.globalAlpha = alpha;
-      ctx.fillStyle = `rgba(${this.ink[0]},${this.ink[1]},${this.ink[2]},0.06)`;
-      ctx.fillRect(left, top, w, h);
-    } else {
-      const mix = this.marks ? clamp(Math.max(this.seenMix[index]!, focal)) : 1;
-      if (mix < 1) {
-        ctx.globalAlpha = alpha;
-        ctx.drawImage(print.gray, left, top, w, h);
-      }
-      if (mix > 0) {
-        const color =
-          focal > 0.5 ? (this.sharp.get(index) ?? print.color) : print.color;
-        ctx.globalAlpha = alpha * mix;
-        ctx.drawImage(color, left, top, w, h);
+    let fading = false;
+    const first = Math.floor(this.pos);
+    const popped: number[] = [];
+    // Far to near, so a lifted poster always lands over its neighbours.
+    for (let column = first + AHEAD; column >= first; column -= 1) {
+      for (let i = 0; i < PER_COLUMN; i += 1) {
+        const slot = column * PER_COLUMN + i;
+        if (this.pops.has(slot)) {
+          popped.push(slot);
+          continue;
+        }
+        fading = this.drawPoster(slot, reveal) || fading;
       }
     }
-    ctx.restore();
+    for (const slot of popped) fading = this.drawPoster(slot, reveal) || fading;
+    gl.bindVertexArray(null);
+    return fading;
+  }
 
-    ctx.globalAlpha = alpha;
-    ctx.strokeStyle = `rgba(${this.ink[0]},${this.ink[1]},${this.ink[2]},0.16)`;
-    ctx.lineWidth = 1;
-    roundedRect(
-      ctx,
-      left + 0.5,
-      top + 0.5,
-      Math.max(0, w - 1),
-      Math.max(0, h - 1),
-      radius,
+  private drawPoster(slot: number, reveal: number): boolean {
+    const gl = this.gl;
+    const film = this.filmOf(slot);
+    const print = this.prints[film];
+    if (!print) return false;
+    const p = this.posterAt;
+    const column = this.columnOf(slot);
+    const within = slot - column * PER_COLUMN;
+    const side = within < ROWS ? 1 : -1;
+    const row = within % ROWS;
+    const pop = smooth(this.pops.get(slot) ?? 0);
+    const chosen = slot === this.chosen ? smooth(this.chosenMix) : 0;
+    const rest = SHADE.rest + (SHADE.selected - SHADE.rest) * chosen;
+    const dimmed = rest + (SHADE.dim - rest) * this.hoverMix;
+    const shade = dimmed + (SHADE.hover - dimmed) * pop;
+    const fade = this.reduced
+      ? 1
+      : Math.min(1, (this.time - print.at) / FADE_IN_S);
+
+    gl.uniform3f(
+      p.uCenter,
+      side > 0 ? -HALF_W : HALF_W,
+      HALF_H - (row + 0.5) * CELL_H,
+      -(column + 0.5) * CELL_W,
     );
-    ctx.stroke();
-
-    if (this.marks?.[index]?.seen && s > 0.45 && alpha > 0.25) {
-      const size = 11 * s;
-      const cx = left + w - 10 * s - size;
-      const cy = top + 10 * s + size;
-      ctx.fillStyle = "rgba(255,255,255,0.92)";
-      ctx.beginPath();
-      ctx.arc(cx, cy, size, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = "rgba(0,0,0,0.85)";
-      ctx.lineWidth = Math.max(1.2, 1.8 * s);
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
-      ctx.beginPath();
-      ctx.moveTo(cx - size * 0.42, cy + size * 0.02);
-      ctx.lineTo(cx - size * 0.1, cy + size * 0.34);
-      ctx.lineTo(cx + size * 0.45, cy - size * 0.3);
-      ctx.stroke();
-    }
+    gl.uniform1f(p.uSide, side);
+    gl.uniform1f(p.uPop, pop);
+    gl.uniform1f(p.uLift, REST_OFFSET + SELECTED_LIFT * chosen);
+    gl.uniform1f(p.uShade, shade);
+    gl.uniform1f(p.uAlpha, smooth(fade) * reveal);
+    gl.uniform1f(p.uLabel, slot === this.labelSlot ? pop : 0);
+    gl.uniform1f(p.uEdge, LINE_ALPHA * (1 - pop) * (1 - chosen));
+    gl.bindTexture(gl.TEXTURE_2D, print.texture);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    return fade < 1;
   }
 }

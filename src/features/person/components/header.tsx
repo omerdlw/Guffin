@@ -257,9 +257,7 @@ export function PersonBackdropHero({
 }) {
   const path = useArtworkPath("person", person.id, "backdrop", fallback);
   const image = tmdbImageUrl("backdrop", path, "original");
-  return image ? (
-    <DetailBackdrop src={image} />
-  ) : null;
+  return image ? <DetailBackdrop src={image} /> : null;
 }
 
 export function PersonPageChrome({
