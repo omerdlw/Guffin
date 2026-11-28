@@ -20,6 +20,8 @@
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "icons": "node scripts/icons.mjs",
+    "icons:check": "node scripts/icons.mjs --check",
     "db:migrate": "drizzle-kit migrate --config scripts/db/drizzle.config.ts",
     "db:new": "drizzle-kit generate --config scripts/db/drizzle.config.ts --custom --name"
   },
@@ -33,6 +35,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.4",
+    "iconify-icon": "3.0.5",
     "motion": "^13.5.1",
     "next": "^16.4.6",
     "nodemailer": "^7.0.13",
@@ -44,6 +47,12 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@iconify-json/lucide": "^1.2.160",
+    "@iconify-json/mdi": "^1.2.3",
+    "@iconify-json/simple-icons": "^1.2.104",
+    "@iconify-json/solar": "^1.2.17",
+    "@iconify-json/svg-spinners": "^1.2.4",
+    "@iconify/utils": "^3.1.7",
     "@tailwindcss/postcss": "4.3.5",
     "@types/node": "^26.6.6",
     "@types/nodemailer": "^8.0.2",

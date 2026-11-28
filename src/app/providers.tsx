@@ -1,5 +1,6 @@
 "use client";
 
+import "@/design/icons";
 import { createElement, type JSX, type ReactNode } from "react";
 import {
   ambientModule,

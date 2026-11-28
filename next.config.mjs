@@ -22,9 +22,6 @@ const contentSecurityPolicy = Object.entries({
   "font-src": ["'self'", "data:"],
   "connect-src": [
     "'self'",
-    "https://api.iconify.design",
-    "https://api.simplesvg.com",
-    "https://api.unisvg.com",
     "https://image.tmdb.org",
     ...(sentryOrigin() ? [sentryOrigin()] : []),
   ],

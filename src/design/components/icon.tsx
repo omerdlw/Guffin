@@ -1,5 +1,6 @@
 "use client";
 
+import "@/design/icons";
 import { Icon as UiIcon, type IconProps } from "@omerdlw/base-framework/ui";
 
 export type { IconProps };
