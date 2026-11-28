@@ -14,11 +14,21 @@ import { getUpstashRedisConfig } from "./config";
 
 let client: Redis | null = null;
 
+// Redis is a cache and a limiter here, never the source of truth, so a slow
+// or dropped connection must fail fast instead of holding a render: each
+// command gets REDIS_TIMEOUT_MS, and one quick retry instead of the default
+// five exponential ones (~7s).
+const REDIS_TIMEOUT_MS = 1_500;
+
 export function getRedisClient(): Redis | null {
   if (client) return client;
   const config = getUpstashRedisConfig();
   if (!config) return null;
-  client = new Redis(config);
+  client = new Redis({
+    ...config,
+    retry: { backoff: () => 100, retries: 1 },
+    signal: () => AbortSignal.timeout(REDIS_TIMEOUT_MS),
+  });
   return client;
 }
 
@@ -74,6 +84,8 @@ function upstashLimiter(limit: number): Ratelimit | null {
       limiter: Ratelimit.slidingWindow(limit, `${WINDOW_MS} ms`),
       prefix: "bf:ratelimit",
       redis,
+      // Past this the request is let through rather than kept waiting.
+      timeout: REDIS_TIMEOUT_MS,
     });
     limiters.set(limit, limiter);
   }

@@ -76,16 +76,84 @@ function scopeStatement(viewerId: string | null): string {
   return `begin; select ${PIN}, set_config('role', 'authenticated', true), set_config('app.viewer_id', '${viewerId}', true)`;
 }
 
-async function inScope<T>(
+// Bound parameters force the extended protocol, one statement per round
+// trip, so a scoped query costs three trips (scope, query, commit) — about
+// 250ms against a remote database. Inlining the values as literals lets the
+// whole transaction travel as one simple-protocol string: one trip. Values go
+// through pg's own serializer and escapeLiteral, so the server sees exactly
+// what it would have been bound. Anything that can't be written as a literal
+// (bytea, dollar quoting) returns null and keeps the three-trip path.
+// pg ships prepareValue at runtime; @types/pg doesn't declare it.
+const { prepareValue } = (
+  pg as unknown as {
+    utils: { prepareValue: (value: unknown) => unknown };
+  }
+).utils;
+
+function inline(text: string, values: readonly unknown[] = []): string | null {
+  const literals: string[] = [];
+  for (const value of values) {
+    const prepared = prepareValue(value);
+    if (prepared === null || prepared === undefined) literals.push("NULL");
+    else if (typeof prepared === "string")
+      literals.push(pg.escapeLiteral(prepared));
+    else return null;
+  }
+
+  let out = "";
+  let quote: "'" | '"' | null = null;
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    if (quote) {
+      out += char;
+      if (char === quote) quote = null;
+      continue;
+    }
+    if (char === "'" || char === '"') {
+      quote = char;
+      out += char;
+      continue;
+    }
+    if (char === "$" && text[i - 1] === "$") return null;
+    if (char !== "$" || !/\d/.test(text[i + 1] ?? "")) {
+      out += char;
+      continue;
+    }
+    let end = i + 1;
+    while (/\d/.test(text[end] ?? "")) end++;
+    const literal = literals[Number(text.slice(i + 1, end)) - 1];
+    if (literal === undefined) return null;
+    out += literal;
+    i = end - 1;
+  }
+  return quote ? null : out.replace(/[\s;]+$/, "");
+}
+
+async function inScope(
   viewerId: string | null,
-  work: (client: pg.PoolClient) => Promise<T>,
-): Promise<T> {
+  config: string | pg.QueryConfig,
+  values?: unknown[],
+): Promise<pg.QueryResult> {
   const scope = scopeStatement(viewerId);
+  const query: pg.QueryConfig & { rowMode?: "array" } =
+    typeof config === "string" ? { text: config } : config;
+  const work = query.name
+    ? null
+    : inline(query.text, values ?? (query.values as unknown[] | undefined));
   const client = await getPool().connect();
   let broken = false;
   try {
+    if (work !== null) {
+      // begin, set_config, the query, commit → its result is the third.
+      const results = (await client.query({
+        rowMode: query.rowMode,
+        text: `${scope}; ${work}; commit`,
+        types: query.types,
+      } as pg.QueryConfig)) as unknown as pg.QueryResult[];
+      return results[2];
+    }
     await client.query(scope);
-    const result = await work(client);
+    const result = await client.query(query, values);
     await client.query("commit");
     return result;
   } catch (error) {
@@ -137,8 +205,7 @@ export function admin(): Session {
 export function viewer(viewerId: string | null): Session {
   scopeStatement(viewerId);
   return bind({
-    query: (config, values) =>
-      inScope(viewerId, (client) => client.query(config, values)),
+    query: (config, values) => inScope(viewerId, config, values),
   });
 }
 

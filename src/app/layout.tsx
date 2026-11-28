@@ -4,6 +4,7 @@ import { Geist } from "next/font/google";
 import localFont from "next/font/local";
 import { connection } from "next/server";
 import { LOADING_HANDOFF_SCRIPT } from "@/design/components/loading-ghost";
+import { TMDB_IMAGE_BASE_URL } from "@/infrastructure/tmdb/model";
 import { project } from "@/shared/site";
 import "./globals.css";
 import { Providers } from "./providers";
@@ -24,6 +25,8 @@ const zuume = localFont({
   variable: "--font-zuume",
 });
 
+const IMAGE_ORIGIN = new URL(TMDB_IMAGE_BASE_URL).origin;
+
 export const metadata: Metadata = {
   description: project.description,
   metadataBase: new URL(project.url),
@@ -42,6 +45,13 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
+      <head>
+        {/* Posters and backdrops all come from TMDB's CDN: open both
+            connections (plain <img>, and anonymous CORS for the WebGL
+            textures) while the document streams, not at the first image. */}
+        <link href={IMAGE_ORIGIN} rel="preconnect" />
+        <link crossOrigin="anonymous" href={IMAGE_ORIGIN} rel="preconnect" />
+      </head>
       <body
         className={`${geist.variable} ${geist.className} ${zuume.variable} bg-page text-ink antialiased`}
         suppressHydrationWarning

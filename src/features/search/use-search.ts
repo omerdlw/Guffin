@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useStore } from "@omerdlw/base-framework/hooks";
 import { err, ok, type Result } from "@omerdlw/base-framework/result";
 import { createStore } from "@omerdlw/base-framework/utils";
+import { withTimeout } from "@/shared/http";
 import {
   ACTIVE_SEARCH_TYPES,
   isSearchable,
@@ -111,7 +112,7 @@ async function fetchSearch(
   try {
     response = await fetch(
       `${SEARCH_ENDPOINT}?${new URLSearchParams({ kinds: kinds.join(","), q: query })}`,
-      { headers: { accept: "application/json" }, signal },
+      { headers: { accept: "application/json" }, signal: withTimeout(signal) },
     );
   } catch {
     return signal.aborted ? searchError("aborted") : searchError("unavailable");

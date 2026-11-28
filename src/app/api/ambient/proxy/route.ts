@@ -3,6 +3,10 @@ import { TMDB_IMAGE_BASE_URL } from "@/infrastructure/tmdb/model";
 
 const TMDB_IMAGES = new URL(TMDB_IMAGE_BASE_URL);
 
+// The whole upstream exchange, body included. Past it the image is dropped
+// instead of holding one of the browser's six connections to this origin.
+const UPSTREAM_TIMEOUT_MS = 10_000;
+
 function isTmdbImageUrl(url: URL): boolean {
   return (
     url.protocol === TMDB_IMAGES.protocol &&
@@ -32,6 +36,12 @@ export async function GET(request: Request): Promise<Response> {
     return new Response("URL not allowed", { status: 400 });
   }
 
+  // Ends with the caller too: a navigation away stops the upstream download.
+  const signal = AbortSignal.any([
+    request.signal,
+    AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
+  ]);
+
   try {
     let currentUrl = target;
     let upstreamResponse: Response;
@@ -40,6 +50,7 @@ export async function GET(request: Request): Promise<Response> {
     while (true) {
       upstreamResponse = await fetch(currentUrl, {
         redirect: "manual",
+        signal,
         headers: {
           "User-Agent":
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
@@ -85,6 +96,7 @@ export async function GET(request: Request): Promise<Response> {
       },
     });
   } catch (error) {
+    if (request.signal.aborted) return new Response(null, { status: 499 });
     report("Ambient proxy", error);
     return new Response("Image unavailable", {
       status: 500,

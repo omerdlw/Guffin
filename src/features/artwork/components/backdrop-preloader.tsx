@@ -4,6 +4,7 @@ import { useNavigationIntent } from "@omerdlw/base-framework/navigation";
 import { report } from "@omerdlw/base-framework/utils";
 import { tmdbImageUrl } from "@/infrastructure/tmdb/model";
 import { readable } from "@/motion/webgl/gl";
+import { withTimeout } from "@/shared/http";
 import { artworkKey, type ArtworkKind, artworkStore } from "../store";
 
 const ARTWORK_PAGE_PATTERN = /^\/(movie|person)\/([1-9]\d{0,9})$/;
@@ -32,7 +33,9 @@ async function fetchBackdropPath(
   const chosen = artworkStore.getSnapshot()[artworkKey(kind, id)]?.backdrop;
   if (chosen) return chosen;
 
-  const response = await fetch(`/api/backdrop?kind=${kind}&id=${id}`);
+  const response = await fetch(`/api/backdrop?kind=${kind}&id=${id}`, {
+    signal: withTimeout(),
+  });
   if (!response.ok) return null;
   const { path } = (await response.json()) as { path: unknown };
   return typeof path === "string" ? path : null;

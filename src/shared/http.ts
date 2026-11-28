@@ -1,6 +1,18 @@
 import { EVENT_TYPES, globalEvents } from "@omerdlw/base-framework/events";
 import { toUserMessage } from "@omerdlw/base-framework/utils";
 
+// No request to our own API may hold a screen forever: past this it fails
+// like a dropped connection, and the caller's error path takes over.
+export const REQUEST_TIMEOUT_MS = 20_000;
+
+export function withTimeout(
+  signal?: AbortSignal | null,
+  ms: number = REQUEST_TIMEOUT_MS,
+): AbortSignal {
+  const timeout = AbortSignal.timeout(ms);
+  return signal ? AbortSignal.any([signal, timeout]) : timeout;
+}
+
 interface RequestJsonOptions extends RequestInit {
   notifyOnError?: boolean;
   notifyOnUnauthorized?: boolean;
@@ -22,6 +34,7 @@ export async function requestJson<T = unknown>(
   } = options;
   const response = await fetch(path, {
     ...requestOptions,
+    signal: withTimeout(requestOptions.signal),
     headers: {
       ...(requestOptions.body ? { "content-type": "application/json" } : {}),
       ...requestOptions.headers,

@@ -1,7 +1,7 @@
 import "server-only";
 
 import { passkey } from "@better-auth/passkey";
-import { getSiteUrl, trimToNull } from "@omerdlw/base-framework/utils";
+import { getSiteUrl, report, trimToNull } from "@omerdlw/base-framework/utils";
 import { betterAuth, type BetterAuthOptions } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
@@ -47,12 +47,25 @@ function rateLimitStorage(): NonNullable<
   if (!redis) return undefined;
   return {
     async consume(key, { max, window }) {
+      // One atomic round trip: a separate EXPIRE that is lost (network drop)
+      // leaves the counter without a TTL, and every client on that IP gets
+      // 429 forever. EXPIRE NX also heals any counter already stuck that way.
+      // An unreachable Redis lets the request through: a limiter outage
+      // must not sign everyone out.
       const slot = `auth-rl:${key}`;
-      const count = await redis.incr(slot);
-      if (count === 1) await redis.expire(slot, window);
-      if (count <= max) return { allowed: true, retryAfter: null };
-      const ttl = await redis.ttl(slot);
-      return { allowed: false, retryAfter: ttl > 0 ? ttl : window };
+      try {
+        const [count, , ttl] = await redis
+          .multi()
+          .incr(slot)
+          .expire(slot, window, "NX")
+          .ttl(slot)
+          .exec<[number, 0 | 1, number]>();
+        if (count <= max) return { allowed: true, retryAfter: null };
+        return { allowed: false, retryAfter: ttl > 0 ? ttl : window };
+      } catch (error) {
+        report("Auth rate limit", error, "warn");
+        return { allowed: true, retryAfter: null };
+      }
     },
   };
 }
@@ -108,6 +121,9 @@ export const auth = betterAuth({
   ],
   rateLimit: {
     customRules: {
+      // Every page asks for it; answered from the cookie cache, it costs
+      // nothing to protect, while counting it costs a Redis trip each time.
+      "/get-session": false,
       "/email-otp/send-verification-otp": { max: 5, window: 60 },
       "/sign-in/email-otp": { max: 10, window: 60 },
     },
@@ -117,6 +133,10 @@ export const auth = betterAuth({
   },
   secret: process.env.BETTER_AUTH_SECRET,
   session: {
+    // Every signed-in request reads the session; a signed cookie answers it
+    // without a database trip. A session revoked elsewhere (sign out other
+    // devices) stays readable here for at most maxAge.
+    cookieCache: { enabled: true, maxAge: 5 * 60 },
     expiresIn: 30 * DAY,
     freshAge: DAY,
     updateAge: DAY,

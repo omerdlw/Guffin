@@ -8,6 +8,9 @@ import {
   withScope,
 } from "@sentry/nextjs";
 import { sentryOptions, withSentry } from "@/infrastructure/sentry";
+import { watchStuckRoutes } from "@/infrastructure/stuck-watchdog";
+
+if (process.env.NODE_ENV === "development") watchStuckRoutes();
 
 init({
   ...sentryOptions(),
