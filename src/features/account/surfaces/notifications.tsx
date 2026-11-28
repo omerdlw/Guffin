@@ -338,7 +338,7 @@ const NotificationRow = memo(function NotificationRow({
               onClick={(event) => onMarkRead(notification.id, event)}
               title="Mark as read"
             >
-              <Icon icon="solar:check-read-linear" size={18} />
+              <Icon icon="solar:check-bold" size={18} />
             </Button>
           )}
           <Button
@@ -350,7 +350,7 @@ const NotificationRow = memo(function NotificationRow({
             onClick={(event) => onDelete(notification.id, event)}
             title="Delete notification"
           >
-            <Icon icon="solar:trash-bin-minimalistic-linear" size={18} />
+            <Icon icon="solar:trash-bin-trash-bold" size={18} />
           </Button>
         </div>
       </div>
@@ -532,7 +532,7 @@ function NotificationList({
       <SurfacePart name="note">
         <StatusTile
           description="Please try again in a moment"
-          icon="solar:danger-circle-bold"
+          icon="solar:danger-bold"
           title="Couldn't load notifications"
         />
       </SurfacePart>
@@ -668,7 +668,7 @@ function AccountNotificationsSurface({ close }: { close?: () => void }) {
                 size="sm"
                 title="Mark all as read"
               >
-                <Icon icon="solar:check-read-linear" size={16} />
+                <Icon icon="solar:check-bold" size={16} />
               </Button>
               <Button
                 aria-label="Clear all notifications"
@@ -679,7 +679,7 @@ function AccountNotificationsSurface({ close }: { close?: () => void }) {
                 size="sm"
                 title="Clear all"
               >
-                <Icon icon="solar:trash-bin-minimalistic-linear" size={16} />
+                <Icon icon="solar:trash-bin-trash-bold" size={16} />
               </Button>
             </>
           ) : null

@@ -244,7 +244,7 @@ export function SurfaceSearch({
           shape="thumb"
           size="sm"
         >
-          <Icon icon="solar:close-circle-bold" size={16} />
+          <Icon icon="solar:close-bold" size={16} />
         </Button>
       ) : null}
     </div>

@@ -300,7 +300,7 @@ function RemoveEntry({
       }
       type="button"
     >
-      <Icon icon="solar:trash-bin-trash-linear" size={13} />
+      <Icon icon="solar:trash-bin-trash-bold" size={13} />
     </button>
   );
 }
@@ -385,7 +385,7 @@ function Entry({
           {entry.isRewatch ? (
             <Flag
               href={movieHref(entry.tmdbId)}
-              icon="solar:restart-linear"
+              icon="solar:restart-bold"
               label="Rewatch"
             />
           ) : null}

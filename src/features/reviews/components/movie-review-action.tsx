@@ -123,7 +123,7 @@ export function MovieAction({
             icon={
               pager.loading
                 ? "svg-spinners:90-ring-with-bg"
-                : "solar:alt-arrow-down-bold"
+                : "solar:alt-arrow-down-linear"
             }
           />
           <ActionLabel className={slots.actionLabel}>

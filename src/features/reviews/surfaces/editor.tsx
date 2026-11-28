@@ -188,8 +188,8 @@ function ReviewEditorSurface({
                   <ActionIcon
                     icon={
                       isSpoiler && text
-                        ? "solar:eye-closed-linear"
-                        : "solar:eye-linear"
+                        ? "solar:eye-closed-bold"
+                        : "solar:eye-bold"
                     }
                     size={15}
                   />

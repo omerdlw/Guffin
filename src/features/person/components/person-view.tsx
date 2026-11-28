@@ -66,7 +66,7 @@ const SOCIAL_SOURCES: readonly {
     url: (id) => `https://www.imdb.com/name/${id}/`,
   },
   {
-    icon: "mdi:instagram",
+    icon: "simple-icons:instagram",
     id: (ids) => ids.instagramId,
     key: "instagram",
     label: "Instagram",
@@ -74,7 +74,7 @@ const SOCIAL_SOURCES: readonly {
     url: (id) => `https://www.instagram.com/${id}/`,
   },
   {
-    icon: "mdi:twitter",
+    icon: "simple-icons:x",
     id: (ids) => ids.twitterId,
     key: "twitter",
     label: "Twitter",
@@ -82,7 +82,7 @@ const SOCIAL_SOURCES: readonly {
     url: (id) => `https://twitter.com/${id}`,
   },
   {
-    icon: "mdi:facebook",
+    icon: "simple-icons:facebook",
     id: (ids) => ids.facebookId,
     key: "facebook",
     label: "Facebook",
@@ -98,7 +98,7 @@ const SOCIAL_SOURCES: readonly {
     url: (id) => `https://www.tiktok.com/@${id}`,
   },
   {
-    icon: "mdi:youtube",
+    icon: "simple-icons:youtube",
     id: (ids) => ids.youtubeId,
     key: "youtube",
     label: "YouTube",

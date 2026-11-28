@@ -315,7 +315,7 @@ function SocialTabStatus({
     return (
       <StatusTile
         description={socialErrorMessage(collection.error, tab)}
-        icon="solar:danger-circle-bold"
+        icon="solar:danger-bold"
         title={`Couldn't load ${tab}`}
       />
     );
@@ -328,7 +328,7 @@ function SocialTabStatus({
           : `No ${tab} yet for this account`
       }
       icon={
-        isInbox ? "solar:inbox-line-bold" : "solar:users-group-rounded-bold"
+        isInbox ? "solar:inbox-archive-bold" : "solar:users-group-rounded-bold"
       }
       title={isInbox ? "No pending follow requests" : `No ${tab} yet`}
     />

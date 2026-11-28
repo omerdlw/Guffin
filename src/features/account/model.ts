@@ -252,7 +252,7 @@ export function signedInStatus({
 
   const avatar = (account?.avatarUrl || cached?.avatarUrl || "").trim();
   const icon =
-    avatar && isImageIconSource(avatar) ? avatar : "solar:login-2-bold";
+    avatar && isImageIconSource(avatar) ? avatar : "solar:login-3-bold";
 
   return { description, icon, title };
 }

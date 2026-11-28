@@ -123,7 +123,7 @@ function Favorites({
               className="center aspect-[2/3] rounded-card border border-dashed border-edge-hover text-ink-faint hover:border-edge-focus hover:text-ink-muted"
               href={href}
             >
-              <Icon icon="solar:add-circle-linear" size={20} />
+              <Icon icon="solar:add-bold" size={20} />
             </DockLink>
           </li>
         ))}

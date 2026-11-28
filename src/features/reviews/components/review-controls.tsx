@@ -85,7 +85,7 @@ export function ReviewBody({
         size="sm"
         onClick={() => setRevealed(true)}
       >
-        <Icon icon="solar:eye-closed-linear" size={14} />
+        <Icon icon="solar:eye-closed-bold" size={14} />
         Contains spoilers, show anyway
       </Button>
     );

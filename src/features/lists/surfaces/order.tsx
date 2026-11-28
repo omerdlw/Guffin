@@ -139,7 +139,7 @@ const OrderRow = memo(function OrderRow({
           />
         ) : (
           <div className="center size-full text-ink-muted">
-            <Icon icon="solar:filmstrip-bold" size={14} />
+            <Icon icon="solar:clapperboard-play-bold" size={14} />
           </div>
         )}
       </div>
@@ -285,7 +285,7 @@ function ListOrderSurface({ data }: { data: ListOrderData }): JSX.Element {
             disabled={!changed || saving}
             onClick={() => setOrder(saved)}
           >
-            <Icon icon="solar:restart-linear" size={15} />
+            <Icon icon="solar:restart-bold" size={15} />
             Undo changes
           </Button>
           <Button

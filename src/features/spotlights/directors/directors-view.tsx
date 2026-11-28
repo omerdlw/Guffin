@@ -344,7 +344,7 @@ function DirectorsAction({
           onClick={() => onStep(-1)}
           type="button"
         >
-          <Icon icon="solar:alt-arrow-left-bold" size={16} />
+          <Icon icon="solar:alt-arrow-left-linear" size={16} />
         </Button>
         <p
           aria-live="polite"
@@ -360,7 +360,7 @@ function DirectorsAction({
           onClick={() => onStep(1)}
           type="button"
         >
-          <Icon icon="solar:alt-arrow-right-bold" size={16} />
+          <Icon icon="solar:alt-arrow-right-linear" size={16} />
         </Button>
       </div>
     </DockAction>

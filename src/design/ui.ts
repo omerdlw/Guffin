@@ -106,12 +106,12 @@ export const ui = defineUi({
     glide: { duration: 0, ease: [0, 0, 1, 1] },
   },
   icons: {
-    check: "material-symbols:check-rounded",
-    selected: "material-symbols:check-rounded",
-    chevron: "solar:chevrons-up-down-linear",
-    previous: "solar:alt-arrow-left-bold",
-    next: "solar:alt-arrow-right-bold",
-    spinner: "mingcute:loading-3-fill",
+    check: "solar:check-bold",
+    selected: "solar:check-bold",
+    chevron: "solar:chevrons-up-down-bold",
+    previous: "solar:alt-arrow-left-linear",
+    next: "solar:alt-arrow-right-linear",
+    spinner: "svg-spinners:90-ring-with-bg",
   },
 });
 

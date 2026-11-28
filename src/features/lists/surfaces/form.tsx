@@ -51,7 +51,7 @@ export const listFormSurface = defineSurface<{ data: ListFormData }>({
   component: ListFormSurface,
   description: ({ data }) =>
     data.list ? "Change this list" : "Name it and make it yours",
-  icon: ({ data }) => (data.list ? "solar:pen-bold" : "solar:add-circle-bold"),
+  icon: ({ data }) => (data.list ? "solar:pen-bold" : "solar:add-bold"),
   title: ({ data }) => (data.list ? "Edit List" : "New List"),
 });
 
@@ -295,7 +295,7 @@ function ListFormSurface({ data }: { data: ListFormData }): JSX.Element {
                   checked={draft.isPrivate}
                   description="Only you can see it"
                   disabled={disabled}
-                  icon="solar:lock-keyhole-bold"
+                  icon="solar:lock-bold"
                   label="Private"
                   onChange={(isPrivate) => updateDraft({ isPrivate })}
                 />

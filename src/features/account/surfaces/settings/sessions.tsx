@@ -213,7 +213,7 @@ export function SessionsPanel({
           loading={revokingOthers}
           onClick={revokeOthers}
         >
-          <Icon icon="solar:logout-2-bold" size={16} />
+          <Icon icon="solar:logout-3-bold" size={16} />
           Sign out all other devices
         </Button>
       ) : null}

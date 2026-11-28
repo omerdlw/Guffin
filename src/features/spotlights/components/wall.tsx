@@ -226,9 +226,7 @@ export function WallAction({
           onClick={() => onToggle("watched")}
           type="button"
         >
-          <ActionIcon
-            icon={seen ? "solar:check-circle-bold" : "solar:eye-bold"}
-          />
+          <ActionIcon icon={seen ? "solar:check-bold" : "solar:eye-bold"} />
           <ActionLabel>{seen ? "Watched" : "Mark watched"}</ActionLabel>
         </Button>
         {seen ? null : (

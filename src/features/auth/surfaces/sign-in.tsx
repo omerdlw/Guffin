@@ -52,8 +52,8 @@ const REDIRECT_TIMEOUT_MS = 12000;
 
 const SIGN_IN_METHODS: Record<SignInMethod, { icon: string; label: string }> = {
   email: { icon: "solar:letter-bold", label: "Email" },
-  github: { icon: "mdi:github", label: "GitHub" },
-  google: { icon: "flat-color-icons:google", label: "Google" },
+  github: { icon: "simple-icons:github", label: "GitHub" },
+  google: { icon: "simple-icons:google", label: "Google" },
   passkey: { icon: "solar:key-bold", label: "Passkey" },
   x: { icon: "simple-icons:x", label: "X" },
 };

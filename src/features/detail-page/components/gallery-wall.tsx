@@ -50,7 +50,7 @@ export function WallButton({ set }: { set: string }) {
         ref={button}
         type="button"
       >
-        <Icon icon="solar:widget-4-linear" size={16} />
+        <Icon icon="solar:widget-bold" size={16} />
       </Button>
     </Tooltip>
   );
@@ -134,7 +134,7 @@ export function GalleryWall({
                 shape="pill"
                 size="sm"
               >
-                <Icon icon="solar:close-circle-linear" size={14} />
+                <Icon icon="solar:close-bold" size={14} />
                 {back}
               </Button>
             </div>

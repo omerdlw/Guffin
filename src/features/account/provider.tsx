@@ -341,7 +341,7 @@ function AccountDockActions(): null {
         visible: signedIn,
       },
       {
-        icon: "solar:logout-2-bold",
+        icon: "solar:logout-3-bold",
         key: SIGN_OUT_ACTION_KEY,
         onClick: () => void signOut(),
         order: SIGN_OUT_ACTION_ORDER,

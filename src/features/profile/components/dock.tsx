@@ -24,7 +24,7 @@ import { useProfileFollow } from "../use-profile-follow";
 
 type ProfileTab = "films" | "inbox";
 
-const INBOX_ICON = "solar:inbox-bold";
+const INBOX_ICON = "solar:inbox-archive-bold";
 
 const SETTINGS_ORDER = 10;
 

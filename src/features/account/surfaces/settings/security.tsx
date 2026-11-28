@@ -125,7 +125,7 @@ export function DeletePanel() {
   return (
     <div className={SURFACE_STACK}>
       <div className={tileVariants()}>
-        <Mark icon="solar:danger-triangle-bold" tone="danger" />
+        <Mark icon="solar:danger-bold" tone="danger" />
         <span className={SURFACE_TEXT}>
           <span className={SURFACE_TITLE}>This can&apos;t be undone</span>
           <span className={SURFACE_META}>Your account is removed for good</span>

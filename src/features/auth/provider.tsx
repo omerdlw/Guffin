@@ -146,7 +146,7 @@ export function AuthListener(): null {
       globalEvents.emit(DOCK_EVENTS.STATUS_SET, {
         description: "See you soon",
         duration: STATUS_DURATION_MS,
-        icon: "solar:logout-2-bold",
+        icon: "solar:logout-3-bold",
         title: "Signed out",
         type: "LOGOUT",
       });

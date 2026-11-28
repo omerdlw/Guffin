@@ -158,7 +158,7 @@ const ListCard = memo(function ListCard({
             {pending ? (
               <Spinner size={12} />
             ) : (
-              <Icon icon="solar:check-read-linear" size={14} />
+              <Icon icon="solar:check-bold" size={14} />
             )}
           </span>
         ) : null}
@@ -232,7 +232,7 @@ function ListShelf({
     return (
       <PickerNote className="min-h-40 flex-col gap-1.5">
         <div className="center size-10 rounded-full bg-fill text-ink-muted">
-          <Icon icon="solar:danger-circle-bold" size={20} />
+          <Icon icon="solar:danger-bold" size={20} />
         </div>
         <p className="type-body text-ink-body">
           Your lists could not be loaded
@@ -438,7 +438,7 @@ function ListPickerSurface({ data }: { data: ListPickerData }): JSX.Element {
                 loading={creating}
                 type="submit"
               >
-                <Icon icon="solar:add-linear" size={16} />
+                <Icon icon="solar:add-bold" size={16} />
               </Button>
             </span>
           </form>

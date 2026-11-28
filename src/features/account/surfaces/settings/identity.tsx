@@ -139,7 +139,7 @@ export function ProfileForm({ onSaved }: { onSaved: () => void }) {
           "group cursor-pointer select-none",
         )}
       >
-        <Mark icon={isPrivate ? "solar:lock-keyhole-bold" : "solar:eye-bold"} />
+        <Mark icon={isPrivate ? "solar:lock-bold" : "solar:eye-bold"} />
         <span className={SURFACE_TEXT}>
           <span className={SURFACE_TITLE}>
             {isPrivate ? "Private profile" : "Public profile"}

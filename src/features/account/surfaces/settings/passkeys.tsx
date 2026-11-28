@@ -178,7 +178,7 @@ export function PasskeysPanel({
           )
         }
       >
-        <Icon icon="solar:add-circle-bold" size={16} />
+        <Icon icon="solar:add-bold" size={16} />
         Add passkey
       </Button>
     </HighlightGroup>

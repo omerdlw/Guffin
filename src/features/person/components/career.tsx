@@ -203,7 +203,7 @@ export function PersonCareer({ career }: { career: CareerData | null }) {
             ) : null}
           </div>
         }
-        icon="solar:chart-2-bold"
+        icon="solar:chart-bold"
         title="Career"
       />
       <DetailSwap cue="chart" id="career" now>

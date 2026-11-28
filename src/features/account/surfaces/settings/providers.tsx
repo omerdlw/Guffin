@@ -32,8 +32,8 @@ import { useAuth } from "@/features/auth/provider";
 
 const PROVIDER_LABELS: Record<OAuthProvider, { icon: string; label: string }> =
   {
-    github: { icon: "mdi:github", label: "GitHub" },
-    google: { icon: "flat-color-icons:google", label: "Google" },
+    github: { icon: "simple-icons:github", label: "GitHub" },
+    google: { icon: "simple-icons:google", label: "Google" },
     x: { icon: "simple-icons:x", label: "X" },
   };
 
@@ -98,7 +98,7 @@ function ConnectedRow({
         />
         <Icon
           className="center absolute opacity-0 ui-fade group-hover/chip:opacity-100"
-          icon="solar:link-broken-linear"
+          icon="solar:link-broken-bold"
           size={16}
         />
       </Button>
@@ -139,7 +139,7 @@ function ConnectRow({
         </span>
       </span>
       <span className="center size-control-chrome shrink-0 rounded-full text-ink-muted ui-fade group-hover/connect:bg-fill-hover group-hover/connect:text-ink ">
-        <Icon className="center" icon="solar:link-linear" size={16} />
+        <Icon className="center" icon="solar:link-bold" size={16} />
       </span>
     </Button>
   );

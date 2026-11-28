@@ -41,7 +41,7 @@ function NewListCard({ username }: { username: string }): JSX.Element {
           paths={[]}
         />
         <span className="absolute inset-0 center text-ink-muted group-hover/new:text-ink">
-          <Icon icon="solar:add-circle-bold" size={28} />
+          <Icon icon="solar:add-bold" size={28} />
         </span>
       </button>
       <div className="flex min-w-0 flex-col gap-fib-1">
